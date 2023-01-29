@@ -15,9 +15,9 @@ final class GenericTransitionTests: XCTestCase {
     typealias Given = FiniteStateMachine.Given<State>
     typealias When = FiniteStateMachine.When<Event>
     typealias Then = FiniteStateMachine.Then<State>
-    typealias Action = FiniteStateMachine.Action<GenericTransitionTests>
+    typealias Action = FiniteStateMachine.Action
     
-    typealias Transition = FiniteStateMachine.Transition<State,Event,State,GenericTransitionTests>
+    typealias Transition = FiniteStateMachine.Transition<State,Event>
     
     var t: [Transition] = []
     
@@ -25,7 +25,7 @@ final class GenericTransitionTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ action: @escaping (GenericTransitionTests) -> Void = { _ in }
+        _ action: @escaping () -> Void = { }
     ) -> Transition {
         Transition(givenState: given,
                    event: when,
@@ -46,13 +46,13 @@ final class GenericTransitionTests: XCTestCase {
     }
     
     func testSimpleConstructor() {
-        t = Given(.a) | When(.g) | Then(.b) | Action { _ in }
+        t = Given(.a) | When(.g) | Then(.b) | Action {  }
         
         assertFirst(transition(.a, .g, .b))
     }
 
     func testMultiGivenConstructor() {
-        t = Given(.a, .b) | When(.g) | Then(.b) | Action { _ in }
+        t = Given(.a, .b) | When(.g) | Then(.b) | Action {  }
         
         assertFirst(transition(.a, .g, .b))
         assertLast(transition(.b, .g, .b))
@@ -60,8 +60,8 @@ final class GenericTransitionTests: XCTestCase {
     }
     
     func testMultiWhenThenActionConstructor() {
-        t = Given(.a) | [When(.g) | Then(.b) | Action { _ in },
-                         When(.h) | Then(.c) | Action { _ in }]
+        t = Given(.a) | [When(.g) | Then(.b) | Action {  },
+                         When(.h) | Then(.c) | Action {  }]
         
         assertFirst(transition(.a, .g, .b))
         assertLast(transition(.a, .h, .c))
@@ -69,8 +69,8 @@ final class GenericTransitionTests: XCTestCase {
     }
     
     func testCombineMultiGivenAndMultiWhenThenAction() {
-        t = Given(.a, .b) | [When(.g) | Then(.c) | Action { _ in },
-                             When(.h) | Then(.c) | Action { _ in }]
+        t = Given(.a, .b) | [When(.g) | Then(.c) | Action {  },
+                             When(.h) | Then(.c) | Action {  }]
         
         assertFirst(transition(.a, .g, .c))
         assertLast(transition(.b, .h, .c))
@@ -78,7 +78,7 @@ final class GenericTransitionTests: XCTestCase {
     }
     
     func testMultiWhenConstructor() {
-        t = Given(.a) | When(.g, .h) | Then(.c) | Action { _ in }
+        t = Given(.a) | When(.g, .h) | Then(.c) | Action {  }
         
         assertFirst(transition(.a, .g, .c))
         assertLast(transition(.a, .h, .c))
@@ -86,7 +86,7 @@ final class GenericTransitionTests: XCTestCase {
     }
     
     func testMultiGivenMultiWhenConstructor() {
-        t = Given(.a, .b) | When(.g, .h) | Then(.c) | Action { _ in }
+        t = Given(.a, .b) | When(.g, .h) | Then(.c) | Action {  }
         
         assertFirst(transition(.a, .g, .c))
         assertLast(transition(.b, .h, .c))
@@ -95,8 +95,8 @@ final class GenericTransitionTests: XCTestCase {
     
     func testCombineMultiGivenMultiWhenMultiWhenThenAction() {
         t = Given(.a, .b) | [
-            When(.g, .h) | Then(.c) | Action { _ in },
-            When(.i, .j) | Then(.d) | Action { _ in }
+            When(.g, .h) | Then(.c) | Action {  },
+            When(.i, .j) | Then(.d) | Action {  }
         ]
         
         assertFirst(transition(.a, .g, .c))
@@ -106,7 +106,7 @@ final class GenericTransitionTests: XCTestCase {
     
     func testMultiWhenThenConstructor() {
         t = Given(.a) | [When(.g) | Then(.c),
-                         When(.h) | Then(.d)] | Action { _ in }
+                         When(.h) | Then(.d)] | Action {  }
         
         assertFirst(transition(.a, .g, .c))
         assertLast(transition(.a, .h, .d))
@@ -115,10 +115,10 @@ final class GenericTransitionTests: XCTestCase {
     
     func testMaxConstructors() {
         t = Given(.a, .b) | [[When(.g, .h) | Then(.c),
-                              When(.h, .i) | Then(.d)] | Action { _ in },
+                              When(.h, .i) | Then(.d)] | Action {  },
                              
                              [When(.i, .j) | Then(.e),
-                              When(.j, .k) | Then(.f)] | Action { _ in }]
+                              When(.j, .k) | Then(.f)] | Action {  }]
         
         assertFirst(transition(.a, .g, .c))
         assertLast(transition(.b, .k, .f))
@@ -126,26 +126,26 @@ final class GenericTransitionTests: XCTestCase {
     }
     
     func testEquality() {
-        let x = Given(.a, .b) | When(.g) | Then(.c) | Action { _ in }
-        var y = Given(.a, .b) | When(.g) | Then(.c) | Action { _ in }
+        let x = Given(.a, .b) | When(.g) | Then(.c) | Action {  }
+        var y = Given(.a, .b) | When(.g) | Then(.c) | Action {  }
         XCTAssertEqual(x, y)
 
-        y =     Given(.a, .a) | When(.g) | Then(.c) | Action { _ in }
+        y =     Given(.a, .a) | When(.g) | Then(.c) | Action {  }
         XCTAssertNotEqual(x, y)
 
-        y =     Given(.a, .b) | When(.h) | Then(.c) | Action { _ in }
+        y =     Given(.a, .b) | When(.h) | Then(.c) | Action {  }
         XCTAssertNotEqual(x, y)
 
-        y =     Given(.a, .b) | When(.g) | Then(.b)   | Action { _ in }
+        y =     Given(.a, .b) | When(.g) | Then(.b)   | Action {  }
         XCTAssertNotEqual(x, y)
     }
 
     func testBuilder() {
         let t = Transition.build {
-            Given(.a, .b) | When(.g) | Then(.c) | Action { _ in }
-            Given(.c)     | When(.h) | Then(.d) | Action { _ in }
-            Given(.d)     | When(.i) | Then(.e) | Action { _ in }
-            Given(.e)     | When(.j) | Then(.f) | Action { _ in }
+            Given(.a, .b) | When(.g) | Then(.c) | Action {  }
+            Given(.c)     | When(.h) | Then(.d) | Action {  }
+            Given(.d)     | When(.i) | Then(.e) | Action {  }
+            Given(.e)     | When(.j) | Then(.f) | Action {  }
         }
 
         XCTAssertEqual(t.count, 5)
@@ -153,8 +153,8 @@ final class GenericTransitionTests: XCTestCase {
 
     func testBuilderDoesNotDuplicate() {
         let t = Transition.build {
-            Given(.a, .a) | When(.g) | Then(.b) | Action { _ in }
-            Given(.a)     | When(.g) | Then(.b) | Action { _ in }
+            Given(.a, .a) | When(.g) | Then(.b) | Action {  }
+            Given(.a)     | When(.g) | Then(.b) | Action {  }
         }
 
         XCTAssertEqual(t.count, 1)
@@ -167,15 +167,15 @@ final class GenericTransitionTests: XCTestCase {
     func testActionPassedCorrectly() {
         let e = expectation(description: "passAction")
         let t = Given(.a) | When(.g) | Then(.c) | Action {
-            $0.assertAction(e)
+            self.assertAction(e)
         }
-        t.first?.action(self)
+        t.first?.action()
         waitForExpectations(timeout: 0.1)
     }
     
     func testCanRetrieveTransitionByKey() {
         let ts = Transition.build {
-            Given(.a, .b) | When(.g, .h) | Then(.b) | Action { _ in }
+            Given(.a, .b) | When(.g, .h) | Then(.b) | Action {  }
         }
                 
         let expectedT = ts[Transition.Key(given: .a, event: .h)]
@@ -189,7 +189,7 @@ final class GenericTransitionTests: XCTestCase {
         let condition = true
         let ts = Transition.build {
             if(condition) {
-                Given(.a) | When(.g) | Then(.b) | Action { _ in }
+                Given(.a) | When(.g) | Then(.b) | Action {  }
             }
         }
         XCTAssertEqual(ts.first?.value, transition(.a, .g, .b))
@@ -199,10 +199,10 @@ final class GenericTransitionTests: XCTestCase {
         let test = false
         let ts = Transition.build {
             if(test) {
-                Given(.a) | When(.g) | Then(.b) | Action { _ in }
-                Given(.a) | When(.h) | Then(.b) | Action { _ in }
+                Given(.a) | When(.g) | Then(.b) | Action {  }
+                Given(.a) | When(.h) | Then(.b) | Action {  }
             } else {
-                Given(.b) | When(.i) | Then(.b) | Action { _ in }
+                Given(.b) | When(.i) | Then(.b) | Action {  }
             }
         }
         XCTAssertEqual(ts.count, 1)
@@ -215,8 +215,8 @@ final class GenericTransitionTests: XCTestCase {
         let state = Switchy.on
         let ts = Transition.build {
             switch state {
-            case .on:  Given(.a) | When(.g) | Then(.b) | Action { _ in }
-            case .off: Given(.b) | When(.i) | Then(.b) | Action { _ in }
+            case .on:  Given(.a) | When(.g) | Then(.b) | Action {  }
+            case .off: Given(.b) | When(.i) | Then(.b) | Action {  }
             }
         }
         XCTAssertEqual(ts.first?.value, transition(.a, .g, .b))
@@ -226,7 +226,6 @@ final class GenericTransitionTests: XCTestCase {
 final class ClassBasedTransitionTests: XCTestCase {
     typealias State = Base.State
     typealias Event = Base.Event
-    typealias Action = Base.Action
     typealias Transition = Base.Transition
     
     class Started: State {}
@@ -235,19 +234,18 @@ final class ClassBasedTransitionTests: XCTestCase {
     class DidFlunt: Event {}
     class DidStopFlunting: Event {}
     
-    class Die: Action {}
-    class Flulbenate: Action {}
+    var actionCalled = false
+    func action() { actionCalled = true }
     
     func transition(
         _ givenState: State,
         _ event: Event,
-        _ nextState: State,
-        _ action: Action
+        _ nextState: State
     ) -> Transition {
         Transition(givenState: givenState,
                    event: event,
                    nextState: nextState,
-                   action: action)
+                   action: { })
     }
     
     func testStateEvent() {
@@ -281,57 +279,57 @@ final class ClassBasedTransitionTests: XCTestCase {
     }
     
     func testStateAction() {
-        let sa = Started() | Flulbenate()
+        let sa = Started() | action
         XCTAssertEqual(sa.state, Started())
-        XCTAssertEqual(sa.action, Flulbenate())
     }
     
     func testStateEventState() {
         let ses = Started() | DidFlunt() | Finished()
-        
+
         XCTAssertEqual(ses.startState, Started())
         XCTAssertEqual(ses.event, DidFlunt())
         XCTAssertEqual(ses.endState, Finished())
     }
-    
+
     func testHashable() {
         let test = Set([Started(), Started(), Finished()])
         XCTAssertEqual(test.count, 2)
     }
-    
+
     func testSesToTransition() {
-        let t = Started() | DidFlunt() | Finished() | Die()
+        let t = Started() | DidFlunt() | Finished() | action
         XCTAssertEqual(t, transition(Started(),
                                      DidFlunt(),
-                                     Finished(),
-                                     Die()))
+                                     Finished()))
     }
-    
+
     func testMultipleSeSsToTransition() {
         let t = [Started()  | DidFlunt() | Finished(),
-                 Finished() | DidFlunt() | Finished()] | Die()
-        
+                 Finished() | DidFlunt() | Finished()] | action
+
         XCTAssertEqual(t.first, transition(Started(),
                                            DidFlunt(),
-                                           Finished(),
-                                           Die()))
+                                           Finished()))
         XCTAssertEqual(t.last, transition(Finished(),
                                           DidFlunt(),
-                                          Finished(),
-                                          Die()))
+                                          Finished()))
     }
-        
+
     func testMultipleSesToTransition() {
         let t = [Finished() | DidFlunt(),
-                 Started()  | DidFlunt()] | Finished() | Die()
-        
+                 Started()  | DidFlunt()] | Finished() | action
+
         XCTAssertEqual(t.first, transition(Finished(),
                                            DidFlunt(),
-                                           Finished(),
-                                           Die()))
+                                           Finished()))
         XCTAssertEqual(t.last, transition(Started(),
                                           DidFlunt(),
-                                          Finished(),
-                                          Die()))
+                                          Finished()))
+    }
+    
+    func testCallsAction() {
+        let t = Started() | DidFlunt() | Finished() | action
+        t.action()
+        XCTAssertTrue(actionCalled)
     }
 }

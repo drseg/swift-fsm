@@ -36,42 +36,42 @@ struct Then<T> {
     }
 }
 
-struct GivenWhenThen<G, W, T> {
+struct GivenWhenThen<G, W> {
     let given: G
     let when: W
-    let then: T
+    let then: G
 }
 
-struct WhenThen<W, T> {
+struct WhenThen<W,T> {
     let when: W
     let then: T
 }
 
-struct ThenAction<T, A> {
+struct ThenAction<T> {
     let then: T
-    let action: (A) -> Void
+    let action: () -> Void
 }
 
-struct WhenThenAction<W, T, A> {
+struct WhenThenAction<W,T> {
     let when: W
     let then: T
-    let action: (A) -> Void
+    let action: () -> Void
 }
 
-struct Action<A> {
-    let action: (A) -> Void
+struct Action {
+    let action: () -> Void
     
-    init(_ action: @escaping (A) -> Void) {
+    init(_ action: @escaping () -> Void) {
         self.action = action
     }
 }
 
-struct Transition<G,W,T,A>: Equatable
-where G: Hashable, W: Hashable, T: Hashable {
+struct Transition<G,W>: Equatable
+where G: Hashable, W: Hashable {
     let givenState: G
     let event: W
-    let nextState: T
-    let action: (A) -> Void
+    let nextState: G
+    let action: () -> Void
     
     struct Key<G,W>: Hashable where G: Hashable, W: Hashable {
         let given: G
@@ -94,7 +94,7 @@ where G: Hashable, W: Hashable, T: Hashable {
             if let values {
                 return Array(values.values)
             } else {
-                return [Transition<G,W,T,A>]()
+                return [Transition<G,W>]()
             }
         }
         
@@ -118,8 +118,8 @@ where G: Hashable, W: Hashable, T: Hashable {
     }
     
     static func == (
-        lhs: Transition<G, W, T, A>,
-        rhs: Transition<G, W, T, A>
+        lhs: Transition<G,W>,
+        rhs: Transition<G,W>
     ) -> Bool {
         lhs.givenState == rhs.givenState &&
         lhs.event == rhs.event &&
@@ -135,10 +135,10 @@ func |<G,W> (lhs: Given<G>, rhs: When<W>) -> [GivenWhen<G, W>] {
     }
 }
 
-func |<G,W,T> (
+func |<G,W> (
     lhs: Given<G>,
-    rhs: [[WhenThen<W,T>]]
-) -> [GivenWhenThen<G, W, T>] {
+    rhs: [[WhenThen<W,G>]]
+) -> [GivenWhenThen<G,W>] {
     lhs.given.reduce(into: [GivenWhenThen]()) { givenWhenThens, given in
         rhs.flatMap { $0 }.forEach {
             givenWhenThens.append(GivenWhenThen(given: given,
@@ -148,10 +148,10 @@ func |<G,W,T> (
     }
 }
 
-func |<G,W,T> (
+func |<G,W> (
     lhs: [GivenWhen<G, W>],
-    rhs: Then<T>
-) -> [GivenWhenThen<G,W,T>] {
+    rhs: Then<G>
+) -> [GivenWhenThen<G,W>] {
     lhs.reduce(into: [GivenWhenThen]()) { givenWhenThens, givenWhen in
         givenWhenThens.append(GivenWhenThen(given: givenWhen.given,
                                             when: givenWhen.when,
@@ -159,11 +159,11 @@ func |<G,W,T> (
     }
 }
 
-func |<G,W,T,A> (
-    lhs: [GivenWhenThen<G,W,T>],
-    rhs: Action<A>
-) -> [Transition<G,W,T,A>] {
-    lhs.reduce(into: [Transition<G,W,T,A>]()) {
+func |<G,W> (
+    lhs: [GivenWhenThen<G,W>],
+    rhs: Action
+) -> [Transition<G,W>] {
+    lhs.reduce(into: [Transition<G,W>]()) {
         $0.append(
             Transition(
                 givenState: $1.given,
@@ -181,33 +181,33 @@ func |<W,T> (lhs: When<W>, rhs: Then<T>) -> [WhenThen<W,T>] {
     }
 }
 
-func |<W,T,A> (
+func |<W,T> (
     lhs: [WhenThen<W,T>],
-    rhs: Action<A>
-) -> [WhenThenAction<W,T,A>] {
-    lhs.reduce(into: [WhenThenAction<W,T,A>]()) {
+    rhs: Action
+) -> [WhenThenAction<W,T>] {
+    lhs.reduce(into: [WhenThenAction<W,T>]()) {
         $0.append(WhenThenAction(when: $1.when,
                                  then: $1.then,
                                  action: rhs.action))
     }
 }
 
-func |<W,T,A> (
+func |<W,T> (
     lhs: [[WhenThen<W,T>]],
-    rhs: Action<A>
-) -> [WhenThenAction<W,T,A>] {
-    lhs.flatMap { $0 }.reduce(into: [WhenThenAction<W,T,A>]()) {
+    rhs: Action
+) -> [WhenThenAction<W,T>] {
+    lhs.flatMap { $0 }.reduce(into: [WhenThenAction<W,T>]()) {
         $0.append(WhenThenAction(when: $1.when,
                                  then: $1.then,
                                  action: rhs.action))
     }
 }
 
-func |<G,W,T,A> (
+func |<G,W> (
     lhs: Given<G>,
-    rhs: [[WhenThenAction<W,T,A>]]
-) -> [Transition<G,W,T,A>] {
-    rhs.flatMap { $0 }.reduce(into: [Transition<G,W,T,A>]()) { ts, action in
+    rhs: [[WhenThenAction<W,G>]]
+) -> [Transition<G,W>] {
+    rhs.flatMap { $0 }.reduce(into: [Transition<G,W>]()) { ts, action in
         lhs.given.forEach { given in
             ts.append(
                 Transition(

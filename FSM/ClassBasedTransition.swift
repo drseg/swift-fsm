@@ -20,7 +20,6 @@ enum Base {
     
     class State: HashableBase { }
     class Event: HashableBase { }
-    class Action: HashableBase { }
     
     class StateEvent {
         let state: State
@@ -56,9 +55,9 @@ enum Base {
     
     class StateAction {
         let state: State
-        let action: Action
+        let action: () -> Void
         
-        init(_ state: State, _ action: Action) {
+        init(_ state: State, _ action: @escaping () -> Void) {
             self.state = state
             self.action = action
         }
@@ -68,7 +67,7 @@ enum Base {
         let givenState: State
         let event: Event
         let nextState: State
-        let action: Action
+        let action: () -> Void
         
         struct Key: Hashable {
             let given: State
@@ -150,7 +149,7 @@ func | (events: [Base.Event], state: Base.State) -> [Base.EventState] {
     }
 }
 
-func | (state: Base.State, action: Base.Action) -> Base.StateAction {
+func | (state: Base.State, action: @escaping () -> Void) -> Base.StateAction {
     Base.StateAction(state, action)
 }
 
@@ -164,11 +163,11 @@ func | (stateEvents: [Base.StateEvent], state: Base.State) -> [Base.StateEventSt
     }
 }
 
-func | (stateEventState: Base.StateEventState, action: Base.Action) -> Base.Transition {
+func | (stateEventState: Base.StateEventState, action: @escaping () -> Void) -> Base.Transition {
     Base.Transition(givenState: stateEventState.startState, event: stateEventState.event, nextState: stateEventState.endState, action: action)
 }
 
-func | (stateEventStates: [Base.StateEventState], action: Base.Action) -> [Base.Transition] {
+func | (stateEventStates: [Base.StateEventState], action: @escaping () -> Void) -> [Base.Transition] {
     stateEventStates.reduce(into: [Base.Transition]()) {
         $0.append(
         Base.Transition(givenState: $1.startState, event: $1.event, nextState: $1.endState, action: action)
