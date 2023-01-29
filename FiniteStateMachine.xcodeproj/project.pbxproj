@@ -9,8 +9,9 @@
 /* Begin PBXBuildFile section */
 		6EE64F8C2986BE3B009A361C /* FiniteStateMachine.docc in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */; };
 		6EE64F922986BE3B009A361C /* FiniteStateMachine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */; };
-		6EE64F972986BE3B009A361C /* FiniteStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F962986BE3B009A361C /* FiniteStateMachineTests.swift */; };
+		6EE64F972986BE3B009A361C /* FSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F962986BE3B009A361C /* FSMTests.swift */; };
 		6EE64F982986BE3B009A361C /* FiniteStateMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6EE64FA22986BE71009A361C /* Transition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64FA12986BE71009A361C /* Transition.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,7 +29,8 @@
 		6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FiniteStateMachine.h; sourceTree = "<group>"; };
 		6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = FiniteStateMachine.docc; sourceTree = "<group>"; };
 		6EE64F912986BE3B009A361C /* FiniteStateMachineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FiniteStateMachineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		6EE64F962986BE3B009A361C /* FiniteStateMachineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiniteStateMachineTests.swift; sourceTree = "<group>"; };
+		6EE64F962986BE3B009A361C /* FSMTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSMTests.swift; sourceTree = "<group>"; };
+		6EE64FA12986BE71009A361C /* Transition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Transition.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,8 +55,8 @@
 		6EE64F7D2986BE3B009A361C = {
 			isa = PBXGroup;
 			children = (
-				6EE64F892986BE3B009A361C /* FiniteStateMachine */,
-				6EE64F952986BE3B009A361C /* FiniteStateMachineTests */,
+				6EE64F892986BE3B009A361C /* FSM */,
+				6EE64F952986BE3B009A361C /* FSMTests */,
 				6EE64F882986BE3B009A361C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -68,21 +70,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6EE64F892986BE3B009A361C /* FiniteStateMachine */ = {
+		6EE64F892986BE3B009A361C /* FSM */ = {
 			isa = PBXGroup;
 			children = (
+				6EE64FA12986BE71009A361C /* Transition.swift */,
 				6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */,
 				6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */,
 			);
-			path = FiniteStateMachine;
+			path = FSM;
 			sourceTree = "<group>";
 		};
-		6EE64F952986BE3B009A361C /* FiniteStateMachineTests */ = {
+		6EE64F952986BE3B009A361C /* FSMTests */ = {
 			isa = PBXGroup;
 			children = (
-				6EE64F962986BE3B009A361C /* FiniteStateMachineTests.swift */,
+				6EE64F962986BE3B009A361C /* FSMTests.swift */,
 			);
-			path = FiniteStateMachineTests;
+			path = FSMTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -194,6 +197,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6EE64FA22986BE71009A361C /* Transition.swift in Sources */,
 				6EE64F8C2986BE3B009A361C /* FiniteStateMachine.docc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -202,7 +206,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6EE64F972986BE3B009A361C /* FiniteStateMachineTests.swift in Sources */,
+				6EE64F972986BE3B009A361C /* FSMTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -405,6 +409,7 @@
 		6EE64F9F2986BE3B009A361C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8V7B4KMTJK;
@@ -425,6 +430,7 @@
 		6EE64FA02986BE3B009A361C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8V7B4KMTJK;
