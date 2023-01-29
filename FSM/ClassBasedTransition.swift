@@ -7,6 +7,22 @@
 
 import Foundation
 
+protocol TransitionConvertible {
+    func asArray() -> [Base.Transition]
+}
+
+extension Base.Transition: TransitionConvertible {
+    func asArray() -> [Base.Transition] {
+        [self]
+    }
+}
+
+extension Array: TransitionConvertible where Element == Base.Transition {
+    func asArray() -> [Base.Transition] {
+        self
+    }
+}
+
 enum Base {
     class HashableBase: Hashable {
         static func == (lhs: HashableBase, rhs: HashableBase) -> Bool {
@@ -82,9 +98,9 @@ enum Base {
         @resultBuilder
         struct Builder {
             static func buildBlock(
-                _ transitions: [Transition]...
+                _ transitions: TransitionConvertible...
             ) -> [Key: Transition] {
-                transitions.flatMap {$0}.reduce(into: [Key: Transition]()) {
+                transitions.map { $0.asArray() }.flatMap { $0 }.reduce(into: [Key: Transition]()) {
                     $0[Key(given: $1.givenState, event: $1.event)] = $1
                 }
             }
