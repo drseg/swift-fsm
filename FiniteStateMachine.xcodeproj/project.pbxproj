@@ -8,10 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		6EA3A02229871402007928C4 /* ClassTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02129871402007928C4 /* ClassTransitionTests.swift */; };
-		6EA3A02529871E93007928C4 /* GenericFSM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02329871CB7007928C4 /* GenericFSM.swift */; };
+		6EA3A02529871E93007928C4 /* FSM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02329871CB7007928C4 /* FSM.swift */; };
 		6EA3A028298726BA007928C4 /* ClassBasedOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A027298726BA007928C4 /* ClassBasedOperators.swift */; };
 		6EA3A02A298726C5007928C4 /* GenericOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A029298726C5007928C4 /* GenericOperators.swift */; };
 		6EA3A02C298726FD007928C4 /* Transition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02B298726FC007928C4 /* Transition.swift */; };
+		6EA3A02E29872A04007928C4 /* FSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02D29872A04007928C4 /* FSMTests.swift */; };
 		6EE64F8C2986BE3B009A361C /* FiniteStateMachine.docc in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */; };
 		6EE64F922986BE3B009A361C /* FiniteStateMachine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */; };
 		6EE64F972986BE3B009A361C /* GenericTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F962986BE3B009A361C /* GenericTransitionTests.swift */; };
@@ -30,10 +31,11 @@
 
 /* Begin PBXFileReference section */
 		6EA3A02129871402007928C4 /* ClassTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassTransitionTests.swift; sourceTree = "<group>"; };
-		6EA3A02329871CB7007928C4 /* GenericFSM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericFSM.swift; sourceTree = "<group>"; };
+		6EA3A02329871CB7007928C4 /* FSM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSM.swift; sourceTree = "<group>"; };
 		6EA3A027298726BA007928C4 /* ClassBasedOperators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBasedOperators.swift; sourceTree = "<group>"; };
 		6EA3A029298726C5007928C4 /* GenericOperators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericOperators.swift; sourceTree = "<group>"; };
 		6EA3A02B298726FC007928C4 /* Transition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Transition.swift; sourceTree = "<group>"; };
+		6EA3A02D29872A04007928C4 /* FSMTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSMTests.swift; sourceTree = "<group>"; };
 		6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FiniteStateMachine.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FiniteStateMachine.h; sourceTree = "<group>"; };
 		6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = FiniteStateMachine.docc; sourceTree = "<group>"; };
@@ -63,8 +65,8 @@
 		6EE64F7D2986BE3B009A361C = {
 			isa = PBXGroup;
 			children = (
-				6EE64F892986BE3B009A361C /* FSM */,
-				6EE64F952986BE3B009A361C /* FSMTests */,
+				6EE64F892986BE3B009A361C /* Source */,
+				6EE64F952986BE3B009A361C /* Tests */,
 				6EE64F882986BE3B009A361C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,26 +80,27 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6EE64F892986BE3B009A361C /* FSM */ = {
+		6EE64F892986BE3B009A361C /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				6EA3A02329871CB7007928C4 /* GenericFSM.swift */,
+				6EA3A02329871CB7007928C4 /* FSM.swift */,
 				6EA3A02B298726FC007928C4 /* Transition.swift */,
 				6EA3A027298726BA007928C4 /* ClassBasedOperators.swift */,
 				6EA3A029298726C5007928C4 /* GenericOperators.swift */,
 				6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */,
 				6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */,
 			);
-			path = FSM;
+			path = Source;
 			sourceTree = "<group>";
 		};
-		6EE64F952986BE3B009A361C /* FSMTests */ = {
+		6EE64F952986BE3B009A361C /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				6EA3A02D29872A04007928C4 /* FSMTests.swift */,
 				6EE64F962986BE3B009A361C /* GenericTransitionTests.swift */,
 				6EA3A02129871402007928C4 /* ClassTransitionTests.swift */,
 			);
-			path = FSMTests;
+			path = Tests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -209,7 +212,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6EA3A02529871E93007928C4 /* GenericFSM.swift in Sources */,
+				6EA3A02529871E93007928C4 /* FSM.swift in Sources */,
 				6EA3A02C298726FD007928C4 /* Transition.swift in Sources */,
 				6EE64F8C2986BE3B009A361C /* FiniteStateMachine.docc in Sources */,
 				6EA3A028298726BA007928C4 /* ClassBasedOperators.swift in Sources */,
@@ -222,6 +225,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6EE64F972986BE3B009A361C /* GenericTransitionTests.swift in Sources */,
+				6EA3A02E29872A04007928C4 /* FSMTests.swift in Sources */,
 				6EA3A02229871402007928C4 /* ClassTransitionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

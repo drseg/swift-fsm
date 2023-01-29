@@ -8,7 +8,7 @@
 import XCTest
 @testable import FiniteStateMachine
 
-final class GenericTransitionTests: XCTestCase {
+class GenericTests: XCTestCase {
     enum State { case a, b, c, d, e, f }
     enum Event { case g, h, i, j, k, l }
     
@@ -16,7 +16,9 @@ final class GenericTransitionTests: XCTestCase {
     typealias When = Generic.When<Event>
     typealias Then = Generic.Then<State>
     typealias Action = Generic.Action
-    
+}
+
+final class GenericTransitionTests: GenericTests {
     typealias Transition = FiniteStateMachine.Transition<State,Event>
     var t: [Transition] = []
     
@@ -177,8 +179,8 @@ final class GenericTransitionTests: XCTestCase {
             Given(.a, .b) | When(.g, .h) | Then(.b) | Action { }
         }
                 
-        let expectedT = ts[Transition.Key(given: .a, event: .h)]
-        let nilT = ts[Transition.Key(given: .c, event: .h)]
+        let expectedT = ts[Transition.Key(state: .a, event: .h)]
+        let nilT = ts[Transition.Key(state: .c, event: .h)]
         
         XCTAssertEqual(expectedT, transition(.a, .h, .b))
         XCTAssertNil(nilT)

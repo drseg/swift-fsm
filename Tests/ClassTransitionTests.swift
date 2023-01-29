@@ -154,7 +154,7 @@ final class ClassBasedTransitionTests: XCTestCase {
     }
     
     func key(_ state: State, _ event: Event) -> Key {
-        Key(given: state, event: event)
+        Key(state: state, event: event)
     }
 
     func assertContainsTransition(

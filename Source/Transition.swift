@@ -15,7 +15,7 @@ where State: Hashable, Event: Hashable {
     let action: () -> Void
     
     struct Key<State,Event>: Hashable where State: Hashable, Event: Hashable {
-        let given: State
+        let state: State
         let event: Event
     }
     
@@ -25,7 +25,7 @@ where State: Hashable, Event: Hashable {
             _ ts: [Transition]...
         ) -> [Key<State,Event>: Transition] {
             ts.flatMap {$0}.reduce(into: [Key<State,Event>: Transition]()) {
-                $0[Key(given: $1.givenState, event: $1.event)] = $1
+                $0[Key(state: $1.givenState, event: $1.event)] = $1
             }
         }
         
