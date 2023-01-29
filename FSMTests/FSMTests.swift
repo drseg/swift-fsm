@@ -319,10 +319,10 @@ final class ClassBasedTransitionTests: XCTestCase {
     
     func testMultipleSeSsToTransition() {
         t = [S1() | E1() | S2(),
-             S2() | E1() | S2()] | action
+             S2() | E1() | S3()] | action
         
         assertFirst(transition(S1(), E1(), S2()))
-        assertLast(transition(S2(), E1(), S2()))
+        assertLast(transition(S2(), E1(), S3()))
     }
     
     func testMultipleSesToTransition() {
@@ -339,6 +339,15 @@ final class ClassBasedTransitionTests: XCTestCase {
         
         assertFirst(transition(S2(), E1(), S2()))
         assertLast(transition(S1(), E1(), S2()))
+    }
+    
+    func testNesting() {
+        t = [S2(),
+             S1()] | [E1(),
+                      E2()] | S2() | action
+        
+        assertFirst(transition(S2(), E1(), S2()))
+        assertLast(transition(S1(), E2(), S2()))
     }
     
     func testCallsAction() {

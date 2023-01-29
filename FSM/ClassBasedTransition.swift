@@ -155,6 +155,14 @@ func | (states: [Base.State], event: Base.Event) -> [Base.StateEvent] {
     }
 }
 
+func | (states: [Base.State], events: [Base.Event]) -> [Base.StateEvent] {
+    states.reduce(into: [Base.StateEvent]()) { output, s in
+        events.forEach {
+            output.append(s | $0)
+        }
+    }
+}
+
 func | (event: Base.Event, state: Base.State) -> Base.EventState {
     Base.EventState(event, state)
 }
