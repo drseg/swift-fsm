@@ -17,7 +17,7 @@ final class GenericTransitionTests: XCTestCase {
     typealias Then = Generic.Then<State>
     typealias Action = Generic.Action
     
-    typealias Transition = Generic.Transition<State,Event>
+    typealias Transition = FiniteStateMachine.Transition<State,Event>
     var t: [Transition] = []
     
     func transition(

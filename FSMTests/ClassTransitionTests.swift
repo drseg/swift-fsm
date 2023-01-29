@@ -9,10 +9,10 @@ import XCTest
 @testable import FiniteStateMachine
 
 final class ClassBasedTransitionTests: XCTestCase {
-    typealias State = Base.State
-    typealias Event = Base.Event
-    typealias Transition = Base.Transition
-    typealias Key = Transition.Key
+    typealias State = Class.State
+    typealias Event = Class.Event
+    typealias Transition = FiniteStateMachine.Transition<State, Event>
+    typealias Key = Transition.Key<State, Event>
     
     class S1: State {}
     class S2: State {}
@@ -100,7 +100,7 @@ final class ClassBasedTransitionTests: XCTestCase {
     
     func testTransition() {
         let t = S1() | E1() | S2() | action
-        XCTAssertEqual(t, transition(S1(), E1(), S2()))
+        XCTAssertEqual(t.first, transition(S1(), E1(), S2()))
     }
     
     func testMultipleStartEventFinishes() {
@@ -138,7 +138,7 @@ final class ClassBasedTransitionTests: XCTestCase {
     
     func testCallsAction() {
         let t = S1() | E1() | S2() | action
-        t.action()
+        t.first?.action()
         XCTAssertTrue(actionCalled)
     }
     
@@ -156,7 +156,7 @@ final class ClassBasedTransitionTests: XCTestCase {
     func key(_ state: State, _ event: Event) -> Key {
         Key(given: state, event: event)
     }
-    
+
     func assertContainsTransition(
         _ t: [Key: Transition],
         k: Key,
@@ -165,16 +165,16 @@ final class ClassBasedTransitionTests: XCTestCase {
         let actual = t[k]
         XCTAssertEqual(actual, transition(S1(), E1(), S2()), line: line)
     }
-    
+
     func testCanRetrieveByKey() {
         let t = Transition.build {
             S1() | E1() | S2() | action
             S2() | E2() | S1() | action
         }
-        
+
         assertContainsTransition(t, k: key(S1(), E1()))
     }
-    
+
     func testIf() {
         let condition = true
         let t = Transition.build {
@@ -182,20 +182,20 @@ final class ClassBasedTransitionTests: XCTestCase {
                 S1() | E1() | S2() | action
             }
         }
-        
+
         assertContainsTransition(t, k: key(S1(), E1()))
     }
-    
+
     func testElse() {
         let condition = false
         let t = Transition.build {
             if condition {}
             else { S1() | E1() | S2() | action }
         }
-        
+
         assertContainsTransition(t, k: key(S1(), E1()))
     }
-    
+
     func testSwitch() {
         let condition = true
         let t = Transition.build {
@@ -204,7 +204,7 @@ final class ClassBasedTransitionTests: XCTestCase {
             default: [Transition]()
             }
         }
-        
+
         assertContainsTransition(t, k: key(S1(), E1()))
     }
     
@@ -213,7 +213,7 @@ final class ClassBasedTransitionTests: XCTestCase {
         class Sub: Base { override func test() {} }
         
         let t = S1() | E1() | S2() | Sub().test
-        t.action()
+        t.first?.action()
     }
 }
 
