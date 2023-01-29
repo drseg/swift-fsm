@@ -100,9 +100,12 @@ enum Base {
             static func buildBlock(
                 _ transitions: TransitionConvertible...
             ) -> [Key: Transition] {
-                transitions.map { $0.asArray() }.flatMap { $0 }.reduce(into: [Key: Transition]()) {
-                    $0[Key(given: $1.givenState, event: $1.event)] = $1
-                }
+                transitions
+                    .map { $0.asArray() }
+                    .flatMap { $0 }
+                    .reduce(into: [Key: Transition]()) {
+                        $0[Key(given: $1.givenState, event: $1.event)] = $1
+                    }
             }
             
             static func buildIf(
@@ -177,24 +180,43 @@ func | (state: Base.State, action: @escaping () -> Void) -> Base.StateAction {
     Base.StateAction(state, action)
 }
 
-func | (stateEvent: Base.StateEvent, state: Base.State) -> Base.StateEventState {
+func | (
+    stateEvent: Base.StateEvent,
+    state: Base.State
+) -> Base.StateEventState {
     Base.StateEventState(stateEvent.state, stateEvent.event, state)
 }
 
-func | (stateEvents: [Base.StateEvent], state: Base.State) -> [Base.StateEventState] {
+func | (
+    stateEvents: [Base.StateEvent],
+    state: Base.State
+) -> [Base.StateEventState] {
     stateEvents.reduce(into: [Base.StateEventState]()) {
         $0.append(Base.StateEventState($1.state, $1.event, state))
     }
 }
 
-func | (stateEventState: Base.StateEventState, action: @escaping () -> Void) -> Base.Transition {
-    Base.Transition(givenState: stateEventState.startState, event: stateEventState.event, nextState: stateEventState.endState, action: action)
+func | (
+    stateEventState: Base.StateEventState,
+    action: @escaping () -> Void
+) -> Base.Transition {
+    Base.Transition(givenState: stateEventState.startState,
+                    event: stateEventState.event,
+                    nextState: stateEventState.endState, action: action)
 }
 
-func | (stateEventStates: [Base.StateEventState], action: @escaping () -> Void) -> [Base.Transition] {
+func | (
+    stateEventStates: [Base.StateEventState],
+    action: @escaping () -> Void
+) -> [Base.Transition] {
     stateEventStates.reduce(into: [Base.Transition]()) {
         $0.append(
-        Base.Transition(givenState: $1.startState, event: $1.event, nextState: $1.endState, action: action)
+            Base.Transition(givenState: $1.startState,
+                            event: $1.event,
+                            nextState: $1.endState,
+                            action: action)
         )
     }
 }
+
+func || (lhs: String, rhs: String) -> Void {}

@@ -144,11 +144,11 @@ final class ClassBasedTransitionTests: XCTestCase {
     
     func testBuilder() {
         let t = Transition.build {
-            S1()    | E1() | S2() | action
-            S2()    | E2() | S1() | action
+            S1()   | E1() | S2() | action
+            S2()   | E2() | S1() | action
             
             [S3(),
-             S1()]  | E3() | S2() | action
+             S1()] | E3() | S2() | action
         }
         XCTAssertEqual(t.count, 4)
     }
@@ -157,14 +157,22 @@ final class ClassBasedTransitionTests: XCTestCase {
         Key(given: state, event: event)
     }
     
+    func assertContainsTransition(
+        _ t: [Key: Transition],
+        k: Key,
+        line: UInt = #line
+    ) {
+        let actual = t[k]
+        XCTAssertEqual(actual, transition(S1(), E1(), S2()), line: line)
+    }
+    
     func testCanRetrieveByKey() {
         let t = Transition.build {
             S1() | E1() | S2() | action
             S2() | E2() | S1() | action
         }
         
-        let actual = t[key(S1(), E1())]
-        XCTAssertEqual(actual, transition(S1(), E1(), S2()))
+        assertContainsTransition(t, k: key(S1(), E1()))
     }
     
     func testIf() {
@@ -175,21 +183,17 @@ final class ClassBasedTransitionTests: XCTestCase {
             }
         }
         
-        let actual = t[key(S1(), E1())]
-        XCTAssertEqual(actual, transition(S1(), E1(), S2()))
+        assertContainsTransition(t, k: key(S1(), E1()))
     }
     
     func testElse() {
         let condition = false
         let t = Transition.build {
             if condition {}
-            else {
-                S1() | E1() | S2() | action
-            }
+            else { S1() | E1() | S2() | action }
         }
         
-        let actual = t[key(S1(), E1())]
-        XCTAssertEqual(actual, transition(S1(), E1(), S2()))
+        assertContainsTransition(t, k: key(S1(), E1()))
     }
     
     func testSwitch() {
@@ -201,8 +205,15 @@ final class ClassBasedTransitionTests: XCTestCase {
             }
         }
         
-        let actual = t[key(S1(), E1())]
-        XCTAssertEqual(actual, transition(S1(), E1(), S2()))
+        assertContainsTransition(t, k: key(S1(), E1()))
+    }
+    
+    func testActionsDispatchDynamically() {
+        class Base { func test() { XCTFail() } }
+        class Sub: Base { override func test() {} }
+        
+        let t = S1() | E1() | S2() | Sub().test
+        t.action()
     }
 }
 
