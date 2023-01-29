@@ -8,16 +8,16 @@
 import XCTest
 @testable import FiniteStateMachine
 
-final class FSMTests: XCTestCase {
+final class GenericTransitionTests: XCTestCase {
     enum State { case a, b, c, d, e, f }
     enum Event { case g, h, i, j, k, l }
     
     typealias Given = FiniteStateMachine.Given<State>
     typealias When = FiniteStateMachine.When<Event>
     typealias Then = FiniteStateMachine.Then<State>
-    typealias Action = FiniteStateMachine.Action<FSMTests>
+    typealias Action = FiniteStateMachine.Action<GenericTransitionTests>
     
-    typealias Transition = FiniteStateMachine.Transition<State,Event,State,FSMTests>
+    typealias Transition = FiniteStateMachine.Transition<State,Event,State,GenericTransitionTests>
     
     var t: [Transition] = []
     
@@ -25,7 +25,7 @@ final class FSMTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ action: @escaping (FSMTests) -> Void = { _ in }
+        _ action: @escaping (GenericTransitionTests) -> Void = { _ in }
     ) -> Transition {
         Transition(givenState: given,
                    event: when,
@@ -220,5 +220,118 @@ final class FSMTests: XCTestCase {
             }
         }
         XCTAssertEqual(ts.first?.value, transition(.a, .g, .b))
+    }
+}
+
+final class ClassBasedTransitionTests: XCTestCase {
+    typealias State = Base.State
+    typealias Event = Base.Event
+    typealias Action = Base.Action
+    typealias Transition = Base.Transition
+    
+    class Started: State {}
+    class Finished: State {}
+    
+    class DidFlunt: Event {}
+    class DidStopFlunting: Event {}
+    
+    class Die: Action {}
+    class Flulbenate: Action {}
+    
+    func transition(
+        _ givenState: State,
+        _ event: Event,
+        _ nextState: State,
+        _ action: Action
+    ) -> Transition {
+        Transition(givenState: givenState,
+                   event: event,
+                   nextState: nextState,
+                   action: action)
+    }
+    
+    func testStateEvent() {
+        let se = Started() | DidFlunt()
+        
+        XCTAssertEqual(se.state, Started())
+        XCTAssertEqual(se.event, DidFlunt())
+    }
+    
+    func testMultiStateEvent() {
+        let ses = [Started(),
+                   Finished()] | DidFlunt()
+        
+        XCTAssertEqual(ses.first?.state, Started())
+        XCTAssertEqual(ses.last?.state, Finished())
+    }
+    
+    func testEventState() {
+        let es = DidFlunt() | Started()
+        
+        XCTAssertEqual(es.event, DidFlunt())
+        XCTAssertEqual(es.state, Started())
+    }
+    
+    func testMultiEventState() {
+        let ess = [DidFlunt(),
+                   DidStopFlunting()] | Started()
+        
+        XCTAssertEqual(ess.first?.event, DidFlunt())
+        XCTAssertEqual(ess.last?.event, DidStopFlunting())
+    }
+    
+    func testStateAction() {
+        let sa = Started() | Flulbenate()
+        XCTAssertEqual(sa.state, Started())
+        XCTAssertEqual(sa.action, Flulbenate())
+    }
+    
+    func testStateEventState() {
+        let ses = Started() | DidFlunt() | Finished()
+        
+        XCTAssertEqual(ses.startState, Started())
+        XCTAssertEqual(ses.event, DidFlunt())
+        XCTAssertEqual(ses.endState, Finished())
+    }
+    
+    func testHashable() {
+        let test = Set([Started(), Started(), Finished()])
+        XCTAssertEqual(test.count, 2)
+    }
+    
+    func testSesToTransition() {
+        let t = Started() | DidFlunt() | Finished() | Die()
+        XCTAssertEqual(t, transition(Started(),
+                                     DidFlunt(),
+                                     Finished(),
+                                     Die()))
+    }
+    
+    func testMultipleSeSsToTransition() {
+        let t = [Started()  | DidFlunt() | Finished(),
+                 Finished() | DidFlunt() | Finished()] | Die()
+        
+        XCTAssertEqual(t.first, transition(Started(),
+                                           DidFlunt(),
+                                           Finished(),
+                                           Die()))
+        XCTAssertEqual(t.last, transition(Finished(),
+                                          DidFlunt(),
+                                          Finished(),
+                                          Die()))
+    }
+        
+    func testMultipleSesToTransition() {
+        let t = [Finished() | DidFlunt(),
+                 Started()  | DidFlunt()] | Finished() | Die()
+        
+        XCTAssertEqual(t.first, transition(Finished(),
+                                           DidFlunt(),
+                                           Finished(),
+                                           Die()))
+        XCTAssertEqual(t.last, transition(Started(),
+                                          DidFlunt(),
+                                          Finished(),
+                                          Die()))
     }
 }
