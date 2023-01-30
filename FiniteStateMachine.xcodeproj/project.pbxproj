@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6E98BF0129881AA8004152E4 /* ReflectiveEquality in Frameworks */ = {isa = PBXBuildFile; productRef = 6E98BF0029881AA8004152E4 /* ReflectiveEquality */; };
 		6EA3A02229871402007928C4 /* ClassTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02129871402007928C4 /* ClassTransitionTests.swift */; };
 		6EA3A02529871E93007928C4 /* FSM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02329871CB7007928C4 /* FSM.swift */; };
 		6EA3A028298726BA007928C4 /* ClassBasedOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A027298726BA007928C4 /* ClassBasedOperators.swift */; };
@@ -48,6 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E98BF0129881AA8004152E4 /* ReflectiveEquality in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -62,12 +64,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6E98BEFC298819F2004152E4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		6EE64F7D2986BE3B009A361C = {
 			isa = PBXGroup;
 			children = (
 				6EE64F892986BE3B009A361C /* Source */,
 				6EE64F952986BE3B009A361C /* Tests */,
 				6EE64F882986BE3B009A361C /* Products */,
+				6E98BEFC298819F2004152E4 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -131,6 +141,9 @@
 			dependencies = (
 			);
 			name = FiniteStateMachine;
+			packageProductDependencies = (
+				6E98BF0029881AA8004152E4 /* ReflectiveEquality */,
+			);
 			productName = FiniteStateMachine;
 			productReference = 6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */;
 			productType = "com.apple.product-type.framework";
@@ -180,6 +193,9 @@
 				Base,
 			);
 			mainGroup = 6EE64F7D2986BE3B009A361C;
+			packageReferences = (
+				6E98BEFF29881AA8004152E4 /* XCRemoteSwiftPackageReference "reflective-equality" */,
+			);
 			productRefGroup = 6EE64F882986BE3B009A361C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -499,6 +515,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6E98BEFF29881AA8004152E4 /* XCRemoteSwiftPackageReference "reflective-equality" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/drseg/reflective-equality";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6E98BF0029881AA8004152E4 /* ReflectiveEquality */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6E98BEFF29881AA8004152E4 /* XCRemoteSwiftPackageReference "reflective-equality" */;
+			productName = ReflectiveEquality;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6EE64F7E2986BE3B009A361C /* Project object */;
 }

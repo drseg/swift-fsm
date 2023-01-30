@@ -6,41 +6,77 @@
 //
 
 import Foundation
+import ReflectiveEquality
+
+#warning("Hashable conformance is misleading and pointless here, it's a hack to make the generic Transition compatible with this system. Likely better to have a completely independent non-generic Transition")
+protocol StateProtocol: Hashable {}
+protocol EventProtocol: Hashable {}
 
 extension StateProtocol {
     var erased: Unsafe.AnyStateProtocol? {
-        Unsafe.AnyStateProtocol(base: self)
+        erase(self, to: Unsafe.AnyStateProtocol.init)
     }
 }
 
 extension EventProtocol {
     var erased: Unsafe.AnyEventProtocol? {
-        Unsafe.AnyEventProtocol(base: self)
+        erase(self, to: Unsafe.AnyEventProtocol.init)
     }
 }
 
+private func erase<ProtocolType, AnyProtocolType>(
+    _ s: ProtocolType,
+    to t: (ProtocolType) -> AnyProtocolType
+) -> AnyProtocolType? {
+    s is AnyProtocolType
+    ? s as? AnyProtocolType
+    : t(s)
+}
+
 enum Unsafe {
+    private static func areEqual(lhs: Any, rhs: Any) -> Bool {
+        if lhs is CustomStringConvertible || rhs is CustomStringConvertible {
+            return String(describing: lhs) == String(describing: rhs)
+        } else {
+            return haveSameValue(lhs, rhs)
+        }
+    }
+    
+    private static func customHash(_ any: Any) -> String {
+        if any is CustomStringConvertible {
+            return String(describing: any)
+        } else {
+            return deepDescription(any)
+        }
+    }
+    
     struct AnyEventProtocol: EventProtocol {
-        static func == (lhs: Unsafe.AnyEventProtocol, rhs: Unsafe.AnyEventProtocol) -> Bool {
-            String(describing: lhs) == String(describing: rhs)
+        let base: any EventProtocol
+        
+        static func == (
+            lhs: Unsafe.AnyEventProtocol,
+            rhs: Unsafe.AnyEventProtocol
+        ) -> Bool {
+            areEqual(lhs: lhs, rhs: rhs)
         }
         
         func hash(into hasher: inout Hasher) {
-            hasher.combine(String(describing: self))
+            hasher.combine(customHash(self))
         }
-        
-        let base: any EventProtocol
     }
     
     struct AnyStateProtocol: StateProtocol {
         let base: any StateProtocol
         
-        static func == (lhs: Unsafe.AnyStateProtocol, rhs: Unsafe.AnyStateProtocol) -> Bool {
-            String(describing: lhs) == String(describing: rhs)
+        static func == (
+            lhs: Unsafe.AnyStateProtocol,
+            rhs: Unsafe.AnyStateProtocol
+        ) -> Bool {
+            areEqual(lhs: lhs, rhs: rhs)
         }
         
         func hash(into hasher: inout Hasher) {
-            hasher.combine(String(describing: self))
+            hasher.combine(customHash(self))
         }
     }
     
@@ -157,12 +193,8 @@ func | (
     stateEventState: Unsafe.StateEventState,
     action: @escaping () -> Void
 ) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
-    let start = Unsafe.AnyStateProtocol(base: stateEventState.startState)
-    let event = Unsafe.AnyEventProtocol(base: stateEventState.event)
-    let next = Unsafe.AnyStateProtocol(base: stateEventState.endState)
-    
-    return [Transition(givenState: start,
-                       event: event,
-                       nextState: next,
-                       action: action)]
+    [Transition(givenState: stateEventState.startState.erased!,
+                event: stateEventState.event.erased!,
+                nextState: stateEventState.endState.erased!,
+                action: action)]
 }
