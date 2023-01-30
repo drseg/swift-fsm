@@ -177,11 +177,9 @@ class UnsafeTransitionTests: XCTestCase {
     
     func testBuilder() {
         let t = Transition.build {
-            s1   | e1 | s2 | action
-            s2   | e2 | s1 | action
-            
-            [s2,
-             s1] | e3 | s2 | action
+            s1       | e1 | s2 | action
+            s2       | e2 | s1 | action
+            [s2, s1] | e3 | s2 | action
         }
         XCTAssertEqual(t.count, 4)
     }
@@ -263,10 +261,23 @@ final class EnumTransitionTests: UnsafeTransitionTests {
     enum E: Event { case one, two, three }
 }
 
-final class EnumValueTransitionTests: UnsafeTransitionTests {
+final class EnumValueTransitionTestsOne: UnsafeTransitionTests {
     override var s1: ASP { S.one("").erased! }
     override var s2: ASP { S.two("").erased! }
     override var s3: ASP { S.three("").erased! }
+    
+    override var e1: AEP { E.one.erased! }
+    override var e2: AEP { E.two.erased! }
+    override var e3: AEP { E.three.erased! }
+    
+    enum S: State { case one(String), two(String), three(String) }
+    enum E: Event { case one, two, three }
+}
+
+final class EnumValueTransitionTestsTwo: UnsafeTransitionTests {
+    override var s1: ASP { S.one("1").erased! }
+    override var s2: ASP { S.one("2").erased! }
+    override var s3: ASP { S.one("3").erased! }
     
     override var e1: AEP { E.one.erased! }
     override var e2: AEP { E.two.erased! }
@@ -289,7 +300,7 @@ final class StructTransitionTests: UnsafeTransitionTests {
     struct E1: Event {}; struct E2: Event {}; struct E3: Event {}
 }
 
-final class UnsafeClassTransitionTests: UnsafeTransitionTests {
+final class ClassTransitionTests: UnsafeTransitionTests {
     override var s1: ASP { S1().erased! }
     override var s2: ASP { S2().erased! }
     override var s3: ASP { S3().erased! }
