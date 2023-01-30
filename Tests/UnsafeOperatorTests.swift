@@ -57,6 +57,14 @@ class UnsafeTransitionTests: XCTestCase {
     func assertFirst(_ expected: Transition, line: UInt = #line) {
         XCTAssertEqual(t.first, expected, line: line)
     }
+    
+    func assertFirst(_ given: ASP, _ when: AEP, _ then: ASP, line: UInt = #line) {
+        XCTAssertEqual(t.first, transition(given, when, then), line: line)
+    }
+    
+    func assertLast(_ given: ASP, _ when: AEP, _ then: ASP, line: UInt = #line) {
+        XCTAssertEqual(t.last, transition(given, when, then), line: line)
+    }
 
     func assertLast(_ expected: Transition, line: UInt = #line) {
         XCTAssertEqual(t.last, expected, line: line)
@@ -102,6 +110,13 @@ class UnsafeTransitionTests: XCTestCase {
         assertLast(transition(s2, e1, s2))
     }
     
+    func testMultipleEvents() {
+        t = s1 | [e1, e2] | s2 | action
+        
+        assertFirst(transition(s1, e1, s2))
+        assertLast(transition(s1, e2, s2))
+    }
+    
     func testNesting() {
         t = [s2,
              s1] | [e1,
@@ -109,6 +124,51 @@ class UnsafeTransitionTests: XCTestCase {
         
         assertFirst(transition(s2, e1, s2))
         assertLast(transition(s1, e2, s2))
+    }
+    
+    func testMultipleEventStateAction() {
+        t = s1 | [e1 | s2 | {},
+                  e2 | s3 | {}]
+        
+        assertFirst(s1, e1, s2)
+        assertLast(s1, e2, s3)
+    }
+    
+    func testMultipleStateEventStateAction() {
+        t = [s1,
+             s2] | [e1 | s2 | {},
+                    e2 | s3 | {}]
+        
+        assertFirst(s1, e1, s2)
+        assertLast(s2, e2, s3)
+    }
+    
+    func testMultipleStateEventEventStateAction() {
+        t = s1 | [[e1, e2] | s2 | {},
+                  [e2, e3] | s3 | {}]
+        assertFirst(s1, e1, s2)
+        assertLast(s1, e3, s3)
+    }
+    
+    func testMultipleStatesEventEventStateAction() {
+        t = [s1, s2] | [[e1, e2] | s2 | {},
+                        [e2, e3] | s3 | {}]
+        assertFirst(s1, e1, s2)
+        assertLast(s2, e3, s3)
+    }
+    
+    func testMultipleEventStates() {
+        t = s1 | [e1 | s2,
+                  e2 | s3] | {}
+        assertFirst(s1, e1, s2)
+        assertLast(s1, e2, s3)
+    }
+    
+    func testMultipleStatesEventStates() {
+        t = [s1, s2] | [e1 | s2,
+                        e2 | s3] | {}
+        assertFirst(s1, e1, s2)
+        assertLast(s2, e2, s3)
     }
     
     func testCallsAction() {
@@ -186,88 +246,10 @@ class UnsafeTransitionTests: XCTestCase {
         let t = s1 | e1 | s2 | Sub().test
         t.first?.action()
     }
-        
-    //    func testMultiWhenConstructorLabelless() {
-    //        let t = "s1" | [1, 2] | "s2" | {}
-    //
-    //        assertFirst(transition("s1", 1, "s2"), t)
-    //        assertLast(transition("s1", 2, "s2"), t)
-    //        assertCount(2, t)
-    //    }
     
-    //    func testSimpleLabellessConstructor() {
-    //        let t = "s1" | 1 | "s2" | {}
-    //
-    //        assertFirst(transition("s1", 1, "s2"), t)
-    //    }
-    
-    //    func testMultiGivenLabellessConstructor() {
-    //        let t = ["s1", "s2"] | 1 | "s3" | {}
-    //
-    //        assertFirst(transition("s1", 1, "s3"), t)
-    //        assertLast(transition("s2", 1, "s3"), t)
-    //        assertCount(2, t)
-    //    }
-    
-    //    func testMultiWhenThenActionLabellessConstructor() {
-    //#warning("Swift can't type check this all in one")
-    //        let wta1 = 1 | "s2" | {}
-    //        let wta2 = 2 | "s3" | {}
-    //
-    //        let t = "s1" | [wta1,
-    //                        wta2]
-    //
-    //        assertFirst(transition("s1", 1, "s2"), t)
-    //        assertLast(transition("s1", 2, "s3"), t)
-    //        assertCount(2, t)
-    //    }
-    
-    //    func testCombineMultiGivenMultiWhenThenLabelless() {
-    //#warning("Swift can't type check this all in one")
-    //        let wta1 = 1 | "s2" | {}
-    //        let wta2 = 2 | "s3" | {}
-    //
-    //        let t = ["s1",
-    //                 "s2"] | [wta1,
-    //                          wta2]
-    //
-    //        assertFirst(transition("s1", 1, "s2"), t)
-    //        assertLast(transition("s2", 2, "s3"), t)
-    //        assertCount(4, t)
-    //    }
-    
-    //    func testMultiGivenWhenConstructorLabelless() {
-    //        let t = ["s1", "s2"] | [1, 2] | "s2" | {}
-    //
-    //        assertFirst(transition("s1", 1, "s2"), t)
-    //        assertLast(transition("s2", 2, "s2"), t)
-    //        assertCount(4, t)
-    //    }
-    
-    //    func testCombineMultiGivenWhenConstructorLabelless() {
-    //#warning("Swift can't type check this all in one")
-    //        let wtas = [1, 2] | "s2" | {}
-    //        let t = ["s1", "s2"] | wtas
-    //
-    //        assertFirst(transition("s1", 1, "s2"), t)
-    //        assertLast(transition("s2", 2, "s2"), t)
-    //        assertCount(4, t)
-    //    }
-    
-    //    func testMultiWhenThenConstructorLabelless() {
-    //#warning("Swift can't type check this all in one")
-    //        let wts = [1 | "s2",
-    //                   2 | "s3"]
-    //        let t = "s1" | wts | {}
-    //
-    //        assertFirst(transition("s1", 1, "s2"), t)
-    //        assertLast(transition("s1", 2, "s3"), t)
-    //        assertCount(2, t)
-    //    }
-    
-    //    func testMaxConstructorsLabelless() {
-    //        // do you dare?!
-    //    }
+    func testRespectsCustomStringConvertible() {
+        // how do I test this?
+    }
 }
 
 final class EnumTransitionTests: UnsafeTransitionTests {

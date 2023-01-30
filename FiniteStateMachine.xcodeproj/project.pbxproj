@@ -95,8 +95,8 @@
 			children = (
 				6EA3A02329871CB7007928C4 /* FSM.swift */,
 				6EA3A02B298726FC007928C4 /* Transition.swift */,
-				6EA3A027298726BA007928C4 /* UnsafeOperators.swift */,
 				6EA3A029298726C5007928C4 /* SafeOperators.swift */,
+				6EA3A027298726BA007928C4 /* UnsafeOperators.swift */,
 				6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */,
 				6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */,
 			);

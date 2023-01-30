@@ -83,7 +83,7 @@ enum Unsafe {
         }
     }
     
-    class StateEvent {
+    struct StateEvent {
         let state: any StateProtocol
         let event: any EventProtocol
         
@@ -93,7 +93,7 @@ enum Unsafe {
         }
     }
     
-    class EventState {
+    struct EventState {
         let event: any EventProtocol
         let state: any StateProtocol
         
@@ -103,7 +103,19 @@ enum Unsafe {
         }
     }
     
-    class StateEventState {
+    struct EventStateAction {
+        let event: any EventProtocol
+        let state: any StateProtocol
+        let action: () -> Void
+        
+        init(_ event: any EventProtocol, _ state: any StateProtocol, _ action: @escaping () -> Void) {
+            self.event = event
+            self.state = state
+            self.action = action
+        }
+    }
+    
+    struct StateEventState {
         let startState: any StateProtocol
         let event: any EventProtocol
         let endState: any StateProtocol
@@ -114,29 +126,34 @@ enum Unsafe {
             self.endState = endState
         }
     }
-    
-    class StateAction {
-        let state: any StateProtocol
-        let action: () -> Void
-        
-        init(_ state: any StateProtocol, _ action: @escaping () -> Void) {
-            self.state = state
-            self.action = action
-        }
-    }
 }
 
-func | (state: any StateProtocol, event: any EventProtocol) -> Unsafe.StateEvent {
+func | (
+    state: any StateProtocol,
+    event: any EventProtocol) -> Unsafe.StateEvent {
     Unsafe.StateEvent(state, event)
 }
 
-func | (states: [any StateProtocol], event: any EventProtocol) -> [Unsafe.StateEvent] {
+func | (
+    state: any StateProtocol,
+    events: [any EventProtocol]
+) -> [Unsafe.StateEvent] {
+    events.reduce(into: [Unsafe.StateEvent]()) {
+        $0.append(state | $1)
+    }
+}
+
+func | (
+    states: [any StateProtocol],
+    event: any EventProtocol) -> [Unsafe.StateEvent] {
     states.reduce(into: [Unsafe.StateEvent]()) {
         $0.append($1 | event)
     }
 }
 
-func | (states: [any StateProtocol], events: [any EventProtocol]) -> [Unsafe.StateEvent] {
+func | (
+    states: [any StateProtocol],
+    events: [any EventProtocol]) -> [Unsafe.StateEvent] {
     states.reduce(into: [Unsafe.StateEvent]()) { output, s in
         events.forEach {
             output.append(s | $0)
@@ -152,6 +169,59 @@ func | (
 }
 
 func | (
+    state: [any StateProtocol],
+    es: [Unsafe.EventState]
+) -> [Unsafe.StateEventState] {
+    state.reduce(into: [Unsafe.StateEventState]()) {
+        $0.append(contentsOf: $1 | es)
+    }
+}
+
+func | (
+    state: any StateProtocol,
+    es: [Unsafe.EventState]
+) -> [Unsafe.StateEventState] {
+    es.reduce(into: [Unsafe.StateEventState]()) {
+        $0.append(Unsafe.StateEventState(state, $1.event, $1.state))
+    }
+}
+
+func | (
+    states: [any StateProtocol],
+    esas: [[Unsafe.EventStateAction]]
+) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+    states | esas.flatMap { $0 }
+}
+
+func | (
+    states: [any StateProtocol],
+    esas: [Unsafe.EventStateAction]
+) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+    states.reduce(into: [Transition]()) {
+        $0.append(contentsOf: $1 | esas)
+    }
+}
+
+func | (
+    state: any StateProtocol,
+    esas: [[Unsafe.EventStateAction]]
+) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+    state | esas.flatMap { $0 }
+}
+
+func | (
+    state: any StateProtocol,
+    esas: [Unsafe.EventStateAction]
+) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+    esas.reduce(into: [Transition]()) {
+        $0.append(Transition(givenState: state.erased!,
+                             event: $1.event.erased!,
+                             nextState: $1.state.erased!,
+                             action: $1.action))
+    }
+}
+
+func | (
     events: [any EventProtocol],
     state: any StateProtocol
 ) -> [Unsafe.EventState] {
@@ -161,10 +231,19 @@ func | (
 }
 
 func | (
-    state: any StateProtocol,
+    ess: [Unsafe.EventState],
     action: @escaping () -> Void
-) -> Unsafe.StateAction {
-    Unsafe.StateAction(state, action)
+) -> [Unsafe.EventStateAction] {
+    ess.reduce(into: [Unsafe.EventStateAction]()) {
+        $0.append($1 | action)
+    }
+}
+
+func | (
+    es: Unsafe.EventState,
+    action: @escaping () -> Void
+) -> Unsafe.EventStateAction {
+    Unsafe.EventStateAction(es.event, es.state, action)
 }
 
 func | (
