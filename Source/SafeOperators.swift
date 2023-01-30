@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Generic {
+enum Safe {
     struct Given<State> {
         let givens: [State]
         
@@ -69,24 +69,24 @@ enum Generic {
 }
 
 func |<State, Event> (
-    lhs: Generic.Given<State>,
-    rhs: Generic.When<Event>
-) -> [Generic.GivenWhen<State, Event>] {
-    lhs.givens.reduce(into: [Generic.GivenWhen]()) { givenWhens, given in
+    lhs: Safe.Given<State>,
+    rhs: Safe.When<Event>
+) -> [Safe.GivenWhen<State, Event>] {
+    lhs.givens.reduce(into: [Safe.GivenWhen]()) { givenWhens, given in
         rhs.whens.forEach {
-            givenWhens.append(Generic.GivenWhen(given: given, when: $0))
+            givenWhens.append(Safe.GivenWhen(given: given, when: $0))
         }
     }
 }
 
 func |<State: Equatable, Event: Equatable> (
-    lhs: Generic.Given<State>,
-    rhs: [[Generic.WhenThen<Event,State>]]
-) -> [Generic.GivenWhenThen<State,Event>] {
-    lhs.givens.reduce(into: [Generic.GivenWhenThen]()) { givenWhenThens, given in
+    lhs: Safe.Given<State>,
+    rhs: [[Safe.WhenThen<Event,State>]]
+) -> [Safe.GivenWhenThen<State,Event>] {
+    lhs.givens.reduce(into: [Safe.GivenWhenThen]()) { givenWhenThens, given in
         rhs.flatMap { $0 }.forEach {
             givenWhenThens
-                .append(Generic.GivenWhenThen(given: given,
+                .append(Safe.GivenWhenThen(given: given,
                                               when: $0.when,
                                               then: $0.then))
         }
@@ -94,25 +94,25 @@ func |<State: Equatable, Event: Equatable> (
 }
 
 func |<State: Equatable, Event: Equatable> (
-    lhs: [Generic.GivenWhen<State, Event>],
-    rhs: Generic.Then<State>
-) -> [Generic.GivenWhenThen<State,Event>] {
-    lhs.reduce(into: [Generic.GivenWhenThen]()) { givenWhenThens, givenWhen in
-        givenWhenThens.append(Generic.GivenWhenThen(given: givenWhen.given,
+    lhs: [Safe.GivenWhen<State, Event>],
+    rhs: Safe.Then<State>
+) -> [Safe.GivenWhenThen<State,Event>] {
+    lhs.reduce(into: [Safe.GivenWhenThen]()) { givenWhenThens, givenWhen in
+        givenWhenThens.append(Safe.GivenWhenThen(given: givenWhen.given,
                                             when: givenWhen.when,
                                             then: rhs.then))
     }
 }
 
 func |<State: Equatable, Event: Equatable> (
-    lhs: [Generic.GivenWhenThen<State,Event>],
-    rhs: Generic.Action
+    lhs: [Safe.GivenWhenThen<State,Event>],
+    rhs: Safe.Action
 ) -> [Transition<State,Event>] {
     lhs | rhs.action
 }
 
 func |<State: Equatable, Event: Equatable> (
-    lhs: [Generic.GivenWhenThen<State,Event>],
+    lhs: [Safe.GivenWhenThen<State,Event>],
     rhs: @escaping () -> Void
 ) -> [Transition<State,Event>] {
     lhs.reduce(into: [Transition<State,Event>]()) {
@@ -128,39 +128,39 @@ func |<State: Equatable, Event: Equatable> (
 }
 
 func |<Event: Equatable, State: Equatable> (
-    lhs: Generic.When<Event>,
-    rhs: Generic.Then<State>
-) -> [Generic.WhenThen<Event,State>] {
-    lhs.whens.reduce(into: [Generic.WhenThen<Event,State>]()) { whenThens, when in
-        whenThens.append(Generic.WhenThen(when: when, then: rhs.then))
+    lhs: Safe.When<Event>,
+    rhs: Safe.Then<State>
+) -> [Safe.WhenThen<Event,State>] {
+    lhs.whens.reduce(into: [Safe.WhenThen<Event,State>]()) { whenThens, when in
+        whenThens.append(Safe.WhenThen(when: when, then: rhs.then))
     }
 }
 
 func |<Event: Equatable, State: Equatable> (
-    lhs: [Generic.WhenThen<Event,State>],
-    rhs: Generic.Action
-) -> [Generic.WhenThenAction<Event,State>] {
-    lhs.reduce(into: [Generic.WhenThenAction<Event,State>]()) {
-        $0.append(Generic.WhenThenAction(when: $1.when,
+    lhs: [Safe.WhenThen<Event,State>],
+    rhs: Safe.Action
+) -> [Safe.WhenThenAction<Event,State>] {
+    lhs.reduce(into: [Safe.WhenThenAction<Event,State>]()) {
+        $0.append(Safe.WhenThenAction(when: $1.when,
                                          then: $1.then,
                                          action: rhs.action))
     }
 }
 
 func |<Event: Equatable, State: Equatable> (
-    lhs: [[Generic.WhenThen<Event,State>]],
-    rhs: Generic.Action
-) -> [Generic.WhenThenAction<Event,State>] {
-    lhs.flatMap { $0 }.reduce(into: [Generic.WhenThenAction<Event,State>]()) {
-        $0.append(Generic.WhenThenAction(when: $1.when,
+    lhs: [[Safe.WhenThen<Event,State>]],
+    rhs: Safe.Action
+) -> [Safe.WhenThenAction<Event,State>] {
+    lhs.flatMap { $0 }.reduce(into: [Safe.WhenThenAction<Event,State>]()) {
+        $0.append(Safe.WhenThenAction(when: $1.when,
                                  then: $1.then,
                                  action: rhs.action))
     }
 }
 
 func |<State: Equatable, Event: Equatable> (
-    lhs: Generic.Given<State>,
-    rhs: [[Generic.WhenThenAction<Event,State>]]
+    lhs: Safe.Given<State>,
+    rhs: [[Safe.WhenThenAction<Event,State>]]
 ) -> [Transition<State,Event>] {
     rhs.flatMap { $0 }.reduce(into: [Transition<State,Event>]()) { ts, action in
         lhs.givens.forEach { given in

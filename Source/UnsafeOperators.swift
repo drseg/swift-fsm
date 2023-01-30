@@ -8,13 +8,16 @@
 import Foundation
 import ReflectiveEquality
 
-#warning("Hashable conformance is misleading and pointless here, it's a hack to make the generic Transition compatible with this system. Likely better to have a completely independent non-generic Transition")
-protocol StateProtocol: Hashable {}
-protocol EventProtocol: Hashable {}
+protocol StateProtocol {}
+protocol EventProtocol {}
 
 extension StateProtocol {
     var erased: Unsafe.AnyStateProtocol? {
         erase(self, to: Unsafe.AnyStateProtocol.init)
+    }
+    
+    static func == (lhs: any StateProtocol, rhs: any StateProtocol) -> Bool {
+        return lhs.erased == rhs.erased
     }
 }
 
@@ -50,7 +53,7 @@ enum Unsafe {
         }
     }
     
-    struct AnyEventProtocol: EventProtocol {
+    struct AnyEventProtocol: EventProtocol, Hashable {
         let base: any EventProtocol
         
         static func == (
@@ -65,7 +68,7 @@ enum Unsafe {
         }
     }
     
-    struct AnyStateProtocol: StateProtocol {
+    struct AnyStateProtocol: StateProtocol, Hashable {
         let base: any StateProtocol
         
         static func == (

@@ -8,15 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		6E98BF0129881AA8004152E4 /* ReflectiveEquality in Frameworks */ = {isa = PBXBuildFile; productRef = 6E98BF0029881AA8004152E4 /* ReflectiveEquality */; };
-		6EA3A02229871402007928C4 /* ClassTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02129871402007928C4 /* ClassTransitionTests.swift */; };
+		6EA3A02229871402007928C4 /* UnsafeOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02129871402007928C4 /* UnsafeOperatorTests.swift */; };
 		6EA3A02529871E93007928C4 /* FSM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02329871CB7007928C4 /* FSM.swift */; };
-		6EA3A028298726BA007928C4 /* ClassBasedOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A027298726BA007928C4 /* ClassBasedOperators.swift */; };
-		6EA3A02A298726C5007928C4 /* GenericOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A029298726C5007928C4 /* GenericOperators.swift */; };
+		6EA3A028298726BA007928C4 /* UnsafeOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A027298726BA007928C4 /* UnsafeOperators.swift */; };
+		6EA3A02A298726C5007928C4 /* SafeOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A029298726C5007928C4 /* SafeOperators.swift */; };
 		6EA3A02C298726FD007928C4 /* Transition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02B298726FC007928C4 /* Transition.swift */; };
 		6EA3A02E29872A04007928C4 /* FSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02D29872A04007928C4 /* FSMTests.swift */; };
 		6EE64F8C2986BE3B009A361C /* FiniteStateMachine.docc in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */; };
 		6EE64F922986BE3B009A361C /* FiniteStateMachine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */; };
-		6EE64F972986BE3B009A361C /* GenericTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F962986BE3B009A361C /* GenericTransitionTests.swift */; };
+		6EE64F972986BE3B009A361C /* SafeOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F962986BE3B009A361C /* SafeOperatorTests.swift */; };
 		6EE64F982986BE3B009A361C /* FiniteStateMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
@@ -31,17 +31,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		6EA3A02129871402007928C4 /* ClassTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassTransitionTests.swift; sourceTree = "<group>"; };
+		6EA3A02129871402007928C4 /* UnsafeOperatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsafeOperatorTests.swift; sourceTree = "<group>"; };
 		6EA3A02329871CB7007928C4 /* FSM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSM.swift; sourceTree = "<group>"; };
-		6EA3A027298726BA007928C4 /* ClassBasedOperators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBasedOperators.swift; sourceTree = "<group>"; };
-		6EA3A029298726C5007928C4 /* GenericOperators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericOperators.swift; sourceTree = "<group>"; };
+		6EA3A027298726BA007928C4 /* UnsafeOperators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsafeOperators.swift; sourceTree = "<group>"; };
+		6EA3A029298726C5007928C4 /* SafeOperators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeOperators.swift; sourceTree = "<group>"; };
 		6EA3A02B298726FC007928C4 /* Transition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Transition.swift; sourceTree = "<group>"; };
 		6EA3A02D29872A04007928C4 /* FSMTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSMTests.swift; sourceTree = "<group>"; };
 		6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FiniteStateMachine.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FiniteStateMachine.h; sourceTree = "<group>"; };
 		6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = FiniteStateMachine.docc; sourceTree = "<group>"; };
 		6EE64F912986BE3B009A361C /* FiniteStateMachineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FiniteStateMachineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		6EE64F962986BE3B009A361C /* GenericTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericTransitionTests.swift; sourceTree = "<group>"; };
+		6EE64F962986BE3B009A361C /* SafeOperatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeOperatorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,8 +95,8 @@
 			children = (
 				6EA3A02329871CB7007928C4 /* FSM.swift */,
 				6EA3A02B298726FC007928C4 /* Transition.swift */,
-				6EA3A027298726BA007928C4 /* ClassBasedOperators.swift */,
-				6EA3A029298726C5007928C4 /* GenericOperators.swift */,
+				6EA3A027298726BA007928C4 /* UnsafeOperators.swift */,
+				6EA3A029298726C5007928C4 /* SafeOperators.swift */,
 				6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */,
 				6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */,
 			);
@@ -107,8 +107,8 @@
 			isa = PBXGroup;
 			children = (
 				6EA3A02D29872A04007928C4 /* FSMTests.swift */,
-				6EE64F962986BE3B009A361C /* GenericTransitionTests.swift */,
-				6EA3A02129871402007928C4 /* ClassTransitionTests.swift */,
+				6EE64F962986BE3B009A361C /* SafeOperatorTests.swift */,
+				6EA3A02129871402007928C4 /* UnsafeOperatorTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -231,8 +231,8 @@
 				6EA3A02529871E93007928C4 /* FSM.swift in Sources */,
 				6EA3A02C298726FD007928C4 /* Transition.swift in Sources */,
 				6EE64F8C2986BE3B009A361C /* FiniteStateMachine.docc in Sources */,
-				6EA3A028298726BA007928C4 /* ClassBasedOperators.swift in Sources */,
-				6EA3A02A298726C5007928C4 /* GenericOperators.swift in Sources */,
+				6EA3A028298726BA007928C4 /* UnsafeOperators.swift in Sources */,
+				6EA3A02A298726C5007928C4 /* SafeOperators.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -240,9 +240,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6EE64F972986BE3B009A361C /* GenericTransitionTests.swift in Sources */,
+				6EE64F972986BE3B009A361C /* SafeOperatorTests.swift in Sources */,
 				6EA3A02E29872A04007928C4 /* FSMTests.swift in Sources */,
-				6EA3A02229871402007928C4 /* ClassTransitionTests.swift in Sources */,
+				6EA3A02229871402007928C4 /* UnsafeOperatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

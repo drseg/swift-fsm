@@ -186,7 +186,14 @@ class UnsafeTransitionTests: XCTestCase {
         let t = s1 | e1 | s2 | Sub().test
         t.first?.action()
     }
-    
+        
+    //    func testMultiWhenConstructorLabelless() {
+    //        let t = "s1" | [1, 2] | "s2" | {}
+    //
+    //        assertFirst(transition("s1", 1, "s2"), t)
+    //        assertLast(transition("s1", 2, "s2"), t)
+    //        assertCount(2, t)
+    //    }
     
     //    func testSimpleLabellessConstructor() {
     //        let t = "s1" | 1 | "s2" | {}
@@ -263,7 +270,20 @@ class UnsafeTransitionTests: XCTestCase {
     //    }
 }
 
-final class UnsafeEnumTransitionTests: UnsafeTransitionTests {
+final class EnumTransitionTests: UnsafeTransitionTests {
+    override var s1: ASP { S.one.erased! }
+    override var s2: ASP { S.two.erased! }
+    override var s3: ASP { S.three.erased! }
+    
+    override var e1: AEP { E.one.erased! }
+    override var e2: AEP { E.two.erased! }
+    override var e3: AEP { E.three.erased! }
+    
+    enum S: State { case one, two, three }
+    enum E: Event { case one, two, three }
+}
+
+final class EnumValueTransitionTests: UnsafeTransitionTests {
     override var s1: ASP { S.one("").erased! }
     override var s2: ASP { S.two("").erased! }
     override var s3: ASP { S.three("").erased! }
@@ -276,7 +296,7 @@ final class UnsafeEnumTransitionTests: UnsafeTransitionTests {
     enum E: Event { case one, two, three }
 }
 
-final class UnsafeStructTransitionTests: UnsafeTransitionTests {
+final class StructTransitionTests: UnsafeTransitionTests {
     override var s1: ASP { S1().erased! }
     override var s2: ASP { S2().erased! }
     override var s3: ASP { S3().erased! }
@@ -287,5 +307,18 @@ final class UnsafeStructTransitionTests: UnsafeTransitionTests {
     
     struct S1: State {}; struct S2: State {}; struct S3: State {}
     struct E1: Event {}; struct E2: Event {}; struct E3: Event {}
+}
+
+final class UnsafeClassTransitionTests: UnsafeTransitionTests {
+    override var s1: ASP { S1().erased! }
+    override var s2: ASP { S2().erased! }
+    override var s3: ASP { S3().erased! }
+
+    override var e1: AEP { E1().erased! }
+    override var e2: AEP { E2().erased! }
+    override var e3: AEP { E3().erased! }
+
+    class S1: State {}; class S2: State {}; class S3: State {}
+    class E1: Event {}; class E2: Event {}; class E3: Event {}
 }
 

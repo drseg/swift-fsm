@@ -9,7 +9,7 @@ import Foundation
 import XCTest
 @testable import FiniteStateMachine
 
-class FSMTests: GenericTests {
+class FSMTests: SafeTests {
     var didPass = false
     
     func pass() {

@@ -8,15 +8,15 @@
 import XCTest
 @testable import FiniteStateMachine
 
-class GenericTests: XCTestCase {
+class SafeTests: XCTestCase {
     enum State { case a, b, c, d, e, f }
     enum Event { case g, h, i, j, k, l }
     
-    typealias Given = Generic.Given<State>
-    typealias When = Generic.When<Event>
-    typealias Then = Generic.Then<State>
-    typealias Action = Generic.Action
-    
+    typealias Given = Safe.Given<State>
+    typealias When = Safe.When<Event>
+    typealias Then = Safe.Then<State>
+    typealias Action = Safe.Action
+        
     func transition<State, Event>(
         _ given: State,
         _ when: Event,
@@ -53,7 +53,7 @@ class GenericTests: XCTestCase {
     }
 }
 
-final class GenericTransitionTests: GenericTests {
+final class SafeTransitionTests: SafeTests {
     func testSimpleConstructor() {
         let t = Given(.a) | When(.g) | Then(.b) | Action { }
         
@@ -67,9 +67,7 @@ final class GenericTransitionTests: GenericTests {
         assertLast(transition(.b, .g, .b), t)
         assertCount(2, t)
     }
-    
-
-    
+        
     func testMultiWhenThenActionConstructor() {
         let t = Given(.a) | [When(.g) | Then(.b) | Action { },
                              When(.h) | Then(.c) | Action { }]
@@ -78,8 +76,6 @@ final class GenericTransitionTests: GenericTests {
         assertLast(transition(.a, .h, .c), t)
         assertCount(2, t)
     }
-    
-
     
     func testCombineMultiGivenAndMultiWhenThenAction() {
         let t = Given(.a, .b) | [When(.g) | Then(.c) | Action { },
@@ -90,8 +86,6 @@ final class GenericTransitionTests: GenericTests {
         assertCount(4, t)
     }
     
-
-    
     func testMultiWhenConstructor() {
         let t = Given(.a) | When(.g, .h) | Then(.c) | Action { }
         
@@ -99,14 +93,6 @@ final class GenericTransitionTests: GenericTests {
         assertLast(transition(.a, .h, .c), t)
         assertCount(2, t)
     }
-    
-//    func testMultiWhenConstructorLabelless() {
-//        let t = "s1" | [1, 2] | "s2" | {}
-//
-//        assertFirst(transition("s1", 1, "s2"), t)
-//        assertLast(transition("s1", 2, "s2"), t)
-//        assertCount(2, t)
-//    }
     
     func testMultiGivenMultiWhenConstructor() {
         let t = Given(.a, .b) | When(.g, .h) | Then(.c) | Action { }
