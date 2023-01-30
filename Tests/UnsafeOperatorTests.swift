@@ -244,10 +244,6 @@ class UnsafeTransitionTests: XCTestCase {
         let t = s1 | e1 | s2 | Sub().test
         t.first?.action()
     }
-    
-    func testRespectsCustomStringConvertible() {
-        // how do I test this?
-    }
 }
 
 final class EnumTransitionTests: UnsafeTransitionTests {
@@ -408,8 +404,8 @@ final class ErasedWrapperHashableConformanceTests: XCTestCase {
         }
         
         let e = expectation(description: "hash")
-        let wrapped = StateSpy() { e.fulfill() }
-        let _ = [wrapped.erased: "Pass"]
+        let wrapper = StateSpy() { e.fulfill() }.erased
+        let _ = [wrapper: "Pass"]
         waitForExpectations(timeout: 0.1)
     }
 }
