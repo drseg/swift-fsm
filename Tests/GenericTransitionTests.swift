@@ -8,6 +8,9 @@
 import XCTest
 @testable import FiniteStateMachine
 
+extension String: StateProtocol {}
+extension Int: EventProtocol {}
+
 class GenericTests: XCTestCase {
     enum State { case a, b, c, d, e, f }
     enum Event { case g, h, i, j, k, l }
@@ -16,114 +19,204 @@ class GenericTests: XCTestCase {
     typealias When = Generic.When<Event>
     typealias Then = Generic.Then<State>
     typealias Action = Generic.Action
-}
-
-final class GenericTransitionTests: GenericTests {
-    typealias Transition = FiniteStateMachine.Transition<State,Event>
-    var t: [Transition] = []
     
-    func transition(
+    func transition<State, Event>(
         _ given: State,
         _ when: Event,
         _ then: State,
         _ action: @escaping () -> Void = { }
-    ) -> Transition {
+    ) -> Transition<State, Event> {
         Transition(givenState: given,
                    event: when,
                    nextState: then,
                    action: action)
     }
     
-    func assertFirst(_ expected: Transition, line: UInt = #line) {
+    func assertFirst<State, Event>(
+        _ expected: Transition<State, Event>,
+        _ t: [Transition<State, Event>],
+        line: UInt = #line
+    ) {
         XCTAssertEqual(t.first, expected, line: line)
     }
     
-    func assertLast(_ expected: Transition, line: UInt = #line) {
+    func assertLast<State, Event>(
+        _ expected: Transition<State, Event>,
+        _ t: [Transition<State, Event>],
+        line: UInt = #line
+    ) {
         XCTAssertEqual(t.last, expected, line: line)
     }
     
-    func assertCount(_ expected: Int, line: UInt = #line) {
+    func assertCount<State, Event>(
+        _ expected: Int,
+        _ t: [Transition<State, Event>],
+        line: UInt = #line) {
         XCTAssertEqual(t.count, expected, line: line)
     }
-    
+}
+
+final class GenericTransitionTests: GenericTests {
     func testSimpleConstructor() {
-        t = Given(.a) | When(.g) | Then(.b) | Action { }
+        let t = Given(.a) | When(.g) | Then(.b) | Action { }
         
-        assertFirst(transition(.a, .g, .b))
+        assertFirst(transition(.a, .g, .b), t)
+    }
+    
+    func testSimpleLabellessConstructor() {
+        let t = "s1" | 1 | "s2" | {}
+        
+        assertFirst(transition("s1", 1, "s2"), t)
     }
 
     func testMultiGivenConstructor() {
-        t = Given(.a, .b) | When(.g) | Then(.b) | Action { }
+        let t = Given(.a, .b) | When(.g) | Then(.b) | Action { }
         
-        assertFirst(transition(.a, .g, .b))
-        assertLast(transition(.b, .g, .b))
-        assertCount(2)
+        assertFirst(transition(.a, .g, .b), t)
+        assertLast(transition(.b, .g, .b), t)
+        assertCount(2, t)
+    }
+    
+    func testMultiGivenLabellessConstructor() {
+        let t = ["s1", "s2"] | 1 | "s3" | {}
+
+        assertFirst(transition("s1", 1, "s3"), t)
+        assertLast(transition("s2", 1, "s3"), t)
+        assertCount(2, t)
     }
     
     func testMultiWhenThenActionConstructor() {
-        t = Given(.a) | [When(.g) | Then(.b) | Action { },
-                         When(.h) | Then(.c) | Action { }]
+        let t = Given(.a) | [When(.g) | Then(.b) | Action { },
+                             When(.h) | Then(.c) | Action { }]
         
-        assertFirst(transition(.a, .g, .b))
-        assertLast(transition(.a, .h, .c))
-        assertCount(2)
+        assertFirst(transition(.a, .g, .b), t)
+        assertLast(transition(.a, .h, .c), t)
+        assertCount(2, t)
+    }
+    
+    func testMultiWhenThenActionLabellessConstructor() {
+#warning("Swift can't type check this all in one")
+        let wta1 = 1 | "s2" | {}
+        let wta2 = 2 | "s3" | {}
+        
+        let t = "s1" | [wta1,
+                        wta2]
+
+        assertFirst(transition("s1", 1, "s2"), t)
+        assertLast(transition("s1", 2, "s3"), t)
+        assertCount(2, t)
     }
     
     func testCombineMultiGivenAndMultiWhenThenAction() {
-        t = Given(.a, .b) | [When(.g) | Then(.c) | Action { },
-                             When(.h) | Then(.c) | Action { }]
+        let t = Given(.a, .b) | [When(.g) | Then(.c) | Action { },
+                                 When(.h) | Then(.c) | Action { }]
         
-        assertFirst(transition(.a, .g, .c))
-        assertLast(transition(.b, .h, .c))
-        assertCount(4)
+        assertFirst(transition(.a, .g, .c), t)
+        assertLast(transition(.b, .h, .c), t)
+        assertCount(4, t)
+    }
+    
+    func testCombineMultiGivenMultiWhenThenLabelless() {
+#warning("Swift can't type check this all in one")
+        let wta1 = 1 | "s2" | {}
+        let wta2 = 2 | "s3" | {}
+        
+        let t = ["s1",
+                 "s2"] | [wta1,
+                          wta2]
+
+        assertFirst(transition("s1", 1, "s2"), t)
+        assertLast(transition("s2", 2, "s3"), t)
+        assertCount(4, t)
     }
     
     func testMultiWhenConstructor() {
-        t = Given(.a) | When(.g, .h) | Then(.c) | Action { }
+        let t = Given(.a) | When(.g, .h) | Then(.c) | Action { }
         
-        assertFirst(transition(.a, .g, .c))
-        assertLast(transition(.a, .h, .c))
-        assertCount(2)
+        assertFirst(transition(.a, .g, .c), t)
+        assertLast(transition(.a, .h, .c), t)
+        assertCount(2, t)
+    }
+    
+    func testMultiWhenConstructorLabelless() {
+        let t = "s1" | [1, 2] | "s2" | {}
+
+        assertFirst(transition("s1", 1, "s2"), t)
+        assertLast(transition("s1", 2, "s2"), t)
+        assertCount(2, t)
     }
     
     func testMultiGivenMultiWhenConstructor() {
-        t = Given(.a, .b) | When(.g, .h) | Then(.c) | Action { }
+        let t = Given(.a, .b) | When(.g, .h) | Then(.c) | Action { }
         
-        assertFirst(transition(.a, .g, .c))
-        assertLast(transition(.b, .h, .c))
-        assertCount(4)
+        assertFirst(transition(.a, .g, .c), t)
+        assertLast(transition(.b, .h, .c), t)
+        assertCount(4, t)
+    }
+    
+    func testMultiGivenWhenConstructorLabelless() {
+        let t = ["s1", "s2"] | [1, 2] | "s2" | {}
+
+        assertFirst(transition("s1", 1, "s2"), t)
+        assertLast(transition("s2", 2, "s2"), t)
+        assertCount(4, t)
     }
     
     func testCombineMultiGivenMultiWhenMultiWhenThenAction() {
-        t = Given(.a, .b) | [
+        let t = Given(.a, .b) | [
             When(.g, .h) | Then(.c) | Action { },
             When(.i, .j) | Then(.d) | Action { }
         ]
         
-        assertFirst(transition(.a, .g, .c))
-        assertLast(transition(.b, .j, .d))
-        assertCount(8)
+        assertFirst(transition(.a, .g, .c), t)
+        assertLast(transition(.b, .j, .d), t)
+        assertCount(8, t)
+    }
+    
+    func testCombineMultiGivenWhenConstructorLabelless() {
+#warning("Swift can't type check this all in one")
+        let wtas = [1, 2] | "s2" | {}
+        let t = ["s1", "s2"] | wtas
+
+        assertFirst(transition("s1", 1, "s2"), t)
+        assertLast(transition("s2", 2, "s2"), t)
+        assertCount(4, t)
     }
     
     func testMultiWhenThenConstructor() {
-        t = Given(.a) | [When(.g) | Then(.c),
-                         When(.h) | Then(.d)] | Action { }
+        let t = Given(.a) | [When(.g) | Then(.c),
+                             When(.h) | Then(.d)] | Action { }
         
-        assertFirst(transition(.a, .g, .c))
-        assertLast(transition(.a, .h, .d))
-        assertCount(2)
+        assertFirst(transition(.a, .g, .c), t)
+        assertLast(transition(.a, .h, .d), t)
+        assertCount(2, t)
+    }
+    
+    func testMultiWhenThenConstructorLabelless() {
+#warning("Swift can't type check this all in one")
+        let wts = [1 | "s2",
+                   2 | "s3"]
+        let t = "s1" | wts | {}
+        
+        assertFirst(transition("s1", 1, "s2"), t)
+        assertLast(transition("s1", 2, "s3"), t)
+        assertCount(2, t)
     }
     
     func testMaxConstructors() {
-        t = Given(.a, .b) | [[When(.g, .h) | Then(.c),
-                              When(.h, .i) | Then(.d)] | Action { },
-                             
-                             [When(.i, .j) | Then(.e),
-                              When(.j, .k) | Then(.f)] | Action { }]
+        let t = Given(.a, .b) | [[When(.g, .h) | Then(.c),
+                                  When(.h, .i) | Then(.d)] | Action { },
+                                 
+                                 [When(.i, .j) | Then(.e),
+                                  When(.j, .k) | Then(.f)] | Action { }]
         
-        assertFirst(transition(.a, .g, .c))
-        assertLast(transition(.b, .k, .f))
-        assertCount(16)
+        assertFirst(transition(.a, .g, .c), t)
+        assertLast(transition(.b, .k, .f), t)
+        assertCount(16, t)
+    }
+    
+    func testMaxConstructorsLabelless() {
+        // do you dare?!
     }
     
     func testEquality() {

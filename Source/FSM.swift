@@ -14,7 +14,7 @@ class GenericFSM<State, Event> where State: Hashable, Event: Hashable {
     var state: State
     var transitions = [K: T]()
     
-    init(state: State) {
+    init(initialState state: State) {
         self.state = state
     }
     

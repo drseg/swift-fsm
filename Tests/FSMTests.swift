@@ -21,13 +21,13 @@ class FSMTests: GenericTests {
     }
     
     func testHandlEvent() {
-        let fsm = GenericFSM<State, Event>(state: .a)
+        let fsm = GenericFSM<State, Event>(initialState: .a)
         fsm.buildTransitions {
-            Given(.a) | When(.g) | Then(.b) | Action(pass)
             Given(.a) | When(.h) | Then(.b) | Action(fail)
+            Given(.a) | When(.g) | Then(.c) | Action(pass)
         }
         fsm.handleEvent(.g)
         XCTAssertTrue(didPass)
-        XCTAssertEqual(fsm.state, .b)
+        XCTAssertEqual(fsm.state, .c)
     }
 }
