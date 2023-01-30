@@ -11,6 +11,13 @@ import ReflectiveEquality
 protocol StateProtocol {}
 protocol EventProtocol {}
 
+private extension Hashable {
+    func isEqual(to rhs: any Hashable) -> Bool {
+        guard let rhs = rhs as? Self else { return false }
+        return rhs == self
+    }
+}
+
 extension StateProtocol {
     var erased: Unsafe.AnyStateProtocol? {
         erase(self, to: Unsafe.AnyStateProtocol.init)
@@ -32,51 +39,40 @@ private func erase<ProtocolType, AnyProtocolType>(
     : t(s)
 }
 
+protocol Eraser {
+    associatedtype BaseType
+    var base: BaseType { get }
+}
+
+extension Eraser {
+    static func == (
+        lhs: Self,
+        rhs: Self
+    ) -> Bool {
+        if let lhs = lhs.base as? (any Hashable),
+           let rhs = rhs.base as? (any Hashable) {
+            return lhs.isEqual(to: rhs)
+        }
+        
+        return haveSameValue(lhs.base, rhs.base)
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        if let s = base as? (any Hashable) {
+            s.hash(into: &hasher)
+        } else {
+            hasher.combine(deepDescription(base))
+        }
+    }
+}
+
 enum Unsafe {
-    private static func areEqual(lhs: Any, rhs: Any) -> Bool {
-        if lhs is CustomStringConvertible || rhs is CustomStringConvertible {
-            return String(describing: lhs) == String(describing: rhs)
-        } else {
-            return haveSameValue(lhs, rhs)
-        }
-    }
-    
-    private static func customHash(_ any: Any) -> String {
-        if any is CustomStringConvertible {
-            return String(describing: any)
-        } else {
-            return deepDescription(any)
-        }
-    }
-    
-    struct AnyEventProtocol: EventProtocol, Hashable {
+    struct AnyEventProtocol: Eraser, EventProtocol, Hashable {
         let base: any EventProtocol
-        
-        static func == (
-            lhs: Unsafe.AnyEventProtocol,
-            rhs: Unsafe.AnyEventProtocol
-        ) -> Bool {
-            areEqual(lhs: lhs, rhs: rhs)
-        }
-        
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(customHash(self))
-        }
     }
     
-    struct AnyStateProtocol: StateProtocol, Hashable {
+    struct AnyStateProtocol: Eraser, StateProtocol, Hashable {
         let base: any StateProtocol
-        
-        static func == (
-            lhs: Unsafe.AnyStateProtocol,
-            rhs: Unsafe.AnyStateProtocol
-        ) -> Bool {
-            areEqual(lhs: lhs, rhs: rhs)
-        }
-        
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(customHash(self))
-        }
     }
     
     struct StateEvent {
@@ -104,7 +100,11 @@ enum Unsafe {
         let state: any StateProtocol
         let action: () -> Void
         
-        init(_ event: any EventProtocol, _ state: any StateProtocol, _ action: @escaping () -> Void) {
+        init(
+            _ event: any EventProtocol,
+            _ state: any StateProtocol,
+            _ action: @escaping () -> Void
+        ) {
             self.event = event
             self.state = state
             self.action = action
@@ -116,7 +116,11 @@ enum Unsafe {
         let event: any EventProtocol
         let endState: any StateProtocol
         
-        init(_ startState: any StateProtocol, _ event: any EventProtocol, _ endState: any StateProtocol) {
+        init(
+            _ startState: any StateProtocol,
+            _ event: any EventProtocol,
+            _ endState: any StateProtocol
+        ) {
             self.startState = startState
             self.event = event
             self.endState = endState
