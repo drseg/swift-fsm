@@ -315,22 +315,21 @@ final class ClassTransitionTests: UnsafeTransitionTests {
     class E1: Event {}; class E2: Event {}; class E3: Event {}
 }
 
+protocol NeverEqual { }
+extension NeverEqual {
+    static func == (lhs: Self, rhs: Self) -> Bool { false }
+}
+
+protocol AlwaysEqual { }
+extension AlwaysEqual {
+    static func == (lhs: Self, rhs: Self) -> Bool { true }
+}
+
 final class ErasedWrapperHashableConformanceTests: XCTestCase {
-    struct NeverEqualState: StateProtocol, Hashable {
-        static func == (lhs: Self, rhs: Self) -> Bool { false }
-    }
-    
-    struct AlwaysEqualState: StateProtocol, Hashable {
-        static func == (lhs: Self, rhs: Self) -> Bool { true }
-    }
-    
-    struct NeverEqualEvent: EventProtocol, Hashable {
-        static func == (lhs: Self, rhs: Self) -> Bool { false }
-    }
-    
-    struct AlwaysEqualEvent: EventProtocol, Hashable {
-        static func == (lhs: Self, rhs: Self) -> Bool { true }
-    }
+    struct NeverEqualState: StateProtocol, Hashable, NeverEqual { }
+    struct AlwaysEqualState: StateProtocol, Hashable, AlwaysEqual { }
+    struct NeverEqualEvent: EventProtocol, Hashable, NeverEqual { }
+    struct AlwaysEqualEvent: EventProtocol, Hashable, AlwaysEqual { }
     
     func testStateInequality() {
         let s1 = NeverEqualState().erased
@@ -403,16 +402,15 @@ final class ErasedWrapperHashableConformanceTests: XCTestCase {
     }
 
     func testErasedWrapperUsesWrappedHasher() {
+        struct StateSpy: StateProtocol, Hashable, NeverEqual {
+            let callback: () -> ()
+            func hash(into hasher: inout Hasher) { callback() }
+        }
+        
         let e = expectation(description: "hash")
         let wrapped = StateSpy() { e.fulfill() }
         let _ = [wrapped.erased: "Pass"]
         waitForExpectations(timeout: 0.1)
-    }
-
-    struct StateSpy: StateProtocol, Hashable {
-        let callback: () -> ()
-        static func == (lhs: StateSpy, rhs: StateSpy) -> Bool { false }
-        func hash(into hasher: inout Hasher) { callback() }
     }
 }
 
