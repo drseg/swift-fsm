@@ -15,10 +15,6 @@ extension StateProtocol {
     var erased: Unsafe.AnyStateProtocol? {
         erase(self, to: Unsafe.AnyStateProtocol.init)
     }
-    
-    static func == (lhs: any StateProtocol, rhs: any StateProtocol) -> Bool {
-        return lhs.erased == rhs.erased
-    }
 }
 
 extension EventProtocol {

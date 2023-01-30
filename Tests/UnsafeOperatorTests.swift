@@ -58,63 +58,61 @@ class UnsafeTransitionTests: XCTestCase {
         XCTAssertEqual(t.first, expected, line: line)
     }
     
-    func assertFirst(_ given: ASP, _ when: AEP, _ then: ASP, line: UInt = #line) {
+    func assertFirst(
+        _ given: ASP,
+        _ when: AEP,
+        _ then: ASP,
+        line: UInt = #line
+    ) {
         XCTAssertEqual(t.first, transition(given, when, then), line: line)
     }
     
-    func assertLast(_ given: ASP, _ when: AEP, _ then: ASP, line: UInt = #line) {
+    func assertLast(_ given: ASP,
+                    _ when: AEP,
+                    _ then: ASP,
+                    line: UInt = #line) {
         XCTAssertEqual(t.last, transition(given, when, then), line: line)
-    }
-
-    func assertLast(_ expected: Transition, line: UInt = #line) {
-        XCTAssertEqual(t.last, expected, line: line)
-    }
-
-    func assertCount(_ expected: Int, line: UInt = #line) {
-        XCTAssertEqual(t.count, expected, line: line)
     }
     
     func testHashable() {
-        let test = Set([s1,
-                        s1,
-                        s2])
+        let test = Set([s1, s1, s2])
         XCTAssertEqual(test.count, 2)
     }
 
     func testTransition() {
         t = s1 | e1 | s2 | action
-        assertFirst(transition(s1, e1, s2))
+        assertFirst(s1, e1, s2)
     }
 
     func testMultipleStartEventFinishes() {
         t = [s1 | e1 | s2,
              s2 | e1 | s2] | action
 
-        assertFirst(transition(s1, e1, s2))
-        assertLast(transition(s2, e1, s2))
+        assertFirst(s1, e1, s2)
+        assertLast(s2, e1, s2)
     }
     
     func testMultipleStartEvents() {
         t = [s1 | e1,
              s2 | e1] | s2 | action
         
-        assertFirst(transition(s1, e1, s2))
-        assertLast(transition(s2, e1, s2))
+        assertFirst(s1, e1, s2)
+        assertLast(s2, e1, s2)
     }
     
     func testMultipleStarts() {
         t = [s1,
              s2] | e1 | s2 | action
         
-        assertFirst(transition(s1, e1, s2))
-        assertLast(transition(s2, e1, s2))
+        assertFirst(s1, e1, s2)
+        assertLast(s2, e1, s2)
     }
     
     func testMultipleEvents() {
         t = s1 | [e1, e2] | s2 | action
         
-        assertFirst(transition(s1, e1, s2))
-        assertLast(transition(s1, e2, s2))
+        assertFirst(s1, e1, s2)
+        assertLast(s1, e2, s2)
     }
     
     func testNesting() {
@@ -122,8 +120,8 @@ class UnsafeTransitionTests: XCTestCase {
              s1] | [e1,
                     e2] | s2 | action
         
-        assertFirst(transition(s2, e1, s2))
-        assertLast(transition(s1, e2, s2))
+        assertFirst(s2, e1, s2)
+        assertLast(s1, e2, s2)
     }
     
     func testMultipleEventStateAction() {
