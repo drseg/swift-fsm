@@ -7,10 +7,36 @@
 
 import Foundation
 
-enum Class {
-    class HashableBase: Hashable {
-        static func == (lhs: HashableBase, rhs: HashableBase) -> Bool {
-            type(of: lhs) == type(of: rhs)
+extension StateProtocol {
+    var erased: Unsafe.AnyStateProtocol? {
+        Unsafe.AnyStateProtocol(base: self)
+    }
+}
+
+extension EventProtocol {
+    var erased: Unsafe.AnyEventProtocol? {
+        Unsafe.AnyEventProtocol(base: self)
+    }
+}
+
+enum Unsafe {
+    struct AnyEventProtocol: EventProtocol {
+        static func == (lhs: Unsafe.AnyEventProtocol, rhs: Unsafe.AnyEventProtocol) -> Bool {
+            String(describing: lhs) == String(describing: rhs)
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(String(describing: self))
+        }
+        
+        let base: any EventProtocol
+    }
+    
+    struct AnyStateProtocol: StateProtocol {
+        let base: any StateProtocol
+        
+        static func == (lhs: Unsafe.AnyStateProtocol, rhs: Unsafe.AnyStateProtocol) -> Bool {
+            String(describing: lhs) == String(describing: rhs)
         }
         
         func hash(into hasher: inout Hasher) {
@@ -18,35 +44,32 @@ enum Class {
         }
     }
     
-    class State: HashableBase { }
-    class Event: HashableBase { }
-    
     class StateEvent {
-        let state: State
-        let event: Event
+        let state: any StateProtocol
+        let event: any EventProtocol
         
-        init(_ state: State, _ event: Event) {
+        init(_ state: any StateProtocol, _ event: any EventProtocol) {
             self.state = state
             self.event = event
         }
     }
     
     class EventState {
-        let event: Event
-        let state: State
+        let event: any EventProtocol
+        let state: any StateProtocol
         
-        init(_ event: Event, _ state: State) {
+        init(_ event: any EventProtocol, _ state: any StateProtocol) {
             self.event = event
             self.state = state
         }
     }
     
     class StateEventState {
-        let startState: State
-        let event: Event
-        let endState: State
+        let startState: any StateProtocol
+        let event: any EventProtocol
+        let endState: any StateProtocol
         
-        init(_ startState: State, _ event: Event, _ endState: State) {
+        init(_ startState: any StateProtocol, _ event: any EventProtocol, _ endState: any StateProtocol) {
             self.startState = startState
             self.event = event
             self.endState = endState
@@ -54,87 +77,92 @@ enum Class {
     }
     
     class StateAction {
-        let state: State
+        let state: any StateProtocol
         let action: () -> Void
         
-        init(_ state: State, _ action: @escaping () -> Void) {
+        init(_ state: any StateProtocol, _ action: @escaping () -> Void) {
             self.state = state
             self.action = action
         }
     }
 }
 
-func | (state: Class.State, event: Class.Event) -> Class.StateEvent {
-    Class.StateEvent(state, event)
+func | (state: any StateProtocol, event: any EventProtocol) -> Unsafe.StateEvent {
+    Unsafe.StateEvent(state, event)
 }
 
-func | (states: [Class.State], event: Class.Event) -> [Class.StateEvent] {
-    states.reduce(into: [Class.StateEvent]()) {
+func | (states: [any StateProtocol], event: any EventProtocol) -> [Unsafe.StateEvent] {
+    states.reduce(into: [Unsafe.StateEvent]()) {
         $0.append($1 | event)
     }
 }
 
-func | (states: [Class.State], events: [Class.Event]) -> [Class.StateEvent] {
-    states.reduce(into: [Class.StateEvent]()) { output, s in
+func | (states: [any StateProtocol], events: [any EventProtocol]) -> [Unsafe.StateEvent] {
+    states.reduce(into: [Unsafe.StateEvent]()) { output, s in
         events.forEach {
             output.append(s | $0)
         }
     }
 }
 
-func | (event: Class.Event, state: Class.State) -> Class.EventState {
-    Class.EventState(event, state)
+func | (
+    event: any EventProtocol,
+    state: any StateProtocol
+) -> Unsafe.EventState {
+    Unsafe.EventState(event, state)
 }
 
-func | (events: [Class.Event], state: Class.State) -> [Class.EventState] {
-    events.reduce(into: [Class.EventState]()) {
+func | (
+    events: [any EventProtocol],
+    state: any StateProtocol
+) -> [Unsafe.EventState] {
+    events.reduce(into: [Unsafe.EventState]()) {
         $0.append($1 | state)
     }
 }
 
 func | (
-    state: Class.State,
+    state: any StateProtocol,
     action: @escaping () -> Void
-) -> Class.StateAction {
-    Class.StateAction(state, action)
+) -> Unsafe.StateAction {
+    Unsafe.StateAction(state, action)
 }
 
 func | (
-    stateEvent: Class.StateEvent,
-    state: Class.State
-) -> Class.StateEventState {
-    Class.StateEventState(stateEvent.state, stateEvent.event, state)
-}
-
-func | (
-    stateEvents: [Class.StateEvent],
-    state: Class.State
-) -> [Class.StateEventState] {
-    stateEvents.reduce(into: [Class.StateEventState]()) {
-        $0.append(Class.StateEventState($1.state, $1.event, state))
+    stateEvents: [Unsafe.StateEvent],
+    state: any StateProtocol
+) -> [Unsafe.StateEventState] {
+    stateEvents.reduce(into: [Unsafe.StateEventState]()) {
+        $0.append($1 | state)
     }
 }
 
 func | (
-    stateEventState: Class.StateEventState,
-    action: @escaping () -> Void
-) -> [Transition<Class.State, Class.Event>] {
-    [Transition(givenState: stateEventState.startState,
-                event: stateEventState.event,
-                nextState: stateEventState.endState,
-                action: action)]
+    stateEvent: Unsafe.StateEvent,
+    state: any StateProtocol
+) -> Unsafe.StateEventState {
+    Unsafe.StateEventState(stateEvent.state, stateEvent.event, state)
 }
 
 func | (
-    stateEventStates: [Class.StateEventState],
+    stateEventStates: [Unsafe.StateEventState],
     action: @escaping () -> Void
-) -> [Transition<Class.State, Class.Event>] {
+) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
     stateEventStates.reduce(into: [Transition]()) {
-        $0.append(
-            Transition(givenState: $1.startState,
-                       event: $1.event,
-                       nextState: $1.endState,
-                       action: action)
-        )
+        $0.append(contentsOf: $1 | action)
     }
+}
+
+func | (
+    stateEventState: Unsafe.StateEventState,
+    action: @escaping () -> Void
+) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+    let start = Unsafe.AnyStateProtocol(base: stateEventState.startState)
+    let event = Unsafe.AnyEventProtocol(base: stateEventState.event)
+    let next = Unsafe.AnyStateProtocol(base: stateEventState.endState)
+    
+    return [Transition(givenState: start,
+                       event: event,
+                       nextState: next,
+                       action: action)]
 }

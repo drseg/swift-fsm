@@ -7,8 +7,8 @@
 
 import Foundation
 
-protocol StateProtocol: Equatable {}
-protocol EventProtocol: Equatable {}
+protocol StateProtocol: Hashable {}
+protocol EventProtocol: Hashable {}
 
 enum Generic {
     struct Given<State> {
@@ -37,11 +37,6 @@ enum Generic {
         let then: State
     }
     
-    struct SStateEvent<State,Event> {
-        let state: State
-        let event: Event
-    }
-    
     struct Then<State> {
         let then: State
         
@@ -55,7 +50,6 @@ enum Generic {
         let when: Event
         let then: State
     }
-    
     
     struct ThenAction<State> {
         let then: State

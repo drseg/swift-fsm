@@ -8,105 +8,74 @@
 import XCTest
 @testable import FiniteStateMachine
 
-final class ClassBasedTransitionTests: XCTestCase {
-    typealias State = Class.State
-    typealias Event = Class.Event
-    typealias Transition = FiniteStateMachine.Transition<State, Event>
-    typealias Key = Transition.Key<State, Event>
+final class UnsafeTransitionTests: XCTestCase {
+    typealias State = StateProtocol
+    typealias Event = EventProtocol
+    typealias ASP = Unsafe.AnyStateProtocol
+    typealias AEP = Unsafe.AnyEventProtocol
     
-    class S1: State {}
-    class S2: State {}
-    class S3: State {}
-    
-    class E1: Event {}
-    class E2: Event {}
-    class E3: Event {}
-    
+    typealias Transition = FiniteStateMachine.Transition<Unsafe.AnyStateProtocol,
+                                                         Unsafe.AnyEventProtocol>
+    typealias Key = Transition.Key<Unsafe.AnyStateProtocol,
+                                   Unsafe.AnyEventProtocol>
+
+    struct S1: State {}
+    struct S2: State {}
+    struct S3: State {}
+
+    struct E1: Event {}
+    struct E2: Event {}
+    struct E3: Event {}
+
     var actionCalled = false
     func action() { actionCalled = true }
-    
+
     func transition(
-        _ givenState: State,
-        _ event: Event,
-        _ nextState: State
+        _ givenState: any StateProtocol,
+        _ event: any EventProtocol,
+        _ nextState: any StateProtocol
     ) -> Transition {
-        Transition(givenState: givenState,
-                   event: event,
-                   nextState: nextState,
+        Transition(givenState: givenState.erased!,
+                   event: event.erased!,
+                   nextState: nextState.erased!,
                    action: { })
     }
     
+    func key(_ state: any StateProtocol, _ event: any EventProtocol) -> Key {
+        Key(state: state.erased!,
+            event: event.erased!)
+    }
+
     var t: [Transition] = []
-    
+
     func assertFirst(_ expected: Transition, line: UInt = #line) {
         XCTAssertEqual(t.first, expected, line: line)
     }
-    
+
     func assertLast(_ expected: Transition, line: UInt = #line) {
         XCTAssertEqual(t.last, expected, line: line)
     }
-    
+
     func assertCount(_ expected: Int, line: UInt = #line) {
         XCTAssertEqual(t.count, expected, line: line)
     }
     
-    func testStateEvent() {
-        let se = S1() | E1()
-        
-        XCTAssertEqual(se.state, S1())
-        XCTAssertEqual(se.event, E1())
-    }
-    
-    func testMultiStateEvent() {
-        let ses = [S1(),
-                   S2()] | E1()
-        
-        XCTAssertEqual(ses.first?.state, S1())
-        XCTAssertEqual(ses.last?.state, S2())
-    }
-    
-    func testEventState() {
-        let es = E1() | S1()
-        
-        XCTAssertEqual(es.event, E1())
-        XCTAssertEqual(es.state, S1())
-    }
-    
-    func testMultiEventState() {
-        let ess = [E1(),
-                   E2()] | S1()
-        
-        XCTAssertEqual(ess.first?.event, E1())
-        XCTAssertEqual(ess.last?.event, E2())
-    }
-    
-    func testStateAction() {
-        let sa = S1() | action
-        XCTAssertEqual(sa.state, S1())
-    }
-    
-    func testStateEventState() {
-        let ses = S1() | E1() | S2()
-        
-        XCTAssertEqual(ses.startState, S1())
-        XCTAssertEqual(ses.event, E1())
-        XCTAssertEqual(ses.endState, S2())
-    }
-    
     func testHashable() {
-        let test = Set([S1(), S1(), S2()])
+        let test = Set([S1().erased,
+                        S1().erased,
+                        S2().erased])
         XCTAssertEqual(test.count, 2)
     }
-    
+
     func testTransition() {
-        let t = S1() | E1() | S2() | action
-        XCTAssertEqual(t.first, transition(S1(), E1(), S2()))
+        t = S1() | E1() | S2() | action
+        assertFirst(transition(S1(), E1(), S2()))
     }
-    
+
     func testMultipleStartEventFinishes() {
         t = [S1() | E1() | S2(),
              S2() | E1() | S3()] | action
-        
+
         assertFirst(transition(S1(), E1(), S2()))
         assertLast(transition(S2(), E1(), S3()))
     }
@@ -137,7 +106,7 @@ final class ClassBasedTransitionTests: XCTestCase {
     }
     
     func testCallsAction() {
-        let t = S1() | E1() | S2() | action
+        t = S1() | E1() | S2() | action
         t.first?.action()
         XCTAssertTrue(actionCalled)
     }
@@ -151,10 +120,6 @@ final class ClassBasedTransitionTests: XCTestCase {
              S1()] | E3() | S2() | action
         }
         XCTAssertEqual(t.count, 4)
-    }
-    
-    func key(_ state: State, _ event: Event) -> Key {
-        Key(state: state, event: event)
     }
 
     func assertContainsTransition(
@@ -207,11 +172,11 @@ final class ClassBasedTransitionTests: XCTestCase {
 
         assertContainsTransition(t, k: key(S1(), E1()))
     }
-    
+
     func testActionsDispatchDynamically() {
         class Base { func test() { XCTFail() } }
         class Sub: Base { override func test() {} }
-        
+
         let t = S1() | E1() | S2() | Sub().test
         t.first?.action()
     }
