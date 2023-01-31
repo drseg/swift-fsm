@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6E98BF0129881AA8004152E4 /* ReflectiveEquality in Frameworks */ = {isa = PBXBuildFile; productRef = 6E98BF0029881AA8004152E4 /* ReflectiveEquality */; };
 		6EA3A02229871402007928C4 /* UnsafeOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02129871402007928C4 /* UnsafeOperatorTests.swift */; };
 		6EA3A02529871E93007928C4 /* FSM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02329871CB7007928C4 /* FSM.swift */; };
 		6EA3A028298726BA007928C4 /* UnsafeOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A027298726BA007928C4 /* UnsafeOperators.swift */; };
@@ -49,7 +48,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E98BF0129881AA8004152E4 /* ReflectiveEquality in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,7 +140,6 @@
 			);
 			name = FiniteStateMachine;
 			packageProductDependencies = (
-				6E98BF0029881AA8004152E4 /* ReflectiveEquality */,
 			);
 			productName = FiniteStateMachine;
 			productReference = 6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */;
@@ -194,7 +191,6 @@
 			);
 			mainGroup = 6EE64F7D2986BE3B009A361C;
 			packageReferences = (
-				6E98BEFF29881AA8004152E4 /* XCRemoteSwiftPackageReference "reflective-equality" */,
 			);
 			productRefGroup = 6EE64F882986BE3B009A361C /* Products */;
 			projectDirPath = "";
@@ -291,6 +287,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -352,6 +349,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -377,6 +375,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 8V7B4KMTJK;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -412,6 +411,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 8V7B4KMTJK;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -448,6 +448,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 8V7B4KMTJK;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
@@ -469,6 +470,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 8V7B4KMTJK;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
@@ -515,25 +517,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		6E98BEFF29881AA8004152E4 /* XCRemoteSwiftPackageReference "reflective-equality" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/drseg/reflective-equality";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		6E98BF0029881AA8004152E4 /* ReflectiveEquality */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6E98BEFF29881AA8004152E4 /* XCRemoteSwiftPackageReference "reflective-equality" */;
-			productName = ReflectiveEquality;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6EE64F7E2986BE3B009A361C /* Project object */;
 }

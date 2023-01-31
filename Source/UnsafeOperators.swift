@@ -6,10 +6,9 @@
 //
 
 import Foundation
-import ReflectiveEquality
 
-protocol StateProtocol {}
-protocol EventProtocol {}
+protocol StateProtocol: Hashable {}
+protocol EventProtocol: Hashable {}
 
 private extension Hashable {
     func isEqual(to rhs: any Hashable) -> Bool {
@@ -34,43 +33,30 @@ private func erase<ProtocolType, AnyProtocolType>(
     _ s: ProtocolType,
     to t: (ProtocolType) -> AnyProtocolType
 ) -> AnyProtocolType {
-    s as? AnyProtocolType ?? t(s)
+    t(s)
 }
 
 protocol Eraser {
-    associatedtype BaseType
-    var base: BaseType { get }
+    var base: any Hashable { get }
 }
 
 extension Eraser {
-    static func == (
-        lhs: Self,
-        rhs: Self
-    ) -> Bool {
-        if let lhs = lhs.base as? any Hashable,
-           let rhs = rhs.base as? any Hashable {
-            return lhs.isEqual(to: rhs)
-        }
-        
-        return haveSameValue(lhs.base, rhs.base)
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.base.isEqual(to: rhs.base)
     }
     
     func hash(into hasher: inout Hasher) {
-        if let s = base as? any Hashable {
-            s.hash(into: &hasher)
-        } else {
-            hasher.combine(deepDescription(base))
-        }
+        hasher.combine(base)
     }
 }
 
 enum Unsafe {
     struct AnyEvent: Eraser, EventProtocol, Hashable {
-        let base: any EventProtocol
+        let base: any Hashable
     }
     
     struct AnyState: Eraser, StateProtocol, Hashable {
-        let base: any StateProtocol
+        let base: any Hashable
     }
     
     struct StateEvent {

@@ -11,8 +11,9 @@ import XCTest
 class UnsafeTransitionTests: XCTestCase {
     typealias State = StateProtocol
     typealias Event = EventProtocol
-    typealias ASP = Unsafe.AnyState
-    typealias AEP = Unsafe.AnyEvent
+    
+    typealias ASP = any StateProtocol
+    typealias AEP = any EventProtocol
     
     typealias Transition = FiniteStateMachine.Transition<Unsafe.AnyState,
                                                          Unsafe.AnyEvent>
@@ -41,15 +42,15 @@ class UnsafeTransitionTests: XCTestCase {
         _ event: AEP,
         _ nextState: ASP
     ) -> Transition {
-        Transition(givenState: givenState,
-                   event: event,
-                   nextState: nextState,
+        Transition(givenState: givenState.erased,
+                   event: event.erased,
+                   nextState: nextState.erased,
                    action: { })
     }
     
     func key(_ state: ASP, _ event: AEP) -> Key {
-        Key(state: state,
-            event: event)
+        Key(state: state.erased,
+            event: event.erased)
     }
 
     var t: [Transition] = []
@@ -70,11 +71,6 @@ class UnsafeTransitionTests: XCTestCase {
         line: UInt = #line
     ) {
         XCTAssertEqual(t.last, transition(given, when, then), line: line)
-    }
-    
-    func testHashable() {
-        let test = Set([s1, s1, s2])
-        XCTAssertEqual(test.count, 2)
     }
 
     func testTransition() {
@@ -243,69 +239,102 @@ class UnsafeTransitionTests: XCTestCase {
 }
 
 final class EnumTransitionTests: UnsafeTransitionTests {
-    override var s1: ASP { S.one.erased }
-    override var s2: ASP { S.two.erased }
-    override var s3: ASP { S.three.erased }
+    override var s1: ASP { S.one }
+    override var s2: ASP { S.two }
+    override var s3: ASP { S.three }
     
-    override var e1: AEP { E.one.erased }
-    override var e2: AEP { E.two.erased }
-    override var e3: AEP { E.three.erased }
+    override var e1: AEP { E.one }
+    override var e2: AEP { E.two }
+    override var e3: AEP { E.three }
     
     enum S: State { case one, two, three }
     enum E: Event { case one, two, three }
 }
 
 final class EnumValueTransitionTestsOne: UnsafeTransitionTests {
-    override var s1: ASP { S.one("").erased }
-    override var s2: ASP { S.two("").erased }
-    override var s3: ASP { S.three("").erased }
+    override var s1: ASP { S.one("") }
+    override var s2: ASP { S.two("") }
+    override var s3: ASP { S.three("") }
     
-    override var e1: AEP { E.one.erased }
-    override var e2: AEP { E.two.erased }
-    override var e3: AEP { E.three.erased }
+    override var e1: AEP { E.one }
+    override var e2: AEP { E.two }
+    override var e3: AEP { E.three }
     
     enum S: State { case one(String), two(String), three(String) }
     enum E: Event { case one, two, three }
 }
 
 final class EnumValueTransitionTestsTwo: UnsafeTransitionTests {
-    override var s1: ASP { S.one("1").erased }
-    override var s2: ASP { S.one("2").erased }
-    override var s3: ASP { S.one("3").erased }
+    override var s1: ASP { S.one("1") }
+    override var s2: ASP { S.one("2") }
+    override var s3: ASP { S.one("3") }
     
-    override var e1: AEP { E.one.erased }
-    override var e2: AEP { E.two.erased }
-    override var e3: AEP { E.three.erased }
+    override var e1: AEP { E.one }
+    override var e2: AEP { E.two }
+    override var e3: AEP { E.three }
     
     enum S: State { case one(String), two(String), three(String) }
     enum E: Event { case one, two, three }
 }
 
 final class StructTransitionTests: UnsafeTransitionTests {
-    override var s1: ASP { S1().erased }
-    override var s2: ASP { S2().erased }
-    override var s3: ASP { S3().erased }
+    override var s1: ASP { S1() }
+    override var s2: ASP { S2() }
+    override var s3: ASP { S3() }
     
-    override var e1: AEP { E1().erased }
-    override var e2: AEP { E2().erased }
-    override var e3: AEP { E3().erased }
+    override var e1: AEP { E1() }
+    override var e2: AEP { E2() }
+    override var e3: AEP { E3() }
     
     struct S1: State {}; struct S2: State {}; struct S3: State {}
     struct E1: Event {}; struct E2: Event {}; struct E3: Event {}
 }
 
-final class ClassTransitionTests: UnsafeTransitionTests {
-    override var s1: ASP { S1().erased }
-    override var s2: ASP { S2().erased }
-    override var s3: ASP { S3().erased }
-
-    override var e1: AEP { E1().erased }
-    override var e2: AEP { E2().erased }
-    override var e3: AEP { E3().erased }
-
-    class S1: State {}; class S2: State {}; class S3: State {}
-    class E1: Event {}; class E2: Event {}; class E3: Event {}
+protocol EqHa where Self: Hashable { }
+extension EqHa {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        String(describing: lhs) == String(describing: rhs)
+    }
+    
+    func hash(into hasher: inout Hasher) { }
 }
+
+final class ClassTransitionTests: UnsafeTransitionTests {
+    override var s1: ASP { S1() }
+    override var s2: ASP { S2() }
+    override var s3: ASP { S3() }
+
+    override var e1: AEP { E1() }
+    override var e2: AEP { E2() }
+    override var e3: AEP { E3() }
+
+    class S1: State, EqHa {}; class S2: State, EqHa {}; class S3: State, EqHa {}
+    class E1: Event, EqHa {}; class E2: Event, EqHa {}; class E3: Event, EqHa {}
+}
+
+final class StringIntTransitionTests: UnsafeTransitionTests {
+    override var s1: ASP { "s1" }
+    override var s2: ASP { "s2" }
+    override var s3: ASP { "s3" }
+
+    override var e1: AEP { 1 }
+    override var e2: AEP { 2 }
+    override var e3: AEP { 3 }
+}
+
+final class MixedMessTests: UnsafeTransitionTests {
+    override var s1: ASP { "s1" }
+    override var s2: ASP { 2 }
+    override var s3: ASP { false }
+
+    override var e1: AEP { 1 }
+    override var e2: AEP { "e2" }
+    override var e3: AEP { true }
+}
+
+extension String: StateProtocol, EventProtocol {}
+extension Int: EventProtocol, StateProtocol {}
+extension Bool: EventProtocol, StateProtocol {}
 
 protocol NeverEqual { }
 extension NeverEqual {
@@ -317,7 +346,7 @@ extension AlwaysEqual {
     static func == (lhs: Self, rhs: Self) -> Bool { true }
 }
 
-final class ErasedWrapperHashableConformanceTests: XCTestCase {
+final class ErasedHashableConformanceTests: XCTestCase {
     struct NeverEqualState: StateProtocol, Hashable, NeverEqual { }
     struct AlwaysEqualState: StateProtocol, Hashable, AlwaysEqual { }
     struct NeverEqualEvent: EventProtocol, Hashable, NeverEqual { }
