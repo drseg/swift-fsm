@@ -19,21 +19,14 @@ private extension Hashable {
 
 extension StateProtocol {
     var erased: Unsafe.AnyState {
-        erase(self, to: Unsafe.AnyState.init)
+        Unsafe.AnyState(base: self)
     }
 }
 
 extension EventProtocol {
     var erased: Unsafe.AnyEvent {
-        erase(self, to: Unsafe.AnyEvent.init)
+        Unsafe.AnyEvent(base: self)
     }
-}
-
-private func erase<ProtocolType, AnyProtocolType>(
-    _ s: ProtocolType,
-    to t: (ProtocolType) -> AnyProtocolType
-) -> AnyProtocolType {
-    t(s)
 }
 
 protocol Eraser {

@@ -20,13 +20,17 @@ class UnsafeTransitionTests: XCTestCase {
     typealias Key = Transition.Key<Unsafe.AnyState,
                                    Unsafe.AnyEvent>
     
-    var s1: ASP { fatalError("") }
-    var s2: ASP { fatalError("") }
-    var s3: ASP { fatalError("") }
+    var s1: ASP { mustImplement() }
+    var s2: ASP { mustImplement() }
+    var s3: ASP { mustImplement() }
     
-    var e1: AEP { fatalError("") }
-    var e2: AEP { fatalError("") }
-    var e3: AEP { fatalError("") }
+    var e1: AEP { mustImplement() }
+    var e2: AEP { mustImplement() }
+    var e3: AEP { mustImplement() }
+    
+    private func mustImplement() -> Never {
+        fatalError("tests must implement")
+    }
     
     var actionCalled = false
     func action() { actionCalled = true }
