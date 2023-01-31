@@ -14,6 +14,28 @@ enum Safe {
         init(_ given: State...) {
             self.givens = given
         }
+        
+        @resultBuilder
+        struct Builder {
+            static func buildBlock<Event>(
+                _ wtas: [WhenThenAction<Event, State>]...
+            ) -> [WhenThenAction<Event, State>] {
+                wtas.flatMap { $0 }
+            }
+        }
+        
+        func callAsFunction<Event>(
+            @Builder _ content: () -> [WhenThenAction<Event, State>]
+        ) -> [Transition<State, Event>] {
+            content().reduce(into: [Transition]()) { wtas, wta in
+                givens.forEach {
+                    wtas.append(Transition(givenState: $0,
+                                           event: wta.when,
+                                           nextState: wta.then,
+                                           action: wta.action))
+                }
+            }
+        }
     }
     
     struct When<Event> {
@@ -147,10 +169,17 @@ func |<Event: Equatable, State: Equatable> (
     lhs: [Safe.WhenThen<Event,State>],
     rhs: Safe.Action
 ) -> [Safe.WhenThenAction<Event,State>] {
+    lhs | rhs.action
+}
+
+func |<Event: Equatable, State: Equatable> (
+    lhs: [Safe.WhenThen<Event,State>],
+    rhs: @escaping () -> Void
+) -> [Safe.WhenThenAction<Event,State>] {
     lhs.reduce(into: [Safe.WhenThenAction<Event,State>]()) {
         $0.append(Safe.WhenThenAction(when: $1.when,
                                       then: $1.then,
-                                      action: rhs.action))
+                                      action: rhs))
     }
 }
 
