@@ -23,8 +23,8 @@ class FSMTests: SafeTests {
     func testHandlEvent() {
         let fsm = GenericFSM<State, Event>(initialState: .a)
         fsm.buildTransitions {
-            Given(.a) | When(.h) | Then(.b) | Action(fail)
-            Given(.a) | When(.g) | Then(.c) | Action(pass)
+            G(.a) | W(.h) | T(.b) | A(fail)
+            G(.a) | W(.g) | T(.c) | A(pass)
         }
         fsm.handleEvent(.g)
         XCTAssertTrue(didPass)

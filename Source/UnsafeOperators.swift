@@ -19,13 +19,13 @@ private extension Hashable {
 }
 
 extension StateProtocol {
-    var erased: Unsafe.AnyState? {
+    var erased: Unsafe.AnyState {
         erase(self, to: Unsafe.AnyState.init)
     }
 }
 
 extension EventProtocol {
-    var erased: Unsafe.AnyEvent? {
+    var erased: Unsafe.AnyEvent {
         erase(self, to: Unsafe.AnyEvent.init)
     }
 }
@@ -33,9 +33,9 @@ extension EventProtocol {
 private func erase<ProtocolType, AnyProtocolType>(
     _ s: ProtocolType,
     to t: (ProtocolType) -> AnyProtocolType
-) -> AnyProtocolType? {
+) -> AnyProtocolType {
     s is AnyProtocolType
-    ? s as? AnyProtocolType
+    ? s as! AnyProtocolType
     : t(s)
 }
 
@@ -214,9 +214,9 @@ func | (
     esas: [Unsafe.EventStateAction]
 ) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
     esas.reduce(into: [Transition]()) {
-        $0.append(Transition(givenState: state.erased!,
-                             event: $1.event.erased!,
-                             nextState: $1.state.erased!,
+        $0.append(Transition(givenState: state.erased,
+                             event: $1.event.erased,
+                             nextState: $1.state.erased,
                              action: $1.action))
     }
 }
@@ -275,8 +275,8 @@ func | (
     stateEventState: Unsafe.StateEventState,
     action: @escaping () -> Void
 ) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
-    [Transition(givenState: stateEventState.startState.erased!,
-                event: stateEventState.event.erased!,
-                nextState: stateEventState.endState.erased!,
+    [Transition(givenState: stateEventState.startState.erased,
+                event: stateEventState.event.erased,
+                nextState: stateEventState.endState.erased,
                 action: action)]
 }

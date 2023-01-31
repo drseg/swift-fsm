@@ -53,10 +53,6 @@ class UnsafeTransitionTests: XCTestCase {
     }
 
     var t: [Transition] = []
-
-    func assertFirst(_ expected: Transition, line: UInt = #line) {
-        XCTAssertEqual(t.first, expected, line: line)
-    }
     
     func assertFirst(
         _ given: ASP,
@@ -247,65 +243,65 @@ class UnsafeTransitionTests: XCTestCase {
 }
 
 final class EnumTransitionTests: UnsafeTransitionTests {
-    override var s1: ASP { S.one.erased! }
-    override var s2: ASP { S.two.erased! }
-    override var s3: ASP { S.three.erased! }
+    override var s1: ASP { S.one.erased }
+    override var s2: ASP { S.two.erased }
+    override var s3: ASP { S.three.erased }
     
-    override var e1: AEP { E.one.erased! }
-    override var e2: AEP { E.two.erased! }
-    override var e3: AEP { E.three.erased! }
+    override var e1: AEP { E.one.erased }
+    override var e2: AEP { E.two.erased }
+    override var e3: AEP { E.three.erased }
     
     enum S: State { case one, two, three }
     enum E: Event { case one, two, three }
 }
 
 final class EnumValueTransitionTestsOne: UnsafeTransitionTests {
-    override var s1: ASP { S.one("").erased! }
-    override var s2: ASP { S.two("").erased! }
-    override var s3: ASP { S.three("").erased! }
+    override var s1: ASP { S.one("").erased }
+    override var s2: ASP { S.two("").erased }
+    override var s3: ASP { S.three("").erased }
     
-    override var e1: AEP { E.one.erased! }
-    override var e2: AEP { E.two.erased! }
-    override var e3: AEP { E.three.erased! }
+    override var e1: AEP { E.one.erased }
+    override var e2: AEP { E.two.erased }
+    override var e3: AEP { E.three.erased }
     
     enum S: State { case one(String), two(String), three(String) }
     enum E: Event { case one, two, three }
 }
 
 final class EnumValueTransitionTestsTwo: UnsafeTransitionTests {
-    override var s1: ASP { S.one("1").erased! }
-    override var s2: ASP { S.one("2").erased! }
-    override var s3: ASP { S.one("3").erased! }
+    override var s1: ASP { S.one("1").erased }
+    override var s2: ASP { S.one("2").erased }
+    override var s3: ASP { S.one("3").erased }
     
-    override var e1: AEP { E.one.erased! }
-    override var e2: AEP { E.two.erased! }
-    override var e3: AEP { E.three.erased! }
+    override var e1: AEP { E.one.erased }
+    override var e2: AEP { E.two.erased }
+    override var e3: AEP { E.three.erased }
     
     enum S: State { case one(String), two(String), three(String) }
     enum E: Event { case one, two, three }
 }
 
 final class StructTransitionTests: UnsafeTransitionTests {
-    override var s1: ASP { S1().erased! }
-    override var s2: ASP { S2().erased! }
-    override var s3: ASP { S3().erased! }
+    override var s1: ASP { S1().erased }
+    override var s2: ASP { S2().erased }
+    override var s3: ASP { S3().erased }
     
-    override var e1: AEP { E1().erased! }
-    override var e2: AEP { E2().erased! }
-    override var e3: AEP { E3().erased! }
+    override var e1: AEP { E1().erased }
+    override var e2: AEP { E2().erased }
+    override var e3: AEP { E3().erased }
     
     struct S1: State {}; struct S2: State {}; struct S3: State {}
     struct E1: Event {}; struct E2: Event {}; struct E3: Event {}
 }
 
 final class ClassTransitionTests: UnsafeTransitionTests {
-    override var s1: ASP { S1().erased! }
-    override var s2: ASP { S2().erased! }
-    override var s3: ASP { S3().erased! }
+    override var s1: ASP { S1().erased }
+    override var s2: ASP { S2().erased }
+    override var s3: ASP { S3().erased }
 
-    override var e1: AEP { E1().erased! }
-    override var e2: AEP { E2().erased! }
-    override var e3: AEP { E3().erased! }
+    override var e1: AEP { E1().erased }
+    override var e2: AEP { E2().erased }
+    override var e3: AEP { E3().erased }
 
     class S1: State {}; class S2: State {}; class S3: State {}
     class E1: Event {}; class E2: Event {}; class E3: Event {}
