@@ -11,13 +11,13 @@ import XCTest
 class UnsafeTransitionTests: XCTestCase {
     typealias State = StateProtocol
     typealias Event = EventProtocol
-    typealias ASP = Unsafe.AnyStateProtocol
-    typealias AEP = Unsafe.AnyEventProtocol
+    typealias ASP = Unsafe.AnyState
+    typealias AEP = Unsafe.AnyEvent
     
-    typealias Transition = FiniteStateMachine.Transition<Unsafe.AnyStateProtocol,
-                                                         Unsafe.AnyEventProtocol>
-    typealias Key = Transition.Key<Unsafe.AnyStateProtocol,
-                                   Unsafe.AnyEventProtocol>
+    typealias Transition = FiniteStateMachine.Transition<Unsafe.AnyState,
+                                                         Unsafe.AnyEvent>
+    typealias Key = Transition.Key<Unsafe.AnyState,
+                                   Unsafe.AnyEvent>
     
     var s1: ASP { fatalError("") }
     var s2: ASP { fatalError("") }

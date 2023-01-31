@@ -19,14 +19,14 @@ private extension Hashable {
 }
 
 extension StateProtocol {
-    var erased: Unsafe.AnyStateProtocol? {
-        erase(self, to: Unsafe.AnyStateProtocol.init)
+    var erased: Unsafe.AnyState? {
+        erase(self, to: Unsafe.AnyState.init)
     }
 }
 
 extension EventProtocol {
-    var erased: Unsafe.AnyEventProtocol? {
-        erase(self, to: Unsafe.AnyEventProtocol.init)
+    var erased: Unsafe.AnyEvent? {
+        erase(self, to: Unsafe.AnyEvent.init)
     }
 }
 
@@ -67,11 +67,11 @@ extension Eraser {
 }
 
 enum Unsafe {
-    struct AnyEventProtocol: Eraser, EventProtocol, Hashable {
+    struct AnyEvent: Eraser, EventProtocol, Hashable {
         let base: any EventProtocol
     }
     
-    struct AnyStateProtocol: Eraser, StateProtocol, Hashable {
+    struct AnyState: Eraser, StateProtocol, Hashable {
         let base: any StateProtocol
     }
     
@@ -189,14 +189,14 @@ func | (
 func | (
     states: [any StateProtocol],
     esas: [[Unsafe.EventStateAction]]
-) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
     states | esas.flatMap { $0 }
 }
 
 func | (
     states: [any StateProtocol],
     esas: [Unsafe.EventStateAction]
-) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
     states.reduce(into: [Transition]()) {
         $0.append(contentsOf: $1 | esas)
     }
@@ -205,14 +205,14 @@ func | (
 func | (
     state: any StateProtocol,
     esas: [[Unsafe.EventStateAction]]
-) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
     state | esas.flatMap { $0 }
 }
 
 func | (
     state: any StateProtocol,
     esas: [Unsafe.EventStateAction]
-) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
     esas.reduce(into: [Transition]()) {
         $0.append(Transition(givenState: state.erased!,
                              event: $1.event.erased!,
@@ -265,7 +265,7 @@ func | (
 func | (
     stateEventStates: [Unsafe.StateEventState],
     action: @escaping () -> Void
-) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
     stateEventStates.reduce(into: [Transition]()) {
         $0.append(contentsOf: $1 | action)
     }
@@ -274,7 +274,7 @@ func | (
 func | (
     stateEventState: Unsafe.StateEventState,
     action: @escaping () -> Void
-) -> [Transition<Unsafe.AnyStateProtocol, Unsafe.AnyEventProtocol>] {
+) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
     [Transition(givenState: stateEventState.startState.erased!,
                 event: stateEventState.event.erased!,
                 nextState: stateEventState.endState.erased!,

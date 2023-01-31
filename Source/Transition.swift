@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Transition<State,Event>: Equatable
+struct Transition<State, Event>: Equatable
 where State: Hashable, Event: Hashable {
     let givenState: State
     let event: Event
@@ -30,13 +30,12 @@ where State: Hashable, Event: Hashable {
         }
         
         static func buildIf(
-            _ values: [Key<State,Event>: Transition]?
+            _ dict: [Key<State,Event>: Transition]?
         ) -> [Transition] {
-            if let values {
-                return Array(values.values)
-            } else {
-                return [Transition<State,Event>]()
+            if let dict {
+                return Array(dict.values)
             }
+            return [Transition<State,Event>]()
         }
         
         static func buildEither(

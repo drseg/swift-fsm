@@ -194,20 +194,30 @@ final class SafeTransitionTests: SafeTests {
         XCTAssertNil(nilT)
     }
     
-    func testBuilderIf() {
+    func testBuilderIfTrue() {
         let condition = true
         let ts = Transition.build {
-            if(condition) {
+            if condition {
                 Given(.a) | When(.g) | Then(.b) | Action { }
             }
         }
         XCTAssertEqual(ts.first?.value, transition(.a, .g, .b))
     }
     
+    func testBuilderIfFalse() {
+        let condition = false
+        let ts = Transition.build {
+            if condition {
+                Given(.a) | When(.g) | Then(.b) | Action { }
+            }
+        }
+        XCTAssert(ts.isEmpty)
+    }
+    
     func testBuilderElse() {
         let test = false
         let ts = Transition.build {
-            if(test) {
+            if test {
                 Given(.a) | When(.g) | Then(.b) | Action { }
                 Given(.a) | When(.h) | Then(.b) | Action { }
             } else {
