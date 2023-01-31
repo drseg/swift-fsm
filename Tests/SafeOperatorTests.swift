@@ -9,7 +9,7 @@ import XCTest
 @testable import FiniteStateMachine
 
 class SafeTests: XCTestCase {
-    enum State { case a, b, c, d, e, f, p, q, r, s, t, u, v, y}
+    enum State { case a, b, c, d, e, f, p, q, r, s, t, u, v, w}
     enum Event { case g, h, i, j, k, l }
     
     typealias G = Safe.Given<State>
@@ -17,7 +17,7 @@ class SafeTests: XCTestCase {
     typealias T = Safe.Then<State>
     typealias A = Safe.Action
         
-    func transition<State, Event>(
+    func transition(
         _ given: State,
         _ when: Event,
         _ then: State,
@@ -29,42 +29,48 @@ class SafeTests: XCTestCase {
                    action: action)
     }
     
-    func assertFirst<State, Event>(
-        _ expected: Transition<State, Event>,
+    func assertFirst(
+        _ given: State,
+        _ when: Event,
+        _ then: State,
         _ t: [Transition<State, Event>],
         line: UInt = #line
     ) {
-        XCTAssertEqual(t.first, expected, line: line)
+        XCTAssertEqual(t.first, transition(given, when, then), line: line)
     }
     
-    func assertLast<State, Event>(
-        _ expected: Transition<State, Event>,
+    func assertLast(
+        _ given: State,
+        _ when: Event,
+        _ then: State,
         _ t: [Transition<State, Event>],
         line: UInt = #line
     ) {
-        XCTAssertEqual(t.last, expected, line: line)
+        XCTAssertEqual(t.last, transition(given, when, then), line: line)
     }
     
-    func assertCount<State, Event>(
+    func assertCount(
         _ expected: Int,
         _ t: [Transition<State, Event>],
         line: UInt = #line) {
         XCTAssertEqual(t.count, expected, line: line)
     }
+    
+    func doNothing() {}
 }
 
 final class SafeTransitionTests: SafeTests {
     func testSimpleConstructor() {
         let t = G(.a) | W(.g) | T(.b) | A { }
         
-        assertFirst(transition(.a, .g, .b), t)
+        assertFirst(.a, .g, .b, t)
     }
     
     func testMultiGivenConstructor() {
         let t = G(.a, .b) | W(.g) | T(.b) | A { }
         
-        assertFirst(transition(.a, .g, .b), t)
-        assertLast(transition(.b, .g, .b), t)
+        assertFirst(.a, .g, .b, t)
+        assertLast(.b, .g, .b, t)
         assertCount(2, t)
     }
     
@@ -72,8 +78,8 @@ final class SafeTransitionTests: SafeTests {
         let t = G(.a) | [W(.g) | T(.b) | A { },
                          W(.h) | T(.c) | A { }]
         
-        assertFirst(transition(.a, .g, .b), t)
-        assertLast(transition(.a, .h, .c), t)
+        assertFirst(.a, .g, .b, t)
+        assertLast(.a, .h, .c, t)
         assertCount(2, t)
     }
     
@@ -81,24 +87,24 @@ final class SafeTransitionTests: SafeTests {
         let t = G(.a, .b) | [W(.g) | T(.c) | A { },
                              W(.h) | T(.c) | A { }]
         
-        assertFirst(transition(.a, .g, .c), t)
-        assertLast(transition(.b, .h, .c), t)
+        assertFirst(.a, .g, .c, t)
+        assertLast(.b, .h, .c, t)
         assertCount(4, t)
     }
     
     func testMultiWhenConstructor() {
         let t = G(.a) | W(.g, .h) | T(.c) | A { }
         
-        assertFirst(transition(.a, .g, .c), t)
-        assertLast(transition(.a, .h, .c), t)
+        assertFirst(.a, .g, .c, t)
+        assertLast(.a, .h, .c, t)
         assertCount(2, t)
     }
     
     func testMultiGivenMultiWhenConstructor() {
         let t = G(.a, .b) | W(.g, .h) | T(.c) | A { }
         
-        assertFirst(transition(.a, .g, .c), t)
-        assertLast(transition(.b, .h, .c), t)
+        assertFirst(.a, .g, .c, t)
+        assertLast(.b, .h, .c, t)
         assertCount(4, t)
     }
     
@@ -108,8 +114,8 @@ final class SafeTransitionTests: SafeTests {
             W(.i, .j) | T(.d) | A { }
         ]
         
-        assertFirst(transition(.a, .g, .c), t)
-        assertLast(transition(.b, .j, .d), t)
+        assertFirst(.a, .g, .c, t)
+        assertLast(.b, .j, .d, t)
         assertCount(8, t)
     }
     
@@ -117,8 +123,8 @@ final class SafeTransitionTests: SafeTests {
         let t = G(.a) | [W(.g) | T(.c),
                          W(.h) | T(.d)] | A { }
         
-        assertFirst(transition(.a, .g, .c), t)
-        assertLast(transition(.a, .h, .d), t)
+        assertFirst(.a, .g, .c, t)
+        assertLast(.a, .h, .d, t)
         assertCount(2, t)
     }
     
@@ -129,8 +135,8 @@ final class SafeTransitionTests: SafeTests {
                              [W(.i, .j) | T(.e),
                               W(.j, .k) | T(.f)] | A { }]
         
-        assertFirst(transition(.a, .g, .c), t)
-        assertLast(transition(.b, .k, .f), t)
+        assertFirst(.a, .g, .c, t)
+        assertLast(.b, .k, .f, t)
         assertCount(16, t)
     }
     
@@ -166,7 +172,9 @@ final class SafeTransitionTests: SafeTests {
             W(.g) | T(.a) | {  }
         }
         
-        XCTAssertEqual(t.count, 4)
+        assertFirst(.a, .h, .b, t)
+        assertLast(.b, .g, .a, t)
+        assertCount(4, t)
     }
     
     func testGivenBuilderWithWhenThenArray() {
@@ -175,63 +183,21 @@ final class SafeTransitionTests: SafeTests {
              W(.g) | T(.a)] | A {}
         }
         
-        XCTAssertEqual(t.count, 4)
+        assertFirst(.a, .h, .b, t)
+        assertLast(.b, .g, .a, t)
+        assertCount(4, t)
     }
-
-    func doNothing() {}
     
     func testActionModifier() {
         let t =
         G(.a, .b) {
             W(.h) | T(.b)
-            W(.g) | T(.f)
-            W(.h) | T(.d)
+            W(.g) | T(.a)
         }.action(doNothing)
         
-        XCTAssertEqual(t.count, 6)
-    }
-    
-    func testNestedBuilder() {
-        let t = Transition.build {
-            G(.a) | W(.h) | T(.b) | doNothing
-            G(.a) | W(.g) | T(.a) | doNothing
-            G(.b) | W(.h) | T(.b) | doNothing
-            G(.b) | W(.g) | T(.a) | doNothing
-            
-            G(.c) | [W(.h) | T(.b) | doNothing,
-                     W(.g) | T(.a) | doNothing]
-            G(.d) | [W(.h) | T(.b) | doNothing,
-                     W(.g) | T(.a) | doNothing]
-            
-            G(.e) {
-                W(.h) | T(.b) | doNothing
-                W(.g) | T(.a) | doNothing
-            }
-            G(.f) {
-                W(.h) | T(.b) | doNothing
-                W(.g) | T(.a) | doNothing
-            }
-            
-            G(.p, .q) {
-                W(.h) | T(.b) | doNothing
-                W(.g) | T(.a) | doNothing
-            }
-            
-            G(.r, .s) | [W(.h) | T(.b),
-                         W(.g) | T(.a)] | doNothing
-            
-            G(.t, .u) {
-                [W(.h) | T(.b),
-                 W(.g) | T(.a)] | doNothing
-            }
-            
-            G(.v, .y) {
-                W(.h) | T(.b)
-                W(.g) | T(.a)
-            }.action(doNothing)
-        }
-        
-        XCTAssertEqual(t.count, 28)
+        assertFirst(.a, .h, .b, t)
+        assertLast(.b, .g, .a, t)
+        assertCount(4, t)
     }
 
     func testBuilderDoesNotDuplicate() {
@@ -239,7 +205,6 @@ final class SafeTransitionTests: SafeTests {
             G(.a, .a) | W(.g) | T(.b) | A { }
             G(.a)     | W(.g) | T(.b) | A { }
         }
-
         XCTAssertEqual(t.count, 1)
     }
 
@@ -313,5 +278,54 @@ final class SafeTransitionTests: SafeTests {
             }
         }
         XCTAssertEqual(ts.first?.value, transition(.a, .g, .b))
+    }
+}
+
+class DemonstrationTests: SafeTests {
+    func testNestedBuilder() {
+        let t = Transition.build {
+            G(.a) | W(.h) | T(.b) | doNothing
+            G(.a) | W(.g) | T(.a) | doNothing
+            G(.b) | W(.h) | T(.b) | doNothing
+            G(.b) | W(.g) | T(.a) | doNothing
+            
+            G(.c) | [W(.h) | T(.b) | doNothing,
+                     W(.g) | T(.a) | doNothing]
+            G(.d) | [W(.h) | T(.b) | doNothing,
+                     W(.g) | T(.a) | doNothing]
+            
+            G(.e) {
+                W(.h) | T(.b) | doNothing
+                W(.g) | T(.a) | doNothing
+            }
+            G(.f) {
+                W(.h) | T(.b) | doNothing
+                W(.g) | T(.a) | doNothing
+            }
+            
+            G(.p, .q) {
+                W(.h) | T(.b) | doNothing
+                W(.g) | T(.a) | doNothing
+            }
+            
+            G(.r, .s) | [W(.h) | T(.b),
+                         W(.g) | T(.a)] | doNothing
+            
+            G(.t, .u) {
+                [W(.h) | T(.b),
+                 W(.g) | T(.a)] | doNothing
+            }
+            
+            G(.v, .w) {
+                W(.h) | T(.b)
+                W(.g) | T(.a)
+            }.action(doNothing)
+        }
+        
+        XCTAssertEqual(t.count, 28)
+    }
+    
+    func testTurnstile() {
+        
     }
 }
