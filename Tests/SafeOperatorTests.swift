@@ -9,7 +9,7 @@ import XCTest
 @testable import FiniteStateMachine
 
 class SafeTests: XCTestCase {
-    enum State { case a, b, c, d, e, f }
+    enum State { case a, b, c, d, e, f, p, q, r, s, t, u, v, y}
     enum Event { case g, h, i, j, k, l }
     
     typealias G = Safe.Given<State>
@@ -193,18 +193,45 @@ final class SafeTransitionTests: SafeTests {
     
     func testNestedBuilder() {
         let t = Transition.build {
-            G(.a, .b) {
+            G(.a) | W(.h) | T(.b) | doNothing
+            G(.a) | W(.g) | T(.a) | doNothing
+            G(.b) | W(.h) | T(.b) | doNothing
+            G(.b) | W(.g) | T(.a) | doNothing
+            
+            G(.c) | [W(.h) | T(.b) | doNothing,
+                     W(.g) | T(.a) | doNothing]
+            G(.d) | [W(.h) | T(.b) | doNothing,
+                     W(.g) | T(.a) | doNothing]
+            
+            G(.e) {
+                W(.h) | T(.b) | doNothing
+                W(.g) | T(.a) | doNothing
+            }
+            G(.f) {
+                W(.h) | T(.b) | doNothing
+                W(.g) | T(.a) | doNothing
+            }
+            
+            G(.p, .q) {
+                W(.h) | T(.b) | doNothing
+                W(.g) | T(.a) | doNothing
+            }
+            
+            G(.r, .s) | [W(.h) | T(.b),
+                         W(.g) | T(.a)] | doNothing
+            
+            G(.t, .u) {
                 [W(.h) | T(.b),
                  W(.g) | T(.a)] | doNothing
             }
             
-            G(.c, .d) {
+            G(.v, .y) {
                 W(.h) | T(.b)
                 W(.g) | T(.a)
             }.action(doNothing)
         }
         
-        XCTAssertEqual(t.count, 8)
+        XCTAssertEqual(t.count, 28)
     }
 
     func testBuilderDoesNotDuplicate() {
