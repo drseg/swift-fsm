@@ -34,9 +34,7 @@ private func erase<ProtocolType, AnyProtocolType>(
     _ s: ProtocolType,
     to t: (ProtocolType) -> AnyProtocolType
 ) -> AnyProtocolType {
-    s is AnyProtocolType
-    ? s as! AnyProtocolType
-    : t(s)
+    s as? AnyProtocolType ?? t(s)
 }
 
 protocol Eraser {
@@ -49,8 +47,8 @@ extension Eraser {
         lhs: Self,
         rhs: Self
     ) -> Bool {
-        if let lhs = lhs.base as? (any Hashable),
-           let rhs = rhs.base as? (any Hashable) {
+        if let lhs = lhs.base as? any Hashable,
+           let rhs = rhs.base as? any Hashable {
             return lhs.isEqual(to: rhs)
         }
         
@@ -58,7 +56,7 @@ extension Eraser {
     }
     
     func hash(into hasher: inout Hasher) {
-        if let s = base as? (any Hashable) {
+        if let s = base as? any Hashable {
             s.hash(into: &hasher)
         } else {
             hasher.combine(deepDescription(base))
