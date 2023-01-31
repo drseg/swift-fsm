@@ -26,8 +26,8 @@ class FSMTests: SafeTests {
     func testHandlEvent() {
         let fsm = FSM<State, Event>(initialState: .a)
         fsm.buildTransitions {
-            G(.a) | W(.h) | T(.b) | A(fail)
-            G(.a) | W(.g) | T(.c) | A(pass)
+            G(.a) | W(.h) | T(.b) | fail
+            G(.a) | W(.g) | T(.c) | pass
         }
         fsm.handleEvent(.g)
         XCTAssertTrue(didPass)
@@ -57,7 +57,7 @@ class FSMPerformanceTests: SafeTests {
     }
     
     override func setUpWithError() throws {
-        //throw XCTSkip("Skip performance tests")
+        throw XCTSkip("Skip performance tests")
     }
     
     func testBenchmarkBestCaseScenario() throws {
@@ -69,17 +69,17 @@ class FSMPerformanceTests: SafeTests {
     }
     
     func testGenericPerformance() throws {
-        let gFSM = FSM<State, Event>(initialState: .a)
-        gFSM.buildTransitions { G(.a) | W(.g) | T(.c) | A(pass) }
+        let fsm = FSM<State, Event>(initialState: .a)
+        fsm.buildTransitions { G(.a) | W(.g) | T(.c) | pass }
         
-        measure { 250000.times { gFSM.handleEvent(.g) } }
+        measure { 250000.times { fsm.handleEvent(.g) } }
     }
     
     func testUnsafePerformance() throws {
-        let usFSM = UnsafeFSM(initialState: State.a)
-        usFSM.buildTransitions { State.a | Event.g | State.c | pass }
+        let fsm = UnsafeFSM(initialState: State.a)
+        fsm.buildTransitions { State.a | Event.g | State.c | pass }
         
-        measure { 250000.times { usFSM.handleEvent(Event.g) } }
+        measure { 250000.times { fsm.handleEvent(Event.g) } }
     }
 }
 
@@ -88,8 +88,6 @@ extension SafeTests.Event: EventProtocol {}
 
 extension Int {
     func times(_ block: @escaping () -> Void) {
-        for _ in 1...self {
-            block()
-        }
+        for _ in 1...self { block() }
     }
 }

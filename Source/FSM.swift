@@ -18,7 +18,7 @@ class FSMBase<State, Event> where State: Hashable, Event: Hashable {
         self.state = state
     }
     
-    fileprivate func handleEvent(_ event: Event) {
+    fileprivate func _handleEvent(_ event: Event) {
         let key = K(state: state, event: event)
         if let t = transitions[key] {
             t.action()
@@ -36,8 +36,8 @@ final class FSM<State, Event>: FSMBase<State, Event> where State: Hashable, Even
         super.init(initialState: state)
     }
     
-    override func handleEvent(_ event: Event) {
-        super.handleEvent(event)
+    func handleEvent(_ event: Event) {
+        _handleEvent(event)
     }
 }
 
@@ -47,6 +47,6 @@ final class UnsafeFSM: FSMBase<Unsafe.AnyState, Unsafe.AnyEvent> {
     }
     
     func handleEvent(_ event: any EventProtocol) {
-        super.handleEvent(event.erased)
+        _handleEvent(event.erased)
     }
 }

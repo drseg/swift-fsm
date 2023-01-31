@@ -1,5 +1,5 @@
 //
-//  GenericOperators.swift
+//  SafeOperators.swift
 //  FiniteStateMachine
 //
 //  Created by Daniel Segall on 29/01/2023.
@@ -87,8 +87,8 @@ func |<State: Equatable, Event: Equatable> (
         rhs.flatMap { $0 }.forEach {
             givenWhenThens
                 .append(Safe.GivenWhenThen(given: given,
-                                              when: $0.when,
-                                              then: $0.then))
+                                           when: $0.when,
+                                           then: $0.then))
         }
     }
 }
@@ -99,8 +99,8 @@ func |<State: Equatable, Event: Equatable> (
 ) -> [Safe.GivenWhenThen<State,Event>] {
     lhs.reduce(into: [Safe.GivenWhenThen]()) { givenWhenThens, givenWhen in
         givenWhenThens.append(Safe.GivenWhenThen(given: givenWhen.given,
-                                            when: givenWhen.when,
-                                            then: rhs.then))
+                                                 when: givenWhen.when,
+                                                 then: rhs.then))
     }
 }
 
@@ -137,24 +137,20 @@ func |<Event: Equatable, State: Equatable> (
 }
 
 func |<Event: Equatable, State: Equatable> (
+    lhs: [[Safe.WhenThen<Event,State>]],
+    rhs: Safe.Action
+) -> [Safe.WhenThenAction<Event,State>] {
+    lhs.flatMap { $0 } | rhs
+}
+
+func |<Event: Equatable, State: Equatable> (
     lhs: [Safe.WhenThen<Event,State>],
     rhs: Safe.Action
 ) -> [Safe.WhenThenAction<Event,State>] {
     lhs.reduce(into: [Safe.WhenThenAction<Event,State>]()) {
         $0.append(Safe.WhenThenAction(when: $1.when,
-                                         then: $1.then,
-                                         action: rhs.action))
-    }
-}
-
-func |<Event: Equatable, State: Equatable> (
-    lhs: [[Safe.WhenThen<Event,State>]],
-    rhs: Safe.Action
-) -> [Safe.WhenThenAction<Event,State>] {
-    lhs.flatMap { $0 }.reduce(into: [Safe.WhenThenAction<Event,State>]()) {
-        $0.append(Safe.WhenThenAction(when: $1.when,
-                                 then: $1.then,
-                                 action: rhs.action))
+                                      then: $1.then,
+                                      action: rhs.action))
     }
 }
 
