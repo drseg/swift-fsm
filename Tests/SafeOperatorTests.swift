@@ -177,16 +177,34 @@ final class SafeTransitionTests: SafeTests {
         
         XCTAssertEqual(t.count, 4)
     }
+
+    func doNothing() {}
+    
+    func testActionModifier() {
+        let t =
+        G(.a, .b) {
+            W(.h) | T(.b)
+            W(.g) | T(.f)
+            W(.h) | T(.d)
+        }.action(doNothing)
+        
+        XCTAssertEqual(t.count, 6)
+    }
     
     func testNestedBuilder() {
         let t = Transition.build {
             G(.a, .b) {
                 [W(.h) | T(.b),
-                 W(.g) | T(.a)] | A {}
+                 W(.g) | T(.a)] | doNothing
             }
+            
+            G(.c, .d) {
+                W(.h) | T(.b)
+                W(.g) | T(.a)
+            }.action(doNothing)
         }
         
-        XCTAssertEqual(t.count, 4)
+        XCTAssertEqual(t.count, 8)
     }
 
     func testBuilderDoesNotDuplicate() {

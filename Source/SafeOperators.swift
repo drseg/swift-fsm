@@ -16,7 +16,7 @@ enum Safe {
         }
         
         @resultBuilder
-        struct Builder {
+        struct TransitionBuilder {
             static func buildBlock<Event>(
                 _ wtas: [WhenThenAction<Event, State>]...
             ) -> [WhenThenAction<Event, State>] {
@@ -25,7 +25,7 @@ enum Safe {
         }
         
         func callAsFunction<Event>(
-            @Builder _ content: () -> [WhenThenAction<Event, State>]
+            @TransitionBuilder _ content: () -> [WhenThenAction<Event, State>]
         ) -> [Transition<State, Event>] {
             content().reduce(into: [Transition]()) { wtas, wta in
                 givens.forEach {
@@ -34,6 +34,41 @@ enum Safe {
                                            nextState: wta.then,
                                            action: wta.action))
                 }
+            }
+        }
+        
+        @resultBuilder
+        struct WhenThenBuilder {
+            static func buildBlock<Event>(
+                _ wts: [WhenThen<Event, State>]...
+            ) -> [WhenThen<Event, State>] {
+                wts.flatMap { $0 }
+            }
+        }
+        
+        func callAsFunction<Event>(
+            @WhenThenBuilder _ content: () -> [WhenThen<Event, State>]
+        ) -> GivenWhenThenCollection<State, Event> {
+            let gwts = content().reduce(into: [GivenWhenThen]()) { gwts, wt in
+                givens.forEach {
+                    gwts.append(GivenWhenThen(given: $0,
+                                              when: wt.when,
+                                              then: wt.then))
+                }
+            }
+            return GivenWhenThenCollection(givenWhenThens: gwts)
+        }
+    }
+    
+    struct GivenWhenThenCollection<Event: Hashable, State: Hashable> {
+        let givenWhenThens: [GivenWhenThen<Event, State>]
+        
+        func action(_ action: @escaping () -> Void) -> [Transition<Event, State>] {
+            givenWhenThens.reduce(into: [Transition]()) {
+                $0.append(Transition(givenState: $1.given,
+                                     event: $1.when,
+                                     nextState: $1.then,
+                                     action: action))
             }
         }
     }
@@ -46,12 +81,12 @@ enum Safe {
         }
     }
     
-    struct GivenWhen<State,Event> {
+    struct GivenWhen<State, Event> {
         let given: State
         let when: Event
     }
 
-    struct WhenThen<Event,State> {
+    struct WhenThen<Event, State> {
         let when: Event
         let then: State
     }
@@ -170,6 +205,13 @@ func |<Event: Equatable, State: Equatable> (
     rhs: Safe.Action
 ) -> [Safe.WhenThenAction<Event,State>] {
     lhs | rhs.action
+}
+
+func |<Event: Equatable, State: Equatable> (
+    lhs: [[Safe.WhenThen<Event,State>]],
+    rhs: @escaping () -> Void
+) -> [Safe.WhenThenAction<Event,State>] {
+    lhs.flatMap { $0 } | rhs
 }
 
 func |<Event: Equatable, State: Equatable> (
