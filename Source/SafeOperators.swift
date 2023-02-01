@@ -58,13 +58,6 @@ struct Given<State: SP, Event: EP> {
         with wtas: [WhenThenAction<S, E>]
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
-            wtas.forEach {
-                ts.append(Transition(givenState: given,
-                                     event: $0.when,
-                                     nextState: $0.then,
-                                     action: $0.action))
-            }
-            
             if let superState {
                 superState.wtas.forEach {
                     ts.append(Transition(givenState: given,
@@ -72,6 +65,13 @@ struct Given<State: SP, Event: EP> {
                                          nextState: $0.then,
                                          action: $0.action))
                 }
+            }
+            
+            wtas.forEach {
+                ts.append(Transition(givenState: given,
+                                     event: $0.when,
+                                     nextState: $0.then,
+                                     action: $0.action))
             }
         }
     }
@@ -243,11 +243,6 @@ func |<S: SP, E: EP> (
     action: @escaping () -> Void
 ) -> [Transition<S, E>] {
     givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
-        t1.append(Transition(givenState: gwt.given,
-                             event: gwt.when,
-                             nextState: gwt.then,
-                             action: action))
-        
         if let superState = gwt.superState {
             t1.append(contentsOf: superState.wtas.reduce(into: [Transition]()) { t2, wta in
                 t2.append(Transition(givenState: gwt.given,
@@ -256,6 +251,12 @@ func |<S: SP, E: EP> (
                                      action: action))
             })
         }
+        
+        t1.append(Transition(givenState: gwt.given,
+                             event: gwt.when,
+                             nextState: gwt.then,
+                             action: action))
+        
     }
 }
 

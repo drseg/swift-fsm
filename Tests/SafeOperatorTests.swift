@@ -226,8 +226,8 @@ final class SafeTransitionTests: SafeTests {
             W(.g) | T(.s) | { }
         }
         
-        assertFirst(.a, .g, .s, t)
-        assertLast(.a, .h, .b, t)
+        assertFirst(.a, .h, .b, t)
+        assertLast(.a, .g, .s, t)
         assertCount(2, t)
     }
     
@@ -238,8 +238,8 @@ final class SafeTransitionTests: SafeTests {
 
         let t = G(.a, superState: s) | W(.g) | T(.f) | {  }
 
-        assertFirst(.a, .g, .f, t)
-        assertLast(.a, .h, .b, t)
+        assertFirst(.a, .h, .b, t)
+        assertLast(.a, .g, .f, t)
         assertCount(2, t)
     }
 
