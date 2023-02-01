@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FSMBase<State, Event> where State: Hashable, Event: Hashable {
+class FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
     typealias T = Transition<State, Event>
     typealias K = T.Key<State, Event>
     
@@ -31,7 +31,7 @@ class FSMBase<State, Event> where State: Hashable, Event: Hashable {
     }
 }
 
-final class FSM<State, Event>: FSMBase<State, Event> where State: Hashable, Event: Hashable {
+final class FSM<State, Event>: FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
     override init(initialState state: State) {
         super.init(initialState: state)
     }

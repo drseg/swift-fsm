@@ -303,6 +303,7 @@ extension EqHa {
     func hash(into hasher: inout Hasher) { }
 }
 
+#warning("NSObject not tested")
 final class ClassTransitionTests: UnsafeTransitionTests {
     override var s1: ASP { S1() }
     override var s2: ASP { S2() }

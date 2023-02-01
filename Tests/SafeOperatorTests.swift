@@ -12,7 +12,7 @@ class SafeTests: XCTestCase {
     enum State { case a, b, c, d, e, f, p, q, r, s, t, u, v, w}
     enum Event { case g, h, i, j, k, l }
     
-    typealias G = Safe.Given<State>
+    typealias G = Safe.Given<State, Event>
     typealias W = Safe.When<Event>
     typealias T = Safe.Then<State>
     typealias A = Safe.Action
@@ -199,6 +199,37 @@ final class SafeTransitionTests: SafeTests {
         assertLast(.b, .g, .a, t)
         assertCount(4, t)
     }
+    
+    func testSuperState() {
+        let s = Safe.SuperState {
+            W(.h) | T(.b) | {  }
+            W(.g) | T(.s) | A {}
+        }
+        
+        XCTAssertEqual(s.wtas.first!,
+                       Safe.WhenThenAction(when: Event.h,
+                                           then: State.b,
+                                           action: {},
+                                           superState: nil))
+        XCTAssertEqual(s.wtas.last!,
+                       Safe.WhenThenAction(when: Event.g,
+                                           then: State.s,
+                                           action: {},
+                                           superState: nil))
+    }
+    
+    func testGivenCanAcceptSuperState() {
+        let s = Safe.SuperState {
+            W(.h) | T(.b) | {  }
+        }
+        
+        let g = G(.a, superState: s) {
+            W(.g) | T(.s) | A {}
+        }
+        
+        assertFirst(.a, .h, .b, g)
+        assertLast(.a, .g, .s, g)
+    }
 
     func testBuilderDoesNotDuplicate() {
         let t = Transition.build {
@@ -326,6 +357,71 @@ class DemonstrationTests: SafeTests {
     }
     
     func testTurnstile() {
+        typealias Given = Safe.Given<String, String>
+        typealias W = Safe.When<String>
+        typealias T = Safe.Then<String>
         
+        let _ =
+"""
+Initial: Locked
+FSM: Turnstile
+{
+  // This is an abstract super state.
+  (Resetable)  {
+    Reset       Locked       {alarmOff lock}
+  }
+  Locked : Resetable    {
+    Coin    Unlocked    unlock
+    Pass    Alarming    alarmOn
+  }
+  Unlocked : Resetable {
+    Coin    Unlocked    thankyou
+    Pass    Locked      lock
+  }
+  Alarming : Resetable { // inherits all it's transitions from Resetable.
+  }
+}
+"""
+        func alarmOff() {}
+        func unlock() {}
+        func alarmOn() {}
+        func thankyou() {}
+        func lock() {}
+        
+        let _ = Transition.build {
+            /*
+             let resetable = Superstate {
+                W("Reset") | T("Locked")   | { "alarmOff"; "lock"}
+             }
+             // what about multiple givens with different inhereitances?
+             Given("Locked") :: resetable {
+                 W("Coin") | T("Unlocked") | { "unlock" }
+                 W("Pass") | T("Alarming") | { "alarmOn" }
+             }
+             
+             Given("Unlocked") :: resetable {
+                 W("Coin") | T("Unlocked") | { "thankyou" }
+                 W("Pass") | T("Locked")   | { "lock" }
+             }
+             
+             Given("Alarming") :: resetable
+            
+             */
+            
+            Given("Locked", "Unlocked", "Alarming") {
+                W("Reset") | T("Locked")  | { alarmOff(); lock() }
+                // array needed
+            }
+            
+            Given("Locked") {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+            
+            Given("Unlocked") {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+        }
     }
 }

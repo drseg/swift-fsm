@@ -8,7 +8,7 @@
 import Foundation
 
 struct Transition<State, Event>: Equatable
-where State: Hashable, Event: Hashable {
+where State: StateProtocol, Event: EventProtocol {
     let givenState: State
     let event: Event
     let nextState: State
