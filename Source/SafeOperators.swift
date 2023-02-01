@@ -7,51 +7,66 @@
 
 import Foundation
 
-enum Safe {
-    @resultBuilder
-    struct TransitionBuilder<State: StateProtocol, Event: EventProtocol> {
-        static func buildBlock<Event>(
-            _ wtas: [WhenThenAction<State, Event>]...
-        ) -> [WhenThenAction<State, Event>] {
-            wtas.flatMap { $0 }
-        }
+typealias SP = StateProtocol
+typealias EP = EventProtocol
+
+@resultBuilder
+struct TransitionBuilder<State: SP, Event: EP> {
+    typealias S = State
+    typealias E = Event
+    
+    static func buildBlock<E>(
+        _ wtas: [WhenThenAction<S, E>]...
+    ) -> [WhenThenAction<S, E>] {
+        wtas.flatMap { $0 }
+    }
+}
+
+struct SuperState<State: SP, Event: EP> {
+    typealias S = State
+    typealias E = Event
+    
+    let wtas: [WhenThenAction<S, E>]
+    
+    init(@TransitionBuilder<S, E> _ content: () -> [WhenThenAction<S, E>]) {
+        wtas = content()
+    }
+}
+
+struct Given<State: SP, Event: EP> {
+    typealias S = State
+    typealias E = Event
+    
+    let states: [S]
+    var superState: SuperState<S, E>?
+    
+    init(
+        _ given: S...,
+        superState: SuperState<S, E>? = nil
+    ) {
+        self.states = given
+        self.superState = superState
     }
     
-    struct SuperState<State: StateProtocol, Event: EventProtocol> {
-        let wtas: [Safe.WhenThenAction<State, Event>]
-        
-        init(@Safe.TransitionBuilder<State, Event> _ content: () -> [WhenThenAction<State, Event>]
-        ) {
-            wtas = content()
-        }
+    func callAsFunction(
+        @TransitionBuilder<S, E> _ content: () -> [WhenThenAction<S, E>]
+    ) -> [Transition<S, E>] {
+        formTransitions(with: content())
     }
     
-    struct Given<State: StateProtocol, Event: EventProtocol> {
-        let givens: [State]
-        var superState: SuperState<State, Event>?
-        
-        init(
-            _ given: State...,
-            superState: Safe.SuperState<State, Event>? = nil
-        ) {
-            self.givens = given
-            self.superState = superState
-        }
-        
-        func callAsFunction(
-            @Safe.TransitionBuilder<State, Event> _ content: () -> [WhenThenAction<State, Event>]
-        ) -> [Transition<State, Event>] {
-            givens.reduce(into: [Transition]()) { ts, given in
-                if let superState {
-                    superState.wtas.forEach {
-                        ts.append(Transition(givenState: given,
-                                             event: $0.when,
-                                             nextState: $0.then,
-                                             action: $0.action))
-                    }
-                }
-                
-                content().forEach {
+    func formTransitions(
+        with wtas: [WhenThenAction<S, E>]
+    ) -> [Transition<S, E>] {
+        states.reduce(into: [Transition]()) { ts, given in
+            wtas.forEach {
+                ts.append(Transition(givenState: given,
+                                     event: $0.when,
+                                     nextState: $0.then,
+                                     action: $0.action))
+            }
+            
+            if let superState {
+                superState.wtas.forEach {
                     ts.append(Transition(givenState: given,
                                          event: $0.when,
                                          nextState: $0.then,
@@ -59,233 +74,194 @@ enum Safe {
                 }
             }
         }
-        
-        @resultBuilder
-        struct WhenThenBuilder {
-            static func buildBlock<Event>(
-                _ wts: [WhenThen<State, Event>]...
-            ) -> [WhenThen<State, Event>] {
-                wts.flatMap { $0 }
-            }
+    }
+    
+    @resultBuilder
+    struct WhenThenBuilder {
+        static func buildBlock(
+            _ wts: [WhenThen<S, E>]...
+        ) -> [WhenThen<S, E>] {
+            wts.flatMap { $0 }
         }
-        
-        func callAsFunction(
-            @WhenThenBuilder _ content: () -> [WhenThen<State, Event>]
-        ) -> GivenWhenThenCollection<State, Event> {
-            let gwts = content().reduce(into: [GivenWhenThen]()) { gwts, wt in
-                givens.forEach {
-                    gwts.append(GivenWhenThen(given: $0,
-                                              when: wt.when,
-                                              then: wt.then,
-                                              superState: superState))
+    }
+    
+    func callAsFunction(
+        @WhenThenBuilder _ content: () -> [WhenThen<S, E>]
+    ) -> GivenWhenThenCollection {
+        GivenWhenThenCollection(
+            content().reduce(into: [GivenWhenThen]()) { gwts, wt in
+                states.forEach {
+                    gwts.append(
+                        GivenWhenThen(given: $0,
+                                      when: wt.when,
+                                      then: wt.then,
+                                      superState: superState))
                 }
             }
-            return GivenWhenThenCollection(givenWhenThens: gwts)
+        )
+    }
+    
+    struct GivenWhenThenCollection {
+        let givenWhenThens: [GivenWhenThen<S, E>]
+        
+        init(_ gwts: [GivenWhenThen<S, E>]) {
+            givenWhenThens = gwts
         }
         
-        struct GivenWhenThenCollection<State: StateProtocol, Event: EventProtocol> {
-            let givenWhenThens: [GivenWhenThen<State, Event>]
-            
-            func action(
-                _ action: @escaping () -> Void
-            ) -> [Transition<State, Event>] {
-                givenWhenThens.reduce(into: [Transition]()) {
-                    $0.append(Transition(givenState: $1.given,
-                                         event: $1.when,
-                                         nextState: $1.then,
-                                         action: action))
-                }
-            }
-        }
-    }
-    
-    struct When<Event: EventProtocol> {
-        let whens: [Event]
-        
-        init(_ when: Event...) {
-            self.whens = when
-        }
-    }
-    
-    struct GivenWhen<State: StateProtocol, Event: EventProtocol> {
-        let given: State
-        let when: Event
-        
-        let superState: SuperState<State, Event>?
-    }
-
-    struct WhenThen<State: StateProtocol, Event: EventProtocol> {
-        let when: Event
-        let then: State
-    }
-    
-    struct Then<State: StateProtocol> {
-        let then: State
-        
-        init(_ then: State) {
-            self.then = then
-        }
-    }
-    
-    struct GivenWhenThen<State: StateProtocol, Event: EventProtocol> {
-        let given: State
-        let when: Event
-        let then: State
-        
-        let superState: SuperState<State, Event>?
-    }
-    
-    struct WhenThenAction<State: StateProtocol, Event: EventProtocol>: Equatable {
-        static func == (
-            lhs: Safe.WhenThenAction<State, Event>,
-            rhs: Safe.WhenThenAction<State, Event>
-        ) -> Bool {
-            lhs.when == rhs.when &&
-            lhs.then == rhs.then
-        }
-        
-        let when: Event
-        let then: State
-        let action: () -> Void
-        
-        var superState: SuperState<State, Event>?
-    }
-    
-    struct Action {
-        let action: () -> Void
-        
-        init(_ action: @escaping () -> Void) {
-            self.action = action
+        func action(
+            _ action: @escaping () -> Void
+        ) -> [Transition<S, E>] {
+            givenWhenThens | action
         }
     }
 }
 
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: Safe.Given<State, Event>,
-    rhs: Safe.When<Event>
-) -> [Safe.GivenWhen<State, Event>] {
-    lhs.givens.reduce(into: [Safe.GivenWhen]()) { givenWhens, given in
-        rhs.whens.forEach {
+struct When<Event: EP> {
+    let events: [Event]
+    
+    init(_ when: Event...) {
+        self.events = when
+    }
+}
+
+struct GivenWhen<State: SP, Event: EP> {
+    let given: State
+    let when: Event
+    
+    let superState: SuperState<State, Event>?
+}
+
+struct WhenThen<State: SP, Event: EP> {
+    let when: Event
+    let then: State
+}
+
+struct Then<State: SP> {
+    let state: State
+    
+    init(_ then: State) {
+        self.state = then
+    }
+}
+
+struct GivenWhenThen<State: SP, Event: EP> {
+    let given: State
+    let when: Event
+    let then: State
+    
+    let superState: SuperState<State, Event>?
+}
+
+struct WhenThenAction<State: SP, Event: EP>: Equatable {
+    static func == (
+        lhs: WhenThenAction<State, Event>,
+        rhs: WhenThenAction<State, Event>
+    ) -> Bool {
+        lhs.when == rhs.when &&
+        lhs.then == rhs.then
+    }
+    
+    let when: Event
+    let then: State
+    let action: () -> Void
+}
+
+func |<S: SP, E: EP> (
+    given: Given<S, E>,
+    when: When<E>
+) -> [GivenWhen<S, E>] {
+    given.states.reduce(into: [GivenWhen]()) { givenWhens, state in
+        when.events.forEach {
             givenWhens.append(
-                Safe.GivenWhen(given: given,
-                               when: $0,
-                               superState: lhs.superState)
+                GivenWhen(given: state,
+                          when: $0,
+                          superState: given.superState)
             )
         }
     }
 }
 
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: Safe.Given<State, Event>,
-    rhs: [[Safe.WhenThen<State, Event >]]
-) -> [Safe.GivenWhenThen<State, Event>] {
-    lhs.givens.reduce(into: [Safe.GivenWhenThen]()) { givenWhenThens, given in
-        rhs.flatMap { $0 }.forEach {
+func |<S: SP, E: EP> (
+    given: Given<S, E>,
+    whenThens: [[WhenThen<S, E >]]
+) -> [GivenWhenThen<S, E>] {
+    given.states.reduce(into: [GivenWhenThen]()) { givenWhenThens, state in
+        whenThens.flatMap { $0 }.forEach {
             givenWhenThens
-                .append(Safe.GivenWhenThen(given: given,
-                                           when: $0.when,
-                                           then: $0.then,
-                                           superState: lhs.superState))
+                .append(GivenWhenThen(given: state,
+                                      when: $0.when,
+                                      then: $0.then,
+                                      superState: given.superState))
         }
     }
 }
 
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: [Safe.GivenWhen<State, Event>],
-    rhs: Safe.Then<State>
-) -> [Safe.GivenWhenThen<State, Event>] {
-    lhs.reduce(into: [Safe.GivenWhenThen]()) { givenWhenThens, givenWhen in
+func |<S: SP, E: EP> (
+    givenWhens: [GivenWhen<S, E>],
+    then: Then<S>
+) -> [GivenWhenThen<S, E>] {
+    givenWhens.reduce(into: [GivenWhenThen]()) { givenWhenThens, givenWhen in
         givenWhenThens.append(
-            Safe.GivenWhenThen(given: givenWhen.given,
-                               when: givenWhen.when,
-                               then: rhs.then,
-                               superState: givenWhen.superState)
+            GivenWhenThen(given: givenWhen.given,
+                          when: givenWhen.when,
+                          then: then.state,
+                          superState: givenWhen.superState)
         )
     }
 }
 
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: [Safe.GivenWhenThen<State, Event>],
-    rhs: Safe.Action
-) -> [Transition<State,Event>] {
-    lhs | rhs.action
-}
-
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: [Safe.GivenWhenThen<State, Event>],
-    rhs: @escaping () -> Void
-) -> [Transition<State, Event>] {
-    lhs.reduce(into: [Transition]()) {
-        $0.append(
-            Transition(
-                givenState: $1.given,
-                event: $1.when,
-                nextState: $1.then,
-                action: rhs
-            )
-        )
+func |<S: SP, E: EP> (
+    when: When<E>,
+    then: Then<S>
+) -> [WhenThen<S, E>] {
+    when.events.reduce(into: [WhenThen]()) {
+        $0.append(WhenThen(when: $1,
+                           then: then.state))
     }
 }
 
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: Safe.When<Event>,
-    rhs: Safe.Then<State>
-) -> [Safe.WhenThen<State, Event>] {
-    lhs.whens.reduce(into: [Safe.WhenThen]()) { whenThens, when in
-        whenThens.append(
-            Safe.WhenThen(when: when,
-                          then: rhs.then))
+func |<S: SP, E: EP> (
+    whenThens: [[WhenThen<S, E>]],
+    action: @escaping () -> Void
+) -> [WhenThenAction<S, E>] {
+    whenThens.flatMap { $0 } | action
+}
+
+func |<S: SP, E: EP> (
+    whenThens: [WhenThen<S, E>],
+    action: @escaping () -> Void
+) -> [WhenThenAction<S, E>] {
+    whenThens.reduce(into: [WhenThenAction]()) {
+        $0.append(WhenThenAction(when: $1.when,
+                                 then: $1.then,
+                                 action: action))
     }
 }
 
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: [[Safe.WhenThen<State, Event>]],
-    rhs: Safe.Action
-) -> [Safe.WhenThenAction<State, Event>] {
-    lhs.flatMap { $0 } | rhs
-}
-
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: [Safe.WhenThen<State, Event>],
-    rhs: Safe.Action
-) -> [Safe.WhenThenAction<State, Event>] {
-    lhs | rhs.action
-}
-
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: [[Safe.WhenThen<State, Event>]],
-    rhs: @escaping () -> Void
-) -> [Safe.WhenThenAction<State, Event>] {
-    lhs.flatMap { $0 } | rhs
-}
-
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: [Safe.WhenThen<State, Event>],
-    rhs: @escaping () -> Void
-) -> [Safe.WhenThenAction<State, Event>] {
-    lhs.reduce(into: [Safe.WhenThenAction]()) {
-        $0.append(Safe.WhenThenAction(when: $1.when,
-                                      then: $1.then,
-                                      action: rhs))
-    }
-}
-
-func |<State: StateProtocol, Event: EventProtocol> (
-    lhs: Safe.Given<State, Event>,
-    rhs: [[Safe.WhenThenAction<State, Event>]]
-) -> [Transition<State, Event>] {
-    rhs.flatMap { $0 }.reduce(into: [Transition]()) { ts, action in
-        lhs.givens.forEach { given in
-            ts.append(
-                Transition(
-                    givenState: given,
-                    event: action.when,
-                    nextState: action.then,
-                    action: action.action
-                )
-            )
+func |<S: SP, E: EP> (
+    givenWhenThens: [GivenWhenThen<S, E>],
+    action: @escaping () -> Void
+) -> [Transition<S, E>] {
+    givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
+        t1.append(Transition(givenState: gwt.given,
+                             event: gwt.when,
+                             nextState: gwt.then,
+                             action: action))
+        
+        if let superState = gwt.superState {
+            t1.append(contentsOf: superState.wtas.reduce(into: [Transition]()) { t2, wta in
+                t2.append(Transition(givenState: gwt.given,
+                                     event: wta.when,
+                                     nextState: wta.then,
+                                     action: action))
+            })
         }
     }
-    
-    // SuperState in here
+}
+
+func |<S: SP, E: EP> (
+    given: Given<S, E>,
+    whenThenActions: [[WhenThenAction<S, E>]]
+) -> [Transition<S, E>] {
+    given.formTransitions(with: whenThenActions.flatMap { $0 })
 }
