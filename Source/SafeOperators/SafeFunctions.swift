@@ -61,13 +61,6 @@ func joinWhenToThen<S: SP, E: EP> (
     }
 }
 
-func joinManyWhenThensToAction<S: SP, E: EP> (
-    _ whenThens: [[WhenThen<S, E>]],
-    _ actions: [() -> ()]
-) -> [WhenThenAction<S, E>] {
-    whenThens.flatMap { $0 } | actions
-}
-
 func joinWhenThensToAction<S: SP, E: EP> (
     _ whenThens: [WhenThen<S, E>],
     _ actions: [() -> ()]
@@ -85,12 +78,14 @@ func makeTransitions<S: SP, E: EP> (
 ) -> [Transition<S, E>] {
     givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
         if let superState = gwt.superState {
-            t1.append(contentsOf: superState.wtas.reduce(into: [Transition]()) { t2, wta in
-                t2.append(Transition(givenState: gwt.given,
-                                     event: wta.when,
-                                     nextState: wta.then,
-                                     actions: actions))
-            })
+            t1.append(
+                contentsOf: superState.wtas.reduce(
+                    into: [Transition]()) { t2, wta in
+                        t2.append(Transition(givenState: gwt.given,
+                                             event: wta.when,
+                                             nextState: wta.then,
+                                             actions: actions))
+                    })
         }
         
         t1.append(Transition(givenState: gwt.given,

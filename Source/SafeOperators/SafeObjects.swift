@@ -8,7 +8,7 @@
 import Foundation
 
 @resultBuilder
-struct TransitionBuilder<State: SP, Event: EP> {
+struct WTABuilder<State: SP, Event: EP> {
     typealias S = State
     typealias E = Event
     
@@ -25,7 +25,7 @@ struct SuperState<State: SP, Event: EP> {
     
     let wtas: [WhenThenAction<S, E>]
     
-    init(@TransitionBuilder<S, E> _ content: () -> [WhenThenAction<S, E>]) {
+    init(@WTABuilder<S, E> _ content: () -> [WhenThenAction<S, E>]) {
         wtas = content()
     }
 }
@@ -46,9 +46,9 @@ struct Given<State: SP, Event: EP> {
     }
     
     func callAsFunction(
-        @TransitionBuilder<S, E> _ content: () -> [WhenThenAction<S, E>]
+        @WTABuilder<S, E> _ wtas: () -> [WhenThenAction<S, E>]
     ) -> [Transition<S, E>] {
-        formTransitions(with: content())
+        formTransitions(with: wtas())
     }
     
     func formTransitions(
@@ -108,7 +108,7 @@ struct Given<State: SP, Event: EP> {
         func action(
             _ action: @escaping () -> ()
         ) -> [Transition<S, E>] {
-            givenWhenThens | [action]
+            actions(action)
         }
         
         func actions(

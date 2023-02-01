@@ -225,52 +225,6 @@ final class SafeTransitionTests: SafeTests {
         t.first?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
-    
-    func testSuperStateWithBuilder() {
-        func wta(
-            _ when: Event, _ then: State
-        ) -> WhenThenAction<State, Event> {
-            WhenThenAction(when: when,
-                           then: then,
-                           actions: [])
-        }
-        
-        let s = SuperState {
-            W(.h) | T(.b) | { }
-            W(.g) | T(.s) | { }
-        }
-        
-        XCTAssertEqual(s.wtas.first!, wta(.h, .b))
-        XCTAssertEqual(s.wtas.last!, wta(.g, .s))
-    }
-    
-    func testGivenWithSuperStateUsingBuilder() {
-        let s = SuperState {
-            W(.h) | T(.b) | { }
-        }
-        
-        let t = G(.a, superState: s) {
-            W(.g) | T(.s) | { }
-        }
-        
-        assertFirst(.a, .h, .b, t)
-        assertLast(.a, .g, .s, t)
-        assertCount(2, t)
-    }
-    
-    func testGivenWithSuperStateWithoutBuilder() {
-        let s = SuperState {
-            W(.h) | T(.b) | {  }
-        }
-
-        let t = G(.a, superState: s) | W(.g) | T(.f) | {  }
-
-        assertFirst(.a, .h, .b, t)
-        assertLast(.a, .g, .f, t)
-        assertCount(2, t)
-    }
-    
-#warning("test all the combinatorics of superstates including multiple superstates")
 
     func testBuilderDoesNotDuplicate() {
         let t = Transition.build {
@@ -353,6 +307,53 @@ final class SafeTransitionTests: SafeTests {
     }
 }
 
+class SuperStateTransitionTests: SafeTests {
+    func testSuperStateWithBuilder() {
+        func wta(
+            _ when: Event, _ then: State
+        ) -> WhenThenAction<State, Event> {
+            WhenThenAction(when: when,
+                           then: then,
+                           actions: [])
+        }
+        
+        let s = SuperState {
+            W(.h) | T(.b) | { }
+            W(.g) | T(.s) | { }
+        }
+        
+        XCTAssertEqual(s.wtas.first!, wta(.h, .b))
+        XCTAssertEqual(s.wtas.last!, wta(.g, .s))
+    }
+    
+    func testGivenWithSuperStateUsingBuilder() {
+        let s = SuperState {
+            W(.h) | T(.b) | { }
+        }
+        
+        let t = G(.a, superState: s) {
+            W(.g) | T(.s) | { }
+        }
+        
+        assertFirst(.a, .h, .b, t)
+        assertLast(.a, .g, .s, t)
+        assertCount(2, t)
+    }
+    
+    func testGivenWithSuperStateWithoutBuilder() {
+        let s = SuperState {
+            W(.h) | T(.b) | {  }
+        }
+
+        let t = G(.a, superState: s) | W(.g) | T(.f) | {  }
+
+        assertFirst(.a, .h, .b, t)
+        assertLast(.a, .g, .f, t)
+        assertCount(2, t)
+    }
+#warning("test all the combinatorics of superstates including multiple superstates")
+}
+
 class DemonstrationTests: SafeTests {
     func testNestedBuilder() {
         let t = Transition.build {
@@ -431,17 +432,17 @@ FSM: Turnstile
         let _ = Transition.build {
             /*
              let resetable = Superstate {
-                W("Reset") | T("Locked")   | { "alarmOff"; "lock"}
+                W("Reset") | T("Locked")   | "alarmOff"; "lock"
              }
              // what about multiple givens with different inhereitances?
              Given("Locked") :: resetable {
-                 W("Coin") | T("Unlocked") | { "unlock" }
-                 W("Pass") | T("Alarming") | { "alarmOn" }
+                 W("Coin") | T("Unlocked") | "unlock"
+                 W("Pass") | T("Alarming") | "alarmOn"
              }
              
              Given("Unlocked") :: resetable {
-                 W("Coin") | T("Unlocked") | { "thankyou" }
-                 W("Pass") | T("Locked")   | { "lock" }
+                 W("Coin") | T("Unlocked") | "thankyou"
+                 W("Pass") | T("Locked")   | "lock"
              }
              
              Given("Alarming") :: resetable
@@ -449,8 +450,7 @@ FSM: Turnstile
              */
             
             Given("Locked", "Unlocked", "Alarming") {
-                W("Reset") | T("Locked")  | { alarmOff(); lock() }
-                // array needed
+                W("Reset") | T("Locked")  | [alarmOff, lock]
             }
             
             Given("Locked") {

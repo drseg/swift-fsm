@@ -49,7 +49,7 @@ func |<S: SP, E: EP> (
     whenThens: [[WhenThen<S, E>]],
     actions: [() -> ()]
 ) -> [WhenThenAction<S, E>] {
-    joinManyWhenThensToAction(whenThens, actions)
+    whenThens.flatMap { $0 } | actions
 }
 
 func |<S: SP, E: EP> (
