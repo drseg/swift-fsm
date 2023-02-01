@@ -242,6 +242,8 @@ final class SafeTransitionTests: SafeTests {
         assertLast(.a, .g, .f, t)
         assertCount(2, t)
     }
+    
+#warning("test all the combinatorics of superstates including multiple superstates")
 
     func testBuilderDoesNotDuplicate() {
         let t = Transition.build {
