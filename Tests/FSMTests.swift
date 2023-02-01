@@ -10,9 +10,14 @@ import XCTest
 @testable import FiniteStateMachine
 
 class FSMTests: SafeTests {
-    var didPass = false
-    func pass() {
-        didPass = true
+    var calledActions: [String]!
+    
+    func action1() {
+        calledActions.append("action1")
+    }
+    
+    func action2() {
+        calledActions.append("action2")
     }
     
     func fail() {
@@ -20,17 +25,17 @@ class FSMTests: SafeTests {
     }
     
     override func setUp() {
-        didPass = false
+        calledActions = [String]()
     }
     
     func testHandlEvent() {
         let fsm = FSM<State, Event>(initialState: .a)
         fsm.buildTransitions {
             G(.a) | W(.h) | T(.b) | fail
-            G(.a) | W(.g) | T(.c) | pass
+            G(.a) | W(.g) | T(.c) | [action1, action2]
         }
         fsm.handleEvent(.g)
-        XCTAssertTrue(didPass)
+        XCTAssertEqual(calledActions, ["action1", "action2"])
         XCTAssertEqual(fsm.state, .c)
     }
     
@@ -38,10 +43,10 @@ class FSMTests: SafeTests {
         let fsm = UnsafeFSM(initialState: State.a)
         fsm.buildTransitions {
             State.a | Event.h | State.b | fail
-            State.a | Event.g | State.c | pass
+            State.a | Event.g | State.c | [action1, action2]
         }
         fsm.handleEvent(Event.g)
-        XCTAssertTrue(didPass)
+        XCTAssertEqual(calledActions, ["action1", "action2"])
         XCTAssertEqual(fsm.state, State.c.erased)
     }
 }
@@ -87,7 +92,7 @@ extension SafeTests.State: StateProtocol {}
 extension SafeTests.Event: EventProtocol {}
 
 extension Int {
-    func times(_ block: @escaping () -> Void) {
+    func times(_ block: @escaping () -> ()) {
         for _ in 1...self { block() }
     }
 }

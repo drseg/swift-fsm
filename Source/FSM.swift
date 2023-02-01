@@ -21,7 +21,7 @@ class FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
     fileprivate func _handleEvent(_ event: Event) {
         let key = K(state: state, event: event)
         if let t = transitions[key] {
-            t.action()
+            t.actions.forEach { $0() }
             state = t.nextState
         }
     }

@@ -49,7 +49,7 @@ class UnsafeTransitionTests: XCTestCase {
         Transition(givenState: givenState.erased,
                    event: event.erased,
                    nextState: nextState.erased,
-                   action: { })
+                   actions: [])
     }
     
     func key(_ state: ASP, _ event: AEP) -> Key {
@@ -169,7 +169,7 @@ class UnsafeTransitionTests: XCTestCase {
     
     func testCallsAction() {
         t = s1 | e1 | s2 | action
-        t.first?.action()
+        t.first?.actions.first?()
         XCTAssertTrue(actionCalled)
     }
     
@@ -238,7 +238,7 @@ class UnsafeTransitionTests: XCTestCase {
         class Sub: Base { override func test() {} }
 
         let t = s1 | e1 | s2 | Sub().test
-        t.first?.action()
+        t.first?.actions.first?()
     }
 }
 

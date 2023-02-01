@@ -40,23 +40,44 @@ func |<S: SP, E: EP> (
 
 func |<S: SP, E: EP> (
     whenThens: [[WhenThen<S, E>]],
-    action: @escaping () -> Void
+    action: @escaping () -> ()
 ) -> [WhenThenAction<S, E>] {
-    joinManyWhenThensToAction(whenThens, action)
+    whenThens | [action]
+}
+
+func |<S: SP, E: EP> (
+    whenThens: [[WhenThen<S, E>]],
+    actions: [() -> ()]
+) -> [WhenThenAction<S, E>] {
+    joinManyWhenThensToAction(whenThens, actions)
 }
 
 func |<S: SP, E: EP> (
     whenThens: [WhenThen<S, E>],
-    action: @escaping () -> Void
+    action: @escaping () -> ()
 ) -> [WhenThenAction<S, E>] {
-    joinWhenThensToAction(whenThens, action)
+    whenThens | [action]
+}
+
+func |<S: SP, E: EP> (
+    whenThens: [WhenThen<S, E>],
+    actions: [() -> ()]
+) -> [WhenThenAction<S, E>] {
+    joinWhenThensToAction(whenThens, actions)
 }
 
 func |<S: SP, E: EP> (
     givenWhenThens: [GivenWhenThen<S, E>],
-    action: @escaping () -> Void
+    action: @escaping () -> ()
 ) -> [Transition<S, E>] {
-    makeTransitions(givenWhenThens, action)
+    givenWhenThens | [action]
+}
+
+func |<S: SP, E: EP> (
+    givenWhenThens: [GivenWhenThen<S, E>],
+    actions: [() -> ()]
+) -> [Transition<S, E>] {
+    makeTransitions(givenWhenThens, actions)
 }
 
 func |<S: SP, E: EP> (

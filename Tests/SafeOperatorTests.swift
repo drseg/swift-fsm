@@ -20,12 +20,12 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ action: @escaping () -> Void = { }
+        _ actions: [() -> ()] = []
     ) -> Transition<State, Event> {
         Transition(givenState: given,
                    event: when,
                    nextState: then,
-                   action: action)
+                   actions: actions)
     }
     
     func assertFirst(
@@ -71,6 +71,11 @@ final class SafeTransitionTests: SafeTests {
         assertFirst(.a, .g, .b, t)
         assertLast(.b, .g, .b, t)
         assertCount(2, t)
+    }
+    
+    func testMultiActionConstructor() {
+        let _ = G(.a) | W(.g) | T(.b) | [{ }, { }]
+        // nothing to assert here, just needs to compile
     }
     
     func testMultiWhenThenActionConstructor() {
@@ -188,15 +193,37 @@ final class SafeTransitionTests: SafeTests {
     }
     
     func testActionModifier() {
+        let e = expectation(description: "call action")
+        
         let t =
         G(.a, .b) {
             W(.h) | T(.b)
             W(.g) | T(.a)
-        }.action(doNothing)
+        }.action { e.fulfill() }
         
         assertFirst(.a, .h, .b, t)
         assertLast(.b, .g, .a, t)
         assertCount(4, t)
+        
+        t.first?.actions.first?()
+        waitForExpectations(timeout: 0.1)
+    }
+    
+    func testActionsModifier() {
+        let e = expectation(description: "call action")
+        
+        let t =
+        G(.a, .b) {
+            W(.h) | T(.b)
+            W(.g) | T(.a)
+        }.actions({}, { e.fulfill() })
+        
+        assertFirst(.a, .h, .b, t)
+        assertLast(.b, .g, .a, t)
+        assertCount(4, t)
+        
+        t.first?.actions.last?()
+        waitForExpectations(timeout: 0.1)
     }
     
     func testSuperStateWithBuilder() {
@@ -204,8 +231,8 @@ final class SafeTransitionTests: SafeTests {
             _ when: Event, _ then: State
         ) -> WhenThenAction<State, Event> {
             WhenThenAction(when: when,
-                                then: then,
-                                action: {})
+                           then: then,
+                           actions: [])
         }
         
         let s = SuperState {
@@ -262,7 +289,7 @@ final class SafeTransitionTests: SafeTests {
         let t = G(.a) | W(.g) | T(.c) | {
             self.assertAction(e)
         }
-        t.first?.action()
+        t.first?.actions.first?()
         waitForExpectations(timeout: 0.1)
     }
     

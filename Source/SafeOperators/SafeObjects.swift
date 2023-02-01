@@ -60,7 +60,7 @@ struct Given<State: SP, Event: EP> {
                     ts.append(Transition(givenState: given,
                                          event: $0.when,
                                          nextState: $0.then,
-                                         action: $0.action))
+                                         actions: $0.actions))
                 }
             }
             
@@ -68,7 +68,7 @@ struct Given<State: SP, Event: EP> {
                 ts.append(Transition(givenState: given,
                                      event: $0.when,
                                      nextState: $0.then,
-                                     action: $0.action))
+                                     actions: $0.actions))
             }
         }
     }
@@ -106,9 +106,15 @@ struct Given<State: SP, Event: EP> {
         }
         
         func action(
-            _ action: @escaping () -> Void
+            _ action: @escaping () -> ()
         ) -> [Transition<S, E>] {
-            givenWhenThens | action
+            givenWhenThens | [action]
+        }
+        
+        func actions(
+            _ actions: (() -> ())...
+        ) -> [Transition<S, E>] {
+            givenWhenThens | actions
         }
     }
 }
@@ -160,5 +166,5 @@ struct WhenThenAction<State: SP, Event: EP>: Equatable {
     
     let when: Event
     let then: State
-    let action: () -> Void
+    let actions: [() -> ()]
 }

@@ -75,16 +75,16 @@ enum Unsafe {
     struct EventStateAction {
         let event: any EventProtocol
         let state: any StateProtocol
-        let action: () -> Void
+        let actions: [() -> ()]
         
         init(
             _ event: any EventProtocol,
             _ state: any StateProtocol,
-            _ action: @escaping () -> Void
+            _ actions: [() -> ()]
         ) {
             self.event = event
             self.state = state
-            self.action = action
+            self.actions = actions
         }
     }
     
@@ -194,7 +194,7 @@ func | (
         $0.append(Transition(givenState: state.erased,
                              event: $1.event.erased,
                              nextState: $1.state.erased,
-                             action: $1.action))
+                             actions: $1.actions))
     }
 }
 
@@ -209,18 +209,32 @@ func | (
 
 func | (
     ess: [Unsafe.EventState],
-    action: @escaping () -> Void
+    action: @escaping () -> ()
+) -> [Unsafe.EventStateAction] {
+    ess | [action]
+}
+
+func | (
+    ess: [Unsafe.EventState],
+    actions: [() -> ()]
 ) -> [Unsafe.EventStateAction] {
     ess.reduce(into: [Unsafe.EventStateAction]()) {
-        $0.append($1 | action)
+        $0.append($1 | actions)
     }
 }
 
 func | (
     es: Unsafe.EventState,
-    action: @escaping () -> Void
+    action: @escaping () -> ()
 ) -> Unsafe.EventStateAction {
-    Unsafe.EventStateAction(es.event, es.state, action)
+    es | [action]
+}
+
+func | (
+    es: Unsafe.EventState,
+    actions: [() -> ()]
+) -> Unsafe.EventStateAction {
+    Unsafe.EventStateAction(es.event, es.state, actions)
 }
 
 func | (
@@ -241,19 +255,33 @@ func | (
 
 func | (
     stateEventStates: [Unsafe.StateEventState],
-    action: @escaping () -> Void
+    action: @escaping () -> ()
+) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
+    stateEventStates | [action]
+}
+
+func | (
+    stateEventStates: [Unsafe.StateEventState],
+    actions: [() -> ()]
 ) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
     stateEventStates.reduce(into: [Transition]()) {
-        $0.append(contentsOf: $1 | action)
+        $0.append(contentsOf: $1 | actions)
     }
 }
 
 func | (
     stateEventState: Unsafe.StateEventState,
-    action: @escaping () -> Void
+    action: @escaping () -> ()
+) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
+    stateEventState | [action]
+}
+
+func | (
+    stateEventState: Unsafe.StateEventState,
+    actions: [() -> ()]
 ) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
     [Transition(givenState: stateEventState.startState.erased,
                 event: stateEventState.event.erased,
                 nextState: stateEventState.endState.erased,
-                action: action)]
+                actions: actions)]
 }

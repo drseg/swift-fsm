@@ -12,7 +12,7 @@ where State: StateProtocol, Event: EventProtocol {
     let givenState: State
     let event: Event
     let nextState: State
-    let action: () -> Void
+    let actions: [() -> ()]
     
     struct Key<State,Event>: Hashable where State: Hashable, Event: Hashable {
         let state: State
