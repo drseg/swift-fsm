@@ -14,6 +14,25 @@ where State: StateProtocol, Event: EventProtocol {
     let nextState: State
     let actions: [() -> ()]
     
+    let file: String
+    let line: Int
+    
+    init(
+        givenState: State,
+        event: Event,
+        nextState: State,
+        actions: [() -> Void],
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.givenState = givenState
+        self.event = event
+        self.nextState = nextState
+        self.actions = actions
+        self.file = file
+        self.line = line
+    }
+    
     struct Key: Hashable {
         let state: State
         let event: Event

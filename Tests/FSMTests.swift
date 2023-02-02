@@ -10,8 +10,6 @@ import XCTest
 @testable import FiniteStateMachine
 
 class FSMTests: SafeTests {
-    typealias FSM = FiniteStateMachine.FSM<State, Event>
-    
     var calledActions: [String]!
     
     func action1() {
@@ -29,20 +27,26 @@ class FSMTests: SafeTests {
     override func setUp() {
         calledActions = [String]()
     }
-    
+        
     func testThrowsErrorWhenGivenConflictingTransitions() {
-        let fsm = FSM(initialState: .a)
+        let fsm = FSMBase<State, Event>(initialState: .a)
+        
+        let file = URL(string: #file)!.lastPathComponent
+        let l1 = #line + 5
+        let l2 = #line + 5
+        let l3 = #line + 5
+        
         XCTAssertThrowsError (try fsm.buildTransitions {
             G(.a) | W(.h) | T(.b) | action1
             G(.a) | W(.h) | T(.c) | action2
             G(.a) | W(.h) | T(.d) | action2
         }) {
             let e = $0 as! ConflictingTransitionError
-            XCTAssertEqual(e.localizedDescription.suffix(35),
+            XCTAssertEqual(e.localizedDescription.suffix(113),
 """
-a | h | *b*
-a | h | *c*
-a | h | *d*
+a | h | *b* (\(file): line \(l1))
+a | h | *c* (\(file): line \(l2))
+a | h | *d* (\(file): line \(l3))
 """
             )
             print(e.localizedDescription)
@@ -50,7 +54,7 @@ a | h | *d*
     }
 
     func testHandlEvent() {
-        let fsm = FSM(initialState: .a)
+        let fsm = FSM<State, Event>(initialState: .a)
         try! fsm.buildTransitions {
             G(.a) | W(.h) | T(.b) | fail
             G(.a) | W(.g) | T(.c) | [action1, action2]

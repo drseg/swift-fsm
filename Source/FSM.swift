@@ -14,23 +14,15 @@ class FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
     var state: State
     var transitions = [K: T]()
     
-    fileprivate init(initialState state: State) {
+    init(initialState state: State) {
         self.state = state
     }
     
-    fileprivate func _handleEvent(_ event: Event) {
-        let key = K(state: state, event: event)
-        if let t = transitions[key] {
-            t.actions.forEach { $0() }
-            state = t.nextState
-        }
-    }
-    
     func buildTransitions(@T.Builder _ content: () -> [T]) throws {
-        var keys = Set([K]())
-        var invalidTransitions = Set([T]())
+        var keys = Set<K>()
+        var invalidTransitions = Set<T>()
         
-        let transitions = content().reduce(into: [K: T]()) {
+        transitions = content().reduce(into: [K: T]()) {
             let k = K(state: $1.givenState, event: $1.event)
             if keys.contains(k) {
                 invalidTransitions.insert($0[k]!)
@@ -45,11 +37,9 @@ class FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
         guard invalidTransitions.isEmpty else {
             try throwError(invalidTransitions)
         }
-        
-        self.transitions = transitions
     }
     
-    func throwError(_ ts: Set<T>) throws -> Never {
+    private func throwError(_ ts: Set<T>) throws -> Never {
         let message =
 """
 The same 'given-when' combination cannot lead to more than one 'then' state.
@@ -57,14 +47,26 @@ The same 'given-when' combination cannot lead to more than one 'then' state.
 The following conflicts were found:
 """
         let conflicts = ts
-            .map { "\n\($0.givenState) | \($0.event) | *\($0.nextState)*" }
+            .map { "\n\($0.givenState) | \($0.event) | *\($0.nextState)* (\($0.file.name): line \($0.line))" }
             .sorted()
             .joined()
         throw ConflictingTransitionError(message + conflicts)
     }
+    
+    fileprivate func _handleEvent(_ event: Event) {
+        let key = K(state: state, event: event)
+        if let t = transitions[key] {
+            t.actions.forEach { $0() }
+            state = t.nextState
+        }
+    }
 }
 
-#warning("Should this also throw for duplicate valid transitions?")
+private extension String {
+    var name: String {
+        URL(string: self)?.lastPathComponent ?? self
+    }
+}
 
 struct ConflictingTransitionError: Error {
     let localizedDescription: String
@@ -73,6 +75,7 @@ struct ConflictingTransitionError: Error {
         self.localizedDescription = localizedDescription
     }
 }
+#warning("Should this also throw for duplicate valid transitions?")
 
 final class FSM<State, Event>: FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
     override init(initialState state: State) {

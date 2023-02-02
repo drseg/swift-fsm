@@ -36,13 +36,20 @@ struct Given<State: SP, Event: EP> {
     
     let states: [S]
     var superState: SuperState<S, E>?
+    let file: String
+    let line: Int
+    
     
     init(
         _ given: S...,
-        superState: SuperState<S, E>? = nil
+        superState: SuperState<S, E>? = nil,
+        file: String = #file,
+        line: Int = #line
     ) {
         self.states = given
         self.superState = superState
+        self.file = file
+        self.line = line
     }
     
     func callAsFunction(
@@ -60,7 +67,9 @@ struct Given<State: SP, Event: EP> {
                     ts.append(Transition(givenState: given,
                                          event: $0.when,
                                          nextState: $0.then,
-                                         actions: $0.actions))
+                                         actions: $0.actions,
+                                         file: file,
+                                         line: line))
                 }
             }
             
@@ -68,7 +77,9 @@ struct Given<State: SP, Event: EP> {
                 ts.append(Transition(givenState: given,
                                      event: $0.when,
                                      nextState: $0.then,
-                                     actions: $0.actions))
+                                     actions: $0.actions,
+                                     file: file,
+                                     line: line))
             }
         }
     }
@@ -92,7 +103,9 @@ struct Given<State: SP, Event: EP> {
                         GivenWhenThen(given: $0,
                                       when: wt.when,
                                       then: wt.then,
-                                      superState: superState))
+                                      superState: superState,
+                                      file: file,
+                                      line: line))
                 }
             }
         ) 
@@ -132,6 +145,9 @@ struct GivenWhen<State: SP, Event: EP> {
     let when: Event
     
     let superState: SuperState<State, Event>?
+    let file: String
+    let line: Int
+    
 }
 
 struct WhenThen<State: SP, Event: EP> {
@@ -153,6 +169,8 @@ struct GivenWhenThen<State: SP, Event: EP> {
     let then: State
     
     let superState: SuperState<State, Event>?
+    let file: String
+    let line: Int
 }
 
 struct WhenThenAction<State: SP, Event: EP>: Equatable {

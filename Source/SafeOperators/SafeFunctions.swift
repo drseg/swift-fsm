@@ -16,7 +16,9 @@ func joinGivenToWhen<S: SP, E: EP> (
             givenWhens.append(
                 GivenWhen(given: state,
                           when: $0,
-                          superState: given.superState)
+                          superState: given.superState,
+                          file: given.file,
+                          line: given.line)
             )
         }
     }
@@ -32,7 +34,9 @@ func joinGivenToWhenThens<S: SP, E: EP> (
                 .append(GivenWhenThen(given: state,
                                       when: $0.when,
                                       then: $0.then,
-                                      superState: given.superState))
+                                      superState: given.superState,
+                                      file: given.file,
+                                      line: given.line))
         }
     }
 }
@@ -46,7 +50,9 @@ func joinGivenWhensToThen<S: SP, E: EP> (
             GivenWhenThen(given: givenWhen.given,
                           when: givenWhen.when,
                           then: then.state,
-                          superState: givenWhen.superState)
+                          superState: givenWhen.superState,
+                          file: givenWhen.file,
+                          line: givenWhen.line)
         )
     }
 }
@@ -89,7 +95,9 @@ func makeTransitions<S: SP, E: EP> (
                         t2.append(Transition(givenState: gwt.given,
                                              event: wta.when,
                                              nextState: wta.then,
-                                             actions: actions))
+                                             actions: actions,
+                                             file: gwt.file,
+                                             line: gwt.line))
                     })
             alreadyAdded.append(gwt)
         }
@@ -97,7 +105,9 @@ func makeTransitions<S: SP, E: EP> (
         t1.append(Transition(givenState: gwt.given,
                              event: gwt.when,
                              nextState: gwt.then,
-                             actions: actions))
+                             actions: actions,
+                             file: gwt.file,
+                             line: gwt.line))
         
     }
 }

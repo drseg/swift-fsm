@@ -163,10 +163,8 @@ final class SafeTransitionTests: SafeTests {
 
         y =     G(.a, .a) | W(.g) | T(.c) | { }
         XCTAssertNotEqual(x, y)
-
         y =     G(.a, .b) | W(.h) | T(.c) | { }
         XCTAssertNotEqual(x, y)
-
         y =     G(.a, .b) | W(.g) | T(.b) | { }
         XCTAssertNotEqual(x, y)
     }
@@ -336,7 +334,6 @@ class SuperStateTransitionTests: SafeTests {
         
         assertOutput(t1)
         assertOutput(t2)
-        
     }
     
     func testMultipleGiven() {
@@ -526,6 +523,23 @@ class SuperStateTransitionTests: SafeTests {
         
         assertOutput(t1)
         assertOutput(t2)
+    }
+}
+
+class FileLineTests: SafeTests {
+    func testFileAndLine() {
+        let file: String = String(#file)
+        
+        let line1 = #line; let t1 = G(.a) {
+            W(.g) | T(.s) | { }
+        }
+        let line2 = #line; let t2 = G(.a) | W(.g) | T(.s) | { }
+        
+        XCTAssertEqual(t1.first?.line, line1)
+        XCTAssertEqual(t2.first?.line, line2)
+        
+        XCTAssertEqual(t1.first?.file, file)
+        XCTAssertEqual(t2.first?.file, file)
     }
 }
 
