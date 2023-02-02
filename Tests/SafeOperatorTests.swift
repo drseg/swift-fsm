@@ -401,6 +401,7 @@ class SuperStateTransitionTests: SafeTests {
             assert(i: 0, .a, .h, .b, t)
             assert(i: 1, .a, .g, .s, t)
             assert(i: 2, .a, .h, .s, t)
+            
             assert(i: 3, .b, .h, .b, t)
             assert(i: 4, .b, .g, .s, t)
             assert(i: 5, .b, .h, .s, t)
@@ -440,6 +441,7 @@ class SuperStateTransitionTests: SafeTests {
             assert(i: 0, .a, .h, .b, t)
             assert(i: 1, .a, .g, .s, t)
             assert(i: 2, .a, .h, .s, t)
+            
             assert(i: 3, .b, .h, .b, t)
             assert(i: 4, .b, .g, .s, t)
             assert(i: 5, .b, .h, .s, t)
@@ -455,8 +457,99 @@ class SuperStateTransitionTests: SafeTests {
         assertOutput(t2)
     }
     
+    func testMultipleGivenMultipleWhenMultipleThenAction() {
+        func assertOutput(_ t: [Transition<State, Event>]) {
+            assert(i: 0, .a, .h, .b, t)
+            assert(i: 1, .a, .g, .s, t)
+            assert(i: 2, .a, .h, .s, t)
+            assert(i: 3, .a, .i, .d, t)
+            assert(i: 4, .a, .j, .d, t)
+            
+            assert(i: 5, .b, .h, .b, t)
+            assert(i: 6, .b, .g, .s, t)
+            assert(i: 7, .b, .h, .s, t)
+            assert(i: 8, .b, .i, .d, t)
+            assert(i: 9, .b, .j, .d, t)
+            assertCount(10, t)
+        }
+        
+        let t1 = G(.a, .b, superState: s) {
+            W(.g, .h) | T(.s) | { }
+            W(.i, .j) | T(.d) | { }
+        }
+        let t2 = G(.a, .b, superState: s) | [W(.g, .h) | T(.s) | { },
+                                             W(.i, .j) | T(.d) | { }]
+        
+        assertOutput(t1)
+        assertOutput(t2)
+    }
     
-#warning("test all the combinatorics of superstates including multiple superstates")
+    func testMultipleWhenThen() {
+        func assertOutput(_ t: [Transition<State, Event>]) {
+            assert(i: 0, .a, .h, .b, t)
+            assert(i: 1, .a, .g, .s, t)
+            assert(i: 2, .a, .h, .s, t)
+            assertCount(3, t)
+        }
+        
+        let t1 = G(.a, superState: s) {
+            [W(.g) | T(.s),
+             W(.h) | T(.s)] | { }
+        }
+        let t2 = G(.a, superState: s) | [W(.g) | T(.s),
+                                         W(.h) | T(.s)] | { }
+        
+        assertOutput(t1)
+        assertOutput(t2)
+    }
+    
+    func testAll() {
+        func assertOutput(_ t: [Transition<State, Event>]) {
+            assert(i: 0, .a, .h, .b, t)
+            
+            assert(i: 1, .a, .g, .s, t)
+            assert(i: 2, .a, .h, .s, t)
+            assert(i: 3, .a, .h, .t, t)
+            assert(i: 4, .a, .i, .t, t)
+            assert(i: 5, .a, .i, .s, t)
+            assert(i: 6, .a, .j, .s, t)
+            assert(i: 7, .a, .j, .t, t)
+            assert(i: 8, .a, .k, .t, t)
+            
+            assert(i: 9, .b, .h, .b, t)
+            
+            assert(i: 10, .b, .g, .s, t)
+            assert(i: 11, .b, .h, .s, t)
+            assert(i: 12, .b, .h, .t, t)
+            assert(i: 13, .b, .i, .t, t)
+            assert(i: 14, .b, .i, .s, t)
+            assert(i: 15, .b, .j, .s, t)
+            assert(i: 16, .b, .j, .t, t)
+            assert(i: 17, .b, .k, .t, t)
+
+            assertCount(18, t)
+        }
+        
+        let t1 = G(.a, .b, superState: s) {
+            [W(.g, .h) | T(.s),
+             W(.h, .i) | T(.t)] | { }
+            
+            [W(.i, .j) | T(.s),
+             W(.j, .k) | T(.t)] | { }
+        }
+        
+        
+        let t2 = G(.a, .b, superState: s) | [[W(.g, .h) | T(.s),
+                                              W(.h, .i) | T(.t)] | { },
+                                             
+                                             [W(.i, .j) | T(.s),
+                                              W(.j, .k) | T(.t)] | { }]
+        
+        assertOutput(t1)
+        assertOutput(t2)
+        
+#warning("These transitions are actually invalid (multiple given when lead to different thens, which is also a clash in the hash table - should check these when the final array is validated")
+    }
 }
 
 class DemonstrationTests: SafeTests {
