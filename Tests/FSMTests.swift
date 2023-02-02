@@ -38,13 +38,13 @@ class FSMTests: SafeTests {
             G(.a) | W(.h) | T(.d) | action2
         }) {
             let e = $0 as! ConflictingTransitionError
-            XCTAssertTrue(e.localizedDescription.contains(
+            XCTAssertEqual(e.localizedDescription.suffix(35),
 """
 a | h | *b*
 a | h | *c*
 a | h | *d*
 """
-            ))
+            )
             print(e.localizedDescription)
         }
     }

@@ -36,9 +36,10 @@ class FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
                 invalidTransitions.insert($0[k]!)
                 invalidTransitions.insert($1)
             }
-            
-            keys.insert(k)
-            $0[k] = $1
+            else {
+                keys.insert(k)
+                $0[k] = $1
+            }
         }
         
         guard invalidTransitions.isEmpty else {
@@ -49,15 +50,21 @@ class FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
     }
     
     func throwError(_ ts: Set<T>) throws -> Never {
-        let message = """
-The same 'given-when' combination cannot lead to more than one 'then' state. The following conflicts were found:
+        let message =
 """
-        let conflicts = ts.map {
-            "\n\($0.givenState) | \($0.event) | *\($0.nextState)*"
-        }.sorted().joined()
+The same 'given-when' combination cannot lead to more than one 'then' state.
+
+The following conflicts were found:
+"""
+        let conflicts = ts
+            .map { "\n\($0.givenState) | \($0.event) | *\($0.nextState)*" }
+            .sorted()
+            .joined()
         throw ConflictingTransitionError(message + conflicts)
     }
 }
+
+#warning("Should this also throw for duplicate valid transitions?")
 
 struct ConflictingTransitionError: Error {
     let localizedDescription: String
