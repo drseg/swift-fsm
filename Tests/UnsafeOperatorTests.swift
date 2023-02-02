@@ -17,8 +17,7 @@ class UnsafeTransitionTests: XCTestCase {
     
     typealias Transition = FiniteStateMachine.Transition<Unsafe.AnyState,
                                                          Unsafe.AnyEvent>
-    typealias Key = Transition.Key<Unsafe.AnyState,
-                                   Unsafe.AnyEvent>
+    typealias Key = Transition.Key
     
     var s1: ASP { mustImplement() }
     var s2: ASP { mustImplement() }
@@ -183,11 +182,13 @@ class UnsafeTransitionTests: XCTestCase {
     }
 
     func assertContainsTransition(
-        _ t: [Key: Transition],
+        _ t: [Transition],
         k: Key,
         line: UInt = #line
     ) {
-        let actual = t[k]
+        let actual = t.first {
+            $0.givenState == k.state && $0.event == k.event
+        }
         XCTAssertEqual(actual, transition(s1, e1, s2), line: line)
     }
 

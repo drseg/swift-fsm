@@ -7,53 +7,57 @@
 
 import Foundation
 
-struct Transition<State, Event>: Equatable
+struct Transition<State, Event>: Hashable
 where State: StateProtocol, Event: EventProtocol {
     let givenState: State
     let event: Event
     let nextState: State
     let actions: [() -> ()]
     
-    struct Key<State,Event>: Hashable where State: Hashable, Event: Hashable {
+    struct Key: Hashable {
         let state: State
         let event: Event
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(givenState)
+        hasher.combine(event)
+        hasher.combine(nextState)
     }
     
     @resultBuilder
     struct Builder {
         static func buildBlock(
             _ ts: [Transition]...
-        ) -> [Key<State,Event>: Transition] {
-            ts.flatMap {$0}.reduce(into: [Key<State,Event>: Transition]()) {
-                $0[Key(state: $1.givenState, event: $1.event)] = $1
-            }
+        ) -> [Transition] {
+            ts.flatMap {$0}
         }
         
         static func buildIf(
-            _ dict: [Key<State,Event>: Transition]?
+            _ ts: [Transition]?
         ) -> [Transition] {
-            if let dict {
-                return Array(dict.values)
+            if let ts {
+                return ts
             }
-            return [Transition<State,Event>]()
+            return [Transition]()
         }
         
         static func buildEither(
-            first component: [Key<State,Event>: Transition]
+            first component: [Transition]
         ) -> [Transition] {
-            Array(component.values)
+            component
         }
         
         static func buildEither(
-            second component: [Key<State,Event>: Transition]
+            second component: [Transition]
         ) -> [Transition] {
-            Array(component.values)
+            component
         }
     }
     
     static func build(
-        @Transition.Builder _ content: () -> [Key<State,Event>: Transition]
-    ) -> [Key<State,Event>: Transition] {
+        @Transition.Builder _ content: () -> [Transition]
+    ) -> [Transition] {
         content()
     }
     

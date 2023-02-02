@@ -10,6 +10,8 @@ import XCTest
 @testable import FiniteStateMachine
 
 class FSMTests: SafeTests {
+    typealias FSM = FiniteStateMachine.FSM<State, Event>
+    
     var calledActions: [String]!
     
     func action1() {
@@ -28,9 +30,28 @@ class FSMTests: SafeTests {
         calledActions = [String]()
     }
     
+    func testThrowsErrorWhenGivenConflictingTransitions() {
+        let fsm = FSM(initialState: .a)
+        XCTAssertThrowsError (try fsm.buildTransitions {
+            G(.a) | W(.h) | T(.b) | action1
+            G(.a) | W(.h) | T(.c) | action2
+            G(.a) | W(.h) | T(.d) | action2
+        }) {
+            let e = $0 as! ConflictingTransitionError
+            XCTAssertTrue(e.localizedDescription.contains(
+"""
+a | h | *b*
+a | h | *c*
+a | h | *d*
+"""
+            ))
+            print(e.localizedDescription)
+        }
+    }
+
     func testHandlEvent() {
-        let fsm = FSM<State, Event>(initialState: .a)
-        fsm.buildTransitions {
+        let fsm = FSM(initialState: .a)
+        try! fsm.buildTransitions {
             G(.a) | W(.h) | T(.b) | fail
             G(.a) | W(.g) | T(.c) | [action1, action2]
         }
@@ -41,7 +62,7 @@ class FSMTests: SafeTests {
     
     func testHandleUnsafeEvent() {
         let fsm = UnsafeFSM(initialState: State.a)
-        fsm.buildTransitions {
+        try! fsm.buildTransitions {
             State.a | Event.h | State.b | fail
             State.a | Event.g | State.c | [action1, action2]
         }
@@ -75,14 +96,14 @@ class FSMPerformanceTests: SafeTests {
     
     func testGenericPerformance() throws {
         let fsm = FSM<State, Event>(initialState: .a)
-        fsm.buildTransitions { G(.a) | W(.g) | T(.c) | pass }
+        try! fsm.buildTransitions { G(.a) | W(.g) | T(.c) | pass }
         
         measure { 250000.times { fsm.handleEvent(.g) } }
     }
     
     func testUnsafePerformance() throws {
         let fsm = UnsafeFSM(initialState: State.a)
-        fsm.buildTransitions { State.a | Event.g | State.c | pass }
+        try! fsm.buildTransitions { State.a | Event.g | State.c | pass }
         
         measure { 250000.times { fsm.handleEvent(Event.g) } }
     }

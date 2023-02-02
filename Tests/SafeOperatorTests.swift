@@ -238,14 +238,6 @@ final class SafeTransitionTests: SafeTests {
         waitForExpectations(timeout: 0.1)
     }
 
-    func testBuilderDoesNotDuplicate() {
-        let t = Transition.build {
-            G(.a, .a) | W(.g) | T(.b) | { }
-            G(.a)     | W(.g) | T(.b) | { }
-        }
-        XCTAssertEqual(t.count, 1)
-    }
-
     func assertAction(_ e: XCTestExpectation) {
         e.fulfill()
     }
@@ -259,18 +251,6 @@ final class SafeTransitionTests: SafeTests {
         waitForExpectations(timeout: 0.1)
     }
     
-    func testCanRetrieveTransitionByKey() {
-        let ts = Transition.build {
-            G(.a, .b) | W(.g, .h) | T(.b) | { }
-        }
-                
-        let expectedT = ts[Transition.Key(state: .a, event: .h)]
-        let nilT = ts[Transition.Key(state: .c, event: .h)]
-        
-        XCTAssertEqual(expectedT, transition(.a, .h, .b))
-        XCTAssertNil(nilT)
-    }
-    
     func testBuilderIfTrue() {
         let condition = true
         let ts = Transition.build {
@@ -278,7 +258,7 @@ final class SafeTransitionTests: SafeTests {
                 G(.a) | W(.g) | T(.b) | { }
             }
         }
-        XCTAssertEqual(ts.first?.value, transition(.a, .g, .b))
+        XCTAssertEqual(ts.first, transition(.a, .g, .b))
     }
     
     func testBuilderIfFalse() {
@@ -302,7 +282,7 @@ final class SafeTransitionTests: SafeTests {
             }
         }
         XCTAssertEqual(ts.count, 1)
-        XCTAssertEqual(ts.first?.value, transition(.b, .i, .b))
+        XCTAssertEqual(ts.first, transition(.b, .i, .b))
     }
     
     func testBuilderSwitch() {
@@ -315,7 +295,7 @@ final class SafeTransitionTests: SafeTests {
             case .off: G(.b) | W(.i) | T(.b) | { }
             }
         }
-        XCTAssertEqual(ts.first?.value, transition(.a, .g, .b))
+        XCTAssertEqual(ts.first, transition(.a, .g, .b))
     }
 }
 
@@ -538,8 +518,7 @@ class SuperStateTransitionTests: SafeTests {
              W(.j, .k) | T(.t)] | { }
         }
         
-        
-        let t2 = G(.a, .b, superState: s) | [[W(.g, .h) | T(.s),
+         let t2 = G(.a, .b, superState: s) | [[W(.g, .h) | T(.s),
                                               W(.h, .i) | T(.t)] | { },
                                              
                                              [W(.i, .j) | T(.s),
@@ -547,8 +526,6 @@ class SuperStateTransitionTests: SafeTests {
         
         assertOutput(t1)
         assertOutput(t2)
-        
-#warning("These transitions are actually invalid (multiple given when lead to different thens, which is also a clash in the hash table - should check these when the final array is validated")
     }
 }
 
