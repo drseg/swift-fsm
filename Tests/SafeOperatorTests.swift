@@ -9,13 +9,13 @@ import XCTest
 @testable import FiniteStateMachine
 
 class SafeTests: XCTestCase {
-    enum State { case a, b, c, d, e, f, p, q, r, s, t, u, v, w}
+    enum State { case a, b, c, d, e, f, p, q, r, s, t, u, v, w }
     enum Event { case g, h, i, j, k, l }
     
     typealias G = Given<State, Event>
     typealias W = When<Event>
     typealias T = Then<State>
-        
+    
     func transition(
         _ given: State,
         _ when: Event,
@@ -28,6 +28,7 @@ class SafeTests: XCTestCase {
                    actions: actions)
     }
     
+    
     func assertFirst(
         _ given: State,
         _ when: Event,
@@ -35,7 +36,7 @@ class SafeTests: XCTestCase {
         _ t: [Transition<State, Event>],
         line: UInt = #line
     ) {
-        XCTAssertEqual(t.first, transition(given, when, then), line: line)
+        assert(i: 0, given, when, then, t)
     }
     
     func assertLast(
@@ -45,7 +46,18 @@ class SafeTests: XCTestCase {
         _ t: [Transition<State, Event>],
         line: UInt = #line
     ) {
-        XCTAssertEqual(t.last, transition(given, when, then), line: line)
+        assert(i: t.count - 1, given, when, then, t)
+    }
+    
+    func assert(
+        i: Int,
+        _ given: State,
+        _ when: Event,
+        _ then: State,
+        _ t: [Transition<State, Event>],
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(t[i], transition(given, when, then), line: line)
     }
     
     func assertCount(
@@ -308,7 +320,7 @@ final class SafeTransitionTests: SafeTests {
 }
 
 class SuperStateTransitionTests: SafeTests {
-    func testSuperStateWithBuilder() {
+    func testWithBuilder() {
         func wta(
             _ when: Event, _ then: State
         ) -> WhenThenAction<State, Event> {
@@ -326,31 +338,124 @@ class SuperStateTransitionTests: SafeTests {
         XCTAssertEqual(s.wtas.last!, wta(.g, .s))
     }
     
-    func testGivenWithSuperStateUsingBuilder() {
-        let s = SuperState {
-            W(.h) | T(.b) | { }
-        }
-        
-        let t = G(.a, superState: s) {
-            W(.g) | T(.s) | { }
-        }
-        
-        assertFirst(.a, .h, .b, t)
-        assertLast(.a, .g, .s, t)
-        assertCount(2, t)
+    let s = SuperState {
+        W(.h) | T(.b) | { }
     }
     
-    func testGivenWithSuperStateWithoutBuilder() {
-        let s = SuperState {
-            W(.h) | T(.b) | {  }
+    func testGiven() {
+        func assertOutput(_ t: [Transition<State, Event>]) {
+            assertFirst(.a, .h, .b, t)
+            assertLast(.a, .g, .s, t)
+            assertCount(2, t)
         }
-
-        let t = G(.a, superState: s) | W(.g) | T(.f) | {  }
-
-        assertFirst(.a, .h, .b, t)
-        assertLast(.a, .g, .f, t)
-        assertCount(2, t)
+        
+        let t1 = G(.a, superState: s) {
+            W(.g) | T(.s) | { }
+        }
+        let t2 = G(.a, superState: s) | W(.g) | T(.s) | { }
+        
+        assertOutput(t1)
+        assertOutput(t2)
+        
     }
+    
+    func testMultipleGiven() {
+        func assertOutput(_ t: [Transition<State, Event>]) {
+            assert(i: 0, .a, .h, .b, t)
+            assert(i: 1, .a, .g, .s, t)
+            assert(i: 2, .b, .h, .b, t)
+            assert(i: 3, .b, .g, .s, t)
+            assertCount(4, t)
+        }
+        
+        let t1 = G(.a, .b, superState: s) {
+            W(.g) | T(.s) | { }
+        }
+        let t2 = G(.a, .b, superState: s) | W(.g) | T(.s) | { }
+        
+        assertOutput(t1)
+        assertOutput(t2)
+    }
+    
+    func testMultipleWhenThenAction() {
+        func assertOutput(_ t: [Transition<State, Event>]) {
+            assert(i: 0, .a, .h, .b, t)
+            assert(i: 1, .a, .g, .s, t)
+            assert(i: 2, .a, .h, .s, t)
+            assertCount(3, t)
+        }
+        
+        let t1 = G(.a, superState: s) {
+            W(.g) | T(.s) | { }
+            W(.h) | T(.s) | { }
+        }
+        let t2 = G(.a, superState: s) | [W(.g) | T(.s) | { },
+                                         W(.h) | T(.s) | { }]
+        
+        assertOutput(t1)
+        assertOutput(t2)
+    }
+    
+    func testMultipleGivenMultipleWTA() {
+        func assertOutput(_ t: [Transition<State, Event>]) {
+            assert(i: 0, .a, .h, .b, t)
+            assert(i: 1, .a, .g, .s, t)
+            assert(i: 2, .a, .h, .s, t)
+            assert(i: 3, .b, .h, .b, t)
+            assert(i: 4, .b, .g, .s, t)
+            assert(i: 5, .b, .h, .s, t)
+            assertCount(6, t)
+        }
+        
+        let t1 = G(.a, .b, superState: s) {
+            W(.g) | T(.s) | { }
+            W(.h) | T(.s) | { }
+        }
+        let t2 = G(.a, .b, superState: s) | [W(.g) | T(.s) | { },
+                                             W(.h) | T(.s) | { }]
+        
+        assertOutput(t1)
+        assertOutput(t2)
+    }
+    
+    func testMultitipleWhen() {
+        func assertOutput(_ t: [Transition<State, Event>]) {
+            assert(i: 0, .a, .h, .b, t)
+            assert(i: 1, .a, .g, .s, t)
+            assert(i: 2, .a, .h, .s, t)
+            assertCount(3, t)
+        }
+        
+        let t1 = G(.a, superState: s) {
+            W(.g, .h) | T(.s) | { }
+        }
+        let t2 = G(.a, superState: s) | W(.g, .h) | T(.s) | { }
+        
+        assertOutput(t1)
+        assertOutput(t2)
+    }
+    
+    func testMultipleGivenMultipleWhen() {
+        func assertOutput(_ t: [Transition<State, Event>]) {
+            assert(i: 0, .a, .h, .b, t)
+            assert(i: 1, .a, .g, .s, t)
+            assert(i: 2, .a, .h, .s, t)
+            assert(i: 3, .b, .h, .b, t)
+            assert(i: 4, .b, .g, .s, t)
+            assert(i: 5, .b, .h, .s, t)
+            assertCount(6, t)
+        }
+        
+        let t1 = G(.a, .b, superState: s) {
+            W(.g, .h) | T(.s) | { }
+        }
+        let t2 = G(.a, .b, superState: s) | W(.g, .h) | T(.s) | { }
+        
+        assertOutput(t1)
+        assertOutput(t2)
+    }
+    
+    
 #warning("test all the combinatorics of superstates including multiple superstates")
 }
 

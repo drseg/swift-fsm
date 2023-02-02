@@ -76,8 +76,13 @@ func makeTransitions<S: SP, E: EP> (
     _ givenWhenThens: [GivenWhenThen<S, E>],
     _ actions: [() -> ()]
 ) -> [Transition<S, E>] {
-    givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
-        if let superState = gwt.superState {
+    var alreadyAdded = [GivenWhenThen<S, E>]()
+    
+    return givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
+        if
+            let superState = gwt.superState,
+            !alreadyAdded.contains(where: { $0.given == gwt.given })
+        {
             t1.append(
                 contentsOf: superState.wtas.reduce(
                     into: [Transition]()) { t2, wta in
@@ -86,6 +91,7 @@ func makeTransitions<S: SP, E: EP> (
                                              nextState: wta.then,
                                              actions: actions))
                     })
+            alreadyAdded.append(gwt)
         }
         
         t1.append(Transition(givenState: gwt.given,

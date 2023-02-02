@@ -95,7 +95,7 @@ struct Given<State: SP, Event: EP> {
                                       superState: superState))
                 }
             }
-        )
+        ) 
     }
     
     struct GivenWhenThenCollection {
