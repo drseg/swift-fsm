@@ -81,10 +81,10 @@ func joinWhenThensToAction<S: SP, E: EP> (
 func makeTransitions<S: SP, E: EP> (
     _ givenWhenThens: [GivenWhenThen<S, E>],
     _ actions: [() -> ()]
-) -> [Transition<S, E>] {
+) -> TransitionCollection<S, E> {
     var alreadyAdded = [GivenWhenThen<S, E>]()
     
-    return givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
+    return TransitionCollection(givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
         if
             let superState = gwt.superState,
             !alreadyAdded.contains(where: { $0.given == gwt.given })
@@ -108,13 +108,12 @@ func makeTransitions<S: SP, E: EP> (
                              actions: actions,
                              file: gwt.file,
                              line: gwt.line))
-        
-    }
+    })
 }
 
 func makeTransitions<S: SP, E: EP> (
     _ given: Given<S, E>,
     _ whenThenActions: [[WhenThenAction<S, E>]]
-) -> [Transition<S, E>] {
+) -> TransitionCollection<S, E> {
     given.formTransitions(with: whenThenActions.flatMap { $0 })
 }

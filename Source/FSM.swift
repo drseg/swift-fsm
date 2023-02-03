@@ -18,11 +18,11 @@ class FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
         self.state = state
     }
     
-    func buildTransitions(@T.Builder _ content: () -> [T]) throws {
+    func buildTransitions(@T.Builder _ content: () -> TransitionCollectionBase<State, Event>) throws {
         var keys = Set<K>()
         var invalidTransitions = Set<T>()
         
-        transitions = content().reduce(into: [K: T]()) {
+        transitions = content().transitions.reduce(into: [K: T]()) {
             let k = K(state: $1.givenState, event: $1.event)
             if keys.contains(k) {
                 invalidTransitions.insert($0[k]!)

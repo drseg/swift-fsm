@@ -166,36 +166,40 @@ func | (
 func | (
     states: [any StateProtocol],
     esas: [[Unsafe.EventStateAction]]
-) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
+) -> TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> {
     states | esas.flatMap { $0 }
 }
 
 func | (
     states: [any StateProtocol],
     esas: [Unsafe.EventStateAction]
-) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
-    states.reduce(into: [Transition]()) {
-        $0.append(contentsOf: $1 | esas)
-    }
+) -> TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> {
+    TransitionCollection(
+        states.reduce(into: [Transition]()) {
+            $0.append(contentsOf: ($1 | esas).transitions)
+        }
+    )
 }
 
 func | (
     state: any StateProtocol,
     esas: [[Unsafe.EventStateAction]]
-) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
+) -> TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> {
     state | esas.flatMap { $0 }
 }
 
 func | (
     state: any StateProtocol,
     esas: [Unsafe.EventStateAction]
-) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
-    esas.reduce(into: [Transition]()) {
-        $0.append(Transition(givenState: state.erased,
-                             event: $1.event.erased,
-                             nextState: $1.state.erased,
-                             actions: $1.actions))
-    }
+) -> TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> {
+    TransitionCollection(
+        esas.reduce(into: [Transition]()) {
+            $0.append(Transition(givenState: state.erased,
+                                 event: $1.event.erased,
+                                 nextState: $1.state.erased,
+                                 actions: $1.actions))
+        }
+    )
 }
 
 func | (
@@ -256,32 +260,35 @@ func | (
 func | (
     stateEventStates: [Unsafe.StateEventState],
     action: @escaping () -> ()
-) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
+) -> TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> {
     stateEventStates | [action]
 }
 
 func | (
     stateEventStates: [Unsafe.StateEventState],
     actions: [() -> ()]
-) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
-    stateEventStates.reduce(into: [Transition]()) {
-        $0.append(contentsOf: $1 | actions)
-    }
+) -> TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> {
+    TransitionCollection(
+        stateEventStates.reduce(into: [Transition]()) {
+            $0.append(contentsOf: ($1 | actions).transitions)
+        }
+    )
 }
 
 func | (
     stateEventState: Unsafe.StateEventState,
     action: @escaping () -> ()
-) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
+) -> TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> {
     stateEventState | [action]
 }
 
 func | (
     stateEventState: Unsafe.StateEventState,
     actions: [() -> ()]
-) -> [Transition<Unsafe.AnyState, Unsafe.AnyEvent>] {
-    [Transition(givenState: stateEventState.startState.erased,
-                event: stateEventState.event.erased,
-                nextState: stateEventState.endState.erased,
-                actions: actions)]
+) -> TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> {
+    TransitionCollection([Transition(givenState: stateEventState.startState.erased,
+                                     event: stateEventState.event.erased,
+                                     nextState: stateEventState.endState.erased,
+                                     actions: actions)]
+    )
 }

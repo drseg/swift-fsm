@@ -19,6 +19,12 @@ struct WTABuilder<State: SP, Event: EP> {
     }
 }
 
+final class TransitionCollection<State, Event>: TransitionCollectionBase<State, Event>
+where State: StateProtocol, Event: EventProtocol { }
+
+//final class MutableTransitionCollectionClass<State, Event>: TransitionCollectionBase<State, Event>
+//where State: StateProtocol, Event: EventProtocol { }
+
 struct SuperState<State: SP, Event: EP> {
     typealias S = State
     typealias E = Event
@@ -53,16 +59,27 @@ struct Given<State: SP, Event: EP> {
     
     func callAsFunction(
         @WTABuilder<S, E> _ wtas: () -> [WhenThenAction<S, E>]
-    ) -> [Transition<S, E>] {
+    ) -> TransitionCollection<S, E> {
         formTransitions(with: wtas())
     }
     
     func formTransitions(
         with wtas: [WhenThenAction<S, E>]
-    ) -> [Transition<S, E>] {
-        states.reduce(into: [Transition]()) { ts, given in
-            if let superState {
-                superState.wtas.forEach {
+    ) -> TransitionCollection<S, E> {
+        TransitionCollection(
+            states.reduce(into: [Transition]()) { ts, given in
+                if let superState {
+                    superState.wtas.forEach {
+                        ts.append(Transition(givenState: given,
+                                             event: $0.when,
+                                             nextState: $0.then,
+                                             actions: $0.actions,
+                                             file: file,
+                                             line: line))
+                    }
+                }
+                
+                wtas.forEach {
                     ts.append(Transition(givenState: given,
                                          event: $0.when,
                                          nextState: $0.then,
@@ -71,16 +88,7 @@ struct Given<State: SP, Event: EP> {
                                          line: line))
                 }
             }
-            
-            wtas.forEach {
-                ts.append(Transition(givenState: given,
-                                     event: $0.when,
-                                     nextState: $0.then,
-                                     actions: $0.actions,
-                                     file: file,
-                                     line: line))
-            }
-        }
+        )
     }
     
     @resultBuilder
@@ -119,13 +127,13 @@ struct Given<State: SP, Event: EP> {
         
         func action(
             _ action: @escaping () -> ()
-        ) -> [Transition<S, E>] {
+        ) -> TransitionCollection<S, E> {
             actions(action)
         }
         
         func actions(
             _ actions: (() -> ())...
-        ) -> [Transition<S, E>] {
+        ) -> TransitionCollection<S, E> {
             givenWhenThens | actions
         }
     }

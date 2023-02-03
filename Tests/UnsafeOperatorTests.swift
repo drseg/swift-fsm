@@ -56,7 +56,7 @@ class UnsafeTransitionTests: XCTestCase {
             event: event.erased)
     }
 
-    var t: [Transition] = []
+    var t: TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> = TransitionCollection([])
     
     func assertFirst(
         _ given: ASP,
@@ -64,7 +64,7 @@ class UnsafeTransitionTests: XCTestCase {
         _ then: ASP,
         line: UInt = #line
     ) {
-        XCTAssertEqual(t.first, transition(given, when, then), line: line)
+        XCTAssertEqual(t.transitions.first, transition(given, when, then), line: line)
     }
     
     func assertLast(
@@ -73,7 +73,7 @@ class UnsafeTransitionTests: XCTestCase {
         _ then: ASP,
         line: UInt = #line
     ) {
-        XCTAssertEqual(t.last, transition(given, when, then), line: line)
+        XCTAssertEqual(t.transitions.last, transition(given, when, then), line: line)
     }
 
     func testTransition() {
@@ -168,7 +168,7 @@ class UnsafeTransitionTests: XCTestCase {
     
     func testCallsAction() {
         t = s1 | e1 | s2 | action
-        t.first?.actions.first?()
+        t.transitions.first?.actions.first?()
         XCTAssertTrue(actionCalled)
     }
     
@@ -228,7 +228,7 @@ class UnsafeTransitionTests: XCTestCase {
         let t = Transition.build {
             switch condition {
             case true:  s1 | e1 | s2 | action
-            default: [Transition]()
+            default: TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent>([])
             }
         }
 
@@ -240,7 +240,7 @@ class UnsafeTransitionTests: XCTestCase {
         class Sub: Base { override func test() {} }
 
         let t = s1 | e1 | s2 | Sub().test
-        t.first?.actions.first?()
+        t.transitions.first?.actions.first?()
     }
 }
 
