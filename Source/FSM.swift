@@ -47,7 +47,9 @@ The same 'given-when' combination cannot lead to more than one 'then' state.
 The following conflicts were found:
 """
         let conflicts = ts
-            .map { "\n\($0.givenState) | \($0.event) | *\($0.nextState)* (\($0.file.name): line \($0.line))" }
+            .map {
+                "\n\($0.givenState) | \($0.event) | *\($0.nextState)* (\($0.file.name): line \($0.line))"
+            }
             .sorted()
             .joined()
         throw ConflictingTransitionError(message + conflicts)
@@ -69,10 +71,10 @@ private extension String {
 }
 
 struct ConflictingTransitionError: Error {
-    let localizedDescription: String
+    let description: String
     
-    init(_ localizedDescription: String) {
-        self.localizedDescription = localizedDescription
+    init(_ description: String) {
+        self.description = description
     }
 }
 #warning("Should this also throw for duplicate valid transitions?")
@@ -88,11 +90,68 @@ final class FSM<State, Event>: FSMBase<State, Event> where State: StateProtocol,
 }
 
 final class UnsafeFSM: FSMBase<Unsafe.AnyState, Unsafe.AnyEvent> {
+    typealias T = Transition<Unsafe.AnyState, Unsafe.AnyEvent>
+    
     init(initialState state: any StateProtocol) {
         super.init(initialState: state.erased)
     }
     
+    override func buildTransitions(
+        @T.Builder _ content: () -> T.Group
+    ) throws {
+        try validate(content().transitions)
+        try super.buildTransitions(content)
+    }
+    
     func handleEvent(_ event: any EventProtocol) {
         _handleEvent(event.erased)
+    }
+    
+    private func validate(
+        _ ts: [T]
+    ) throws {
+        func validateObject(_ a: Any) throws {
+            let mirror = Mirror(reflecting: a)
+            if a is NSObject
+                && (mirror.superclassMirror != nil ||
+                    String(describing: a).contains("NSObject")) {
+                throw NSObjectError(
+                    "States and Events must not inherit from NSObject"
+                )
+            }
+        }
+        
+        func areSameType(lhs: Any, rhs: Any) -> Bool {
+            type(of: lhs) == type(of: rhs)
+        }
+        
+        try ts.forEach {
+            try validateObject($0.givenState.base)
+            try validateObject($0.event.base)
+            try validateObject($0.nextState.base)
+            
+            guard areSameType(lhs: $0.givenState.base,
+                              rhs: $0.nextState.base) else {
+                throw MismatchedTypeError(
+                    "Given and Then states must be of the same type"
+                )
+            }
+        }
+    }
+    
+    struct NSObjectError: Error {
+        let description: String
+        
+        init(_ description: String) {
+            self.description = description
+        }
+    }
+    
+    struct MismatchedTypeError: Error {
+        let description: String
+        
+        init(_ description: String) {
+            self.description = description
+        }
     }
 }

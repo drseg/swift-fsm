@@ -42,14 +42,13 @@ class FSMTests: SafeTests {
             G(.a) | W(.h) | T(.d) | action2
         }) {
             let e = $0 as! ConflictingTransitionError
-            XCTAssertEqual(e.localizedDescription.suffix(113),
+            XCTAssertEqual(e.description.suffix(113),
 """
 a | h | *b* (\(file): line \(l1))
 a | h | *c* (\(file): line \(l2))
 a | h | *d* (\(file): line \(l3))
 """
             )
-            print(e.localizedDescription)
         }
     }
     
@@ -74,7 +73,34 @@ a | h | *d* (\(file): line \(l3))
         XCTAssertEqual(calledActions, ["action1", "action2"])
         XCTAssertEqual(fsm.state, State.c.erased)
     }
+    
+    func assertThrows<E: Error>(
+        expected: E.Type,
+        building t: Transition<Unsafe.AnyState, Unsafe.AnyEvent>.Group
+    ) {
+        let fsm = UnsafeFSM(initialState: State.a)
+        XCTAssertThrowsError(
+            try fsm.buildTransitions { t }
+        ) { XCTAssert(type(of: $0) == expected) }
+    }
+    
+    func testThrowsErrorIfGivenNSObject() {
+        assertThrows(expected: UnsafeFSM.NSObjectError.self,
+                     building: NSObject() | Event.h | State.b | fail)
+        assertThrows(expected: UnsafeFSM.NSObjectError.self,
+                     building: State.a | NSObject() | State.b | fail)
+        assertThrows(expected: UnsafeFSM.NSObjectError.self,
+                     building: State.a | Event.h | NSObject() | fail)
+    }
+    
+    func testThrowsErrorIfStateTypesDoNotMatch() {
+        assertThrows(expected: UnsafeFSM.MismatchedTypeError.self,
+                     building: "Cat" | Event.h | 2 | fail)
+    }
 }
+
+extension NSObject: StateProtocol {}
+extension NSObject: EventProtocol {}
 
 class FSMPerformanceTests: SafeTests {
     var didPass = false

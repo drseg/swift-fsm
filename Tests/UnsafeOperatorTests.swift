@@ -9,8 +9,8 @@ import XCTest
 @testable import FiniteStateMachine
 
 class UnsafeTransitionTests: XCTestCase {
-    typealias State = StateProtocol
-    typealias Event = EventProtocol
+    typealias SP = StateProtocol
+    typealias EP = EventProtocol
     
     typealias ASP = any StateProtocol
     typealias AEP = any EventProtocol
@@ -253,8 +253,8 @@ final class EnumTransitionTests: UnsafeTransitionTests {
     override var e2: AEP { E.two }
     override var e3: AEP { E.three }
     
-    enum S: State { case one, two, three }
-    enum E: Event { case one, two, three }
+    enum S: SP { case one, two, three }
+    enum E: EP { case one, two, three }
 }
 
 final class EnumValueTransitionTestsOne: UnsafeTransitionTests {
@@ -266,8 +266,8 @@ final class EnumValueTransitionTestsOne: UnsafeTransitionTests {
     override var e2: AEP { E.two }
     override var e3: AEP { E.three }
     
-    enum S: State { case one(String), two(String), three(String) }
-    enum E: Event { case one, two, three }
+    enum S: SP { case one(String), two(String), three(String) }
+    enum E: EP { case one, two, three }
 }
 
 final class EnumValueTransitionTestsTwo: UnsafeTransitionTests {
@@ -279,8 +279,8 @@ final class EnumValueTransitionTestsTwo: UnsafeTransitionTests {
     override var e2: AEP { E.two }
     override var e3: AEP { E.three }
     
-    enum S: State { case one(String), two(String), three(String) }
-    enum E: Event { case one, two, three }
+    enum S: SP { case one(String), two(String), three(String) }
+    enum E: EP { case one, two, three }
 }
 
 final class StructTransitionTests: UnsafeTransitionTests {
@@ -292,8 +292,8 @@ final class StructTransitionTests: UnsafeTransitionTests {
     override var e2: AEP { E2() }
     override var e3: AEP { E3() }
     
-    struct S1: State {}; struct S2: State {}; struct S3: State {}
-    struct E1: Event {}; struct E2: Event {}; struct E3: Event {}
+    struct S1: SP {}; struct S2: SP {}; struct S3: SP {}
+    struct E1: EP {}; struct E2: EP {}; struct E3: EP {}
 }
 
 protocol EqHa where Self: Hashable { }
@@ -305,18 +305,17 @@ extension EqHa {
     func hash(into hasher: inout Hasher) { }
 }
 
-#warning("NSObject not tested")
 final class ClassTransitionTests: UnsafeTransitionTests {
     override var s1: ASP { S1() }
     override var s2: ASP { S2() }
     override var s3: ASP { S3() }
-
+    
     override var e1: AEP { E1() }
     override var e2: AEP { E2() }
     override var e3: AEP { E3() }
-
-    class S1: State, EqHa {}; class S2: State, EqHa {}; class S3: State, EqHa {}
-    class E1: Event, EqHa {}; class E2: Event, EqHa {}; class E3: Event, EqHa {}
+    
+    class S1: SP, EqHa {}; class S2: SP, EqHa {}; class S3: SP, EqHa {}
+    class E1: EP, EqHa {}; class E2: EP, EqHa {}; class E3: EP, EqHa {}
 }
 
 final class StringIntTransitionTests: UnsafeTransitionTests {
