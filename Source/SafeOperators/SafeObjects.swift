@@ -41,7 +41,7 @@ struct Given<State: SP, Event: EP> {
     
     init(
         _ given: S...,
-        superState: SuperState<S, E>? = nil,
+        implements superState: SuperState<S, E>? = nil,
         file: String = #file,
         line: Int = #line
     ) {

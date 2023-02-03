@@ -169,7 +169,7 @@ final class SafeTransitionTests: SafeTests {
         XCTAssertNotEqual(x, y)
     }
 
-    func testBuilder() {
+    func testTransitionBuilder() {
         let t = Transition.build {
             G(.a, .b) | W(.g) | T(.c) | { }
             G(.c)     | W(.h) | T(.d) | { }
@@ -242,10 +242,10 @@ final class SafeTransitionTests: SafeTests {
 
     func testActionPassedCorrectly() {
         let e = expectation(description: "passAction")
-        let t = G(.a) | W(.g) | T(.c) | {
+        let t = G(.a) | W(.g) | T(.c) | [{}, {
             self.assertAction(e)
-        }
-        t.first?.actions.first?()
+        }]
+        t.first?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
     
@@ -316,9 +316,8 @@ class SuperStateTransitionTests: SafeTests {
         XCTAssertEqual(s.wtas.last!, wta(.g, .s))
     }
     
-    let s = SuperState {
-        W(.h) | T(.b) | { }
-    }
+    let s = SuperState { W(.h) | T(.b) | { } }
+#warning("no tests check a SuperState with more than one WTA")
     
     func testGiven() {
         func assertOutput(_ t: [Transition<State, Event>]) {
@@ -327,10 +326,26 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(2, t)
         }
         
-        let t1 = G(.a, superState: s) {
-            W(.g) | T(.s) | { }
-        }
-        let t2 = G(.a, superState: s) | W(.g) | T(.s) | { }
+        let t1 = G(.a, implements: s) {  W(.g) | T(.s) | { } }
+        let t2 = G(.a, implements: s) | W(.g) | T(.s) | { }
+        
+        /*
+         let t3 = G(.a, implements: s1, s2) {  W(.g) | T(.s) | { } }
+         let t4 = G(.a, implements: s1, s2) | W(.g) | T(.s) | { }
+         
+         let tBa = G(.a) :: s {  W(.g) | T(.s) | { } }
+         let tBb = G(.a) :: [s1, s2] {  W(.g) | T(.s) | { } }
+
+         let tCa = G(.a) :: s | W(.g) | T(.s) | { }
+         let tCb = G(.a) :: [s1 : s2] | W(.g) | T(.s) | { }
+         
+         let tA = G(.a, superState: s) { .g | .s | {} }
+         let tD = G(.a) :: s { .g | .s | {} }
+         let tE = .a :: s { .g | .s | {} }
+         let tF = .a :: s | .g | .s | {}
+         
+         For the inference problem, consider tuples
+         */
         
         assertOutput(t1)
         assertOutput(t2)
@@ -345,10 +360,8 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(4, t)
         }
         
-        let t1 = G(.a, .b, superState: s) {
-            W(.g) | T(.s) | { }
-        }
-        let t2 = G(.a, .b, superState: s) | W(.g) | T(.s) | { }
+        let t1 = G(.a, .b, implements: s) { W(.g) | T(.s) | { } }
+        let t2 = G(.a, .b, implements: s) | W(.g) | T(.s) | { }
         
         assertOutput(t1)
         assertOutput(t2)
@@ -362,11 +375,11 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(3, t)
         }
         
-        let t1 = G(.a, superState: s) {
+        let t1 = G(.a, implements: s) {
             W(.g) | T(.s) | { }
             W(.h) | T(.s) | { }
         }
-        let t2 = G(.a, superState: s) | [W(.g) | T(.s) | { },
+        let t2 = G(.a, implements: s) | [W(.g) | T(.s) | { },
                                          W(.h) | T(.s) | { }]
         
         assertOutput(t1)
@@ -385,11 +398,11 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(6, t)
         }
         
-        let t1 = G(.a, .b, superState: s) {
+        let t1 = G(.a, .b, implements: s) {
             W(.g) | T(.s) | { }
             W(.h) | T(.s) | { }
         }
-        let t2 = G(.a, .b, superState: s) | [W(.g) | T(.s) | { },
+        let t2 = G(.a, .b, implements: s) | [W(.g) | T(.s) | { },
                                              W(.h) | T(.s) | { }]
         
         assertOutput(t1)
@@ -404,10 +417,10 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(3, t)
         }
         
-        let t1 = G(.a, superState: s) {
+        let t1 = G(.a, implements: s) {
             W(.g, .h) | T(.s) | { }
         }
-        let t2 = G(.a, superState: s) | W(.g, .h) | T(.s) | { }
+        let t2 = G(.a, implements: s) | W(.g, .h) | T(.s) | { }
         
         assertOutput(t1)
         assertOutput(t2)
@@ -425,10 +438,10 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(6, t)
         }
         
-        let t1 = G(.a, .b, superState: s) {
+        let t1 = G(.a, .b, implements: s) {
             W(.g, .h) | T(.s) | { }
         }
-        let t2 = G(.a, .b, superState: s) | W(.g, .h) | T(.s) | { }
+        let t2 = G(.a, .b, implements: s) | W(.g, .h) | T(.s) | { }
         
         assertOutput(t1)
         assertOutput(t2)
@@ -450,11 +463,11 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(10, t)
         }
         
-        let t1 = G(.a, .b, superState: s) {
+        let t1 = G(.a, .b, implements: s) {
             W(.g, .h) | T(.s) | { }
             W(.i, .j) | T(.d) | { }
         }
-        let t2 = G(.a, .b, superState: s) | [W(.g, .h) | T(.s) | { },
+        let t2 = G(.a, .b, implements: s) | [W(.g, .h) | T(.s) | { },
                                              W(.i, .j) | T(.d) | { }]
         
         assertOutput(t1)
@@ -469,11 +482,11 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(3, t)
         }
         
-        let t1 = G(.a, superState: s) {
+        let t1 = G(.a, implements: s) {
             [W(.g) | T(.s),
              W(.h) | T(.s)] | { }
         }
-        let t2 = G(.a, superState: s) | [W(.g) | T(.s),
+        let t2 = G(.a, implements: s) | [W(.g) | T(.s),
                                          W(.h) | T(.s)] | { }
         
         assertOutput(t1)
@@ -507,7 +520,7 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(18, t)
         }
         
-        let t1 = G(.a, .b, superState: s) {
+        let t1 = G(.a, .b, implements: s) {
             [W(.g, .h) | T(.s),
              W(.h, .i) | T(.t)] | { }
             
@@ -515,7 +528,7 @@ class SuperStateTransitionTests: SafeTests {
              W(.j, .k) | T(.t)] | { }
         }
         
-         let t2 = G(.a, .b, superState: s) | [[W(.g, .h) | T(.s),
+         let t2 = G(.a, .b, implements: s) | [[W(.g, .h) | T(.s),
                                               W(.h, .i) | T(.t)] | { },
                                              
                                              [W(.i, .j) | T(.s),
@@ -638,17 +651,16 @@ FSM: Turnstile
              Given("Alarming") :: resetable
             
              */
-            
-            Given("Locked", "Unlocked", "Alarming") {
+            let resetable = SuperState {
                 W("Reset") | T("Locked")  | [alarmOff, lock]
             }
             
-            Given("Locked") {
+            Given("Locked", implements: resetable) {
                 W("Coin") | T("Unlocked") | unlock
                 W("Pass") | T("Alarming") | alarmOn
             }
             
-            Given("Unlocked") {
+            Given("Unlocked", implements: resetable) {
                 W("Coin") | T("Unlocked") | thankyou
                 W("Pass") | T("Locked")   | lock
             }

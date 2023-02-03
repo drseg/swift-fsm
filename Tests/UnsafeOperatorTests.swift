@@ -200,6 +200,7 @@ class UnsafeTransitionTests: XCTestCase {
 
         assertContainsTransition(t, k: key(s1, e1))
     }
+#warning("this test is now misleading - Transition.Builder produces an array")
 
     func testIf() {
         let condition = true
