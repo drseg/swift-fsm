@@ -39,7 +39,6 @@ struct Given<State: SP, Event: EP> {
     let file: String
     let line: Int
     
-    
     init(
         _ given: S...,
         superState: SuperState<S, E>? = nil,
@@ -85,7 +84,7 @@ struct Given<State: SP, Event: EP> {
     }
     
     @resultBuilder
-    struct WhenThenBuilder {
+    struct WTBuilder {
         static func buildBlock(
             _ wts: [WhenThen<S, E>]...
         ) -> [WhenThen<S, E>] {
@@ -94,9 +93,9 @@ struct Given<State: SP, Event: EP> {
     }
     
     func callAsFunction(
-        @WhenThenBuilder _ content: () -> [WhenThen<S, E>]
-    ) -> GivenWhenThenCollection {
-        GivenWhenThenCollection(
+        @WTBuilder _ content: () -> [WhenThen<S, E>]
+    ) -> GWTCollection {
+        GWTCollection(
             content().reduce(into: [GivenWhenThen]()) { gwts, wt in
                 states.forEach {
                     gwts.append(
@@ -111,7 +110,7 @@ struct Given<State: SP, Event: EP> {
         ) 
     }
     
-    struct GivenWhenThenCollection {
+    struct GWTCollection {
         let givenWhenThens: [GivenWhenThen<S, E>]
         
         init(_ gwts: [GivenWhenThen<S, E>]) {

@@ -52,7 +52,7 @@ a | h | *d* (\(file): line \(l3))
             print(e.localizedDescription)
         }
     }
-
+    
     func testHandlEvent() {
         let fsm = FSM<State, Event>(initialState: .a)
         try! fsm.buildTransitions {
