@@ -69,21 +69,21 @@ func |<S: SP, E: EP> (
 func |<S: SP, E: EP> (
     givenWhenThens: [GivenWhenThen<S, E>],
     action: @escaping () -> ()
-) -> TransitionCollection<S, E> {
+) -> FinalTransitions<S, E> {
     givenWhenThens | [action]
 }
 
 func |<S: SP, E: EP> (
     givenWhenThens: [GivenWhenThen<S, E>],
     actions: [() -> ()]
-) -> TransitionCollection<S, E> {
+) -> FinalTransitions<S, E> {
     makeTransitions(givenWhenThens, actions)
 }
 
 func |<S: SP, E: EP> (
     given: Given<S, E>,
     whenThenActions: [[WhenThenAction<S, E>]]
-) -> TransitionCollection<S, E> {
+) -> FinalTransitions<S, E> {
     makeTransitions(given, whenThenActions)
 }
 

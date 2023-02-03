@@ -18,7 +18,7 @@ class FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
         self.state = state
     }
     
-    func buildTransitions(@T.Builder _ content: () -> TransitionCollectionBase<State, Event>) throws {
+    func buildTransitions(@T.Builder _ content: () -> Transition<State, Event>.Group) throws {
         var keys = Set<K>()
         var invalidTransitions = Set<T>()
         

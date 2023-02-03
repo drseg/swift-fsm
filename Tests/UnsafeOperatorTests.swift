@@ -56,7 +56,7 @@ class UnsafeTransitionTests: XCTestCase {
             event: event.erased)
     }
 
-    var t: TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent> = TransitionCollection([])
+    var t: FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent> = FinalTransitions([])
     
     func assertFirst(
         _ given: ASP,
@@ -228,7 +228,7 @@ class UnsafeTransitionTests: XCTestCase {
         let t = Transition.build {
             switch condition {
             case true:  s1 | e1 | s2 | action
-            default: TransitionCollection<Unsafe.AnyState, Unsafe.AnyEvent>([])
+            default: FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent>([])
             }
         }
 

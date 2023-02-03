@@ -7,24 +7,28 @@
 
 import Foundation
 
-class TransitionCollectionBase<S, E>: Equatable
-where S: StateProtocol, E: EventProtocol {
-    static func == (
-        lhs: TransitionCollectionBase<S, E>,
-        rhs: TransitionCollectionBase<S, E>
-    ) -> Bool {
-        lhs.transitions == rhs.transitions
-    }
-    
-    let transitions: [Transition<S, E>]
-    
-    init(_ transitions: [Transition<S, E>]) {
-        self.transitions = transitions
-    }
-}
-
 struct Transition<S, E>: Hashable
 where S: StateProtocol, E: EventProtocol {
+    class Group: Equatable {
+        static func == (
+            lhs: Group,
+            rhs: Group
+        ) -> Bool {
+            lhs.transitions == rhs.transitions
+        }
+        
+        let transitions: [Transition<S, E>]
+        
+        init(_ transitions: [Transition<S, E>]) {
+            self.transitions = transitions
+        }
+    }
+    
+    struct Key: Hashable {
+        let state: S
+        let event: E
+    }
+    
     let givenState: S
     let event: E
     let nextState: S
@@ -49,11 +53,6 @@ where S: StateProtocol, E: EventProtocol {
         self.line = line
     }
     
-    struct Key: Hashable {
-        let state: S
-        let event: E
-    }
-    
     func hash(into hasher: inout Hasher) {
         hasher.combine(givenState)
         hasher.combine(event)
@@ -63,35 +62,35 @@ where S: StateProtocol, E: EventProtocol {
     @resultBuilder
     struct Builder {
         static func buildBlock(
-            _ ts: TransitionCollectionBase<S, E>...
-        ) -> TransitionCollectionBase<S, E> {
+            _ ts: Group...
+        ) -> Group {
             let transitions = ts.reduce(into: [Transition<S, E>]()) {
                 $0.append(contentsOf: $1.transitions)
             }
-            return TransitionCollectionBase<S, E>(transitions)
+            return Group(transitions)
         }
         
         static func buildOptional(
-            _ t: TransitionCollectionBase<S, E>?
-        ) -> TransitionCollectionBase<S, E> {
-            return t ?? TransitionCollectionBase([])
+            _ t: Group?
+        ) -> Group {
+            return t ?? Group([])
         }
         
         static func buildEither(
-            first component: TransitionCollectionBase<S, E>
-        ) -> TransitionCollectionBase<S, E> {
+            first component: Group
+        ) -> Group {
             component
         }
         
         static func buildEither(
-            second component: TransitionCollectionBase<S, E>
-        ) -> TransitionCollectionBase<S, E> {
+            second component: Group
+        ) -> Group {
             component
         }
     }
     
     static func build(
-        @Transition.Builder _ content: () -> TransitionCollectionBase<S, E>
+        @Transition.Builder _ content: () -> Group
     ) -> [Transition]  {
         content().transitions
     }

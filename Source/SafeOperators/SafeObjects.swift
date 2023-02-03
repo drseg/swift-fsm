@@ -19,11 +19,8 @@ struct WTABuilder<State: SP, Event: EP> {
     }
 }
 
-final class TransitionCollection<State, Event>: TransitionCollectionBase<State, Event>
+final class FinalTransitions<State, Event>: Transition<State, Event>.Group
 where State: StateProtocol, Event: EventProtocol { }
-
-//final class MutableTransitionCollectionClass<State, Event>: TransitionCollectionBase<State, Event>
-//where State: StateProtocol, Event: EventProtocol { }
 
 struct SuperState<State: SP, Event: EP> {
     typealias S = State
@@ -59,14 +56,14 @@ struct Given<State: SP, Event: EP> {
     
     func callAsFunction(
         @WTABuilder<S, E> _ wtas: () -> [WhenThenAction<S, E>]
-    ) -> TransitionCollection<S, E> {
+    ) -> FinalTransitions<S, E> {
         formTransitions(with: wtas())
     }
     
     func formTransitions(
         with wtas: [WhenThenAction<S, E>]
-    ) -> TransitionCollection<S, E> {
-        TransitionCollection(
+    ) -> FinalTransitions<S, E> {
+        FinalTransitions(
             states.reduce(into: [Transition]()) { ts, given in
                 if let superState {
                     superState.wtas.forEach {
@@ -127,13 +124,13 @@ struct Given<State: SP, Event: EP> {
         
         func action(
             _ action: @escaping () -> ()
-        ) -> TransitionCollection<S, E> {
+        ) -> FinalTransitions<S, E> {
             actions(action)
         }
         
         func actions(
             _ actions: (() -> ())...
-        ) -> TransitionCollection<S, E> {
+        ) -> FinalTransitions<S, E> {
             givenWhenThens | actions
         }
     }

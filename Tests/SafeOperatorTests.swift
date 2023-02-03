@@ -33,7 +33,7 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ t: TransitionCollection<State, Event>,
+        _ t: FinalTransitions<State, Event>,
         line: UInt = #line
     ) {
         assert(i: 0, given, when, then, t)
@@ -43,7 +43,7 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ t: TransitionCollection<State, Event>,
+        _ t: FinalTransitions<State, Event>,
         line: UInt = #line
     ) {
         assert(i: t.transitions.count - 1, given, when, then, t)
@@ -54,7 +54,7 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ t: TransitionCollection<State, Event>,
+        _ t: FinalTransitions<State, Event>,
         line: UInt = #line
     ) {
         XCTAssertEqual(t.transitions[i], transition(given, when, then), line: line)
@@ -62,7 +62,7 @@ class SafeTests: XCTestCase {
     
     func assertCount(
         _ expected: Int,
-        _ t: TransitionCollection<State, Event>,
+        _ t: FinalTransitions<State, Event>,
         line: UInt = #line) {
         XCTAssertEqual(t.transitions.count, expected, line: line)
     }
@@ -320,7 +320,7 @@ class SuperStateTransitionTests: SafeTests {
 #warning("no tests check a SuperState with more than one WTA")
     
     func testGiven() {
-        func assertOutput(_ t: TransitionCollection<State, Event>) {
+        func assertOutput(_ t: FinalTransitions<State, Event>) {
             assertFirst(.a, .h, .b, t)
             assertLast(.a, .g, .s, t)
             assertCount(2, t)
@@ -352,7 +352,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGiven() {
-        func assertOutput(_ t: TransitionCollection<State, Event>) {
+        func assertOutput(_ t: FinalTransitions<State, Event>) {
             assert(i: 0, .a, .h, .b, t)
             assert(i: 1, .a, .g, .s, t)
             assert(i: 2, .b, .h, .b, t)
@@ -368,7 +368,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleWhenThenAction() {
-        func assertOutput(_ t: TransitionCollection<State, Event>) {
+        func assertOutput(_ t: FinalTransitions<State, Event>) {
             assert(i: 0, .a, .h, .b, t)
             assert(i: 1, .a, .g, .s, t)
             assert(i: 2, .a, .h, .s, t)
@@ -387,7 +387,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGivenMultipleWTA() {
-        func assertOutput(_ t: TransitionCollection<State, Event>) {
+        func assertOutput(_ t: FinalTransitions<State, Event>) {
             assert(i: 0, .a, .h, .b, t)
             assert(i: 1, .a, .g, .s, t)
             assert(i: 2, .a, .h, .s, t)
@@ -410,7 +410,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultitipleWhen() {
-        func assertOutput(_ t: TransitionCollection<State, Event>) {
+        func assertOutput(_ t: FinalTransitions<State, Event>) {
             assert(i: 0, .a, .h, .b, t)
             assert(i: 1, .a, .g, .s, t)
             assert(i: 2, .a, .h, .s, t)
@@ -427,7 +427,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGivenMultipleWhen() {
-        func assertOutput(_ t: TransitionCollection<State, Event>) {
+        func assertOutput(_ t: FinalTransitions<State, Event>) {
             assert(i: 0, .a, .h, .b, t)
             assert(i: 1, .a, .g, .s, t)
             assert(i: 2, .a, .h, .s, t)
@@ -448,7 +448,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGivenMultipleWhenMultipleThenAction() {
-        func assertOutput(_ t: TransitionCollection<State, Event>) {
+        func assertOutput(_ t: FinalTransitions<State, Event>) {
             assert(i: 0, .a, .h, .b, t)
             assert(i: 1, .a, .g, .s, t)
             assert(i: 2, .a, .h, .s, t)
@@ -475,7 +475,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleWhenThen() {
-        func assertOutput(_ t: TransitionCollection<State, Event>) {
+        func assertOutput(_ t: FinalTransitions<State, Event>) {
             assert(i: 0, .a, .h, .b, t)
             assert(i: 1, .a, .g, .s, t)
             assert(i: 2, .a, .h, .s, t)
@@ -494,7 +494,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testAll() {
-        func assertOutput(_ t: TransitionCollection<State, Event>) {
+        func assertOutput(_ t: FinalTransitions<State, Event>) {
             assert(i: 0, .a, .h, .b, t)
             
             assert(i: 1, .a, .g, .s, t)
