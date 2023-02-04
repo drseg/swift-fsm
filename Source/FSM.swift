@@ -7,7 +7,8 @@
 
 import Foundation
 
-class FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
+class FSMBase<State, Event>
+where State: StateProtocol, Event: EventProtocol {
     typealias T = Transition<State, Event>
     typealias K = T.Key
     
@@ -62,19 +63,12 @@ The following conflicts were found:
             state = t.nextState
         }
     }
+    
 }
 
 private extension String {
     var name: String {
         URL(string: self)?.lastPathComponent ?? self
-    }
-}
-
-struct ConflictingTransitionError: Error {
-    let description: String
-    
-    init(_ description: String) {
-        self.description = description
     }
 }
 #warning("Should this also throw for duplicate valid transitions?")
@@ -107,18 +101,21 @@ final class UnsafeFSM: FSMBase<Unsafe.AnyState, Unsafe.AnyEvent> {
         _handleEvent(event.erased)
     }
     
-    private func validate(
-        _ ts: [T]
-    ) throws {
+    private func validate(_ ts: [T]) throws {
         func validateObject(_ a: Any) throws {
-            let mirror = Mirror(reflecting: a)
-            if a is NSObject
-                && (mirror.superclassMirror != nil ||
-                    String(describing: a).contains("NSObject")) {
+            guard !isNSObject(a) else {
                 throw NSObjectError(
                     "States and Events must not inherit from NSObject"
                 )
             }
+        }
+        
+#warning("This is not a complete check")
+        func isNSObject(_ a: Any) -> Bool {
+            let mirror = Mirror(reflecting: a)
+            return a is NSObject
+            && (mirror.superclassMirror != nil ||
+                String(describing: a).contains("NSObject"))
         }
         
         func areSameType(lhs: Any, rhs: Any) -> Bool {
@@ -138,20 +135,29 @@ final class UnsafeFSM: FSMBase<Unsafe.AnyState, Unsafe.AnyEvent> {
             }
         }
     }
+}
+
+struct ConflictingTransitionError: Error {
+    let description: String
     
-    struct NSObjectError: Error {
-        let description: String
-        
-        init(_ description: String) {
-            self.description = description
-        }
-    }
-    
-    struct MismatchedTypeError: Error {
-        let description: String
-        
-        init(_ description: String) {
-            self.description = description
-        }
+    init(_ description: String) {
+        self.description = description
     }
 }
+
+struct NSObjectError: Error {
+    let description: String
+    
+    init(_ description: String) {
+        self.description = description
+    }
+}
+
+struct MismatchedTypeError: Error {
+    let description: String
+    
+    init(_ description: String) {
+        self.description = description
+    }
+}
+

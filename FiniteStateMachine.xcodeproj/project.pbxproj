@@ -40,6 +40,7 @@
 		6EA3A027298726BA007928C4 /* UnsafeOperators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsafeOperators.swift; sourceTree = "<group>"; };
 		6EA3A02B298726FC007928C4 /* Transition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Transition.swift; sourceTree = "<group>"; };
 		6EA3A02D29872A04007928C4 /* FSMTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSMTests.swift; sourceTree = "<group>"; };
+		6EDB114F298E9F9C00F2DDAB /* Playground.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = Playground.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FiniteStateMachine.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FiniteStateMachine.h; sourceTree = "<group>"; };
 		6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = FiniteStateMachine.docc; sourceTree = "<group>"; };
@@ -119,6 +120,7 @@
 				6EA3A02B298726FC007928C4 /* Transition.swift */,
 				6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */,
 				6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */,
+				6EDB114F298E9F9C00F2DDAB /* Playground.playground */,
 			);
 			path = Source;
 			sourceTree = "<group>";

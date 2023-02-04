@@ -10,10 +10,7 @@ import Foundation
 struct Transition<S, E>: Hashable
 where S: StateProtocol, E: EventProtocol {
     class Group: Equatable {
-        static func == (
-            lhs: Group,
-            rhs: Group
-        ) -> Bool {
+        static func == (lhs: Group, rhs: Group) -> Bool {
             lhs.transitions == rhs.transitions
         }
         
@@ -61,30 +58,22 @@ where S: StateProtocol, E: EventProtocol {
     
     @resultBuilder
     struct Builder {
-        static func buildBlock(
-            _ ts: Group...
-        ) -> Group {
+        static func buildBlock(_ ts: Group...) -> Group {
             let transitions = ts.reduce(into: [Transition<S, E>]()) {
                 $0.append(contentsOf: $1.transitions)
             }
             return Group(transitions)
         }
         
-        static func buildOptional(
-            _ t: Group?
-        ) -> Group {
+        static func buildOptional(_ t: Group?) -> Group {
             return t ?? Group([])
         }
         
-        static func buildEither(
-            first component: Group
-        ) -> Group {
+        static func buildEither(first component: Group) -> Group {
             component
         }
         
-        static func buildEither(
-            second component: Group
-        ) -> Group {
+        static func buildEither(second component: Group) -> Group {
             component
         }
     }
@@ -95,10 +84,7 @@ where S: StateProtocol, E: EventProtocol {
         content().transitions
     }
     
-    static func == (
-        lhs: Transition<S,E>,
-        rhs: Transition<S,E>
-    ) -> Bool {
+    static func == (lhs: Transition<S,E>, rhs: Transition<S,E>) -> Bool {
         lhs.givenState == rhs.givenState &&
         lhs.event == rhs.event &&
         lhs.nextState == rhs.nextState

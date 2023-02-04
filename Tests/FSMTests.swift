@@ -85,16 +85,16 @@ a | h | *d* (\(file): line \(l3))
     }
     
     func testThrowsErrorIfGivenNSObject() {
-        assertThrows(expected: UnsafeFSM.NSObjectError.self,
+        assertThrows(expected: NSObjectError.self,
                      building: NSObject() | Event.h | State.b | fail)
-        assertThrows(expected: UnsafeFSM.NSObjectError.self,
+        assertThrows(expected: NSObjectError.self,
                      building: State.a | NSObject() | State.b | fail)
-        assertThrows(expected: UnsafeFSM.NSObjectError.self,
+        assertThrows(expected: NSObjectError.self,
                      building: State.a | Event.h | NSObject() | fail)
     }
     
     func testThrowsErrorIfStateTypesDoNotMatch() {
-        assertThrows(expected: UnsafeFSM.MismatchedTypeError.self,
+        assertThrows(expected: MismatchedTypeError.self,
                      building: "Cat" | Event.h | 2 | fail)
     }
 }
@@ -118,7 +118,13 @@ class FSMPerformanceTests: SafeTests {
     
     func testBenchmarkBestCaseScenario() throws {
         func handleEvent(_ e: Event) {
-            switch e { case .g: pass(); default: fail() }
+            if (true) {
+                if (true) {
+                    if (true) {
+                        switch e { case .g: pass(); default: fail() }
+                    }
+                }
+            }
         }
         
         measure { 250000.times { handleEvent(.g) } }
