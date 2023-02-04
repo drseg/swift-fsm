@@ -330,7 +330,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGiven() {
-        func assertOutput(_ t: FinalTransitions<State, Event>) {
+        func assertOutput(_ t: TGroup<State, Event>) {
             assertContains(.a, .h, .b, t)
             assertContains(.a, .g, .s, t)
             assertContains(.b, .h, .b, t)
@@ -346,7 +346,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleWhenThenAction() {
-        func assertOutput(_ t: FinalTransitions<State, Event>) {
+        func assertOutput(_ t: TGroup<State, Event>) {
             assertContains(.a, .h, .b, t)
             assertContains(.a, .g, .s, t)
             assertContains(.a, .h, .s, t)
@@ -365,7 +365,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGivenMultipleWTA() {
-        func assertOutput(_ t: FinalTransitions<State, Event>) {
+        func assertOutput(_ t: TGroup<State, Event>) {
             assertContains(.a, .h, .b, t)
             assertContains(.a, .g, .s, t)
             assertContains(.a, .h, .s, t)
@@ -388,7 +388,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultitipleWhen() {
-        func assertOutput(_ t: FinalTransitions<State, Event>) {
+        func assertOutput(_ t: TGroup<State, Event>) {
             assertContains(.a, .h, .b, t)
             assertContains(.a, .g, .s, t)
             assertContains(.a, .h, .s, t)
@@ -405,7 +405,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGivenMultipleWhen() {
-        func assertOutput(_ t: FinalTransitions<State, Event>) {
+        func assertOutput(_ t: TGroup<State, Event>) {
             assertContains(.a, .h, .b, t)
             assertContains(.a, .g, .s, t)
             assertContains(.a, .h, .s, t)
@@ -426,7 +426,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGivenMultipleWhenMultipleThenAction() {
-        func assertOutput(_ t: FinalTransitions<State, Event>) {
+        func assertOutput(_ t: TGroup<State, Event>) {
             assertContains(.a, .h, .b, t)
             assertContains(.a, .g, .s, t)
             assertContains(.a, .h, .s, t)
@@ -453,7 +453,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleWhenThen() {
-        func assertOutput(_ t: FinalTransitions<State, Event>) {
+        func assertOutput(_ t: TGroup<State, Event>) {
             assertContains(.a, .h, .b, t)
             assertContains(.a, .g, .s, t)
             assertContains(.a, .h, .s, t)
@@ -472,7 +472,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testAll() {
-        func assertOutput(_ t: FinalTransitions<State, Event>) {
+        func assertOutput(_ t: TGroup<State, Event>) {
             assertContains(.a, .h, .b, t)
             
             assertContains(.a, .g, .s, t)

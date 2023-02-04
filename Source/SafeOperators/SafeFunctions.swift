@@ -81,10 +81,10 @@ func joinWhenThensToAction<S: SP, E: EP> (
 func makeTransitions<S: SP, E: EP> (
     _ givenWhenThens: [GivenWhenThen<S, E>],
     _ actions: [() -> ()]
-) -> FinalTransitions<S, E> {
+) -> TGroup<S, E> {
     var alreadyAdded = [GivenWhenThen<S, E>]()
     
-    return FinalTransitions(givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
+    return TGroup(givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
         if
             let superState = gwt.superState,
             !alreadyAdded.contains(where: { $0.given == gwt.given })
@@ -114,6 +114,6 @@ func makeTransitions<S: SP, E: EP> (
 func makeTransitions<S: SP, E: EP> (
     _ given: Given<S, E>,
     _ whenThenActions: [[WhenThenAction<S, E>]]
-) -> FinalTransitions<S, E> {
-    given.formFinalTransitions(with: whenThenActions.flatMap { $0 })
+) -> TGroup<S, E> {
+    given.formTransitionsGroup(with: whenThenActions.flatMap { $0 })
 }

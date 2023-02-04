@@ -166,15 +166,15 @@ func | (
 func | (
     states: [any StateProtocol],
     esas: [[Unsafe.EventStateAction]]
-) -> FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent> {
+) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
     states | esas.flatMap { $0 }
 }
 
 func | (
     states: [any StateProtocol],
     esas: [Unsafe.EventStateAction]
-) -> FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent> {
-    FinalTransitions(
+) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
+    TGroup(
         states.reduce(into: [Transition]()) {
             $0.append(contentsOf: ($1 | esas).transitions)
         }
@@ -184,15 +184,15 @@ func | (
 func | (
     state: any StateProtocol,
     esas: [[Unsafe.EventStateAction]]
-) -> FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent> {
+) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
     state | esas.flatMap { $0 }
 }
 
 func | (
     state: any StateProtocol,
     esas: [Unsafe.EventStateAction]
-) -> FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent> {
-    FinalTransitions(
+) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
+    TGroup(
         esas.reduce(into: [Transition]()) {
             $0.append(Transition(givenState: state.erased,
                                  event: $1.event.erased,
@@ -260,15 +260,15 @@ func | (
 func | (
     stateEventStates: [Unsafe.StateEventState],
     action: @escaping () -> ()
-) -> FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent> {
+) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
     stateEventStates | [action]
 }
 
 func | (
     stateEventStates: [Unsafe.StateEventState],
     actions: [() -> ()]
-) -> FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent> {
-    FinalTransitions(
+) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
+    TGroup(
         stateEventStates.reduce(into: [Transition]()) {
             $0.append(contentsOf: ($1 | actions).transitions)
         }
@@ -278,15 +278,15 @@ func | (
 func | (
     stateEventState: Unsafe.StateEventState,
     action: @escaping () -> ()
-) -> FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent> {
+) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
     stateEventState | [action]
 }
 
 func | (
     stateEventState: Unsafe.StateEventState,
     actions: [() -> ()]
-) -> FinalTransitions<Unsafe.AnyState, Unsafe.AnyEvent> {
-    FinalTransitions([Transition(givenState: stateEventState.startState.erased,
+) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
+    TGroup([Transition(givenState: stateEventState.startState.erased,
                                      event: stateEventState.event.erased,
                                      nextState: stateEventState.endState.erased,
                                      actions: actions)]

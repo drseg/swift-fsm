@@ -19,8 +19,7 @@ struct WTABuilder<State: SP, Event: EP> {
     }
 }
 
-final class FinalTransitions<State, Event>: Transition<State, Event>.Group
-where State: StateProtocol, Event: EventProtocol { }
+typealias TGroup<State: SP, Event: EP> = Transition<State, Event>.Group
 
 struct SuperState<State: SP, Event: EP> {
     typealias S = State
@@ -73,24 +72,24 @@ final class Given<State: SP, Event: EP>: Transition<State, Event>.Group {
     
     func include(_ superState: SuperState<S, E>,
                  @WTABuilder<S, E> _ wtas: () -> [WhenThenAction<S, E>]
-    ) -> FinalTransitions<S, E> {
+    ) -> TGroup<S, E> {
         self.superState = superState
         return callAsFunction(wtas)
     }
         
     func callAsFunction(
         @WTABuilder<S, E> _ wtas: () -> [WhenThenAction<S, E>]
-    ) -> FinalTransitions<S, E> {
-        formFinalTransitions(with: wtas())
+    ) -> TGroup<S, E> {
+        formTransitionsGroup(with: wtas())
     }
     
-    func formFinalTransitions(
+    func formTransitionsGroup(
         with wtas: [WhenThenAction<S, E>]
-    ) -> FinalTransitions<S, E> {
-        FinalTransitions(transitions + formTransitions(with: wtas))
+    ) -> TGroup<S, E> {
+        TGroup(transitions + formTransitions(with: wtas))
     }
     
-    func formTransitions(
+    private func formTransitions(
         with wtas: [WhenThenAction<S, E>]
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
@@ -141,13 +140,13 @@ final class Given<State: SP, Event: EP>: Transition<State, Event>.Group {
         
         func action(
             _ action: @escaping () -> ()
-        ) -> FinalTransitions<S, E> {
+        ) -> TGroup<S, E> {
             actions(action)
         }
         
         func actions(
             _ actions: (() -> ())...
-        ) -> FinalTransitions<S, E> {
+        ) -> TGroup<S, E> {
             givenWhenThens | actions
         }
     }
