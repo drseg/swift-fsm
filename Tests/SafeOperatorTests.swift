@@ -28,36 +28,18 @@ class SafeTests: XCTestCase {
                    actions: actions)
     }
     
-    
-    func assertFirst(
+    func assertContains(
         _ given: State,
         _ when: Event,
         _ then: State,
         _ t: Transition<State, Event>.Group,
         line: UInt = #line
     ) {
-        assert(i: 0, given, when, then, t)
-    }
-    
-    func assertLast(
-        _ given: State,
-        _ when: Event,
-        _ then: State,
-        _ t: Transition<State, Event>.Group,
-        line: UInt = #line
-    ) {
-        assert(i: t.transitions.count - 1, given, when, then, t)
-    }
-    
-    func assert(
-        i: Int,
-        _ given: State,
-        _ when: Event,
-        _ then: State,
-        _ t: Transition<State, Event>.Group,
-        line: UInt = #line
-    ) {
-        XCTAssertEqual(t.transitions[i], transition(given, when, then), line: line)
+        XCTAssertTrue(t.transitions.contains(where: {
+            $0.givenState == given &&
+            $0.event == when &&
+            $0.nextState == then
+        }))
     }
     
     func assertCount(
@@ -74,14 +56,14 @@ final class SafeTransitionTests: SafeTests {
     func testSimpleConstructor() {
         let t = G(.a) | W(.g) | T(.b) | { }
         
-        assertFirst(.a, .g, .b, t)
+        assertContains(.a, .g, .b, t)
     }
     
     func testMultiGivenConstructor() {
         let t = G(.a, .b) | W(.g) | T(.b) | { }
         
-        assertFirst(.a, .g, .b, t)
-        assertLast(.b, .g, .b, t)
+        assertContains(.a, .g, .b, t)
+        assertContains(.b, .g, .b, t)
         assertCount(2, t)
     }
     
@@ -94,8 +76,8 @@ final class SafeTransitionTests: SafeTests {
         let t = G(.a) | [W(.g) | T(.b) | { },
                          W(.h) | T(.c) | { }]
         
-        assertFirst(.a, .g, .b, t)
-        assertLast(.a, .h, .c, t)
+        assertContains(.a, .g, .b, t)
+        assertContains(.a, .h, .c, t)
         assertCount(2, t)
     }
     
@@ -103,24 +85,24 @@ final class SafeTransitionTests: SafeTests {
         let t = G(.a, .b) | [W(.g) | T(.c) | { },
                              W(.h) | T(.c) | { }]
         
-        assertFirst(.a, .g, .c, t)
-        assertLast(.b, .h, .c, t)
+        assertContains(.a, .g, .c, t)
+        assertContains(.b, .h, .c, t)
         assertCount(4, t)
     }
     
     func testMultiWhenConstructor() {
         let t = G(.a) | W(.g, .h) | T(.c) | { }
         
-        assertFirst(.a, .g, .c, t)
-        assertLast(.a, .h, .c, t)
+        assertContains(.a, .g, .c, t)
+        assertContains(.a, .h, .c, t)
         assertCount(2, t)
     }
     
     func testMultiGivenMultiWhenConstructor() {
         let t = G(.a, .b) | W(.g, .h) | T(.c) | { }
         
-        assertFirst(.a, .g, .c, t)
-        assertLast(.b, .h, .c, t)
+        assertContains(.a, .g, .c, t)
+        assertContains(.b, .h, .c, t)
         assertCount(4, t)
     }
     
@@ -130,8 +112,8 @@ final class SafeTransitionTests: SafeTests {
             W(.i, .j) | T(.d) | { }
         ]
         
-        assertFirst(.a, .g, .c, t)
-        assertLast(.b, .j, .d, t)
+        assertContains(.a, .g, .c, t)
+        assertContains(.b, .j, .d, t)
         assertCount(8, t)
     }
     
@@ -139,8 +121,8 @@ final class SafeTransitionTests: SafeTests {
         let t = G(.a) | [W(.g) | T(.c),
                          W(.h) | T(.d)] | { }
         
-        assertFirst(.a, .g, .c, t)
-        assertLast(.a, .h, .d, t)
+        assertContains(.a, .g, .c, t)
+        assertContains(.a, .h, .d, t)
         assertCount(2, t)
     }
     
@@ -151,8 +133,8 @@ final class SafeTransitionTests: SafeTests {
                              [W(.i, .j) | T(.e),
                               W(.j, .k) | T(.f)] | { }]
         
-        assertFirst(.a, .g, .c, t)
-        assertLast(.b, .k, .f, t)
+        assertContains(.a, .g, .c, t)
+        assertContains(.b, .k, .f, t)
         assertCount(16, t)
     }
     
@@ -186,8 +168,8 @@ final class SafeTransitionTests: SafeTests {
             W(.g) | T(.a) | { }
         }
         
-        assertFirst(.a, .h, .b, t)
-        assertLast(.b, .g, .a, t)
+        assertContains(.a, .h, .b, t)
+        assertContains(.b, .g, .a, t)
         assertCount(4, t)
     }
     
@@ -197,8 +179,8 @@ final class SafeTransitionTests: SafeTests {
              W(.g) | T(.a)] | { }
         }
         
-        assertFirst(.a, .h, .b, t)
-        assertLast(.b, .g, .a, t)
+        assertContains(.a, .h, .b, t)
+        assertContains(.b, .g, .a, t)
         assertCount(4, t)
     }
     
@@ -211,8 +193,8 @@ final class SafeTransitionTests: SafeTests {
             W(.g) | T(.a)
         }.action { e.fulfill() }
         
-        assertFirst(.a, .h, .b, t)
-        assertLast(.b, .g, .a, t)
+        assertContains(.a, .h, .b, t)
+        assertContains(.b, .g, .a, t)
         assertCount(4, t)
         
         t.transitions.first?.actions.first?()
@@ -228,8 +210,8 @@ final class SafeTransitionTests: SafeTests {
             W(.g) | T(.a)
         }.actions({}, { e.fulfill() })
         
-        assertFirst(.a, .h, .b, t)
-        assertLast(.b, .g, .a, t)
+        assertContains(.a, .h, .b, t)
+        assertContains(.b, .g, .a, t)
         assertCount(4, t)
         
         t.transitions.first?.actions.last?()
@@ -321,27 +303,16 @@ class SuperStateTransitionTests: SafeTests {
     
     func testGiven() {
         func assertOutput(_ t: Transition<State, Event>.Group) {
-            assertFirst(.a, .h, .b, t)
-            assertLast(.a, .g, .s, t)
+            assertContains(.a, .h, .b, t)
+            assertContains(.a, .g, .s, t)
             assertCount(2, t)
-        }
-        
-        let ss = SuperState {
-            W(.h) | T(.b) | { }
-            W(.g) | T(.s) | { }
         }
         
         let t1 = G(.a, implements: s) {  W(.g) | T(.s) | { } }
         let t2 = G(.a, implements: s) | W(.g) | T(.s) | { }
-        let t3 = G(.a) & ss
         
         assertOutput(t1)
         assertOutput(t2)
-        assertOutput(t3)
-        
-        XCTAssertTrue(type(of: t1) == FinalTransitions<State, Event>.self)
-        XCTAssertTrue(type(of: t2) == FinalTransitions<State, Event>.self)
-        XCTAssertTrue(type(of: t3) == MutableTransitions<State, Event>.self)
         
         /*
          let t3 = G(.a, implements: s1, s2) {  W(.g) | T(.s) | { } }
@@ -364,10 +335,10 @@ class SuperStateTransitionTests: SafeTests {
     
     func testMultipleGiven() {
         func assertOutput(_ t: FinalTransitions<State, Event>) {
-            assert(i: 0, .a, .h, .b, t)
-            assert(i: 1, .a, .g, .s, t)
-            assert(i: 2, .b, .h, .b, t)
-            assert(i: 3, .b, .g, .s, t)
+            assertContains(.a, .h, .b, t)
+            assertContains(.a, .g, .s, t)
+            assertContains(.b, .h, .b, t)
+            assertContains(.b, .g, .s, t)
             assertCount(4, t)
         }
         
@@ -380,9 +351,9 @@ class SuperStateTransitionTests: SafeTests {
     
     func testMultipleWhenThenAction() {
         func assertOutput(_ t: FinalTransitions<State, Event>) {
-            assert(i: 0, .a, .h, .b, t)
-            assert(i: 1, .a, .g, .s, t)
-            assert(i: 2, .a, .h, .s, t)
+            assertContains(.a, .h, .b, t)
+            assertContains(.a, .g, .s, t)
+            assertContains(.a, .h, .s, t)
             assertCount(3, t)
         }
         
@@ -399,13 +370,13 @@ class SuperStateTransitionTests: SafeTests {
     
     func testMultipleGivenMultipleWTA() {
         func assertOutput(_ t: FinalTransitions<State, Event>) {
-            assert(i: 0, .a, .h, .b, t)
-            assert(i: 1, .a, .g, .s, t)
-            assert(i: 2, .a, .h, .s, t)
+            assertContains(.a, .h, .b, t)
+            assertContains(.a, .g, .s, t)
+            assertContains(.a, .h, .s, t)
             
-            assert(i: 3, .b, .h, .b, t)
-            assert(i: 4, .b, .g, .s, t)
-            assert(i: 5, .b, .h, .s, t)
+            assertContains(.b, .h, .b, t)
+            assertContains(.b, .g, .s, t)
+            assertContains(.b, .h, .s, t)
             assertCount(6, t)
         }
         
@@ -422,9 +393,9 @@ class SuperStateTransitionTests: SafeTests {
     
     func testMultitipleWhen() {
         func assertOutput(_ t: FinalTransitions<State, Event>) {
-            assert(i: 0, .a, .h, .b, t)
-            assert(i: 1, .a, .g, .s, t)
-            assert(i: 2, .a, .h, .s, t)
+            assertContains(.a, .h, .b, t)
+            assertContains(.a, .g, .s, t)
+            assertContains(.a, .h, .s, t)
             assertCount(3, t)
         }
         
@@ -439,13 +410,13 @@ class SuperStateTransitionTests: SafeTests {
     
     func testMultipleGivenMultipleWhen() {
         func assertOutput(_ t: FinalTransitions<State, Event>) {
-            assert(i: 0, .a, .h, .b, t)
-            assert(i: 1, .a, .g, .s, t)
-            assert(i: 2, .a, .h, .s, t)
+            assertContains(.a, .h, .b, t)
+            assertContains(.a, .g, .s, t)
+            assertContains(.a, .h, .s, t)
             
-            assert(i: 3, .b, .h, .b, t)
-            assert(i: 4, .b, .g, .s, t)
-            assert(i: 5, .b, .h, .s, t)
+            assertContains(.b, .h, .b, t)
+            assertContains(.b, .g, .s, t)
+            assertContains(.b, .h, .s, t)
             assertCount(6, t)
         }
         
@@ -460,17 +431,17 @@ class SuperStateTransitionTests: SafeTests {
     
     func testMultipleGivenMultipleWhenMultipleThenAction() {
         func assertOutput(_ t: FinalTransitions<State, Event>) {
-            assert(i: 0, .a, .h, .b, t)
-            assert(i: 1, .a, .g, .s, t)
-            assert(i: 2, .a, .h, .s, t)
-            assert(i: 3, .a, .i, .d, t)
-            assert(i: 4, .a, .j, .d, t)
+            assertContains(.a, .h, .b, t)
+            assertContains(.a, .g, .s, t)
+            assertContains(.a, .h, .s, t)
+            assertContains(.a, .i, .d, t)
+            assertContains(.a, .j, .d, t)
             
-            assert(i: 5, .b, .h, .b, t)
-            assert(i: 6, .b, .g, .s, t)
-            assert(i: 7, .b, .h, .s, t)
-            assert(i: 8, .b, .i, .d, t)
-            assert(i: 9, .b, .j, .d, t)
+            assertContains(.b, .h, .b, t)
+            assertContains(.b, .g, .s, t)
+            assertContains(.b, .h, .s, t)
+            assertContains(.b, .i, .d, t)
+            assertContains(.b, .j, .d, t)
             assertCount(10, t)
         }
         
@@ -487,9 +458,9 @@ class SuperStateTransitionTests: SafeTests {
     
     func testMultipleWhenThen() {
         func assertOutput(_ t: FinalTransitions<State, Event>) {
-            assert(i: 0, .a, .h, .b, t)
-            assert(i: 1, .a, .g, .s, t)
-            assert(i: 2, .a, .h, .s, t)
+            assertContains(.a, .h, .b, t)
+            assertContains(.a, .g, .s, t)
+            assertContains(.a, .h, .s, t)
             assertCount(3, t)
         }
         
@@ -506,27 +477,27 @@ class SuperStateTransitionTests: SafeTests {
     
     func testAll() {
         func assertOutput(_ t: FinalTransitions<State, Event>) {
-            assert(i: 0, .a, .h, .b, t)
+            assertContains(.a, .h, .b, t)
             
-            assert(i: 1, .a, .g, .s, t)
-            assert(i: 2, .a, .h, .s, t)
-            assert(i: 3, .a, .h, .t, t)
-            assert(i: 4, .a, .i, .t, t)
-            assert(i: 5, .a, .i, .s, t)
-            assert(i: 6, .a, .j, .s, t)
-            assert(i: 7, .a, .j, .t, t)
-            assert(i: 8, .a, .k, .t, t)
+            assertContains(.a, .g, .s, t)
+            assertContains(.a, .h, .s, t)
+            assertContains(.a, .h, .t, t)
+            assertContains(.a, .i, .t, t)
+            assertContains(.a, .i, .s, t)
+            assertContains(.a, .j, .s, t)
+            assertContains(.a, .j, .t, t)
+            assertContains(.a, .k, .t, t)
             
-            assert(i: 9, .b, .h, .b, t)
+            assertContains(.b, .h, .b, t)
             
-            assert(i: 10, .b, .g, .s, t)
-            assert(i: 11, .b, .h, .s, t)
-            assert(i: 12, .b, .h, .t, t)
-            assert(i: 13, .b, .i, .t, t)
-            assert(i: 14, .b, .i, .s, t)
-            assert(i: 15, .b, .j, .s, t)
-            assert(i: 16, .b, .j, .t, t)
-            assert(i: 17, .b, .k, .t, t)
+            assertContains(.b, .g, .s, t)
+            assertContains(.b, .h, .s, t)
+            assertContains(.b, .h, .t, t)
+            assertContains(.b, .i, .t, t)
+            assertContains(.b, .i, .s, t)
+            assertContains(.b, .j, .s, t)
+            assertContains(.b, .j, .t, t)
+            assertContains(.b, .k, .t, t)
 
             assertCount(18, t)
         }

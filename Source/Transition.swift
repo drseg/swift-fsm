@@ -14,9 +14,10 @@ where S: StateProtocol, E: EventProtocol {
             lhs.transitions == rhs.transitions
         }
         
-        let transitions: [Transition<S, E>]
+        var transitions: [Transition<S, E>] = []
         
-        init(_ transitions: [Transition<S, E>]) {
+        convenience init(_ transitions: [Transition<S, E>]) {
+            self.init()
             self.transitions = transitions
         }
     }

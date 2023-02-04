@@ -22,9 +22,6 @@ struct WTABuilder<State: SP, Event: EP> {
 final class FinalTransitions<State, Event>: Transition<State, Event>.Group
 where State: StateProtocol, Event: EventProtocol { }
 
-final class MutableTransitions<State, Event>: Transition<State, Event>.Group
-where State: StateProtocol, Event: EventProtocol { }
-
 struct SuperState<State: SP, Event: EP> {
     typealias S = State
     typealias E = Event
@@ -36,7 +33,7 @@ struct SuperState<State: SP, Event: EP> {
     }
 }
 
-struct Given<State: SP, Event: EP> {
+final class Given<State: SP, Event: EP>: Transition<State, Event>.Group {
     typealias S = State
     typealias E = Event
     
@@ -55,6 +52,12 @@ struct Given<State: SP, Event: EP> {
         self.superState = superState
         self.file = file
         self.line = line
+        
+        super.init()
+        
+        if let superState {
+            transitions = formTransitions(with: superState.wtas)
+        }
     }
     
     func callAsFunction(
@@ -66,30 +69,13 @@ struct Given<State: SP, Event: EP> {
     func formFinalTransitions(
         with wtas: [WhenThenAction<S, E>]
     ) -> FinalTransitions<S, E> {
-        FinalTransitions(formTransitions(with: wtas))
+        FinalTransitions(transitions + formTransitions(with: wtas))
     }
     
-    func formMutableTransitions(
-        with wtas: [WhenThenAction<S, E>]
-    ) -> MutableTransitions<S, E> {
-        MutableTransitions(formTransitions(with: wtas))
-    }
-    
-    private func formTransitions(
+    func formTransitions(
         with wtas: [WhenThenAction<S, E>]
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
-            if let superState {
-                superState.wtas.forEach {
-                    ts.append(Transition(givenState: given,
-                                         event: $0.when,
-                                         nextState: $0.then,
-                                         actions: $0.actions,
-                                         file: file,
-                                         line: line))
-                }
-            }
-            
             wtas.forEach {
                 ts.append(Transition(givenState: given,
                                      event: $0.when,
