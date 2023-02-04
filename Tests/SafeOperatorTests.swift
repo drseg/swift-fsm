@@ -15,6 +15,7 @@ class SafeTests: XCTestCase {
     typealias G = Given<State, Event>
     typealias W = When<Event>
     typealias T = Then<State>
+    typealias TG = Transition<State, Event>.Group
     
     func transition(
         _ given: State,
@@ -308,29 +309,20 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(2, t)
         }
         
+        let ss = SuperState {
+            W(.h) | T(.b) | { }
+            W(.g) | T(.s) | { }
+        }
+        
         let t1 = G(.a, implements: s) {  W(.g) | T(.s) | { } }
         let t2 = G(.a, implements: s) | W(.g) | T(.s) | { }
+        let t3 = Transition.build {
+            G(.a, implements: ss)
+        }
         
         assertOutput(t1)
         assertOutput(t2)
-        
-        /*
-         let t3 = G(.a, implements: s1, s2) {  W(.g) | T(.s) | { } }
-         let t4 = G(.a, implements: s1, s2) | W(.g) | T(.s) | { }
-         
-         let tBa = G(.a) :: s {  W(.g) | T(.s) | { } }
-         let tBb = G(.a) :: [s1, s2] {  W(.g) | T(.s) | { } }
-
-         let tCa = G(.a) :: s | W(.g) | T(.s) | { }
-         let tCb = G(.a) :: [s1 : s2] | W(.g) | T(.s) | { }
-         
-         let tA = G(.a, superState: s) { .g | .s | {} }
-         let tD = G(.a) :: s { .g | .s | {} }
-         let tE = .a :: s { .g | .s | {} }
-         let tF = .a :: s | .g | .s | {}
-         
-         For the inference problem, consider tuples
-         */
+        assertOutput(TG(t3))
     }
     
     func testMultipleGiven() {
@@ -587,52 +579,37 @@ class DemonstrationTests: SafeTests {
         typealias W = When<String>
         typealias T = Then<String>
         
-        let _ =
-"""
-Initial: Locked
-FSM: Turnstile
-{
-  // This is an abstract super state.
-  (Resetable)  {
-    Reset       Locked       {alarmOff lock}
-  }
-  Locked : Resetable    {
-    Coin    Unlocked    unlock
-    Pass    Alarming    alarmOn
-  }
-  Unlocked : Resetable {
-    Coin    Unlocked    thankyou
-    Pass    Locked      lock
-  }
-  Alarming : Resetable { // inherits all it's transitions from Resetable.
-  }
-}
-"""
         func alarmOff() {}
         func unlock() {}
         func alarmOn() {}
         func thankyou() {}
         func lock() {}
         
-        let _ = Transition.build {
-            /*
-             let resetable = Superstate {
-                W("Reset") | T("Locked")   | "alarmOff"; "lock"
-             }
-             // what about multiple givens with different inhereitances?
-             Given("Locked") :: resetable {
-                 W("Coin") | T("Unlocked") | "unlock"
-                 W("Pass") | T("Alarming") | "alarmOn"
-             }
+        /*
+         Initial: Locked
+         FSM: Turnstile
+             {
+            // This is an abstract super state.
+            (Resetable)  {
+                Reset       Locked       {alarmOff lock}
+            }
              
-             Given("Unlocked") :: resetable {
-                 W("Coin") | T("Unlocked") | "thankyou"
-                 W("Pass") | T("Locked")   | "lock"
-             }
-             
-             Given("Alarming") :: resetable
+            Locked : Resetable    {
+                 Coin    Unlocked    unlock
+                 Pass    Alarming    alarmOn
+            }
             
-             */
+            Unlocked : Resetable {
+                 Coin    Unlocked    thankyou
+                 Pass    Locked      lock
+             }
+             
+            Alarming : Resetable { // inherits all it's transitions from Resetable.
+            }
+         }
+         */
+        
+        let _ = Transition.build {
             let resetable = SuperState {
                 W("Reset") | T("Locked")  | [alarmOff, lock]
             }
@@ -646,6 +623,8 @@ FSM: Turnstile
                 W("Coin") | T("Unlocked") | thankyou
                 W("Pass") | T("Locked")   | lock
             }
+            
+            Given("Alarming", implements: resetable)
         }
     }
 }
