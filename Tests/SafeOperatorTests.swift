@@ -33,7 +33,7 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ t: FinalTransitions<State, Event>,
+        _ t: Transition<State, Event>.Group,
         line: UInt = #line
     ) {
         assert(i: 0, given, when, then, t)
@@ -43,7 +43,7 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ t: FinalTransitions<State, Event>,
+        _ t: Transition<State, Event>.Group,
         line: UInt = #line
     ) {
         assert(i: t.transitions.count - 1, given, when, then, t)
@@ -54,7 +54,7 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ t: FinalTransitions<State, Event>,
+        _ t: Transition<State, Event>.Group,
         line: UInt = #line
     ) {
         XCTAssertEqual(t.transitions[i], transition(given, when, then), line: line)
@@ -62,7 +62,7 @@ class SafeTests: XCTestCase {
     
     func assertCount(
         _ expected: Int,
-        _ t: FinalTransitions<State, Event>,
+        _ t: Transition<State, Event>.Group,
         line: UInt = #line) {
         XCTAssertEqual(t.transitions.count, expected, line: line)
     }
@@ -320,14 +320,28 @@ class SuperStateTransitionTests: SafeTests {
 #warning("no tests check a SuperState with more than one WTA")
     
     func testGiven() {
-        func assertOutput(_ t: FinalTransitions<State, Event>) {
+        func assertOutput(_ t: Transition<State, Event>.Group) {
             assertFirst(.a, .h, .b, t)
             assertLast(.a, .g, .s, t)
             assertCount(2, t)
         }
         
+        let ss = SuperState {
+            W(.h) | T(.b) | { }
+            W(.g) | T(.s) | { }
+        }
+        
         let t1 = G(.a, implements: s) {  W(.g) | T(.s) | { } }
         let t2 = G(.a, implements: s) | W(.g) | T(.s) | { }
+        let t3 = G(.a) & ss
+        
+        assertOutput(t1)
+        assertOutput(t2)
+        assertOutput(t3)
+        
+        XCTAssertTrue(type(of: t1) == FinalTransitions<State, Event>.self)
+        XCTAssertTrue(type(of: t2) == FinalTransitions<State, Event>.self)
+        XCTAssertTrue(type(of: t3) == MutableTransitions<State, Event>.self)
         
         /*
          let t3 = G(.a, implements: s1, s2) {  W(.g) | T(.s) | { } }
@@ -346,9 +360,6 @@ class SuperStateTransitionTests: SafeTests {
          
          For the inference problem, consider tuples
          */
-        
-        assertOutput(t1)
-        assertOutput(t2)
     }
     
     func testMultipleGiven() {

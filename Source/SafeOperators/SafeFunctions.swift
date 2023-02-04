@@ -115,5 +115,5 @@ func makeTransitions<S: SP, E: EP> (
     _ given: Given<S, E>,
     _ whenThenActions: [[WhenThenAction<S, E>]]
 ) -> FinalTransitions<S, E> {
-    given.formTransitions(with: whenThenActions.flatMap { $0 })
+    given.formFinalTransitions(with: whenThenActions.flatMap { $0 })
 }

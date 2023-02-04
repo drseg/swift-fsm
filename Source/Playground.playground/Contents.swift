@@ -8,9 +8,24 @@ protocol EventProtocol: Hashable {
     associatedtype State: StateProtocol
 }
 
-extension String: StateProtocol, EventProtocol {
-    typealias State = Self
-    typealias Event = Self
+enum S: StateProtocol {
+    typealias Event = E
+    
+    case a, b, c
+}
+
+enum E: EventProtocol {
+    typealias State = S
+    
+    case d, e, f
+}
+
+extension String: StateProtocol {
+    typealias Event = Int
+}
+
+extension Int: EventProtocol {
+    typealias State = String
 }
 
 struct Transition<S: StateProtocol, E: EventProtocol> {
@@ -20,63 +35,76 @@ struct Transition<S: StateProtocol, E: EventProtocol> {
     let actions: [() -> ()]
 }
 
-extension StateProtocol {
-    func callAsFunction() {
-        print(self)
+@resultBuilder
+struct Builder<S, E> where S: StateProtocol, E: EventProtocol {
+    static func buildBlock(
+        _ wts: (E, S, [() -> ()])...
+    ) -> [(E, S, [() -> ()])]{
+        wts
     }
+}
+
+extension StateProtocol {
+//    static func |(lhs: Self, rhs: Event) -> (Self, Event) {
+//        (lhs, rhs)
+//    }
     
-    static func |(lhs: Self, rhs: Event) -> (Self, Event) {
+//    static func |(lhs: (Self, Event), rhs: Self) -> (Self, Event, Self) {
+//        (lhs.0, lhs.1, rhs)
+//    }
+    
+    func callAsFunction(
+        @Builder<Self, Event> _ content: () -> [(Event, Self, [() -> ()])]
+    ) -> [Transition<Self, Event>]  {
+        content().reduce(into: [Transition<Self, Event>]()) {
+            $0.append(Transition(givenState: self, event: $1.0, nextState: $1.1, actions: $1.2))
+        }
+    }
+}
+
+extension EventProtocol {
+    static func |(lhs: Self, rhs: State) -> (Self, State) {
         (lhs, rhs)
     }
-    
-    static func |(lhs: (Self, Event), rhs: Self) -> (Self, Event, Self) {
-        (lhs.0, lhs.1, rhs)
-    }
 }
 
-func |<S: StateProtocol, E: EventProtocol>(lhs: (S, E, S), rhs: [() -> ()]) -> Transition<S, E> {
-    Transition(givenState: lhs.0,
-               event: lhs.1,
-               nextState: lhs.2,
-               actions: rhs)
+func |<S: StateProtocol, E: EventProtocol>(lhs: (E, S), rhs: [() -> ()]) -> (E, S, [() -> ()]) {
+    (lhs.0, lhs.1, rhs)
 }
 
-extension Array where Element: StateProtocol {
-    typealias Event = Element.Event
-    
-    func callAsFunction() {
-        forEach { $0() }
-    }
-    
-    static func |(lhs: Self, rhs: Element.Event) -> [(Element, Element.Event)] {
-        lhs.reduce(into: [(Element, Element.Event)]()) {
-            $0.append($1 | rhs)
-        }
-    }
-    
-    static func |(lhs: [(Element, Element.Event)], rhs: Element) -> [(Element, Element.Event, Element)] {
-        lhs.reduce(into: [(Element, Element.Event, Element)]()) {
-            $0.append($1 | rhs)
-        }
-    }
-}
+//func |<S: StateProtocol, E: EventProtocol>(lhs: (S, E, S), rhs: [() -> ()]) -> Transition<S, E> {
+//    Transition(givenState: lhs.0,
+//               event: lhs.1,
+//               nextState: lhs.2,
+//               actions: rhs)
+//}
+
+//extension Array where Element: StateProtocol, Element.Event.State == Element {
+//    typealias Event = Element.Event
+//
+//    static func |(lhs: [(Element, Event)], rhs: Element) -> [(Element, Event, Element)] {
+//        lhs.reduce(into: [(Element, Element.Event, Element)]()) {
+//            $0.append($1 | rhs)
+//        }
+//    }
+//}
 
 extension Array where Element: EventProtocol, Element.State.Event == Element {
     typealias State = Element.State
     
-    static func |(lhs: State, rhs: Self) -> [(State, Element)] {
-        rhs.reduce(into: [(State, Element)]()) {
-            $0.append(lhs | $1)
-        }
-    }
-    
-    static func |(lhs: [State], rhs: Self) -> [(State, Element)] {
-        lhs.reduce(into: [(State, Element)]()) { eventStates, state in
-            rhs.forEach {
-                eventStates.append(state | $0)
-            }
-        }
-    }
+//    static func |(lhs: State, rhs: Self) -> [(State, Element)] {
+//        rhs.reduce(into: [(State, Element)]()) {
+//            $0.append(lhs | $1)
+//        }
+//    }
+//
+//    static func |(lhs: [State], rhs: Self) -> [(State, Element)] {
+//        lhs.reduce(into: [(State, Element)]()) { eventStates, state in
+//            rhs.forEach {
+//                eventStates.append(state | $0)
+//            }
+//        }
+//    }
 }
 
 func |<S: StateProtocol, E: EventProtocol>(lhs: [(S, E, S)], rhs: [() -> ()]) -> [Transition<S, E>] {
@@ -90,9 +118,13 @@ func |<S: StateProtocol, E: EventProtocol>(lhs: [(S, E, S)], rhs: [() -> ()]) ->
     }
 }
 
-"Dog"()
-["Dog", "Cat"]()
+let a = "Dog"() {
+    1 | "Bone" | [{}]
+}
 
-"Dog" | ["Cat", "Fish"] | "Bone" | [{}]
-["Dog", "Bat"] | ["Cat", "Fish"] | "Bone" | [{}]
+let b = S.a {
+    E.d | .a | [{}]
+}
+
+let f = E.d | .a
 

@@ -87,4 +87,9 @@ func |<S: SP, E: EP> (
     makeTransitions(given, whenThenActions)
 }
 
-
+func &<S: SP, E: EP>(
+    given: Given<S, E>,
+    superState: SuperState<S, E>
+) -> MutableTransitions<S, E>{
+    given.formMutableTransitions(with: superState.wtas)
+}
