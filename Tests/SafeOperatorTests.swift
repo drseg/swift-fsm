@@ -314,15 +314,19 @@ class SuperStateTransitionTests: SafeTests {
             W(.g) | T(.s) | { }
         }
         
-        let t1 = G(.a, implements: s) {  W(.g) | T(.s) | { } }
-        let t2 = G(.a, implements: s) | W(.g) | T(.s) | { }
+        let t1 = G(.a, include: s) {  W(.g) | T(.s) | { } }
+        let t2 = G(.a, include: s) | W(.g) | T(.s) | { }
         let t3 = Transition.build {
-            G(.a, implements: ss)
+            G(.a, include: ss)
+        }
+        let t4 = Transition.build {
+            G(.a).include(ss)
         }
         
         assertOutput(t1)
         assertOutput(t2)
         assertOutput(TG(t3))
+        assertOutput(TG(t4))
     }
     
     func testMultipleGiven() {
@@ -334,8 +338,8 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(4, t)
         }
         
-        let t1 = G(.a, .b, implements: s) { W(.g) | T(.s) | { } }
-        let t2 = G(.a, .b, implements: s) | W(.g) | T(.s) | { }
+        let t1 = G(.a, .b, include: s) { W(.g) | T(.s) | { } }
+        let t2 = G(.a, .b, include: s) | W(.g) | T(.s) | { }
         
         assertOutput(t1)
         assertOutput(t2)
@@ -349,11 +353,11 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(3, t)
         }
         
-        let t1 = G(.a, implements: s) {
+        let t1 = G(.a, include: s) {
             W(.g) | T(.s) | { }
             W(.h) | T(.s) | { }
         }
-        let t2 = G(.a, implements: s) | [W(.g) | T(.s) | { },
+        let t2 = G(.a, include: s) | [W(.g) | T(.s) | { },
                                          W(.h) | T(.s) | { }]
         
         assertOutput(t1)
@@ -372,11 +376,11 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(6, t)
         }
         
-        let t1 = G(.a, .b, implements: s) {
+        let t1 = G(.a, .b, include: s) {
             W(.g) | T(.s) | { }
             W(.h) | T(.s) | { }
         }
-        let t2 = G(.a, .b, implements: s) | [W(.g) | T(.s) | { },
+        let t2 = G(.a, .b, include: s) | [W(.g) | T(.s) | { },
                                              W(.h) | T(.s) | { }]
         
         assertOutput(t1)
@@ -391,10 +395,10 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(3, t)
         }
         
-        let t1 = G(.a, implements: s) {
+        let t1 = G(.a, include: s) {
             W(.g, .h) | T(.s) | { }
         }
-        let t2 = G(.a, implements: s) | W(.g, .h) | T(.s) | { }
+        let t2 = G(.a, include: s) | W(.g, .h) | T(.s) | { }
         
         assertOutput(t1)
         assertOutput(t2)
@@ -412,10 +416,10 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(6, t)
         }
         
-        let t1 = G(.a, .b, implements: s) {
+        let t1 = G(.a, .b, include: s) {
             W(.g, .h) | T(.s) | { }
         }
-        let t2 = G(.a, .b, implements: s) | W(.g, .h) | T(.s) | { }
+        let t2 = G(.a, .b, include: s) | W(.g, .h) | T(.s) | { }
         
         assertOutput(t1)
         assertOutput(t2)
@@ -437,11 +441,11 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(10, t)
         }
         
-        let t1 = G(.a, .b, implements: s) {
+        let t1 = G(.a, .b, include: s) {
             W(.g, .h) | T(.s) | { }
             W(.i, .j) | T(.d) | { }
         }
-        let t2 = G(.a, .b, implements: s) | [W(.g, .h) | T(.s) | { },
+        let t2 = G(.a, .b, include: s) | [W(.g, .h) | T(.s) | { },
                                              W(.i, .j) | T(.d) | { }]
         
         assertOutput(t1)
@@ -456,11 +460,11 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(3, t)
         }
         
-        let t1 = G(.a, implements: s) {
+        let t1 = G(.a, include: s) {
             [W(.g) | T(.s),
              W(.h) | T(.s)] | { }
         }
-        let t2 = G(.a, implements: s) | [W(.g) | T(.s),
+        let t2 = G(.a, include: s) | [W(.g) | T(.s),
                                          W(.h) | T(.s)] | { }
         
         assertOutput(t1)
@@ -494,7 +498,7 @@ class SuperStateTransitionTests: SafeTests {
             assertCount(18, t)
         }
         
-        let t1 = G(.a, .b, implements: s) {
+        let t1 = G(.a, .b, include: s) {
             [W(.g, .h) | T(.s),
              W(.h, .i) | T(.t)] | { }
             
@@ -502,7 +506,7 @@ class SuperStateTransitionTests: SafeTests {
              W(.j, .k) | T(.t)] | { }
         }
         
-         let t2 = G(.a, .b, implements: s) | [[W(.g, .h) | T(.s),
+         let t2 = G(.a, .b, include: s) | [[W(.g, .h) | T(.s),
                                               W(.h, .i) | T(.t)] | { },
                                              
                                              [W(.i, .j) | T(.s),
@@ -614,17 +618,17 @@ class DemonstrationTests: SafeTests {
                 W("Reset") | T("Locked")  | [alarmOff, lock]
             }
             
-            Given("Locked", implements: resetable) {
+            Given("Locked").include(resetable) {
                 W("Coin") | T("Unlocked") | unlock
                 W("Pass") | T("Alarming") | alarmOn
             }
             
-            Given("Unlocked", implements: resetable) {
+            Given("Unlocked").include(resetable) {
                 W("Coin") | T("Unlocked") | thankyou
                 W("Pass") | T("Locked")   | lock
             }
             
-            Given("Alarming", implements: resetable)
+            Given("Alarming").include(resetable)
         }
     }
 }

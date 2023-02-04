@@ -38,13 +38,15 @@ final class Given<State: SP, Event: EP>: Transition<State, Event>.Group {
     typealias E = Event
     
     let states: [S]
-    var superState: SuperState<S, E>?
+    var superState: SuperState<S, E>? {
+        didSet { makeTransitions() }
+    }
     let file: String
     let line: Int
     
     init(
         _ given: S...,
-        implements superState: SuperState<S, E>? = nil,
+        include superState: SuperState<S, E>? = nil,
         file: String = #file,
         line: Int = #line
     ) {
@@ -55,11 +57,27 @@ final class Given<State: SP, Event: EP>: Transition<State, Event>.Group {
         
         super.init()
         
+        makeTransitions()
+    }
+    
+    func makeTransitions() {
         if let superState {
             transitions = formTransitions(with: superState.wtas)
         }
     }
     
+    func include(_ superState: SuperState<S, E>) -> Self {
+        self.superState = superState
+        return self
+    }
+    
+    func include(_ superState: SuperState<S, E>,
+                 @WTABuilder<S, E> _ wtas: () -> [WhenThenAction<S, E>]
+    ) -> FinalTransitions<S, E> {
+        self.superState = superState
+        return callAsFunction(wtas)
+    }
+        
     func callAsFunction(
         @WTABuilder<S, E> _ wtas: () -> [WhenThenAction<S, E>]
     ) -> FinalTransitions<S, E> {
