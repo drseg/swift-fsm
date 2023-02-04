@@ -14,10 +14,10 @@ extension String: StateProtocol, EventProtocol {
 }
 
 struct Transition<S: StateProtocol, E: EventProtocol> {
-    let given: S
+    let givenState: S
     let event: E
-    let then: S
-    let action: () -> ()
+    let nextState: S
+    let actions: [() -> ()]
 }
 
 extension StateProtocol {
@@ -34,11 +34,16 @@ extension StateProtocol {
     }
 }
 
-func |<S: StateProtocol, E: EventProtocol>(lhs: (S, E, S), rhs: @escaping () -> ()) -> Transition<S, E> {
-    Transition(given: lhs.0, event: lhs.1, then: lhs.2, action: rhs)
+func |<S: StateProtocol, E: EventProtocol>(lhs: (S, E, S), rhs: [() -> ()]) -> Transition<S, E> {
+    Transition(givenState: lhs.0,
+               event: lhs.1,
+               nextState: lhs.2,
+               actions: rhs)
 }
 
 extension Array where Element: StateProtocol {
+    typealias Event = Element.Event
+    
     func callAsFunction() {
         forEach { $0() }
     }
@@ -57,14 +62,16 @@ extension Array where Element: StateProtocol {
 }
 
 extension Array where Element: EventProtocol, Element.State.Event == Element {
-    static func |(lhs: Element.State, rhs: Self) -> [(Element.State, Element)] {
-        rhs.reduce(into: [(Element.State, Element)]()) {
+    typealias State = Element.State
+    
+    static func |(lhs: State, rhs: Self) -> [(State, Element)] {
+        rhs.reduce(into: [(State, Element)]()) {
             $0.append(lhs | $1)
         }
     }
     
-    static func |(lhs: [Element.State], rhs: Self) -> [(Element.State, Element)] {
-        lhs.reduce(into: [(Element.State, Element)]()) { eventStates, state in
+    static func |(lhs: [State], rhs: Self) -> [(State, Element)] {
+        lhs.reduce(into: [(State, Element)]()) { eventStates, state in
             rhs.forEach {
                 eventStates.append(state | $0)
             }
@@ -72,10 +79,13 @@ extension Array where Element: EventProtocol, Element.State.Event == Element {
     }
 }
 
-func |<S: StateProtocol, E: EventProtocol>(lhs: [(S, E, S)], rhs: @escaping () -> ()) -> [Transition<S, E>] {
+func |<S: StateProtocol, E: EventProtocol>(lhs: [(S, E, S)], rhs: [() -> ()]) -> [Transition<S, E>] {
     lhs.reduce(into: [Transition<S, E>]()) {
         $0.append(
-            Transition(given: $1.0, event: $1.1, then: $1.2, action: rhs)
+            Transition(givenState: $1.0,
+                       event: $1.1,
+                       nextState: $1.2,
+                       actions: rhs)
         )
     }
 }
@@ -83,6 +93,6 @@ func |<S: StateProtocol, E: EventProtocol>(lhs: [(S, E, S)], rhs: @escaping () -
 "Dog"()
 ["Dog", "Cat"]()
 
-"Dog" | ["Cat", "Fish"] | "Bone" | {}
-["Dog", "Bat"] | ["Cat", "Fish"] | "Bone" | {}
+"Dog" | ["Cat", "Fish"] | "Bone" | [{}]
+["Dog", "Bat"] | ["Cat", "Fish"] | "Bone" | [{}]
 
