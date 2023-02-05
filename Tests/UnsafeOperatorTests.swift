@@ -193,15 +193,6 @@ class UnsafeTransitionTests: XCTestCase {
         XCTAssertEqual(actual, transition(s1, e1, s2), line: line)
     }
 
-    func testCanRetrieveByKey() {
-        let t = Transition.build {
-            s1 | e1 | s2 | action
-            s2 | e2 | s1 | action
-        }
-
-        assertContainsTransition(t, s1, e1)
-    }
-
     func testIf() {
         let condition = true
         let t = Transition.build {

@@ -16,7 +16,7 @@ func joinGivenToWhen<S: SP, E: EP> (
             gws.append(
                 GivenWhen(given: state,
                           when: $0,
-                          superState: given.superState,
+                          superStates: given.superStates,
                           file: given.file,
                           line: given.line)
             )
@@ -33,7 +33,7 @@ func joinGivenToWhenThens<S: SP, E: EP> (
             gwts.append(GivenWhenThen(given: state,
                                       when: $0.when,
                                       then: $0.then,
-                                      superState: given.superState,
+                                      superStates: given.superStates,
                                       file: given.file,
                                       line: given.line))
         }
@@ -49,7 +49,7 @@ func joinGivenWhensToThen<S: SP, E: EP> (
             GivenWhenThen(given: gw.given,
                           when: gw.when,
                           then: then.state,
-                          superState: gw.superState,
+                          superStates: gw.superStates,
                           file: gw.file,
                           line: gw.line)
         )
@@ -92,9 +92,8 @@ func makeTransitions<S: SP, E: EP> (
                        line: gwt.line)
         }
         
-        if let superState = gwt.superState,
-           !alreadyAdded.contains(where: { $0.given == gwt.given }) {
-            t1.append(contentsOf: superState.wtas.reduce(
+        if !alreadyAdded.contains(where: { $0.given == gwt.given }) {
+            t1.append(contentsOf: gwt.allSuperWTAs.reduce(
                 into: [Transition]()) { t2, wta in
                     t2.append(t(gwt.given, wta.when, wta.then, actions))
                 }
