@@ -11,6 +11,8 @@ class FSMBase<State, Event>
 where State: StateProtocol, Event: EventProtocol {
     typealias T = Transition<State, Event>
     typealias K = T.Key
+    typealias S = State
+    typealias E = Event
     
     var state: State
     var transitions = [K: T]()
@@ -19,11 +21,11 @@ where State: StateProtocol, Event: EventProtocol {
         self.state = state
     }
     
-    func buildTransitions(@T.Builder _ content: () -> Transition<State, Event>.Group) throws {
+    func buildTransitions(@TransitionBuilder<S, E> _ c: () -> TGroup<S, E>) throws {
         var keys = Set<K>()
         var invalidTransitions = Set<T>()
         
-        transitions = content().transitions.reduce(into: [K: T]()) {
+        transitions = c().transitions.reduce(into: [K: T]()) {
             let k = K(state: $1.givenState, event: $1.event)
             if keys.contains(k) {
                 invalidTransitions.insert($0[k]!)
@@ -36,24 +38,8 @@ where State: StateProtocol, Event: EventProtocol {
         }
         
         guard invalidTransitions.isEmpty else {
-            try throwError(invalidTransitions)
+            throw ConflictingTransitionError(invalidTransitions)
         }
-    }
-    
-    private func throwError(_ ts: Set<T>) throws -> Never {
-        let message =
-"""
-The same 'given-when' combination cannot lead to more than one 'then' state.
-
-The following conflicts were found:
-"""
-        let conflicts = ts
-            .map {
-                "\n\($0.givenState) | \($0.event) | *\($0.nextState)* (\($0.file.name): line \($0.line))"
-            }
-            .sorted()
-            .joined()
-        throw ConflictingTransitionError(message + conflicts)
     }
     
     fileprivate func _handleEvent(_ event: Event) {
@@ -63,7 +49,6 @@ The following conflicts were found:
             state = t.nextState
         }
     }
-    
 }
 
 private extension String {
@@ -73,7 +58,8 @@ private extension String {
 }
 #warning("Should this also throw for duplicate valid transitions?")
 
-final class FSM<State, Event>: FSMBase<State, Event> where State: StateProtocol, Event: EventProtocol {
+final class FSM<State, Event>: FSMBase<State, Event>
+where State: SP, Event: EP {
     override init(initialState state: State) {
         super.init(initialState: state)
     }
@@ -83,15 +69,17 @@ final class FSM<State, Event>: FSMBase<State, Event> where State: StateProtocol,
     }
 }
 
-final class UnsafeFSM: FSMBase<Unsafe.AnyState, Unsafe.AnyEvent> {
-    typealias T = Transition<Unsafe.AnyState, Unsafe.AnyEvent>
+final class UnsafeFSM: FSMBase<AnyState, AnyEvent> {
+    typealias US = AnyState
+    typealias UE = AnyEvent
+    typealias T = Transition<US, UE>
     
     init(initialState state: any StateProtocol) {
         super.init(initialState: state.erased)
     }
     
     override func buildTransitions(
-        @T.Builder _ content: () -> T.Group
+        @TransitionBuilder<US, UE> _ content: () -> TGroup<US, UE>
     ) throws {
         try validate(content().transitions)
         try super.buildTransitions(content)
@@ -102,62 +90,62 @@ final class UnsafeFSM: FSMBase<Unsafe.AnyState, Unsafe.AnyEvent> {
     }
     
     private func validate(_ ts: [T]) throws {
-        func validateObject(_ a: Any) throws {
-            guard !isNSObject(a) else {
-                throw NSObjectError(
-                    "States and Events must not inherit from NSObject"
-                )
+        func validateObject<E: Eraser>(_ e: E) throws {
+            guard !isNSObject(e.base) else {
+                throw NSObjectError()
             }
         }
         
-#warning("This is not a complete check")
         func isNSObject(_ a: Any) -> Bool {
             let mirror = Mirror(reflecting: a)
             return a is NSObject
             && (mirror.superclassMirror != nil ||
                 String(describing: a).contains("NSObject"))
         }
+#warning("This is not a complete check")
         
-        func areSameType(lhs: Any, rhs: Any) -> Bool {
-            type(of: lhs) == type(of: rhs)
+        func areSameType<E: Eraser>(lhs: E, rhs: E) -> Bool {
+            type(of: lhs.base) == type(of: rhs.base)
         }
         
         try ts.forEach {
-            try validateObject($0.givenState.base)
-            try validateObject($0.event.base)
-            try validateObject($0.nextState.base)
+            try validateObject($0.givenState)
+            try validateObject($0.event)
+            try validateObject($0.nextState)
             
-            guard areSameType(lhs: $0.givenState.base,
-                              rhs: $0.nextState.base) else {
-                throw MismatchedTypeError(
-                    "Given and Then states must be of the same type"
-                )
+            guard areSameType(lhs: $0.givenState, rhs: $0.nextState) else {
+                throw MismatchedTypeError()
             }
         }
     }
 }
 
-struct ConflictingTransitionError: Error {
+struct ConflictingTransitionError<S: SP, E: EP>: Error {
+    let message =
+    """
+    The same 'given-when' combination cannot lead to more than one 'then' state.
+
+    The following conflicts were found:
+    """
+    
     let description: String
     
-    init(_ description: String) {
-        self.description = description
+    init(_ ts: Set<Transition<S, E>>) {
+        self.description =  message + ts.map {
+            "\n\($0.givenState) | \($0.event) | *\($0.nextState)* (\($0.file.name): line \($0.line))"
+        }.sorted().joined()
     }
 }
 
 struct NSObjectError: Error {
-    let description: String
-    
-    init(_ description: String) {
-        self.description = description
+    var description: String {
+        "States and Events must not inherit from NSObject"
     }
 }
 
 struct MismatchedTypeError: Error {
-    let description: String
-    
-    init(_ description: String) {
-        self.description = description
+    var description: String {
+        "Given and Then states must be of the same type"
     }
 }
 

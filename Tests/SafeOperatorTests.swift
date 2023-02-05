@@ -15,7 +15,7 @@ class SafeTests: XCTestCase {
     typealias G = Given<State, Event>
     typealias W = When<Event>
     typealias T = Then<State>
-    typealias TG = Transition<State, Event>.Group
+    typealias TG = TGroup<State, Event>
     
     func transition(
         _ given: State,
@@ -33,7 +33,7 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ t: Transition<State, Event>.Group,
+        _ t: TGroup<State, Event>,
         line: UInt = #line
     ) {
         XCTAssertTrue(t.transitions.contains(where: {
@@ -45,7 +45,7 @@ class SafeTests: XCTestCase {
     
     func assertCount(
         _ expected: Int,
-        _ t: Transition<State, Event>.Group,
+        _ t: TGroup<State, Event>,
         line: UInt = #line) {
         XCTAssertEqual(t.transitions.count, expected, line: line)
     }
@@ -303,7 +303,7 @@ class SuperStateTransitionTests: SafeTests {
 #warning("no tests check a SuperState with more than one WTA")
     
     func testGiven() {
-        func assertOutput(_ t: Transition<State, Event>.Group) {
+        func assertOutput(_ t: TGroup<State, Event>) {
             assertContains(.a, .h, .b, t)
             assertContains(.a, .g, .s, t)
             assertCount(2, t)
@@ -322,6 +322,7 @@ class SuperStateTransitionTests: SafeTests {
         let t4 = Transition.build {
             G(.a).include(ss)
         }
+#warning("using the init arg will allow duds")
         
         assertOutput(t1)
         assertOutput(t2)

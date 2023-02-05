@@ -7,9 +7,6 @@
 
 import Foundation
 
-typealias SP = StateProtocol
-typealias EP = EventProtocol
-
 func |<S: SP, E: EP> (
     given: Given<S, E>,
     when: When<E>

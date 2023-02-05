@@ -15,8 +15,8 @@ class UnsafeTransitionTests: XCTestCase {
     typealias ASP = any StateProtocol
     typealias AEP = any EventProtocol
     
-    typealias Transition = FiniteStateMachine.Transition<Unsafe.AnyState,
-                                                         Unsafe.AnyEvent>
+    typealias Transition = FiniteStateMachine.Transition<AnyState,
+                                                         AnyEvent>
     typealias Key = Transition.Key
     
     var s1: ASP { mustImplement() }
@@ -56,7 +56,7 @@ class UnsafeTransitionTests: XCTestCase {
             event: event.erased)
     }
 
-    var t: TGroup<Unsafe.AnyState, Unsafe.AnyEvent> = TGroup([])
+    var t: TGroup<AnyState, AnyEvent> = TGroup([])
     
     func assertFirst(
         _ given: ASP,
@@ -228,7 +228,7 @@ class UnsafeTransitionTests: XCTestCase {
         let t = Transition.build {
             switch condition {
             case true:  s1 | e1 | s2 | action
-            default: TGroup<Unsafe.AnyState, Unsafe.AnyEvent>([])
+            default: TGroup<AnyState, AnyEvent>([])
             }
         }
 

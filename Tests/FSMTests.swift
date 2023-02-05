@@ -41,7 +41,7 @@ class FSMTests: SafeTests {
             G(.a) | W(.h) | T(.c) | action2
             G(.a) | W(.h) | T(.d) | action2
         }) {
-            let e = $0 as! ConflictingTransitionError
+            let e = $0 as! ConflictingTransitionError<State, Event>
             XCTAssertEqual(e.description.suffix(113),
 """
 a | h | *b* (\(file): line \(l1))
@@ -76,7 +76,7 @@ a | h | *d* (\(file): line \(l3))
     
     func assertThrows<E: Error>(
         expected: E.Type,
-        building t: Transition<Unsafe.AnyState, Unsafe.AnyEvent>.Group
+        building t: TGroup<AnyState, AnyEvent>
     ) {
         let fsm = UnsafeFSM(initialState: State.a)
         XCTAssertThrowsError(

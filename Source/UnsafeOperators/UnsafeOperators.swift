@@ -10,6 +10,12 @@ import Foundation
 protocol StateProtocol: Hashable {}
 protocol EventProtocol: Hashable {}
 
+typealias SP = StateProtocol
+typealias EP = EventProtocol
+
+typealias AS = AnyState
+typealias AE = AnyEvent
+
 private extension Hashable {
     func isEqual(to rhs: any Hashable) -> Bool {
         guard let rhs = rhs as? Self else { return false }
@@ -18,14 +24,14 @@ private extension Hashable {
 }
 
 extension StateProtocol {
-    var erased: Unsafe.AnyState {
-        Unsafe.AnyState(base: self)
+    var erased: AnyState {
+        AnyState(base: self)
     }
 }
 
 extension EventProtocol {
-    var erased: Unsafe.AnyEvent {
-        Unsafe.AnyEvent(base: self)
+    var erased: AnyEvent {
+        AnyEvent(base: self)
     }
 }
 
@@ -43,137 +49,111 @@ extension Eraser {
     }
 }
 
-enum Unsafe {
-    struct AnyEvent: Eraser, EventProtocol, Hashable {
-        let base: any Hashable
-    }
+struct AnyEvent: Eraser, EventProtocol, Hashable {
+    let base: any Hashable
+}
+
+struct AnyState: Eraser, StateProtocol, Hashable {
+    let base: any Hashable
+}
+
+struct StateEvent {
+    let state: any SP
+    let event: any EP
     
-    struct AnyState: Eraser, StateProtocol, Hashable {
-        let base: any Hashable
-    }
-    
-    struct StateEvent {
-        let state: any StateProtocol
-        let event: any EventProtocol
-        
-        init(_ state: any StateProtocol, _ event: any EventProtocol) {
-            self.state = state
-            self.event = event
-        }
-    }
-    
-    struct EventState {
-        let event: any EventProtocol
-        let state: any StateProtocol
-        
-        init(_ event: any EventProtocol, _ state: any StateProtocol) {
-            self.event = event
-            self.state = state
-        }
-    }
-    
-    struct EventStateAction {
-        let event: any EventProtocol
-        let state: any StateProtocol
-        let actions: [() -> ()]
-        
-        init(
-            _ event: any EventProtocol,
-            _ state: any StateProtocol,
-            _ actions: [() -> ()]
-        ) {
-            self.event = event
-            self.state = state
-            self.actions = actions
-        }
-    }
-    
-    struct StateEventState {
-        let startState: any StateProtocol
-        let event: any EventProtocol
-        let endState: any StateProtocol
-        
-        init(
-            _ startState: any StateProtocol,
-            _ event: any EventProtocol,
-            _ endState: any StateProtocol
-        ) {
-            self.startState = startState
-            self.event = event
-            self.endState = endState
-        }
+    init(_ state: any SP, _ event: any EP) {
+        self.state = state
+        self.event = event
     }
 }
 
-func | (
-    state: any StateProtocol,
-    event: any EventProtocol) -> Unsafe.StateEvent {
-    Unsafe.StateEvent(state, event)
+struct EventState {
+    let event: any EP
+    let state: any SP
+    
+    init(_ event: any EP, _ state: any SP) {
+        self.event = event
+        self.state = state
+    }
 }
 
-func | (
-    state: any StateProtocol,
-    events: [any EventProtocol]
-) -> [Unsafe.StateEvent] {
-    events.reduce(into: [Unsafe.StateEvent]()) {
+struct EventStateAction {
+    let event: any EP
+    let state: any SP
+    let actions: [() -> ()]
+    
+    init(
+        _ event: any EP,
+        _ state: any SP,
+        _ actions: [() -> ()]
+    ) {
+        self.event = event
+        self.state = state
+        self.actions = actions
+    }
+}
+
+struct StateEventState {
+    let startState: any SP
+    let event: any EP
+    let endState: any SP
+    
+    init(
+        _ startState: any SP,
+        _ event: any EP,
+        _ endState: any SP
+    ) {
+        self.startState = startState
+        self.event = event
+        self.endState = endState
+    }
+}
+
+func | (state: any SP, event: any EP) -> StateEvent {
+    StateEvent(state, event)
+}
+
+func | (state: any SP, events: [any EP]) -> [StateEvent] {
+    events.reduce(into: [StateEvent]()) {
         $0.append(state | $1)
     }
 }
 
-func | (
-    states: [any StateProtocol],
-    event: any EventProtocol) -> [Unsafe.StateEvent] {
-    states.reduce(into: [Unsafe.StateEvent]()) {
+func | (states: [any SP], event: any EP) -> [StateEvent] {
+    states.reduce(into: [StateEvent]()) {
         $0.append($1 | event)
     }
 }
 
-func | (
-    states: [any StateProtocol],
-    events: [any EventProtocol]) -> [Unsafe.StateEvent] {
-    states.reduce(into: [Unsafe.StateEvent]()) { output, s in
+func | (states: [any SP], events: [any EP]) -> [StateEvent] {
+    states.reduce(into: [StateEvent]()) { output, s in
         events.forEach {
             output.append(s | $0)
         }
     }
 }
 
-func | (
-    event: any EventProtocol,
-    state: any StateProtocol
-) -> Unsafe.EventState {
-    Unsafe.EventState(event, state)
+func | (event: any EP, state: any SP) -> EventState {
+    EventState(event, state)
 }
 
-func | (
-    state: [any StateProtocol],
-    es: [Unsafe.EventState]
-) -> [Unsafe.StateEventState] {
-    state.reduce(into: [Unsafe.StateEventState]()) {
+func | (state: [any SP], es: [EventState]) -> [StateEventState] {
+    state.reduce(into: [StateEventState]()) {
         $0.append(contentsOf: $1 | es)
     }
 }
 
-func | (
-    state: any StateProtocol,
-    es: [Unsafe.EventState]
-) -> [Unsafe.StateEventState] {
-    es.reduce(into: [Unsafe.StateEventState]()) {
-        $0.append(Unsafe.StateEventState(state, $1.event, $1.state))
+func | (state: any SP, es: [EventState]) -> [StateEventState] {
+    es.reduce(into: [StateEventState]()) {
+        $0.append(StateEventState(state, $1.event, $1.state))
     }
 }
 
-func | (
-    states: [any StateProtocol],
-    esas: [[Unsafe.EventStateAction]]
-) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
+func | (states: [any SP], esas: [[EventStateAction]]) -> TGroup<AS, AE> {
     states | esas.flatMap { $0 }
 }
 
-func | (
-    states: [any StateProtocol],
-    esas: [Unsafe.EventStateAction]
-) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
+func | (states: [any SP], esas: [EventStateAction]) -> TGroup<AS, AE> {
     TGroup(
         states.reduce(into: [Transition]()) {
             $0.append(contentsOf: ($1 | esas).transitions)
@@ -181,17 +161,11 @@ func | (
     )
 }
 
-func | (
-    state: any StateProtocol,
-    esas: [[Unsafe.EventStateAction]]
-) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
+func | (state: any SP, esas: [[EventStateAction]]) -> TGroup<AS, AE> {
     state | esas.flatMap { $0 }
 }
 
-func | (
-    state: any StateProtocol,
-    esas: [Unsafe.EventStateAction]
-) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
+func | (state: any SP, esas: [EventStateAction]) -> TGroup<AS, AE> {
     TGroup(
         esas.reduce(into: [Transition]()) {
             $0.append(Transition(givenState: state.erased,
@@ -202,93 +176,60 @@ func | (
     )
 }
 
-func | (
-    events: [any EventProtocol],
-    state: any StateProtocol
-) -> [Unsafe.EventState] {
-    events.reduce(into: [Unsafe.EventState]()) {
+func | (events: [any EP], state: any SP) -> [EventState] {
+    events.reduce(into: [EventState]()) {
         $0.append($1 | state)
     }
 }
 
-func | (
-    ess: [Unsafe.EventState],
-    action: @escaping () -> ()
-) -> [Unsafe.EventStateAction] {
+func | (ess: [EventState], action: @escaping () -> ()) -> [EventStateAction] {
     ess | [action]
 }
 
-func | (
-    ess: [Unsafe.EventState],
-    actions: [() -> ()]
-) -> [Unsafe.EventStateAction] {
-    ess.reduce(into: [Unsafe.EventStateAction]()) {
+func | (ess: [EventState], actions: [() -> ()]) -> [EventStateAction] {
+    ess.reduce(into: [EventStateAction]()) {
         $0.append($1 | actions)
     }
 }
 
-func | (
-    es: Unsafe.EventState,
-    action: @escaping () -> ()
-) -> Unsafe.EventStateAction {
+func | (es: EventState, action: @escaping () -> ()) -> EventStateAction {
     es | [action]
 }
 
-func | (
-    es: Unsafe.EventState,
-    actions: [() -> ()]
-) -> Unsafe.EventStateAction {
-    Unsafe.EventStateAction(es.event, es.state, actions)
+func | (es: EventState, actions: [() -> ()]) -> EventStateAction {
+    EventStateAction(es.event, es.state, actions)
 }
 
-func | (
-    stateEvents: [Unsafe.StateEvent],
-    state: any StateProtocol
-) -> [Unsafe.StateEventState] {
-    stateEvents.reduce(into: [Unsafe.StateEventState]()) {
+func | (stateEvents: [StateEvent], state: any SP) -> [StateEventState] {
+    stateEvents.reduce(into: [StateEventState]()) {
         $0.append($1 | state)
     }
 }
 
-func | (
-    stateEvent: Unsafe.StateEvent,
-    state: any StateProtocol
-) -> Unsafe.StateEventState {
-    Unsafe.StateEventState(stateEvent.state, stateEvent.event, state)
+func | (stateEvent: StateEvent, state: any SP) -> StateEventState {
+    StateEventState(stateEvent.state, stateEvent.event, state)
 }
 
-func | (
-    stateEventStates: [Unsafe.StateEventState],
-    action: @escaping () -> ()
-) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
-    stateEventStates | [action]
+func | (sess: [StateEventState], action: @escaping () -> ()) -> TGroup<AS, AE> {
+    sess | [action]
 }
 
-func | (
-    stateEventStates: [Unsafe.StateEventState],
-    actions: [() -> ()]
-) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
+func | (sess: [StateEventState], actions: [() -> ()]) -> TGroup<AS, AE> {
     TGroup(
-        stateEventStates.reduce(into: [Transition]()) {
+        sess.reduce(into: [Transition]()) {
             $0.append(contentsOf: ($1 | actions).transitions)
         }
     )
 }
 
-func | (
-    stateEventState: Unsafe.StateEventState,
-    action: @escaping () -> ()
-) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
-    stateEventState | [action]
+func | (ses: StateEventState, action: @escaping () -> ()) -> TGroup<AS, AE> {
+    ses | [action]
 }
 
-func | (
-    stateEventState: Unsafe.StateEventState,
-    actions: [() -> ()]
-) -> TGroup<Unsafe.AnyState, Unsafe.AnyEvent> {
-    TGroup([Transition(givenState: stateEventState.startState.erased,
-                                     event: stateEventState.event.erased,
-                                     nextState: stateEventState.endState.erased,
+func | (ses: StateEventState, actions: [() -> ()]) -> TGroup<AS, AE> {
+    TGroup([Transition(givenState: ses.startState.erased,
+                                     event: ses.event.erased,
+                                     nextState: ses.endState.erased,
                                      actions: actions)]
     )
 }

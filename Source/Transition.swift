@@ -7,21 +7,20 @@
 
 import Foundation
 
-struct Transition<S, E>: Hashable
-where S: StateProtocol, E: EventProtocol {
-    class Group: Equatable {
-        static func == (lhs: Group, rhs: Group) -> Bool {
-            lhs.transitions == rhs.transitions
-        }
-        
-        var transitions: [Transition<S, E>] = []
-        
-        convenience init(_ transitions: [Transition<S, E>]) {
-            self.init()
-            self.transitions = transitions
-        }
+class TGroup<S: SP, E: EP>: Equatable {
+    static func == (lhs: TGroup, rhs: TGroup) -> Bool {
+        lhs.transitions == rhs.transitions
     }
     
+    var transitions: [Transition<S, E>] = []
+    
+    convenience init(_ transitions: [Transition<S, E>]) {
+        self.init()
+        self.transitions = transitions
+    }
+}
+
+struct Transition<S: SP, E: EP>: Hashable {
     struct Key: Hashable {
         let state: S
         let event: E
@@ -57,35 +56,13 @@ where S: StateProtocol, E: EventProtocol {
         hasher.combine(nextState)
     }
     
-    @resultBuilder
-    struct Builder {
-        static func buildBlock(_ ts: Group...) -> Group {
-            let transitions = ts.reduce(into: [Transition<S, E>]()) {
-                $0.append(contentsOf: $1.transitions)
-            }
-            return Group(transitions)
-        }
-        
-        static func buildOptional(_ t: Group?) -> Group {
-            return t ?? Group([])
-        }
-        
-        static func buildEither(first component: Group) -> Group {
-            component
-        }
-        
-        static func buildEither(second component: Group) -> Group {
-            component
-        }
-    }
-    
     static func build(
-        @Transition.Builder _ content: () -> Group
+        @TransitionBuilder<S, E> _ content: () -> TGroup<S, E>
     ) -> [Transition]  {
         content().transitions
     }
     
-    static func == (lhs: Transition<S,E>, rhs: Transition<S,E>) -> Bool {
+    static func == (lhs: Transition<S, E>, rhs: Transition<S, E>) -> Bool {
         lhs.givenState == rhs.givenState &&
         lhs.event == rhs.event &&
         lhs.nextState == rhs.nextState
