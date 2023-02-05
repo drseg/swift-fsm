@@ -183,11 +183,12 @@ class UnsafeTransitionTests: XCTestCase {
 
     func assertContainsTransition(
         _ t: [Transition],
-        k: Key,
+        _ s: ASP,
+        _ e: AEP,
         line: UInt = #line
     ) {
         let actual = t.first {
-            $0.givenState == k.state && $0.event == k.event
+            $0.givenState == s.erased && $0.event == e.erased
         }
         XCTAssertEqual(actual, transition(s1, e1, s2), line: line)
     }
@@ -198,9 +199,8 @@ class UnsafeTransitionTests: XCTestCase {
             s2 | e2 | s1 | action
         }
 
-        assertContainsTransition(t, k: key(s1, e1))
+        assertContainsTransition(t, s1, e1)
     }
-#warning("this test is now misleading - Transition.Builder produces an array")
 
     func testIf() {
         let condition = true
@@ -210,7 +210,7 @@ class UnsafeTransitionTests: XCTestCase {
             }
         }
 
-        assertContainsTransition(t, k: key(s1, e1))
+        assertContainsTransition(t, s1, e1)
     }
 
     func testElse() {
@@ -224,7 +224,7 @@ class UnsafeTransitionTests: XCTestCase {
             }
         }
 
-        assertContainsTransition(t, k: key(s1, e1))
+        assertContainsTransition(t, s1, e1)
     }
 
     func testSwitch() {
@@ -236,7 +236,7 @@ class UnsafeTransitionTests: XCTestCase {
             }
         }
 
-        assertContainsTransition(t, k: key(s1, e1))
+        assertContainsTransition(t, s1, e1)
     }
 
     func testActionsDispatchDynamically() {

@@ -328,14 +328,10 @@ class SuperStateTransitionTests: SafeTests {
         let t3 = Transition.build {
             G(.a).include(ss)
         }
-        let t4 = Transition.build {
-            G(.a).include(ss)
-        }
         
         assertOutput(t1)
         assertOutput(t2)
         assertOutput(t3)
-        assertOutput(t4)
     }
     
     func testMultipleGiven() {
@@ -611,7 +607,7 @@ class DemonstrationTests: SafeTests {
                  Pass    Locked      lock
              }
              
-            Alarming : Resetable { // inherits all it's transitions from Resetable.
+            Alarming : Resetable { // inherits all its transitions from Resetable.
             }
          }
          */

@@ -25,7 +25,8 @@ struct WTBuilder<State: SP, Event: EP> {
     }
 }
 
-@resultBuilder struct TransitionBuilder<S: SP, E: EP> {
+@resultBuilder
+struct TransitionBuilder<S: SP, E: EP> {
     struct _TGroup {
         fileprivate let transitions: [Transition<S, E>]
         fileprivate init(_ transitions: [Transition<S, E>]) {
