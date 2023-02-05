@@ -332,7 +332,6 @@ class SuperStateTransitionTests: SafeTests {
         let t4 = Transition.build {
             G(.a).include(ss)
         }
-#warning("using the init arg will allow duds")
         
         assertOutput(t1)
         assertOutput(t2)
