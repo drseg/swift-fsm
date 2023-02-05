@@ -216,8 +216,12 @@ class UnsafeTransitionTests: XCTestCase {
     func testElse() {
         let condition = false
         let t = Transition.build {
-            if condition {}
-            else { s1 | e1 | s2 | action }
+            if condition {
+                s2 | e1 | s3 | action
+            }
+            else {
+                s1 | e1 | s2 | action
+            }
         }
 
         assertContainsTransition(t, k: key(s1, e1))

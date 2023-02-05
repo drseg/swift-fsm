@@ -1,22 +1,13 @@
 import Cocoa
 
-protocol StateProtocol: Hashable {
-    associatedtype Event: EventProtocol
-}
-
-protocol EventProtocol: Hashable {
-    associatedtype State: StateProtocol
-}
+protocol StateProtocol: Hashable {}
+protocol EventProtocol: Hashable {}
 
 enum S: StateProtocol {
-    typealias Event = E
-    
     case a, b, c
 }
 
 enum E: EventProtocol {
-    typealias State = S
-    
     case d, e, f
 }
 
@@ -53,51 +44,51 @@ protocol TransitionGroup {
     var transitions: [Transition<State, Event>] { get set }
 }
 
-let a = TransitionBuilder.build {
-    Transitions(transitions:
-                    [Transition(givenState: S.a,
-                                event: E.d,
-                                nextState: S.b,
-                                actions: [])]
-    )
-    
-    Transitions(transitions:
-                    [Transition(givenState: S.b,
-                                event: E.d,
-                                nextState: S.c,
-                                actions: [])]
-    )
-    
-    if false {
-        Transitions(transitions:
-                        [Transition(givenState: S.b,
-                                    event: E.d,
-                                    nextState: S.c,
-                                    actions: [])]
-        )
-    }
+//let a = TransitionBuilder.build {
+//    Transitions(transitions:
+//                    [Transition(givenState: S.a,
+//                                event: E.d,
+//                                nextState: S.b,
+//                                actions: [])]
+//    )
+//
+//    Transitions(transitions:
+//                    [Transition(givenState: S.b,
+//                                event: E.d,
+//                                nextState: S.c,
+//                                actions: [])]
+//    )
+//
+//    if false {
+//        Transitions(transitions:
+//                        [Transition(givenState: S.b,
+//                                    event: E.d,
+//                                    nextState: S.c,
+//                                    actions: [])]
+//        )
+//    }
+//
+//    if true {
+//        Transitions(transitions:
+//                        [Transition(givenState: S.b,
+//                                    event: E.d,
+//                                    nextState: S.c,
+//                                    actions: [])]
+//        )
+//    } else {
+//        Transitions(transitions:
+//                        [Transition(givenState: S.b,
+//                                    event: E.d,
+//                                    nextState: S.c,
+//                                    actions: [])]
+//        )
+//    }
+//}
+//
+//print(a)
 
-    if true {
-        Transitions(transitions:
-                        [Transition(givenState: S.b,
-                                    event: E.d,
-                                    nextState: S.c,
-                                    actions: [])]
-        )
-    } else {
-        Transitions(transitions:
-                        [Transition(givenState: S.b,
-                                    event: E.d,
-                                    nextState: S.c,
-                                    actions: [])]
-        )
-    }
-}
-
-print(a)
-
-@resultBuilder struct TransitionBuilder<S: StateProtocol, E: EventProtocol> {
-    struct Output: TransitionGroup {
+@resultBuilder struct TransitionBuilder {
+    struct Output<S: StateProtocol, E: EventProtocol>: TransitionGroup {
         typealias State = S
         typealias Event = E
         
@@ -108,31 +99,31 @@ print(a)
         }
     }
     
-    static func buildBlock(_ components: Output...) -> [Transition<S, E>] {
+    static func buildBlock<T: TransitionGroup>(_ components: T...) -> [Transition<T.State, T.Event>] {
         Array(components.map(\.transitions).joined())
     }
     
-    static func buildExpression(_ expression: [Transition<S, E>]) -> Output {
+    static func buildExpression<S, E>(_ expression: [Transition<S, E>]) -> some TransitionGroup {
         Output(expression)
     }
     
-    static func buildExpression<T: TransitionGroup>(_ expression: T) -> Output where T.State == S, T.Event == E {
+    static func buildExpression<T: TransitionGroup>(_ expression: T) -> some TransitionGroup {
         Output(expression.transitions)
     }
     
-    static func buildIf(_ components: [Transition<S, E>]?) -> Output {
+    static func buildIf<S, E>(_ components: [Transition<S, E>]?) -> some TransitionGroup {
         Output(components ?? [])
     }
     
-    static func buildEither(first component: [Transition<S, E>]) -> Output {
+    static func buildEither<S, E>(first component: [Transition<S, E>]) -> some TransitionGroup {
         Output(component)
     }
     
-    static func buildEither(second component: [Transition<S, E>]) -> Output {
+    static func buildEither<S, E>(second component: [Transition<S, E>]) -> some TransitionGroup {
         Output(component)
     }
     
-    static func build(@TransitionBuilder _ content: () -> ([Transition<S, E>])) -> [Transition<S, E>] {
+    static func build<S: StateProtocol, E: EventProtocol>(@TransitionBuilder _ content: () -> ([Transition<S, E>])) -> [Transition<S, E>] {
         content()
     }
 }
