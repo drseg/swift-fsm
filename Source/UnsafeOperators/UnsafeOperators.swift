@@ -149,31 +149,29 @@ func | (state: any SP, es: [EventState]) -> [StateEventState] {
     }
 }
 
-func | (states: [any SP], esas: [[EventStateAction]]) -> TGroup<AS, AE> {
+func | (states: [any SP], esas: [[EventStateAction]]) -> [Transition<AS, AE>] {
     states | esas.flatMap { $0 }
 }
 
-func | (states: [any SP], esas: [EventStateAction]) -> TGroup<AS, AE> {
-    TGroup(
+func | (states: [any SP], esas: [EventStateAction]) -> [Transition<AS, AE>] {
+    
         states.reduce(into: [Transition]()) {
-            $0.append(contentsOf: ($1 | esas).transitions)
+            $0.append(contentsOf: ($1 | esas))
         }
-    )
 }
 
-func | (state: any SP, esas: [[EventStateAction]]) -> TGroup<AS, AE> {
+func | (state: any SP, esas: [[EventStateAction]]) -> [Transition<AS, AE>] {
     state | esas.flatMap { $0 }
 }
 
-func | (state: any SP, esas: [EventStateAction]) -> TGroup<AS, AE> {
-    TGroup(
+func | (state: any SP, esas: [EventStateAction]) -> [Transition<AS, AE>] {
+    
         esas.reduce(into: [Transition]()) {
             $0.append(Transition(givenState: state.erased,
                                  event: $1.event.erased,
                                  nextState: $1.state.erased,
                                  actions: $1.actions))
         }
-    )
 }
 
 func | (events: [any EP], state: any SP) -> [EventState] {
@@ -210,26 +208,24 @@ func | (stateEvent: StateEvent, state: any SP) -> StateEventState {
     StateEventState(stateEvent.state, stateEvent.event, state)
 }
 
-func | (sess: [StateEventState], action: @escaping () -> ()) -> TGroup<AS, AE> {
+func | (sess: [StateEventState], action: @escaping () -> ()) -> [Transition<AS, AE>] {
     sess | [action]
 }
 
-func | (sess: [StateEventState], actions: [() -> ()]) -> TGroup<AS, AE> {
-    TGroup(
+func | (sess: [StateEventState], actions: [() -> ()]) -> [Transition<AS, AE>] {
+    
         sess.reduce(into: [Transition]()) {
-            $0.append(contentsOf: ($1 | actions).transitions)
+            $0.append(contentsOf: ($1 | actions))
         }
-    )
 }
 
-func | (ses: StateEventState, action: @escaping () -> ()) -> TGroup<AS, AE> {
+func | (ses: StateEventState, action: @escaping () -> ()) -> [Transition<AS, AE>] {
     ses | [action]
 }
 
-func | (ses: StateEventState, actions: [() -> ()]) -> TGroup<AS, AE> {
-    TGroup([Transition(givenState: ses.startState.erased,
+func | (ses: StateEventState, actions: [() -> ()]) -> [Transition<AS, AE>] {
+    [Transition(givenState: ses.startState.erased,
                                      event: ses.event.erased,
                                      nextState: ses.endState.erased,
                                      actions: actions)]
-    )
 }

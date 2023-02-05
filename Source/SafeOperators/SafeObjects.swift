@@ -72,19 +72,19 @@ class Given<State: SP, Event: EP> {
     func include(
         _ superState: SuperState<S, E>,
         @WTABuilder<S, E> wtas: () -> [WTA]
-    ) -> TGroup<S, E> {
+    ) -> [Transition<S, E>] {
         include(superState).callAsFunction(wtas)
     }
     
     func callAsFunction(
         @WTABuilder<S, E> _ wtas: () -> [WTA]
-    ) -> TGroup<S, E> {
-        formTransitionsTGroup(with: wtas())
+    ) -> [Transition<S, E>] {
+        formFinalTransitions(with: wtas())
     }
     
-    func formTransitionsTGroup(with wtas: [WTA]) -> TGroup<S, E> {
-        TGroup(formTransitions(with: superState?.wtas ?? [])
-               + formTransitions(with: wtas))
+    func formFinalTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
+        formTransitions(with: superState?.wtas ?? [])
+        + formTransitions(with: wtas)
     }
     
     fileprivate func formTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
@@ -161,7 +161,7 @@ struct GivenWhenThen<State: SP, Event: EP> {
 }
 
 struct GWTCollection<S: SP, E: EP> {
-    typealias G = TGroup<S, E>
+    typealias G = [Transition<S, E>]
     typealias GWT = GivenWhenThen<S, E>
     
     let givenWhenThens: [GWT]

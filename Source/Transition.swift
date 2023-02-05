@@ -14,8 +14,6 @@ protocol TransitionGroup {
     var transitions: [Transition<State, Event>] { get }
 }
 
-typealias TGroup<S: SP, E: EP> = TransitionBuilder<S, E>.Output
-
 struct Transition<S: SP, E: EP>: Hashable {
     struct Key: Hashable {
         let state: S
@@ -53,9 +51,9 @@ struct Transition<S: SP, E: EP>: Hashable {
     }
     
     static func build(
-        @TransitionBuilder<S, E> _ content: () -> (TGroup<S, E>)
+        @TransitionBuilder<S, E> _ content: () -> ([Transition<S, E>])
     ) -> [Transition<S, E>] {
-        content().transitions
+        content()
     }
     
     static func == (lhs: Transition<S, E>, rhs: Transition<S, E>) -> Bool {

@@ -76,7 +76,7 @@ let a = TransitionBuilder.build {
                                     actions: [])]
         )
     }
-    
+
     if true {
         Transitions(transitions:
                         [Transition(givenState: S.b,
@@ -97,38 +97,42 @@ let a = TransitionBuilder.build {
 print(a)
 
 @resultBuilder struct TransitionBuilder<S: StateProtocol, E: EventProtocol> {
-    struct Group: TransitionGroup {
-        var transitions: [Transition<S, E>]
-        
+    struct Output: TransitionGroup {
         typealias State = S
         typealias Event = E
-    }
-    
-    static func buildExpression<T: TransitionGroup>(_ expression: T) -> Group where T.State == S, T.Event == E {
-        Group(transitions: expression.transitions)
-    }
-    
-    static func buildBlock(_ components: Group...) -> Group {
-        var first = components.first!
-        components.dropFirst().forEach {
-            first.transitions.append(contentsOf: $0.transitions)
+        
+        var transitions: [Transition<S, E>]
+        
+        init(_ transitions: [Transition<S, E>]) {
+            self.transitions = transitions
         }
-        return first
     }
     
-    static func buildIf(_ components: Group?) -> Group {
-        components ?? Group(transitions: [])
+    static func buildBlock(_ components: Output...) -> [Transition<S, E>] {
+        Array(components.map(\.transitions).joined())
     }
     
-    static func buildEither(first component: Group) -> Group {
-        component
+    static func buildExpression(_ expression: [Transition<S, E>]) -> Output {
+        Output(expression)
     }
     
-    static func buildEither(second component: Group) -> Group {
-        component
+    static func buildExpression<T: TransitionGroup>(_ expression: T) -> Output where T.State == S, T.Event == E {
+        Output(expression.transitions)
     }
     
-    static func build(@TransitionBuilder _ content: () -> (Group)) -> [Transition<S, E>] {
-        content().transitions
+    static func buildIf(_ components: [Transition<S, E>]?) -> Output {
+        Output(components ?? [])
+    }
+    
+    static func buildEither(first component: [Transition<S, E>]) -> Output {
+        Output(component)
+    }
+    
+    static func buildEither(second component: [Transition<S, E>]) -> Output {
+        Output(component)
+    }
+    
+    static func build(@TransitionBuilder _ content: () -> ([Transition<S, E>])) -> [Transition<S, E>] {
+        content()
     }
 }

@@ -26,40 +26,40 @@ struct WTBuilder<State: SP, Event: EP> {
 }
 
 @resultBuilder struct TransitionBuilder<S: SP, E: EP> {
-    struct Output: TransitionGroup, Equatable {
-        var transitions: [Transition<S, E>]
+    struct TGroup: TransitionGroup, Equatable {
+        typealias State = S
+        typealias Event = E
+        
+        let transitions: [Transition<S, E>]
         
         init(_ transitions: [Transition<S, E>]) {
             self.transitions = transitions
         }
-
-        typealias State = S
-        typealias Event = E
     }
-
+    
+    static func buildExpression(_ expression: [Transition<S, E>]) -> TGroup {
+        TGroup(expression)
+    }
+    
     static func buildExpression<T: TransitionGroup>(
         _ expression: T
-    ) -> Output where T.State == S, T.Event == E {
-        Output(expression.transitions)
+    ) -> TGroup where T.State == S, T.Event == E {
+        TGroup(expression.transitions)
     }
-
-    static func buildBlock(_ components: Output...) -> Output {
-        var first = components.first!
-        components.dropFirst().forEach {
-            first.transitions.append(contentsOf: $0.transitions)
-        }
-        return first
+    
+    static func buildIf(_ components: [Transition<S, E>]?) -> TGroup {
+        TGroup(components ?? [])
     }
-
-    static func buildIf(_ components: Output?) -> Output {
-        components ?? Output([])
+    
+    static func buildEither(first component: [Transition<S, E>]) -> TGroup {
+        TGroup(component)
     }
-
-    static func buildEither(first component: Output) -> Output {
-        component
+    
+    static func buildEither(second component: [Transition<S, E>]) -> TGroup {
+        TGroup(component)
     }
-
-    static func buildEither(second component: Output) -> Output {
-        component
+    
+    static func buildBlock(_ components: TGroup...) -> [Transition<S, E>] {
+        Array(components.map(\.transitions).joined())
     }
 }

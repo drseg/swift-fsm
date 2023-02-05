@@ -80,10 +80,9 @@ func joinWhenThensToAction<S: SP, E: EP> (
 func makeTransitions<S: SP, E: EP> (
     _ givenWhenThens: [GivenWhenThen<S, E>],
     _ actions: [() -> ()]
-) -> TGroup<S, E> {
+) -> [Transition<S, E>] {
     var alreadyAdded = [GivenWhenThen<S, E>]()
-    
-    return TGroup(givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
+    return givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
         func t(_ g: S, _ w: E, _ t: S, _ a: [() -> ()]) -> Transition<S, E> {
             Transition(givenState: g,
                        event: w,
@@ -104,12 +103,12 @@ func makeTransitions<S: SP, E: EP> (
         }
         
         t1.append(t(gwt.given, gwt.when, gwt.then, actions))
-    })
+    }
 }
 
 func makeTransitions<S: SP, E: EP> (
     _ given: Given<S, E>,
     _ wtas: [[WhenThenAction<S, E>]]
-) -> TGroup<S, E> {
-    given.formTransitionsTGroup(with: wtas.flatMap { $0 })
+) -> [Transition<S, E>] {
+    given.formFinalTransitions(with: wtas.flatMap { $0 })
 }

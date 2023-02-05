@@ -76,7 +76,7 @@ a | h | *d* (\(file): line \(l3))
     
     func assertThrows<E: Error>(
         expected: E.Type,
-        building t: TGroup<AnyState, AnyEvent>
+        building t: [Transition<AS, AE>]
     ) {
         let fsm = UnsafeFSM(initialState: State.a)
         XCTAssertThrowsError(

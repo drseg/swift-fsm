@@ -15,7 +15,6 @@ class SafeTests: XCTestCase {
     typealias G = Given<State, Event>
     typealias W = When<Event>
     typealias T = Then<State>
-    typealias TG = TGroup<State, Event>
     
     func transition(
         _ given: State,
@@ -31,7 +30,7 @@ class SafeTests: XCTestCase {
     
     func assertContains(
         _ sess: [(State, Event, State)],
-        _ t: TGroup<State, Event>,
+        _ t: [Transition<State, Event>],
         line: UInt = #line
     ) {
         sess.forEach {
@@ -43,10 +42,10 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ t: TGroup<State, Event>,
+        _ t: [Transition<State, Event>],
         line: UInt = #line
     ) {
-        XCTAssertTrue(t.transitions.contains(where: {
+        XCTAssertTrue(t.contains(where: {
             $0.givenState == given &&
             $0.event == when &&
             $0.nextState == then
@@ -55,9 +54,9 @@ class SafeTests: XCTestCase {
     
     func assertCount(
         _ expected: Int,
-        _ t: TGroup<State, Event>,
+        _ t: [Transition<State, Event>],
         line: UInt = #line) {
-        XCTAssertEqual(t.transitions.count, expected, line: line)
+        XCTAssertEqual(t.count, expected, line: line)
     }
     
     func doNothing() {}
@@ -208,7 +207,7 @@ final class SafeTransitionTests: SafeTests {
         assertContains(.b, .g, .a, t)
         assertCount(4, t)
         
-        t.transitions.first?.actions.first?()
+        t.first?.actions.first?()
         waitForExpectations(timeout: 0.1)
     }
     
@@ -225,7 +224,7 @@ final class SafeTransitionTests: SafeTests {
         assertContains(.b, .g, .a, t)
         assertCount(4, t)
         
-        t.transitions.first?.actions.last?()
+        t.first?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
 
@@ -238,7 +237,7 @@ final class SafeTransitionTests: SafeTests {
         let t = G(.a) | W(.g) | T(.c) | [{}, {
             self.assertAction(e)
         }]
-        t.transitions.first?.actions.last?()
+        t.first?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
     
@@ -313,7 +312,7 @@ class SuperStateTransitionTests: SafeTests {
 #warning("no tests check a SuperState with more than one WTA")
     
     func testGiven() {
-        func assertOutput(_ t: TGroup<State, Event>) {
+        func assertOutput(_ t: [Transition<State, Event>]) {
             assertContains(.a, .h, .b, t)
             assertContains(.a, .g, .s, t)
             assertCount(2, t)
@@ -335,12 +334,12 @@ class SuperStateTransitionTests: SafeTests {
         
         assertOutput(t1)
         assertOutput(t2)
-        assertOutput(TG(t3))
-        assertOutput(TG(t4))
+        assertOutput(t3)
+        assertOutput(t4)
     }
     
     func testMultipleGiven() {
-        func assertOutput(_ t: TGroup<State, Event>) {
+        func assertOutput(_ t: [Transition<State, Event>]) {
             assertContains([(.a, .h, .b),
                             (.a, .g, .s),
                             (.b, .h, .b),
@@ -356,7 +355,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleWhenThenAction() {
-        func assertOutput(_ t: TGroup<State, Event>) {
+        func assertOutput(_ t: [Transition<State, Event>]) {
             assertContains([(.a, .h, .b),
                             (.a, .g, .s),
                             (.a, .h, .s)], t)
@@ -375,7 +374,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGivenMultipleWTA() {
-        func assertOutput(_ t: TGroup<State, Event>) {
+        func assertOutput(_ t: [Transition<State, Event>]) {
             assertContains([(.a, .h, .b),
                             (.a, .g, .s),
                             (.a, .h, .s),
@@ -397,7 +396,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultitipleWhen() {
-        func assertOutput(_ t: TGroup<State, Event>) {
+        func assertOutput(_ t: [Transition<State, Event>]) {
             assertContains([(.a, .h, .b),
                             (.a, .g, .s),
                             (.a, .h, .s)], t)
@@ -414,7 +413,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGivenMultipleWhen() {
-        func assertOutput(_ t: TGroup<State, Event>) {
+        func assertOutput(_ t: [Transition<State, Event>]) {
             assertContains([(.a, .h, .b),
                             (.a, .g, .s),
                             (.a, .h, .s),
@@ -434,7 +433,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleGivenMultipleWhenMultipleThenAction() {
-        func assertOutput(_ t: TGroup<State, Event>) {
+        func assertOutput(_ t: [Transition<State, Event>]) {
             assertContains([(.a, .h, .b),
                             (.a, .g, .s),
                             (.a, .h, .s),
@@ -460,7 +459,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testMultipleWhenThen() {
-        func assertOutput(_ t: TGroup<State, Event>) {
+        func assertOutput(_ t: [Transition<State, Event>]) {
             assertContains([(.a, .h, .b),
                             (.a, .g, .s),
                             (.a, .h, .s)], t)
@@ -479,7 +478,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testAll() {
-        func assertOutput(_ t: TGroup<State, Event>) {
+        func assertOutput(_ t: [Transition<State, Event>]) {
             assertContains([(.a, .h, .b),
                             (.a, .g, .s),
                             (.a, .h, .s),
@@ -530,11 +529,11 @@ class FileLineTests: SafeTests {
         }
         let line2 = #line; let t2 = G(.a) | W(.g) | T(.s) | { }
         
-        XCTAssertEqual(t1.transitions.first?.line, line1)
-        XCTAssertEqual(t2.transitions.first?.line, line2)
+        XCTAssertEqual(t1.first?.line, line1)
+        XCTAssertEqual(t2.first?.line, line2)
         
-        XCTAssertEqual(t1.transitions.first?.file, file)
-        XCTAssertEqual(t2.transitions.first?.file, file)
+        XCTAssertEqual(t1.first?.file, file)
+        XCTAssertEqual(t2.first?.file, file)
     }
 #warning("really the line should be whatever line has the 'then' in it")
 }
