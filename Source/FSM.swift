@@ -21,7 +21,9 @@ where State: StateProtocol, Event: EventProtocol {
         self.state = state
     }
     
-    func buildTransitions(@TransitionBuilder<S, E> _ c: () -> TGroup<S, E>) throws {
+    func buildTransitions(
+        @TransitionBuilder<S, E> _ c: () -> TGroup<S, E>
+    ) throws {
         var keys = Set<K>()
         var invalidTransitions = Set<T>()
         
@@ -79,10 +81,10 @@ final class UnsafeFSM: FSMBase<AnyState, AnyEvent> {
     }
     
     override func buildTransitions(
-        @TransitionBuilder<US, UE> _ content: () -> TGroup<US, UE>
+        @TransitionBuilder<S, E> _ c: () -> TGroup<S, E>
     ) throws {
-        try validate(content().transitions)
-        try super.buildTransitions(content)
+        try validate(c().transitions)
+        try super.buildTransitions(c)
     }
     
     func handleEvent(_ event: any EventProtocol) {

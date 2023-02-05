@@ -7,18 +7,14 @@
 
 import Foundation
 
-class TGroup<S: SP, E: EP>: Equatable {
-    static func == (lhs: TGroup, rhs: TGroup) -> Bool {
-        lhs.transitions == rhs.transitions
-    }
-    
-    var transitions: [Transition<S, E>] = []
-    
-    convenience init(_ transitions: [Transition<S, E>]) {
-        self.init()
-        self.transitions = transitions
-    }
+protocol TransitionGroup {
+    associatedtype State: StateProtocol
+    associatedtype Event: EventProtocol
+        
+    var transitions: [Transition<State, Event>] { get }
 }
+
+typealias TGroup<S: SP, E: EP> = TransitionBuilder<S, E>.Output
 
 struct Transition<S: SP, E: EP>: Hashable {
     struct Key: Hashable {
@@ -57,8 +53,8 @@ struct Transition<S: SP, E: EP>: Hashable {
     }
     
     static func build(
-        @TransitionBuilder<S, E> _ content: () -> TGroup<S, E>
-    ) -> [Transition]  {
+        @TransitionBuilder<S, E> _ content: () -> (TGroup<S, E>)
+    ) -> [Transition<S, E>] {
         content().transitions
     }
     

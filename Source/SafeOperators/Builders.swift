@@ -25,26 +25,41 @@ struct WTBuilder<State: SP, Event: EP> {
     }
 }
 
-@resultBuilder
-struct TransitionBuilder<State: SP, Event: EP> {
-    typealias G = TGroup<State, Event>
-    
-    static func buildBlock(_ ts: G...) -> G {
-        let transitions = ts.reduce(into: [Transition<State, Event>]()) {
-            $0.append(contentsOf: $1.transitions)
+@resultBuilder struct TransitionBuilder<S: SP, E: EP> {
+    struct Output: TransitionGroup, Equatable {
+        var transitions: [Transition<S, E>]
+        
+        init(_ transitions: [Transition<S, E>]) {
+            self.transitions = transitions
         }
-        return TGroup(transitions)
+
+        typealias State = S
+        typealias Event = E
     }
-    
-    static func buildOptional(_ t: G?) -> G {
-        return t ?? TGroup([])
+
+    static func buildExpression<T: TransitionGroup>(
+        _ expression: T
+    ) -> Output where T.State == S, T.Event == E {
+        Output(expression.transitions)
     }
-    
-    static func buildEither(first component: G) -> G {
+
+    static func buildBlock(_ components: Output...) -> Output {
+        var first = components.first!
+        components.dropFirst().forEach {
+            first.transitions.append(contentsOf: $0.transitions)
+        }
+        return first
+    }
+
+    static func buildIf(_ components: Output?) -> Output {
+        components ?? Output([])
+    }
+
+    static func buildEither(first component: Output) -> Output {
         component
     }
-    
-    static func buildEither(second component: G) -> G {
+
+    static func buildEither(second component: Output) -> Output {
         component
     }
 }

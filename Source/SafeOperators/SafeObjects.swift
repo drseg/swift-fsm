@@ -18,51 +18,56 @@ struct SuperState<State: SP, Event: EP> {
     }
 }
 
-final class Given<State: SP, Event: EP>: TGroup<State, Event> {
+struct Given<State: SP, Event: EP>: TransitionGroup {
     typealias S = State
     typealias E = Event
     typealias WTA = WhenThenAction<State, Event>
     
     let states: [S]
-    var superState: SuperState<S, E>? {
-        didSet { makeTransitions() }
-    }
+    let transitions: [Transition<State, Event>]
+    let superState: SuperState<S, E>?
     let file: String
     let line: Int
     
     init(
         _ given: S...,
-        include superState: SuperState<S, E>? = nil,
         file: String = #file,
         line: Int = #line
     ) {
         self.states = given
+        self.transitions = []
+        self.superState = nil
+        self.file = file
+        self.line = line
+    }
+    
+    private init(
+        _ given: [S],
+        _ transitions: [Transition<S, E>],
+        _ superState: SuperState<S, E>?,
+        file: String,
+        line: Int
+    ) {
+        self.states = given
+        self.transitions = transitions
         self.superState = superState
         self.file = file
         self.line = line
-        
-        super.init()
-        
-        makeTransitions()
-    }
-    
-    func makeTransitions() {
-        if let superState {
-            transitions = formTransitions(with: superState.wtas)
-        }
     }
     
     func include(_ superState: SuperState<S, E>) -> Self {
-        self.superState = superState
-        return self
+        return .init(states,
+                     formTransitions(with: superState.wtas),
+                     superState,
+                     file: file,
+                     line: line)
     }
     
     func include(
         _ superState: SuperState<S, E>,
         @WTABuilder<S, E> wtas: () -> [WTA]
     ) -> TGroup<S, E> {
-        self.superState = superState
-        return callAsFunction(wtas)
+        include(superState).callAsFunction(wtas)
     }
         
     func callAsFunction(
