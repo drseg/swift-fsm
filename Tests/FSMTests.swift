@@ -80,7 +80,7 @@ a | h | *d* (\(file): \(l4))
     
     func assertThrows<E: Error>(
         expected: E.Type,
-        building t: [Transition<AS, AE>]
+        building t: FSMTableRow<AS, AE>
     ) {
         let fsm = UnsafeFSM(initialState: State.a)
         XCTAssertThrowsError(
@@ -148,9 +148,6 @@ class FSMPerformanceTests: SafeTests {
         measure { 250000.times { fsm.handleEvent(Event.g) } }
     }
 }
-
-extension SafeTests.State: StateProtocol {}
-extension SafeTests.Event: EventProtocol {}
 
 extension Int {
     func times(_ block: @escaping () -> ()) {

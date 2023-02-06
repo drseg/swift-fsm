@@ -87,9 +87,9 @@ func joinWhenThensToAction<S: SP, E: EP> (
 func makeTransitions<S: SP, E: EP> (
     _ givenWhenThens: [GivenWhenThen<S, E>],
     _ actions: [() -> ()]
-) -> [Transition<S, E>] {
+) -> FSMTableRow<S, E> {
     var alreadyAdded = [GivenWhenThen<S, E>]()
-    return givenWhenThens.reduce(into: [Transition]()) { ts, gwt in
+    let transitions = givenWhenThens.reduce(into: [Transition<S, E>]()) { ts, gwt in
         func t(_ g: S, _ w: E, _ t: S, _ a: [() -> ()]) -> Transition<S, E> {
             Transition(givenState: g, event: w, nextState: t, actions: a,
                        file: gwt.file, line: gwt.line)
@@ -106,11 +106,18 @@ func makeTransitions<S: SP, E: EP> (
         
         ts.append(t(gwt.given, gwt.when, gwt.then, actions))
     }
+    let entryActions = givenWhenThens.map { $0.entryActions }.flatMap { $0 }
+    let exitActions = givenWhenThens.map { $0.exitActions }.flatMap { $0 }
+    return FSMTableRow(transitions,
+                       entryActions: entryActions,
+                       exitActions: exitActions)
 }
 
 func makeTransitions<S: SP, E: EP> (
     _ given: Given<S, E>,
     _ wtas: [[WhenThenAction<S, E>]]
-) -> [Transition<S, E>] {
-    given.formFinalTransitions(with: wtas.flatMap { $0 })
+) -> FSMTableRow<S, E> {
+    FSMTableRow(given.formFinalTransitions(with: wtas.flatMap { $0 }),
+                entryActions: given.entryActions,
+                exitActions: given.exitActions)
 }

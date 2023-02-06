@@ -9,12 +9,14 @@ import XCTest
 @testable import FiniteStateMachine
 
 class SafeTests: XCTestCase {
-    enum State { case a, b, c, d, e, f, p, q, r, s, t, u, v, w }
-    enum Event { case g, h, i, j, k, l }
+    enum State: StateProtocol { case a, b, c, d, e, f, p, q, r, s, t, u, v, w }
+    enum Event: EventProtocol { case g, h, i, j, k, l }
     
     typealias G = Given<State, Event>
     typealias W = When<Event>
     typealias T = Then<State>
+    
+    typealias TR = FSMTableRow<State, Event>
     
     func transition(
         _ given: State,
@@ -30,11 +32,11 @@ class SafeTests: XCTestCase {
     
     func assertContains(
         _ sess: [(State, Event, State)],
-        _ t: [Transition<State, Event>],
+        _ tr: TR,
         line: UInt = #line
     ) {
         sess.forEach {
-            assertContains($0.0, $0.1, $0.2, t, line: line)
+            assertContains($0.0, $0.1, $0.2, tr, line: line)
         }
     }
     
@@ -42,10 +44,10 @@ class SafeTests: XCTestCase {
         _ given: State,
         _ when: Event,
         _ then: State,
-        _ t: [Transition<State, Event>],
+        _ tr: TR,
         line: UInt = #line
     ) {
-        XCTAssertTrue(t.contains(where: {
+        XCTAssertTrue(tr.transitions.contains(where: {
             $0.givenState == given &&
             $0.event == when &&
             $0.nextState == then
@@ -54,9 +56,10 @@ class SafeTests: XCTestCase {
     
     func assertCount(
         _ expected: Int,
-        _ t: [Transition<State, Event>],
-        line: UInt = #line) {
-        XCTAssertEqual(t.count, expected, line: line)
+        _ tr: TR,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(tr.transitions.count, expected, line: line)
     }
     
     func doNothing() {}
@@ -64,17 +67,17 @@ class SafeTests: XCTestCase {
 
 final class SafeTransitionTests: SafeTests {
     func testSimpleConstructor() {
-        let t = G(.a) | W(.g) | T(.b) | { }
+        let tr = G(.a) | W(.g) | T(.b) | { }
         
-        assertContains(.a, .g, .b, t)
+        assertContains(.a, .g, .b, tr)
     }
     
     func testMultiGivenConstructor() {
-        let t = G(.a, .b) | W(.g) | T(.b) | { }
+        let tr = G(.a, .b) | W(.g) | T(.b) | { }
         
-        assertContains(.a, .g, .b, t)
-        assertContains(.b, .g, .b, t)
-        assertCount(2, t)
+        assertContains(.a, .g, .b, tr)
+        assertContains(.b, .g, .b, tr)
+        assertCount(2, tr)
     }
     
     func testMultiActionConstructor() {
@@ -83,131 +86,131 @@ final class SafeTransitionTests: SafeTests {
     }
     
     func testMultiWhenThenActionConstructor() {
-        let t = G(.a) | [W(.g) | T(.b) | { },
-                         W(.h) | T(.c) | { }]
+        let tr = G(.a) | [W(.g) | T(.b) | { },
+                          W(.h) | T(.c) | { }]
         
-        assertContains(.a, .g, .b, t)
-        assertContains(.a, .h, .c, t)
-        assertCount(2, t)
+        assertContains(.a, .g, .b, tr)
+        assertContains(.a, .h, .c, tr)
+        assertCount(2, tr)
     }
     
     func testCombineMultiGivenAndMultiWhenThenAction() {
-        let t = G(.a, .b) | [W(.g) | T(.c) | { },
-                             W(.h) | T(.c) | { }]
+        let tr = G(.a, .b) | [W(.g) | T(.c) | { },
+                              W(.h) | T(.c) | { }]
         
-        assertContains(.a, .g, .c, t)
-        assertContains(.b, .h, .c, t)
-        assertCount(4, t)
+        assertContains(.a, .g, .c, tr)
+        assertContains(.b, .h, .c, tr)
+        assertCount(4, tr)
     }
     
     func testMultiWhenConstructor() {
-        let t = G(.a) | W(.g, .h) | T(.c) | { }
+        let tr = G(.a) | W(.g, .h) | T(.c) | { }
         
-        assertContains(.a, .g, .c, t)
-        assertContains(.a, .h, .c, t)
-        assertCount(2, t)
+        assertContains(.a, .g, .c, tr)
+        assertContains(.a, .h, .c, tr)
+        assertCount(2, tr)
     }
     
     func testMultiGivenMultiWhenConstructor() {
-        let t = G(.a, .b) | W(.g, .h) | T(.c) | { }
+        let tr = G(.a, .b) | W(.g, .h) | T(.c) | { }
         
-        assertContains(.a, .g, .c, t)
-        assertContains(.b, .h, .c, t)
-        assertCount(4, t)
+        assertContains(.a, .g, .c, tr)
+        assertContains(.b, .h, .c, tr)
+        assertCount(4, tr)
     }
     
     func testCombineMultiGivenMultiWhenMultiWhenThenAction() {
-        let t = G(.a, .b) | [
+        let tr = G(.a, .b) | [
             W(.g, .h) | T(.c) | { },
             W(.i, .j) | T(.d) | { }
         ]
         
-        assertContains(.a, .g, .c, t)
-        assertContains(.b, .j, .d, t)
-        assertCount(8, t)
+        assertContains(.a, .g, .c, tr)
+        assertContains(.b, .j, .d, tr)
+        assertCount(8, tr)
     }
     
     func testMultiWhenThenConstructor() {
-        let t = G(.a) | [W(.g) | T(.c),
-                         W(.h) | T(.d)] | { }
+        let tr = G(.a) | [W(.g) | T(.c),
+                          W(.h) | T(.d)] | { }
         
-        assertContains(.a, .g, .c, t)
-        assertContains(.a, .h, .d, t)
-        assertCount(2, t)
+        assertContains(.a, .g, .c, tr)
+        assertContains(.a, .h, .d, tr)
+        assertCount(2, tr)
     }
     
     func testMaxConstructors() {
-        let t = G(.a, .b) | [[W(.g, .h) | T(.c),
-                              W(.h, .i) | T(.d)] | { },
-                             
-                             [W(.i, .j) | T(.e),
-                              W(.j, .k) | T(.f)] | { }]
+        let tr = G(.a, .b) | [[W(.g, .h) | T(.c),
+                               W(.h, .i) | T(.d)] | { },
+                              
+                              [W(.i, .j) | T(.e),
+                               W(.j, .k) | T(.f)] | { }]
         
-        assertContains(.a, .g, .c, t)
-        assertContains(.b, .k, .f, t)
-        assertCount(16, t)
+        assertContains(.a, .g, .c, tr)
+        assertContains(.b, .k, .f, tr)
+        assertCount(16, tr)
     }
     
     func testEquality() {
         let x = G(.a, .b) | W(.g) | T(.c) | { }
         var y = G(.a, .b) | W(.g) | T(.c) | { }
-        XCTAssertEqual(x, y)
-
+        XCTAssertEqual(x.transitions, y.transitions)
+        
         y =     G(.a, .a) | W(.g) | T(.c) | { }
-        XCTAssertNotEqual(x, y)
+        XCTAssertNotEqual(x.transitions, y.transitions)
         y =     G(.a, .b) | W(.h) | T(.c) | { }
-        XCTAssertNotEqual(x, y)
+        XCTAssertNotEqual(x.transitions, y.transitions)
         y =     G(.a, .b) | W(.g) | T(.b) | { }
-        XCTAssertNotEqual(x, y)
+        XCTAssertNotEqual(x.transitions, y.transitions)
     }
-
+    
     func testTransitionBuilder() {
-        let t = Transition.build {
+        let tr = Transition.build {
             G(.a, .b) | W(.g) | T(.c) | { }
             G(.c)     | W(.h) | T(.d) | { }
             G(.d)     | W(.i) | T(.e) | { }
             G(.e)     | W(.j) | T(.f) | { }
         }
-
-        XCTAssertEqual(t.count, 5)
+        
+        XCTAssertEqual(tr.transitions.count, 5)
     }
     
     func testGivenBuilder() {
-        let t = G(.a, .b) {
+        let tr = G(.a, .b) {
             W(.h) | T(.b) | { }
             W(.g) | T(.a) | { }
         }
         
-        assertContains(.a, .h, .b, t)
-        assertContains(.b, .g, .a, t)
-        assertCount(4, t)
+        assertContains(.a, .h, .b, tr)
+        assertContains(.b, .g, .a, tr)
+        assertCount(4, tr)
     }
     
     func testGivenBuilderWithWhenThenArray() {
-        let t = G(.a, .b) {
+        let tr = G(.a, .b) {
             [W(.h) | T(.b),
              W(.g) | T(.a)] | { }
         }
         
-        assertContains(.a, .h, .b, t)
-        assertContains(.b, .g, .a, t)
-        assertCount(4, t)
+        assertContains(.a, .h, .b, tr)
+        assertContains(.b, .g, .a, tr)
+        assertCount(4, tr)
     }
     
     func testActionModifier() {
         let e = expectation(description: "call action")
         
-        let t =
+        let tr =
         G(.a, .b) {
             W(.h) | T(.b)
             W(.g) | T(.a)
         }.action { e.fulfill() }
         
-        assertContains(.a, .h, .b, t)
-        assertContains(.b, .g, .a, t)
-        assertCount(4, t)
+        assertContains(.a, .h, .b, tr)
+        assertContains(.b, .g, .a, tr)
+        assertCount(4, tr)
         
-        t.first?.actions.first?()
+        tr.transitions.first?.actions.first?()
         waitForExpectations(timeout: 0.1)
     }
     
@@ -215,52 +218,52 @@ final class SafeTransitionTests: SafeTests {
         let e = expectation(description: "call action")
         e.expectedFulfillmentCount = 2
         
-        let t =
+        let tr =
         G(.a, .b) {
             W(.h) | T(.b)
             W(.g) | T(.a)
         }.actions(e.fulfill, e.fulfill)
         
-        assertContains(.a, .h, .b, t)
-        assertContains(.b, .g, .a, t)
-        assertCount(4, t)
+        assertContains(.a, .h, .b, tr)
+        assertContains(.b, .g, .a, tr)
+        assertCount(4, tr)
         
-        t.first?.actions.forEach { $0() }
+        tr.transitions.first?.actions.forEach { $0() }
         waitForExpectations(timeout: 0.1)
     }
-
+    
     func testActionsPassedCorrectly() {
         let e = expectation(description: "passAction")
         e.expectedFulfillmentCount = 2
-        let t = G(.a) | W(.g) | T(.c) | [e.fulfill, e.fulfill]
-        t.first?.actions.forEach { $0() }
+        let tr = G(.a) | W(.g) | T(.c) | [e.fulfill, e.fulfill]
+        tr.transitions.first?.actions.forEach { $0() }
         waitForExpectations(timeout: 0.1)
     }
     
     func testBuilderIfTrue() {
         let condition = true
-        let ts = Transition.build {
+        let trc = Transition.build {
             if condition {
                 G(.a) | W(.g) | T(.b) | { }
             }
         }
         
-        XCTAssertEqual(ts.first, transition(.a, .g, .b))
+        XCTAssertEqual(trc.transitions.first, transition(.a, .g, .b))
     }
     
     func testBuilderIfFalse() {
         let condition = false
-        let ts = Transition.build {
+        let trc = Transition.build {
             if condition {
                 G(.a) | W(.g) | T(.b) | { }
             }
         }
-        XCTAssert(ts.isEmpty)
+        XCTAssert(trc.transitions.isEmpty)
     }
     
     func testBuilderElse() {
         let test = false
-        let ts = Transition.build {
+        let trc = Transition.build {
             if test {
                 G(.a) | W(.g) | T(.b) | { }
                 G(.a) | W(.h) | T(.b) | { }
@@ -268,21 +271,21 @@ final class SafeTransitionTests: SafeTests {
                 G(.b) | W(.i) | T(.b) | { }
             }
         }
-        XCTAssertEqual(ts.count, 1)
-        XCTAssertEqual(ts.first, transition(.b, .i, .b))
+        XCTAssertEqual(trc.transitions.count, 1)
+        XCTAssertEqual(trc.transitions.first, transition(.b, .i, .b))
     }
     
     func testBuilderSwitch() {
         enum Switchy { case on, off }
         
         let state = Switchy.on
-        let ts = Transition.build {
+        let trc = Transition.build {
             switch state {
             case .on:  G(.a) | W(.g) | T(.b) | { }
             case .off: G(.b) | W(.i) | T(.b) | { }
             }
         }
-        XCTAssertEqual(ts.first, transition(.a, .g, .b))
+        XCTAssertEqual(trc.transitions.first, transition(.a, .g, .b))
     }
 }
 
@@ -313,7 +316,7 @@ class SuperStateTransitionTests: SafeTests {
     }
     
     func testGiven() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s)], $0, line: line)
@@ -321,17 +324,18 @@ class SuperStateTransitionTests: SafeTests {
             }
         }
         
-        let t1 = G(.a).include(s1) { W(.g) | T(.s) | { } }
-        let t2 = G(.a).include(s1) | W(.g) | T(.s) | { }
-        let t3 = Transition.build  { G(.a).include(ss) }
-        let t4 = Transition.build  { G(.a).include(s1, s2) }
-        let t5 = Transition.build  { G(.a).include(s1).include(s2) }
+        let tr1 = G(.a).include(s1) { W(.g) | T(.s) | { } }
+        let tr2 = G(.a).include(s1) | W(.g) | T(.s) | { }
         
-        assertOutput(t1, t2, t3, t4, t5)
+        let tr3 = Transition.build { G(.a).include(ss) }.rows.first!
+        let tr4 = Transition.build { G(.a).include(s1, s2) }.rows.first!
+        let tr5 = Transition.build { G(.a).include(s1).include(s2) }.rows.first!
+        
+        assertOutput(tr1, tr2, tr3, tr4, tr5)
     }
     
     func testMultipleGiven() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s),
@@ -340,17 +344,18 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(4, $0, line: line)
             }
         }
-
-        let t1 = G(.a, .b).include(s1) { W(.g) | T(.s) | { } }
-        let t2 = G(.a, .b).include(s1) | W(.g) | T(.s) | { }
-        let t3 = Transition.build      { G(.a, .b).include(ss) }
-        let t4 = Transition.build      { G(.a, .b).include(s1, s2) }
-
-        assertOutput(t1, t2, t3, t4)
+        
+        let tr1 = G(.a, .b).include(s1) { W(.g) | T(.s) | { } }
+        let tr2 = G(.a, .b).include(s1) | W(.g) | T(.s) | { }
+        
+        let tr3 = Transition.build { G(.a, .b).include(ss) }.rows.first!
+        let tr4 = Transition.build { G(.a, .b).include(s1, s2) }.rows.first!
+        
+        assertOutput(tr1, tr2, tr3, tr4)
     }
-
+    
     func testMultipleWhenThenAction() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s),
@@ -358,23 +363,23 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(3, $0, line: line)
             }
         }
-
-        let t1 = G(.a).include(s1) {
+        
+        let tr1 = G(.a).include(s1) {
             W(.g) | T(.s) | { }
             W(.h) | T(.s) | { }
         }
-        let t2 = G(.a).include(s1)          | [W(.g) | T(.s) | { },
-                                               W(.h) | T(.s) | { }]
-        let t3 = G(.a).include(ss)          | [W(.h) | T(.s) | { }]
-        let t4 = G(.a).include(s1, s2)      | [W(.h) | T(.s) | { }]
-        let t5 = G(.a).include(ss) { W(.h)  | T(.s)  | { } }
-        let t6 = G(.a).include(s1, s2)      { W(.h)  | T(.s) | { } }
-
-        assertOutput(t1, t2, t3, t4, t5, t6)
+        let tr2 = G(.a).include(s1)          | [W(.g) | T(.s) | { },
+                                                W(.h) | T(.s) | { }]
+        let tr3 = G(.a).include(ss)          | [W(.h) | T(.s) | { }]
+        let tr4 = G(.a).include(s1, s2)      | [W(.h) | T(.s) | { }]
+        let tr5 = G(.a).include(ss) { W(.h)  | T(.s)  | { } }
+        let tr6 = G(.a).include(s1, s2)      { W(.h)  | T(.s) | { } }
+        
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-
+    
     func testMultipleGivenMultipleWTA() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s),
@@ -385,21 +390,21 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(6, $0, line: line)
             }
         }
-
-        let t1 = G(.a, .b).include(s1) {
+        
+        let tr1 = G(.a, .b).include(s1) {
             W(.g) | T(.s) | { }
             W(.h) | T(.s) | { }
         }
-        let t2 = G(.a, .b).include(s1)     | [W(.g) | T(.s) | { },
-                                              W(.h) | T(.s) | { }]
-        let t3 = G(.a, .b).include(ss)     | [W(.h) | T(.s) | { }]
-        let t4 = G(.a, .b).include(s1, s2) | [W(.h) | T(.s) | { }]
-
-        assertOutput(t1, t2, t3, t4)
+        let tr2 = G(.a, .b).include(s1)     | [W(.g) | T(.s) | { },
+                                               W(.h) | T(.s) | { }]
+        let tr3 = G(.a, .b).include(ss)     | [W(.h) | T(.s) | { }]
+        let tr4 = G(.a, .b).include(s1, s2) | [W(.h) | T(.s) | { }]
+        
+        assertOutput(tr1, tr2, tr3, tr4)
     }
-
+    
     func testMultitipleWhen() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s),
@@ -408,21 +413,21 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(4, $0, line: line)
             }
         }
-
-        let t1 = G(.a).include(s1) {
+        
+        let tr1 = G(.a).include(s1) {
             W(.g, .h, .i) | T(.s) | { }
         }
-        let t2 = G(.a).include(s1)     | W(.g, .h, .i) | T(.s) | { }
-        let t3 = G(.a).include(s1, s2) | W(.h, .i)     | T(.s) | { }
-        let t4 = G(.a).include(ss)     | W(.h, .i)     | T(.s) | { }
-        let t5 = G(.a).include(s1, s2) { W(.h, .i)     | T(.s) | { } }
-        let t6 = G(.a).include(ss)     { W(.h, .i)     | T(.s) | { } }
-
-        assertOutput(t1, t2, t3, t4, t5, t6)
+        let tr2 = G(.a).include(s1)     | W(.g, .h, .i) | T(.s) | { }
+        let tr3 = G(.a).include(s1, s2) | W(.h, .i)     | T(.s) | { }
+        let tr4 = G(.a).include(ss)     | W(.h, .i)     | T(.s) | { }
+        let tr5 = G(.a).include(s1, s2) { W(.h, .i)     | T(.s) | { } }
+        let tr6 = G(.a).include(ss)     { W(.h, .i)     | T(.s) | { } }
+        
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-
+    
     func testMultipleGivenMultipleWhen() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s),
@@ -435,21 +440,21 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(8, $0, line: line)
             }
         }
-
-        let t1 = G(.a, .b).include(s1) {
+        
+        let tr1 = G(.a, .b).include(s1) {
             W(.g, .h, .i) | T(.s) | { }
         }
-        let t2 = G(.a, .b).include(s1)     | W(.g, .h, .i) | T(.s) | { }
-        let t3 = G(.a, .b).include(s1, s2) | W(.h, .i)     | T(.s) | { }
-        let t4 = G(.a, .b).include(ss)     | W(.h, .i)     | T(.s) | { }
-        let t5 = G(.a, .b).include(s1, s2) { W(.h, .i)     | T(.s) | { } }
-        let t6 = G(.a, .b).include(ss)     { W(.h, .i)     | T(.s) | { } }
-
-        assertOutput(t1, t2, t3, t4, t5, t6)
+        let tr2 = G(.a, .b).include(s1)     | W(.g, .h, .i) | T(.s) | { }
+        let tr3 = G(.a, .b).include(s1, s2) | W(.h, .i)     | T(.s) | { }
+        let tr4 = G(.a, .b).include(ss)     | W(.h, .i)     | T(.s) | { }
+        let tr5 = G(.a, .b).include(s1, s2) { W(.h, .i)     | T(.s) | { } }
+        let tr6 = G(.a, .b).include(ss)     { W(.h, .i)     | T(.s) | { } }
+        
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-
+    
     func testMultipleGivenMultipleWhenMultipleThenAction() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s),
@@ -464,31 +469,31 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(10, $0, line: line)
             }
         }
-
-        let t1 = G(.a, .b).include(s1) {
+        
+        let tr1 = G(.a, .b).include(s1) {
             W(.g, .h) | T(.s) | { }
             W(.i, .j) | T(.d) | { }
         }
-        let t2 = G(.a, .b).include(s1)     | [W(.g, .h) | T(.s) | { },
-                                              W(.i, .j) | T(.d) | { }]
-        let t3 = G(.a, .b).include(s1, s2) | [W(.h)     | T(.s) | { },
-                                              W(.i, .j) | T(.d) | { }]
-        let t4 = G(.a, .b).include(ss)     | [W(.h)     | T(.s) | { },
-                                              W(.i, .j) | T(.d) | { }]
-        let t5 = G(.a, .b).include(s1, s2) {
+        let tr2 = G(.a, .b).include(s1)     | [W(.g, .h) | T(.s) | { },
+                                               W(.i, .j) | T(.d) | { }]
+        let tr3 = G(.a, .b).include(s1, s2) | [W(.h)     | T(.s) | { },
+                                               W(.i, .j) | T(.d) | { }]
+        let tr4 = G(.a, .b).include(ss)     | [W(.h)     | T(.s) | { },
+                                               W(.i, .j) | T(.d) | { }]
+        let tr5 = G(.a, .b).include(s1, s2) {
             W(.h)     | T(.s) | { }
             W(.i, .j) | T(.d) | { }
         }
-        let t6 = G(.a, .b).include(ss) {
+        let tr6 = G(.a, .b).include(ss) {
             W(.h)     | T(.s) | { }
             W(.i, .j) | T(.d) | { }
         }
-
-        assertOutput(t1, t2, t3, t4, t5, t6)
+        
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-
+    
     func testMultipleWhenThen() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s),
@@ -497,34 +502,34 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(4, $0)
             }
         }
-
-        let t1 = G(.a).include(s1) {
+        
+        let tr1 = G(.a).include(s1) {
             [W(.g) | T(.s),
              W(.h) | T(.s),
              W(.i) | T(.s)] | { }
         }
-        let t2 = G(.a).include(s1)     | [W(.g) | T(.s),
-                                          W(.h) | T(.s),
-                                          W(.i) | T(.s)] | { }
-
-        let t3 = G(.a).include(s1, s2) | [W(.h) | T(.s),
-                                          W(.i) | T(.s)] | { }
-
-        let t4 = G(.a).include(ss)     | [W(.h) | T(.s),
-                                          W(.i) | T(.s)] | { }
-        let t5 = G(.a).include(ss) {
+        let tr2 = G(.a).include(s1)     | [W(.g) | T(.s),
+                                           W(.h) | T(.s),
+                                           W(.i) | T(.s)] | { }
+        
+        let tr3 = G(.a).include(s1, s2) | [W(.h) | T(.s),
+                                           W(.i) | T(.s)] | { }
+        
+        let tr4 = G(.a).include(ss)     | [W(.h) | T(.s),
+                                           W(.i) | T(.s)] | { }
+        let tr5 = G(.a).include(ss) {
             W(.h) | T(.s)
             W(.i) | T(.s) }.action { }
-
-        let t6 = G(.a).include(s1, s2) {
+        
+        let tr6 = G(.a).include(s1, s2) {
             W(.h) | T(.s)
             W(.i) | T(.s) }.action { }
-
-        assertOutput(t1, t2, t3, t4, t5, t6)
+        
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-
+    
     func testAll() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s),
@@ -544,54 +549,54 @@ class SuperStateTransitionTests: SafeTests {
                                 (.b, .j, .s),
                                 (.b, .j, .t),
                                 (.b, .k, .t)], $0, line: line)
-
+                
                 assertCount(18, $0, line: line)
             }
         }
-
-        let t1 = G(.a, .b).include(s1) {
+        
+        let tr1 = G(.a, .b).include(s1) {
             [W(.g, .h) | T(.s),
              W(.h, .i) | T(.t)] | { }
-
+            
             [W(.i, .j) | T(.s),
              W(.j, .k) | T(.t)] | { }
         }
-
-        let t2 = G(.a, .b).include(s1)     | [[W(.g, .h) | T(.s),
-                                               W(.h, .i) | T(.t)] | { },
-
-                                              [W(.i, .j) | T(.s),
-                                               W(.j, .k) | T(.t)] | { }]
-
-        let t3 = G(.a, .b).include(s1, s2) | [[W(.h)     | T(.s),
-                                               W(.h, .i) | T(.t)] | { },
-
-                                              [W(.i, .j) | T(.s),
-                                               W(.j, .k) | T(.t)] | { }]
-
-        let t4 = G(.a, .b).include(ss)     | [[W(.h)     | T(.s),
-                                               W(.h, .i) | T(.t)] | { },
-
-                                              [W(.i, .j) | T(.s),
-                                               W(.j, .k) | T(.t)] | { }]
-
-        let t5 = G(.a, .b).include(s1, s2) {
+        
+        let tr2 = G(.a, .b).include(s1)     | [[W(.g, .h) | T(.s),
+                                                W(.h, .i) | T(.t)] | { },
+                                               
+                                               [W(.i, .j) | T(.s),
+                                                W(.j, .k) | T(.t)] | { }]
+        
+        let tr3 = G(.a, .b).include(s1, s2) | [[W(.h)     | T(.s),
+                                                W(.h, .i) | T(.t)] | { },
+                                               
+                                               [W(.i, .j) | T(.s),
+                                                W(.j, .k) | T(.t)] | { }]
+        
+        let tr4 = G(.a, .b).include(ss)     | [[W(.h)     | T(.s),
+                                                W(.h, .i) | T(.t)] | { },
+                                               
+                                               [W(.i, .j) | T(.s),
+                                                W(.j, .k) | T(.t)] | { }]
+        
+        let tr5 = G(.a, .b).include(s1, s2) {
             [W(.h)     | T(.s),
              W(.h, .i) | T(.t)] | { }
-
+            
             [W(.i, .j) | T(.s),
              W(.j, .k) | T(.t)] | { }
         }
-
-        let t6 = G(.a, .b).include(ss) {
+        
+        let tr6 = G(.a, .b).include(ss) {
             [W(.h)     | T(.s),
              W(.h, .i) | T(.t)] | { }
-
+            
             [W(.i, .j) | T(.s),
              W(.j, .k) | T(.t)] | { }
         }
-
-        assertOutput(t1, t2, t3, t4, t5, t6)
+        
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
 }
 
@@ -599,16 +604,16 @@ class FileLineTests: SafeTests {
     func testFileAndLine() {
         let file: String = String(#file)
         
-        let line1 = #line; let t1 = G(.a) {
+        let l1 = #line; let tr1 = G(.a) {
             W(.g) | T(.s) | { }
         }
-        let line2 = #line; let t2 = G(.a) | W(.g) | T(.s) | { }
+        let l2 = #line; let tr2 = G(.a) | W(.g) | T(.s) | { }
         
-        XCTAssertEqual(t1.first?.line, line1)
-        XCTAssertEqual(t2.first?.line, line2)
+        XCTAssertEqual(tr1.transitions.first?.line, l1)
+        XCTAssertEqual(tr2.transitions.first?.line, l2)
         
-        XCTAssertEqual(t1.first?.file, file)
-        XCTAssertEqual(t2.first?.file, file)
+        XCTAssertEqual(tr1.transitions.first?.file, file)
+        XCTAssertEqual(tr2.transitions.first?.file, file)
     }
 #warning("the file/line should be sourced from the 'Then' not the 'Given'")
 }

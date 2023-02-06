@@ -15,9 +15,8 @@ class UnsafeTransitionTests: XCTestCase {
     typealias ASP = any StateProtocol
     typealias AEP = any EventProtocol
     
-    typealias Transition = FiniteStateMachine.Transition<AnyState,
-                                                         AnyEvent>
-    typealias Key = Transition.Key
+    typealias T = FiniteStateMachine.Transition<AnyState, AnyEvent>
+    typealias K = T.Key
     
     var s1: ASP { mustImplement() }
     var s2: ASP { mustImplement() }
@@ -44,19 +43,19 @@ class UnsafeTransitionTests: XCTestCase {
         _ givenState: ASP,
         _ event: AEP,
         _ nextState: ASP
-    ) -> Transition {
-        Transition(givenState: givenState.erase,
-                   event: event.erase,
-                   nextState: nextState.erase,
-                   actions: [])
+    ) -> T {
+        T(givenState: givenState.erase,
+          event: event.erase,
+          nextState: nextState.erase,
+          actions: [])
     }
     
-    func key(_ state: ASP, _ event: AEP) -> Key {
-        Key(state: state.erase,
-            event: event.erase)
+    func key(_ state: ASP, _ event: AEP) -> K {
+        K(state: state.erase,
+          event: event.erase)
     }
 
-    var t: [Transition] = []
+    var t: FSMTableRow<AS, AE>!
     
     func assertFirst(
         _ given: ASP,
@@ -64,7 +63,8 @@ class UnsafeTransitionTests: XCTestCase {
         _ then: ASP,
         line: UInt = #line
     ) {
-        XCTAssertEqual(t.first, transition(given, when, then), line: line)
+        XCTAssertEqual(t.transitions.first, transition(given, when, then),
+                       line: line)
     }
     
     func assertLast(
@@ -73,7 +73,8 @@ class UnsafeTransitionTests: XCTestCase {
         _ then: ASP,
         line: UInt = #line
     ) {
-        XCTAssertEqual(t.last, transition(given, when, then), line: line)
+        XCTAssertEqual(t.transitions.last, transition(given, when, then),
+                       line: line)
     }
 
     func testTransition() {
@@ -168,21 +169,21 @@ class UnsafeTransitionTests: XCTestCase {
     
     func testCallsAction() {
         t = s1 | e1 | s2 | action
-        t.first?.actions.first?()
+        t.transitions.first?.actions.first?()
         XCTAssertTrue(actionCalled)
     }
     
     func testBuilder() {
-        let t = Transition.build {
+        let t = T.build {
             s1       | e1 | s2 | action
             s2       | e2 | s1 | action
             [s2, s1] | e3 | s2 | action
         }
-        XCTAssertEqual(t.count, 4)
+        XCTAssertEqual(t.transitions.count, 4)
     }
 
     func assertContainsTransition(
-        _ t: [Transition],
+        _ t: [T],
         _ s: ASP,
         _ e: AEP,
         line: UInt = #line
@@ -195,18 +196,18 @@ class UnsafeTransitionTests: XCTestCase {
 
     func testIf() {
         let condition = true
-        let t = Transition.build {
+        let t = T.build {
             if condition {
                 s1 | e1 | s2 | action
             }
         }
 
-        assertContainsTransition(t, s1, e1)
+        assertContainsTransition(t.transitions, s1, e1)
     }
 
     func testElse() {
         let condition = false
-        let t = Transition.build {
+        let t = T.build {
             if condition {
                 s2 | e1 | s3 | action
             }
@@ -215,19 +216,19 @@ class UnsafeTransitionTests: XCTestCase {
             }
         }
 
-        assertContainsTransition(t, s1, e1)
+        assertContainsTransition(t.transitions, s1, e1)
     }
 
     func testSwitch() {
         let condition = true
-        let t = Transition.build {
+        let t = T.build {
             switch condition {
             case true:  s1 | e1 | s2 | action
             default: []
             }
         }
 
-        assertContainsTransition(t, s1, e1)
+        assertContainsTransition(t.transitions, s1, e1)
     }
 
     func testActionsDispatchDynamically() {
@@ -235,7 +236,7 @@ class UnsafeTransitionTests: XCTestCase {
         class Sub: Base { override func test() {} }
 
         let t = s1 | e1 | s2 | Sub().test
-        t.first?.actions.first?()
+        t.transitions.first?.actions.first?()
     }
 }
 
@@ -333,16 +334,12 @@ final class MixedMessTests: UnsafeTransitionTests {
     override var e3: AEP { true }
 }
 
-extension String: StateProtocol, EventProtocol {}
-extension Int: EventProtocol, StateProtocol {}
-extension Bool: EventProtocol, StateProtocol {}
-
-protocol NeverEqual { }
+private protocol NeverEqual { }
 extension NeverEqual {
     static func == (lhs: Self, rhs: Self) -> Bool { false }
 }
 
-protocol AlwaysEqual { }
+private protocol AlwaysEqual { }
 extension AlwaysEqual {
     static func == (lhs: Self, rhs: Self) -> Bool { true }
 }
@@ -435,7 +432,3 @@ final class ErasedHashableConformanceTests: XCTestCase {
         waitForExpectations(timeout: 0.1)
     }
 }
-
-
-
-

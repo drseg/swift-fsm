@@ -7,6 +7,14 @@
 
 import Foundation
 
+struct FSMTableRowCollection<S: SP, E: EP> {
+    let rows: [FSMTableRow<S, E>]
+    
+    var transitions: [Transition<S, E>] {
+        rows.map(\.transitions).flatMap { $0 }
+    }
+}
+
 struct FSMTableRow<S: SP, E: EP>: TransitionGroup {
     let transitions: [Transition<S, E>]
     let entryActions: [() -> ()]
@@ -60,12 +68,6 @@ struct Transition<S: SP, E: EP>: Hashable {
         hasher.combine(givenState)
         hasher.combine(event)
         hasher.combine(nextState)
-    }
-    
-    static func build(
-        @TransitionBuilder<S, E> _ content: () -> ([Self])
-    ) -> [Transition<S, E>] {
-        content()
     }
     
     static func == (lhs: Self, rhs: Self) -> Bool {

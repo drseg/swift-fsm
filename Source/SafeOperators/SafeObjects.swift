@@ -19,12 +19,12 @@ protocol SSGroup {
     associatedtype S: StateProtocol
     associatedtype E: EventProtocol
     
-    var superStates: [SuperState<S, E>]? { get }
+    var superStates: [SuperState<S, E>] { get }
 }
 
 extension SSGroup {
     var allSuperWTAs: [WhenThenAction<S, E>] {
-        superStates?.map { $0.wtas }.flatMap { $0 } ?? []
+        superStates.map { $0.wtas }.flatMap { $0 }
     }
 }
 
@@ -34,7 +34,7 @@ class _GivenBase<S: SP, E: EP>: SSGroup {
     typealias WT = WhenThen<S, E>
     
     let states: [S]
-    let superStates: [SuperState<S, E>]?
+    let superStates: [SuperState<S, E>]
     
     var entryActions = [() -> ()]()
     var exitActions = [() -> ()]()
@@ -48,14 +48,14 @@ class _GivenBase<S: SP, E: EP>: SSGroup {
         line: Int = #line
     ) {
         self.states = states
-        self.superStates = nil
+        self.superStates = []
         self.file = file
         self.line = line
     }
     
     fileprivate init(
         _ given: [S],
-        _ superStates: [SS]?,
+        _ superStates: [SS],
         file: String,
         line: Int
     ) {
@@ -66,8 +66,7 @@ class _GivenBase<S: SP, E: EP>: SSGroup {
     }
     
     func formFinalTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
-        formTransitions(with: allSuperWTAs)
-        + formTransitions(with: wtas)
+        formTransitions(with: allSuperWTAs) + formTransitions(with: wtas)
     }
     
     func formTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
@@ -85,8 +84,12 @@ class _GivenBase<S: SP, E: EP>: SSGroup {
     
     func callAsFunction(
         @WTABuilder<S, E> _ wtas: () -> [WTA]
-    ) -> [Transition<S, E>] {
-        formFinalTransitions(with: wtas())
+    ) -> FSMTableRow<S, E> {
+        FSMTableRow(
+            formFinalTransitions(with: wtas()),
+            entryActions: entryActions,
+            exitActions: exitActions
+        )
     }
     
     func callAsFunction(
@@ -114,7 +117,7 @@ class Given<S: SP, E: EP>: _GivenBase<S, E> {
     func include(
         _ superStates: SS...,
         @WTABuilder<S, E> wtas: () -> [WTA]
-    ) -> [Transition<S, E>] {
+    ) -> FSMTableRow<S, E> {
         include(superStates).callAsFunction(wtas)
     }
     
@@ -130,7 +133,7 @@ class Given<S: SP, E: EP>: _GivenBase<S, E> {
     }
     
     private func include(_ newSuperStates: [SS]) -> FinalGiven<S, E> {
-        FinalGiven(states, newSuperStates + (superStates ?? []),
+        FinalGiven(states, newSuperStates + superStates,
                    file: file, line: line)
     }
 }
@@ -140,7 +143,7 @@ final class FinalGiven<S: SP, E: EP>: Given<S, E>, TransitionGroup {
     
     override init(
         _ states: [S],
-        _ superStates: [SS]?,
+        _ superStates: [SS],
         file: String,
         line: Int
     ) {
@@ -161,7 +164,7 @@ struct GivenWhen<S: SP, E: EP>: SSGroup {
     let given: S
     let when: E
     
-    let superStates: [SuperState<S, E>]?
+    let superStates: [SuperState<S, E>]
     
     let entryActions: [() -> ()]
     let exitActions: [() -> ()]
@@ -188,7 +191,7 @@ struct GivenWhenThen<S: SP, E: EP>: SSGroup {
     let when: E
     let then: S
     
-    let superStates: [SuperState<S, E>]?
+    let superStates: [SuperState<S, E>]
     
     let entryActions: [() -> ()]
     let exitActions: [() -> ()]
@@ -198,7 +201,6 @@ struct GivenWhenThen<S: SP, E: EP>: SSGroup {
 }
 
 struct GWTCollection<S: SP, E: EP> {
-    typealias T = Transition<S, E>
     typealias GWT = GivenWhenThen<S, E>
     
     let givenWhenThens: [GWT]
@@ -207,11 +209,11 @@ struct GWTCollection<S: SP, E: EP> {
         givenWhenThens = gwts
     }
     
-    func action(_ action: @escaping () -> ()) -> [T] {
+    func action(_ action: @escaping () -> ()) -> FSMTableRow<S, E> {
         actions(action)
     }
     
-    func actions(_ actions: (() -> ())...) -> [T] {
+    func actions(_ actions: (() -> ())...) -> FSMTableRow<S, E> {
         givenWhenThens | actions
     }
 }

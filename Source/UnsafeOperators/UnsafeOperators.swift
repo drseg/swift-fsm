@@ -145,29 +145,6 @@ func | (state: any SP, es: [EventState]) -> [StateEventState] {
     }
 }
 
-func | (states: [any SP], esas: [[EventStateAction]]) -> [AnyTransition] {
-    states | esas.flatMap { $0 }
-}
-
-func | (states: [any SP], esas: [EventStateAction]) -> [AnyTransition] {
-    states.reduce(into: [Transition]()) {
-        $0.append(contentsOf: ($1 | esas))
-    }
-}
-
-func | (state: any SP, esas: [[EventStateAction]]) -> [AnyTransition] {
-    state | esas.flatMap { $0 }
-}
-
-func | (state: any SP, esas: [EventStateAction]) -> [AnyTransition] {
-    esas.reduce(into: [Transition]()) {
-        $0.append(Transition(givenState: state.erase,
-                             event: $1.event.erase,
-                             nextState: $1.state.erase,
-                             actions: $1.actions))
-    }
-}
-
 func | (events: [any EP], state: any SP) -> [EventState] {
     events.reduce(into: [EventState]()) {
         $0.append($1 | state)
@@ -202,23 +179,55 @@ func | (stateEvent: StateEvent, state: any SP) -> StateEventState {
     StateEventState(stateEvent.state, stateEvent.event, state)
 }
 
-func | (sess: [StateEventState], action: @escaping () -> ()) -> [AnyTransition] {
+
+func | (states: [any SP], esas: [[EventStateAction]]) -> FSMTableRow<AS, AE> {
+    states | esas.flatMap { $0 }
+}
+
+func | (states: [any SP], esas: [EventStateAction]) -> FSMTableRow<AS, AE> {
+    FSMTableRow(
+        states.reduce(into: [Transition]()) {
+            $0.append(contentsOf: ($1 | esas).transitions)
+        }
+    )
+}
+
+func | (state: any SP, esas: [[EventStateAction]]) -> FSMTableRow<AS, AE> {
+    state | esas.flatMap { $0 }
+}
+
+func | (state: any SP, esas: [EventStateAction]) -> FSMTableRow<AS, AE> {
+    FSMTableRow(
+        esas.reduce(into: [Transition]()) {
+            $0.append(Transition(givenState: state.erase,
+                                 event: $1.event.erase,
+                                 nextState: $1.state.erase,
+                                 actions: $1.actions))
+        }
+    )
+}
+
+func | (sess: [StateEventState], action: @escaping () -> ()) -> FSMTableRow<AS, AE> {
     sess | [action]
 }
 
-func | (sess: [StateEventState], actions: [() -> ()]) -> [AnyTransition] {
-    sess.reduce(into: [Transition]()) {
-        $0.append(contentsOf: ($1 | actions))
-    }
+func | (sess: [StateEventState], actions: [() -> ()]) -> FSMTableRow<AS, AE> {
+    FSMTableRow (
+        sess.reduce(into: [Transition]()) {
+            $0.append(contentsOf: ($1 | actions).transitions)
+        }
+    )
 }
 
-func | (ses: StateEventState, action: @escaping () -> ()) -> [AnyTransition] {
+func | (ses: StateEventState, action: @escaping () -> ()) -> FSMTableRow<AS, AE> {
     ses | [action]
 }
 
-func | (ses: StateEventState, actions: [() -> ()]) -> [AnyTransition] {
-    [Transition(givenState: ses.startState.erase,
-                event: ses.event.erase,
-                nextState: ses.endState.erase,
-                actions: actions)]
+func | (ses: StateEventState, actions: [() -> ()]) -> FSMTableRow<AS, AE> {
+    FSMTableRow(
+        [Transition(givenState: ses.startState.erase,
+                    event: ses.event.erase,
+                    nextState: ses.endState.erase,
+                    actions: actions)]
+    )
 }
