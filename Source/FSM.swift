@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ReflectiveEquality
 
 class FSMBase<State, Event>
 where State: StateProtocol, Event: EventProtocol {
@@ -99,12 +100,8 @@ final class UnsafeFSM: FSMBase<AnyState, AnyEvent> {
         }
         
         func isNSObject(_ a: Any) -> Bool {
-            let mirror = Mirror(reflecting: a)
-            return a is NSObject
-            && (mirror.superclassMirror != nil ||
-                String(describing: a).contains("NSObject"))
+            deepDescription(a).contains("NSObject")
         }
-#warning("This is not a complete check")
         
         func areSameType<E: Eraser>(lhs: E, rhs: E) -> Bool {
             type(of: lhs.base) == type(of: rhs.base)

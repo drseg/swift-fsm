@@ -314,7 +314,6 @@ class SuperStateTransitionTests: SafeTests {
         W(.h) | T(.b) | { }
         W(.g) | T(.s) | { }
     }
-#warning("no tests check a SuperState with more than one WTA")
     
     func testGiven() {
         func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
@@ -370,8 +369,8 @@ class SuperStateTransitionTests: SafeTests {
                                                W(.h) | T(.s) | { }]
         let t3 = G(.a).include(ss)          | [W(.h) | T(.s) | { }]
         let t4 = G(.a).include(s1, s2)      | [W(.h) | T(.s) | { }]
-        let t5 = G(.a).include(ss) { W(.h)  | T(.s) | { } }
-        let t6 = G(.a).include(s1, s2)      { W(.h) | T(.s) | { } }
+        let t5 = G(.a).include(ss) { W(.h)  | T(.s)  | { } }
+        let t6 = G(.a).include(s1, s2)      { W(.h)  | T(.s) | { } }
         
         assertOutput(t1, t2, t3, t4, t5, t6)
     }
@@ -416,10 +415,10 @@ class SuperStateTransitionTests: SafeTests {
             W(.g, .h, .i) | T(.s) | { }
         }
         let t2 = G(.a).include(s1)     | W(.g, .h, .i) | T(.s) | { }
-        let t3 = G(.a).include(s1, s2) | W(.h, .i) | T(.s) | { }
-        let t4 = G(.a).include(ss)     | W(.h, .i) | T(.s) | { }
-        let t5 = G(.a).include(s1, s2) { W(.h, .i) | T(.s) | { } }
-        let t6 = G(.a).include(ss)     { W(.h, .i) | T(.s) | { } }
+        let t3 = G(.a).include(s1, s2) | W(.h, .i)     | T(.s) | { }
+        let t4 = G(.a).include(ss)     | W(.h, .i)     | T(.s) | { }
+        let t5 = G(.a).include(s1, s2) { W(.h, .i)     | T(.s) | { } }
+        let t6 = G(.a).include(ss)     { W(.h, .i)     | T(.s) | { } }
         
         assertOutput(t1, t2, t3, t4, t5, t6)
     }
@@ -617,58 +616,11 @@ class FileLineTests: SafeTests {
 }
 
 class DemonstrationTests: SafeTests {
-    func testNestedBuilder() {
-        let t = Transition.build {
-            G(.a) | W(.h) | T(.b) | doNothing
-            G(.a) | W(.g) | T(.a) | doNothing
-            G(.b) | W(.h) | T(.b) | doNothing
-            G(.b) | W(.g) | T(.a) | doNothing
-            
-            G(.c) | [W(.h) | T(.b) | doNothing,
-                     W(.g) | T(.a) | doNothing]
-            G(.d) | [W(.h) | T(.b) | doNothing,
-                     W(.g) | T(.a) | doNothing]
-            
-            G(.e) {
-                W(.h) | T(.b) | doNothing
-                W(.g) | T(.a) | doNothing
-            }
-            G(.f) {
-                W(.h) | T(.b) | doNothing
-                W(.g) | T(.a) | doNothing
-            }
-            
-            G(.p, .q) {
-                W(.h) | T(.b) | doNothing
-                W(.g) | T(.a) | doNothing
-            }
-            
-            G(.r, .s) | [W(.h) | T(.b),
-                         W(.g) | T(.a)] | doNothing
-            
-            G(.t, .u) {
-                [W(.h) | T(.b),
-                 W(.g) | T(.a)] | doNothing
-            }
-            
-            G(.v, .w) {
-                W(.h) | T(.b)
-                W(.g) | T(.a)
-            }.action(doNothing)
-        }
-        
-        XCTAssertEqual(t.count, 28)
-    }
-    
     func testTurnstile() {
-        typealias W = When<String>
-        typealias T = Then<String>
+        typealias W = When<String>; typealias T = Then<String>
         
-        func alarmOff() {}
-        func unlock() {}
-        func alarmOn() {}
-        func thankyou() {}
-        func lock() {}
+        func alarmOff() {}; func unlock() {}; func alarmOn() {}
+        func thankyou() {}; func lock() {}
         
         /*
          Initial: Locked

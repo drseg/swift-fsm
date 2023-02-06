@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6E0B484D29907C7B00388B31 /* ReflectiveEquality in Frameworks */ = {isa = PBXBuildFile; productRef = 6E0B484C29907C7B00388B31 /* ReflectiveEquality */; };
 		6E1A786F298F2D27002757D2 /* Builders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E1A786E298F2D27002757D2 /* Builders.swift */; };
 		6E9CB83E298B05870085064B /* SafeOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9CB83D298B05870085064B /* SafeOperators.swift */; };
 		6E9CB842298B05CA0085064B /* SafeFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9CB841298B05CA0085064B /* SafeFunctions.swift */; };
@@ -55,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E0B484D29907C7B00388B31 /* ReflectiveEquality in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -167,6 +169,7 @@
 			);
 			name = FiniteStateMachine;
 			packageProductDependencies = (
+				6E0B484C29907C7B00388B31 /* ReflectiveEquality */,
 			);
 			productName = FiniteStateMachine;
 			productReference = 6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */;
@@ -218,6 +221,7 @@
 			);
 			mainGroup = 6EE64F7D2986BE3B009A361C;
 			packageReferences = (
+				6E0B484B29907C7B00388B31 /* XCRemoteSwiftPackageReference "reflective-equality" */,
 			);
 			productRefGroup = 6EE64F882986BE3B009A361C /* Products */;
 			projectDirPath = "";
@@ -547,6 +551,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6E0B484B29907C7B00388B31 /* XCRemoteSwiftPackageReference "reflective-equality" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/drseg/reflective-equality";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6E0B484C29907C7B00388B31 /* ReflectiveEquality */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6E0B484B29907C7B00388B31 /* XCRemoteSwiftPackageReference "reflective-equality" */;
+			productName = ReflectiveEquality;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6EE64F7E2986BE3B009A361C /* Project object */;
 }
