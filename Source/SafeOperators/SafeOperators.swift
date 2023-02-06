@@ -46,7 +46,7 @@ func |<S: SP, E: EP> (
     whenThens: [[WhenThen<S, E>]],
     actions: [() -> ()]
 ) -> [WhenThenAction<S, E>] {
-    whenThens.flatMap { $0 } | actions
+    whenThens.flatten | actions
 }
 
 func |<S: SP, E: EP> (

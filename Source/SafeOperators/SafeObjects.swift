@@ -34,7 +34,7 @@ protocol Modifiable {
 
 extension Modifiable {
     var allSuperWTAs: [WhenThenAction<S, E>] {
-        modifiers.superStates.map { $0.wtas }.flatMap { $0 }
+        modifiers.superStates.map { $0.wtas }.flatten
     }
 }
 
@@ -56,9 +56,9 @@ class _GivenBase<S: SP, E: EP>: Modifiable {
         self.line = line
     }
     
-    fileprivate init(_ s: [S], _ ss: [SS], file: String, line: Int) {
+    fileprivate init(_ s: [S], _ m: RowModifiers<S, E>, file: String, line: Int) {
         self.states = s
-        self.modifiers = RowModifiers(superStates: ss, entryActions: [], exitActions: [])
+        self.modifiers = m
         self.file = file
         self.line = line
     }
@@ -83,10 +83,8 @@ class _GivenBase<S: SP, E: EP>: Modifiable {
     func callAsFunction(
         @WTABuilder<S, E> _ wtas: () -> [WTA]
     ) -> FSMTableRow<S, E> {
-        FSMTableRow(
-            formFinalTransitions(with: wtas()),
-            modifiers: modifiers
-        )
+        FSMTableRow(transitions: formFinalTransitions(with: wtas()),
+                    modifiers: modifiers)
     }
     
     func callAsFunction(
@@ -128,16 +126,18 @@ class Given<S: SP, E: EP>: _GivenBase<S, E> {
     }
     
     private func include(_ newSuperStates: [SS]) -> FinalGiven<S, E> {
-        FinalGiven(states, newSuperStates + modifiers.superStates,
-                   file: file, line: line)
+        let modifiers = RowModifiers(superStates: modifiers.superStates + newSuperStates,
+                                     entryActions: modifiers.entryActions,
+                                     exitActions: modifiers.exitActions)
+        return FinalGiven(states, modifiers, file: file, line: line)
     }
 }
 
 final class FinalGiven<S: SP, E: EP>: Given<S, E>, FSMTableRowProtocol {
     var transitions = [Transition<S, E>]()
     
-    override init(_ s: [S], _ ss: [SS], file: String, line: Int) {
-        super.init(s, ss, file: file, line: line)
+    override init(_ s: [S], _ m: RowModifiers<S, E>, file: String, line: Int) {
+        super.init(s, m, file: file, line: line)
         self.transitions = formTransitions(with: allSuperWTAs)
     }
 }

@@ -12,7 +12,7 @@ struct WTABuilder<S: SP, E: EP> {
     static func buildBlock<E>(
         _ wtas: [WhenThenAction<S, E>]...
     ) -> [WhenThenAction<S, E>] {
-        wtas.flatMap { $0 }
+        wtas.flatten
     }
 }
 
@@ -21,7 +21,7 @@ struct WTBuilder<S: SP, E: EP> {
     static func buildBlock(
         _ wts: [WhenThen<S, E>]...
     ) -> [WhenThen<S, E>] {
-        wts.flatMap { $0 }
+        wts.flatten
     }
 }
 
@@ -37,7 +37,7 @@ struct FSMTableRowCollection<S: SP, E: EP> {
     let rows: [FSMTableRow<S, E>]
     
     var transitions: [Transition<S, E>] {
-        rows.map(\.transitions).flatMap { $0 }
+        rows.map(\.transitions).flatten
     }
 }
 
@@ -48,14 +48,6 @@ struct FSMTableRow<S: SP, E: EP>: FSMTableRowProtocol {
     var startStates: Set<S> {
         Set(transitions.map { $0.givenState })
     }
-    
-    init(
-        _ transitions: [Transition<S, E>],
-        modifiers: RowModifiers<S, E>
-    ) {
-        self.transitions = transitions
-        self.modifiers = modifiers
-    }
 }
 
 @resultBuilder
@@ -65,7 +57,7 @@ struct FSMTableBuilder<S: SP, E: EP> {
     static func buildExpression<TG: FSMTableRowProtocol>(
         _ e: TG
     ) -> TRC where TG.State == S, TG.Event == E {
-        FSMTableRowCollection(rows: [FSMTableRow(e.transitions,
+        FSMTableRowCollection(rows: [FSMTableRow(transitions: e.transitions,
                                                  modifiers: e.modifiers)])
     }
     
@@ -86,6 +78,6 @@ struct FSMTableBuilder<S: SP, E: EP> {
     }
     
     static func buildBlock(_ components: TRC...) -> TRC {
-        FSMTableRowCollection(rows: components.map(\.rows).flatMap { $0 })
+        FSMTableRowCollection(rows: components.map(\.rows).flatten)
     }
 }

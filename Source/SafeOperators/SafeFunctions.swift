@@ -29,7 +29,7 @@ func joinGivenToWhenThens<S: SP, E: EP> (
     _ whenThens: [[WhenThen<S, E >]]
 ) -> [GivenWhenThen<S, E>] {
     given.states.reduce(into: [GivenWhenThen]()) { gwts, state in
-        whenThens.flatMap { $0 }.forEach {
+        whenThens.flatten.forEach {
             gwts.append(
                 GivenWhenThen(given: state,
                               when: $0.when,
@@ -79,11 +79,11 @@ func joinWhenThensToAction<S: SP, E: EP> (
 }
 
 func makeTransitions<S: SP, E: EP> (
-    _ givenWhenThens: [GivenWhenThen<S, E>],
+    _ gwts: [GivenWhenThen<S, E>],
     _ actions: [() -> ()]
 ) -> FSMTableRow<S, E> {
     var alreadyAdded = [GivenWhenThen<S, E>]()
-    let transitions = givenWhenThens.reduce(into: [Transition<S, E>]()) { ts, gwt in
+    let transitions = gwts.reduce(into: [Transition<S, E>]()) { ts, gwt in
         func t(_ g: S, _ w: E, _ t: S, _ a: [() -> ()]) -> Transition<S, E> {
             Transition(givenState: g, event: w, nextState: t, actions: a,
                        file: gwt.file, line: gwt.line)
@@ -100,15 +100,14 @@ func makeTransitions<S: SP, E: EP> (
         
         ts.append(t(gwt.given, gwt.when, gwt.then, actions))
     }
-    return FSMTableRow(transitions,
-                       modifiers: givenWhenThens.first!.modifiers)
-    #warning("nasty bang")
+    return FSMTableRow(transitions: transitions,
+                       modifiers: gwts.first?.modifiers ?? .empty)
 }
 
 func makeTransitions<S: SP, E: EP> (
     _ given: Given<S, E>,
     _ wtas: [[WhenThenAction<S, E>]]
 ) -> FSMTableRow<S, E> {
-    FSMTableRow(given.formFinalTransitions(with: wtas.flatMap { $0 }),
+    FSMTableRow(transitions: given.formFinalTransitions(with: wtas.flatten),
                 modifiers: given.modifiers)
 }
