@@ -44,7 +44,6 @@ class FSMTests: SafeTests {
             G(.a) | W(.h) | T(.d) | action1
         }) {
             let e = $0 as! DuplicateTransitions<State, Event>
-            print(e.description)
             XCTAssertEqual(e.description.split(separator: ":\n",
                                                maxSplits: 1).last!,
 """

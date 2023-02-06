@@ -23,8 +23,6 @@ class FSMBase<S, E> where S: SP, E: EP {
         var keys = Set<K>()
         var duplicates = [T]()
         
-        
-  
         transitions = ts().reduce(into: [K: T]()) {
             let k = K(state: $1.givenState, event: $1.event)
             if keys.contains(k) {

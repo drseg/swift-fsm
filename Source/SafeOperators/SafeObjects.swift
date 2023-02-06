@@ -28,21 +28,7 @@ extension SSCollection {
     }
 }
 
-final class FinalGiven<S: SP, E: EP>: Given<S, E>, TransitionGroup {
-    var transitions = [Transition<S, E>]()
-    
-    override init(
-        _ states: [S],
-        _ superStates: [SS]?,
-        file: String,
-        line: Int
-    ) {
-        super.init(states, superStates, file: file, line: line)
-        self.transitions = formTransitions(with: allSuperWTAs)
-    }
-}
-
-class Given<S: SP, E: EP>: SSCollection {
+class _GivenBase<S: SP, E: EP>: SSCollection {
     typealias SS = SuperState<S, E>
     typealias WTA = WhenThenAction<S, E>
     typealias WT = WhenThen<S, E>
@@ -75,6 +61,50 @@ class Given<S: SP, E: EP>: SSCollection {
         self.line = line
     }
     
+    func formFinalTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
+        formTransitions(with: allSuperWTAs)
+        + formTransitions(with: wtas)
+    }
+    
+    func formTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
+        states.reduce(into: [Transition]()) { ts, given in
+            wtas.forEach {
+                ts.append(Transition(givenState: given,
+                                     event: $0.when,
+                                     nextState: $0.then,
+                                     actions: $0.actions,
+                                     file: file,
+                                     line: line))
+            }
+        }
+    }
+    
+    func callAsFunction(
+        @WTABuilder<S, E> _ wtas: () -> [WTA]
+    ) -> [Transition<S, E>] {
+        formFinalTransitions(with: wtas())
+    }
+    
+    func callAsFunction(
+        @WTBuilder<S, E> _ content: () -> [WT]
+    ) -> GWTCollection<S, E> {
+        GWTCollection(
+            content().reduce(into: [GivenWhenThen]()) { gwts, wt in
+                states.forEach {
+                    gwts.append(
+                        GivenWhenThen(given: $0,
+                                      when: wt.when,
+                                      then: wt.then,
+                                      superStates: superStates,
+                                      file: file,
+                                      line: line))
+                }
+            }
+        )
+    }
+}
+
+class Given<S: SP, E: EP>: _GivenBase<S, E> {
     func include(
         _ superStates: SS...,
         @WTABuilder<S, E> wtas: () -> [WTA]
@@ -93,50 +123,23 @@ class Given<S: SP, E: EP>: SSCollection {
         include(superStates)
     }
     
-    private func include(_ superStates: [SS]) -> FinalGiven<S, E> {
-        FinalGiven(states, superStates, file: file, line: line)
+    private func include(_ newSuperStates: [SS]) -> FinalGiven<S, E> {
+        FinalGiven(states, newSuperStates + (superStates ?? []),
+                   file: file, line: line)
     }
+}
+
+final class FinalGiven<S: SP, E: EP>: Given<S, E>, TransitionGroup {
+    var transitions = [Transition<S, E>]()
     
-    func callAsFunction(
-        @WTABuilder<S, E> _ wtas: () -> [WTA]
-    ) -> [Transition<S, E>] {
-        formFinalTransitions(with: wtas())
-    }
-    
-    func formFinalTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
-        formTransitions(with: allSuperWTAs)
-        + formTransitions(with: wtas)
-    }
-    
-    fileprivate func formTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
-        states.reduce(into: [Transition]()) { ts, given in
-            wtas.forEach {
-                ts.append(Transition(givenState: given,
-                                     event: $0.when,
-                                     nextState: $0.then,
-                                     actions: $0.actions,
-                                     file: file,
-                                     line: line))
-            }
-        }
-    }
-    
-    func callAsFunction(
-        @WTBuilder<S, E> _ content: () -> [WT]
-    ) -> GWTCollection<S, E> {
-        GWTCollection(
-            content().reduce(into: [GivenWhenThen]()) { gwts, wt in
-                states.forEach {
-                    gwts.append(
-                        GivenWhenThen(given: $0,
-                                      when: wt.when,
-                                      then: wt.then,
-                                      superStates: superStates,
-                                      file: file,
-                                      line: line))
-                }
-            }
-        ) 
+    override init(
+        _ states: [S],
+        _ superStates: [SS]?,
+        file: String,
+        line: Int
+    ) {
+        super.init(states, superStates, file: file, line: line)
+        self.transitions = formTransitions(with: allSuperWTAs)
     }
 }
 
@@ -181,7 +184,7 @@ struct GivenWhenThen<S: SP, E: EP>: SSCollection {
 }
 
 struct GWTCollection<S: SP, E: EP> {
-    typealias G = [Transition<S, E>]
+    typealias T = Transition<S, E>
     typealias GWT = GivenWhenThen<S, E>
     
     let givenWhenThens: [GWT]
@@ -190,11 +193,11 @@ struct GWTCollection<S: SP, E: EP> {
         givenWhenThens = gwts
     }
     
-    func action(_ action: @escaping () -> ()) -> G {
+    func action(_ action: @escaping () -> ()) -> [T] {
         actions(action)
     }
     
-    func actions(_ actions: (() -> ())...) -> G {
+    func actions(_ actions: (() -> ())...) -> [T] {
         givenWhenThens | actions
     }
 }
