@@ -7,34 +7,6 @@
 
 import Foundation
 
-struct FSMTableRowCollection<S: SP, E: EP> {
-    let rows: [FSMTableRow<S, E>]
-    
-    var transitions: [Transition<S, E>] {
-        rows.map(\.transitions).flatMap { $0 }
-    }
-}
-
-struct FSMTableRow<S: SP, E: EP>: TransitionGroup {
-    let transitions: [Transition<S, E>]
-    let entryActions: [() -> ()]
-    let exitActions: [() -> ()]
-    
-    var startStates: Set<S> {
-        Set(transitions.map { $0.givenState })
-    }
-    
-    init(
-        _ transitions: [Transition<S, E>],
-        entryActions: [() -> ()] = [],
-        exitActions: [() -> ()] = []
-    ) {
-        self.transitions = transitions
-        self.entryActions = entryActions
-        self.exitActions = exitActions
-    }
-}
-
 struct Transition<S: SP, E: EP>: Hashable {
     struct Key: Hashable {
         let state: S, event: E

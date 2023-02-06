@@ -25,7 +25,7 @@ struct WTBuilder<S: SP, E: EP> {
     }
 }
 
-protocol TransitionGroup {
+protocol FSMTableRowProtocol {
     associatedtype State: StateProtocol
     associatedtype Event: EventProtocol
     
@@ -34,11 +34,39 @@ protocol TransitionGroup {
     var exitActions: [() -> ()] { get }
 }
 
+struct FSMTableRowCollection<S: SP, E: EP> {
+    let rows: [FSMTableRow<S, E>]
+    
+    var transitions: [Transition<S, E>] {
+        rows.map(\.transitions).flatMap { $0 }
+    }
+}
+
+struct FSMTableRow<S: SP, E: EP>: FSMTableRowProtocol {
+    let transitions: [Transition<S, E>]
+    let entryActions: [() -> ()]
+    let exitActions: [() -> ()]
+    
+    var startStates: Set<S> {
+        Set(transitions.map { $0.givenState })
+    }
+    
+    init(
+        _ transitions: [Transition<S, E>],
+        entryActions: [() -> ()] = [],
+        exitActions: [() -> ()] = []
+    ) {
+        self.transitions = transitions
+        self.entryActions = entryActions
+        self.exitActions = exitActions
+    }
+}
+
 @resultBuilder
-struct TransitionBuilder<S: SP, E: EP> {
+struct FSMTableBuilder<S: SP, E: EP> {
     typealias TRC = FSMTableRowCollection<S, E>
     
-    static func buildExpression<TG: TransitionGroup>(
+    static func buildExpression<TG: FSMTableRowProtocol>(
         _ e: TG
     ) -> TRC where TG.State == S, TG.Event == E {
         FSMTableRowCollection(rows: [FSMTableRow(e.transitions,

@@ -44,7 +44,7 @@ protocol TransitionGroup {
     var transitions: [Transition<State, Event>] { get set }
 }
 
-//let a = TransitionBuilder.build {
+//let a = FSMTableBuilder.build {
 //    Transitions(transitions:
 //                    [Transition(givenState: S.a,
 //                                event: E.d,
@@ -87,7 +87,7 @@ protocol TransitionGroup {
 //
 //print(a)
 
-@resultBuilder struct TransitionBuilder {
+@resultBuilder struct FSMTableBuilder {
     struct Output<S: StateProtocol, E: EventProtocol>: TransitionGroup {
         typealias State = S
         typealias Event = E
@@ -123,7 +123,7 @@ protocol TransitionGroup {
         Output(component)
     }
     
-    static func build<S: StateProtocol, E: EventProtocol>(@TransitionBuilder _ content: () -> ([Transition<S, E>])) -> [Transition<S, E>] {
+    static func build<S: StateProtocol, E: EventProtocol>(@FSMTableBuilder _ content: () -> ([Transition<S, E>])) -> [Transition<S, E>] {
         content()
     }
 }

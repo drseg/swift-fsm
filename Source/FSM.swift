@@ -19,7 +19,7 @@ class FSMBase<S, E> where S: SP, E: EP {
         self.state = state
     }
     
-    func buildTransitions(@TransitionBuilder<S, E> _ ts: () -> FSMTableRowCollection<S, E>) throws {
+    func buildTransitions(@FSMTableBuilder<S, E> _ ts: () -> FSMTableRowCollection<S, E>) throws {
         var keys = Set<K>()
         var duplicates = [T]()
         
@@ -77,7 +77,7 @@ final class UnsafeFSM: FSMBase<AnyState, AnyEvent> {
     }
     
     override func buildTransitions(
-        @TransitionBuilder<AS, AE> _ t: () -> (FSMTableRowCollection<AS, AE>)
+        @FSMTableBuilder<AS, AE> _ t: () -> (FSMTableRowCollection<AS, AE>)
     ) throws {
         try validate(t().transitions)
         try super.buildTransitions(t)

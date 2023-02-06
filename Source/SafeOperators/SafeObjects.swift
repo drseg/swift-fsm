@@ -42,25 +42,16 @@ class _GivenBase<S: SP, E: EP>: SSGroup {
     let file: String
     let line: Int
     
-    init(
-        _ states: S...,
-        file: String = #file,
-        line: Int = #line
-    ) {
+    init(_ states: S..., file: String = #file, line: Int = #line) {
         self.states = states
         self.superStates = []
         self.file = file
         self.line = line
     }
     
-    fileprivate init(
-        _ given: [S],
-        _ superStates: [SS],
-        file: String,
-        line: Int
-    ) {
-        self.states = given
-        self.superStates = superStates
+    fileprivate init(_ s: [S], _ ss: [SS], file: String, line: Int) {
+        self.states = s
+        self.superStates = ss
         self.file = file
         self.line = line
     }
@@ -138,16 +129,11 @@ class Given<S: SP, E: EP>: _GivenBase<S, E> {
     }
 }
 
-final class FinalGiven<S: SP, E: EP>: Given<S, E>, TransitionGroup {
+final class FinalGiven<S: SP, E: EP>: Given<S, E>, FSMTableRowProtocol {
     var transitions = [Transition<S, E>]()
     
-    override init(
-        _ states: [S],
-        _ superStates: [SS],
-        file: String,
-        line: Int
-    ) {
-        super.init(states, superStates, file: file, line: line)
+    override init(_ s: [S], _ ss: [SS], file: String, line: Int) {
+        super.init(s, ss, file: file, line: line)
         self.transitions = formTransitions(with: allSuperWTAs)
     }
 }

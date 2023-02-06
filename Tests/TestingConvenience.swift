@@ -14,7 +14,7 @@ extension Bool: EventProtocol, StateProtocol {}
 
 extension Transition {
     static func build(
-        @TransitionBuilder<S, E> _ content: () -> FSMTableRowCollection<S, E>
+        @FSMTableBuilder<S, E> _ content: () -> FSMTableRowCollection<S, E>
     ) -> FSMTableRowCollection<S, E> {
         content()
     }
