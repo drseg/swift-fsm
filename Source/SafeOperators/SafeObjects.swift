@@ -15,26 +15,30 @@ struct SuperState<S: SP, E: EP> {
     }
 }
 
-protocol SSCollection {
+protocol SSGroup {
     associatedtype S: StateProtocol
     associatedtype E: EventProtocol
     
     var superStates: [SuperState<S, E>]? { get }
 }
 
-extension SSCollection {
+extension SSGroup {
     var allSuperWTAs: [WhenThenAction<S, E>] {
         superStates?.map { $0.wtas }.flatMap { $0 } ?? []
     }
 }
 
-class _GivenBase<S: SP, E: EP>: SSCollection {
+class _GivenBase<S: SP, E: EP>: SSGroup {
     typealias SS = SuperState<S, E>
     typealias WTA = WhenThenAction<S, E>
     typealias WT = WhenThen<S, E>
     
     let states: [S]
     let superStates: [SuperState<S, E>]?
+    
+    var entryActions = [() -> ()]()
+    var exitActions = [() -> ()]()
+    
     let file: String
     let line: Int
     
@@ -96,6 +100,8 @@ class _GivenBase<S: SP, E: EP>: SSCollection {
                                       when: wt.when,
                                       then: wt.then,
                                       superStates: superStates,
+                                      entryActions: entryActions,
+                                      exitActions: exitActions,
                                       file: file,
                                       line: line))
                 }
@@ -151,11 +157,15 @@ struct When<E: EP> {
     }
 }
 
-struct GivenWhen<S: SP, E: EP>: SSCollection {
+struct GivenWhen<S: SP, E: EP>: SSGroup {
     let given: S
     let when: E
     
     let superStates: [SuperState<S, E>]?
+    
+    let entryActions: [() -> ()]
+    let exitActions: [() -> ()]
+    
     let file: String
     let line: Int
 }
@@ -173,12 +183,16 @@ struct Then<State: SP> {
     }
 }
 
-struct GivenWhenThen<S: SP, E: EP>: SSCollection {
+struct GivenWhenThen<S: SP, E: EP>: SSGroup {
     let given: S
     let when: E
     let then: S
     
     let superStates: [SuperState<S, E>]?
+    
+    let entryActions: [() -> ()]
+    let exitActions: [() -> ()]
+    
     let file: String
     let line: Int
 }

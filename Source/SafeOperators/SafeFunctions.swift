@@ -17,6 +17,8 @@ func joinGivenToWhen<S: SP, E: EP> (
                 GivenWhen(given: state,
                           when: $0,
                           superStates: given.superStates,
+                          entryActions: given.entryActions,
+                          exitActions: given.exitActions,
                           file: given.file,
                           line: given.line)
             )
@@ -35,6 +37,8 @@ func joinGivenToWhenThens<S: SP, E: EP> (
                               when: $0.when,
                               then: $0.then,
                               superStates: given.superStates,
+                              entryActions: given.entryActions,
+                              exitActions: given.exitActions,
                               file: given.file,
                               line: given.line))
         }
@@ -51,6 +55,8 @@ func joinGivenWhensToThen<S: SP, E: EP> (
                           when: gw.when,
                           then: then.state,
                           superStates: gw.superStates,
+                          entryActions: gw.entryActions,
+                          exitActions: gw.exitActions,
                           file: gw.file,
                           line: gw.line)
         )

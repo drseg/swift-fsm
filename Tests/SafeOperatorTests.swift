@@ -620,31 +620,28 @@ class DemonstrationTests: SafeTests {
         func alarmOff() {}; func unlock() {}; func alarmOn() {}
         func thankyou() {}; func lock() {}
         
-        /*
-         Initial: Locked
-         FSM: Turnstile
-             {
-            // This is an abstract super state.
-            (Resetable)  {
-                Reset       Locked       {alarmOff lock}
-            }
-             
-            Locked : Resetable    {
-                 Coin    Unlocked    unlock
-                 Pass    Alarming    alarmOn
-            }
-            
-            Unlocked : Resetable {
-                 Coin    Unlocked    thankyou
-                 Pass    Locked      lock
-             }
-             
-            Alarming : Resetable { // inherits all its transitions from Resetable.
-            }
-         }
-         */
+    /*
+     Initial: Locked
+     FSM: Turnstile {
+        (Resetable)  {
+            Reset       Locked       {alarmOff lock}
+        } // This is an abstract super state.
+         
+        Locked : Resetable    {
+             Coin    Unlocked    unlock
+             Pass    Alarming    alarmOn
+        }
         
-        let _ = Transition.build {
+        Unlocked : Resetable {
+             Coin    Unlocked    thankyou
+             Pass    Locked      lock
+         }
+         
+        Alarming : Resetable { // inherits all its transitions from Resetable }
+     }
+     */
+        let fsm = FSM<String, String>(initialState: "Locked")
+        try! fsm.buildTransitions {
             let resetable = SuperState {
                 W("Reset") | T("Locked")  | [alarmOff, lock]
             }
@@ -679,6 +676,17 @@ class DemonstrationTests: SafeTests {
            }
            Alarming : Resetable <alarmOn >alarmOff   -    -    -
          }
+         
+         Given("Locked")
+            .include(resetable)
+            .onEnter(soSomething) // StateEvent held by Given
+            .onLeave(doSomethingElse) // StateEvent held by Given
+         {
+             W("Coin") | T("Unlocked") | unlock
+             W("Pass") | T("Alarming") | alarmOn
+             // change from [Transition] to FSMTableRow(entryActions, exitActions, transitions)
+         }
+         
          */
     }
 }
