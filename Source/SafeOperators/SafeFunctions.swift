@@ -16,9 +16,7 @@ func joinGivenToWhen<S: SP, E: EP> (
             gws.append(
                 GivenWhen(given: state,
                           when: $0,
-                          superStates: given.superStates,
-                          entryActions: given.entryActions,
-                          exitActions: given.exitActions,
+                          modifiers: given.modifiers,
                           file: given.file,
                           line: given.line)
             )
@@ -36,9 +34,7 @@ func joinGivenToWhenThens<S: SP, E: EP> (
                 GivenWhenThen(given: state,
                               when: $0.when,
                               then: $0.then,
-                              superStates: given.superStates,
-                              entryActions: given.entryActions,
-                              exitActions: given.exitActions,
+                              modifiers: given.modifiers,
                               file: given.file,
                               line: given.line))
         }
@@ -54,9 +50,7 @@ func joinGivenWhensToThen<S: SP, E: EP> (
             GivenWhenThen(given: gw.given,
                           when: gw.when,
                           then: then.state,
-                          superStates: gw.superStates,
-                          entryActions: gw.entryActions,
-                          exitActions: gw.exitActions,
+                          modifiers: gw.modifiers,
                           file: gw.file,
                           line: gw.line)
         )
@@ -106,11 +100,9 @@ func makeTransitions<S: SP, E: EP> (
         
         ts.append(t(gwt.given, gwt.when, gwt.then, actions))
     }
-    let entryActions = givenWhenThens.map { $0.entryActions }.flatMap { $0 }
-    let exitActions = givenWhenThens.map { $0.exitActions }.flatMap { $0 }
     return FSMTableRow(transitions,
-                       entryActions: entryActions,
-                       exitActions: exitActions)
+                       modifiers: givenWhenThens.first!.modifiers)
+    #warning("nasty bang")
 }
 
 func makeTransitions<S: SP, E: EP> (
@@ -118,6 +110,5 @@ func makeTransitions<S: SP, E: EP> (
     _ wtas: [[WhenThenAction<S, E>]]
 ) -> FSMTableRow<S, E> {
     FSMTableRow(given.formFinalTransitions(with: wtas.flatMap { $0 }),
-                entryActions: given.entryActions,
-                exitActions: given.exitActions)
+                modifiers: given.modifiers)
 }

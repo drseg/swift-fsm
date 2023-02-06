@@ -15,7 +15,7 @@ class UnsafeTransitionTests: XCTestCase {
     typealias ASP = any StateProtocol
     typealias AEP = any EventProtocol
     
-    typealias T = FiniteStateMachine.Transition<AnyState, AnyEvent>
+    typealias T = FiniteStateMachine.Transition<AS, AE>
     typealias K = T.Key
     
     var s1: ASP { mustImplement() }
@@ -39,11 +39,7 @@ class UnsafeTransitionTests: XCTestCase {
         }
     }
 
-    func transition(
-        _ givenState: ASP,
-        _ event: AEP,
-        _ nextState: ASP
-    ) -> T {
+    func transition(_ givenState: ASP, _ event: AEP, _ nextState: ASP) -> T {
         T(givenState: givenState.erase,
           event: event.erase,
           nextState: nextState.erase,
@@ -77,7 +73,7 @@ class UnsafeTransitionTests: XCTestCase {
                        line: line)
     }
 
-    func testTransition() {
+    func testSingleRow() {
         t = s1 | e1 | s2 | action
         assertFirst(s1, e1, s2)
     }
@@ -345,10 +341,10 @@ extension AlwaysEqual {
 }
 
 final class ErasedHashableConformanceTests: XCTestCase {
-    struct NeverEqualState: StateProtocol, Hashable, NeverEqual { }
-    struct AlwaysEqualState: StateProtocol, Hashable, AlwaysEqual { }
-    struct NeverEqualEvent: EventProtocol, Hashable, NeverEqual { }
-    struct AlwaysEqualEvent: EventProtocol, Hashable, AlwaysEqual { }
+    struct NeverEqualState: StateProtocol, NeverEqual { }
+    struct AlwaysEqualState: StateProtocol, AlwaysEqual { }
+    struct NeverEqualEvent: EventProtocol, NeverEqual { }
+    struct AlwaysEqualEvent: EventProtocol, AlwaysEqual { }
     
     func testStateInequality() {
         let s1 = NeverEqualState().erase

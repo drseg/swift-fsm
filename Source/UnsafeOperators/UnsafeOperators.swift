@@ -189,7 +189,7 @@ func | (states: [any SP], esas: [EventStateAction]) -> FSMTableRow<AS, AE> {
         states.reduce(into: [Transition]()) {
             $0.append(contentsOf: ($1 | esas).transitions)
         }
-    )
+        , modifiers: .empty)
 }
 
 func | (state: any SP, esas: [[EventStateAction]]) -> FSMTableRow<AS, AE> {
@@ -204,7 +204,7 @@ func | (state: any SP, esas: [EventStateAction]) -> FSMTableRow<AS, AE> {
                                  nextState: $1.state.erase,
                                  actions: $1.actions))
         }
-    )
+        , modifiers: .empty)
 }
 
 func | (sess: [StateEventState], action: @escaping () -> ()) -> FSMTableRow<AS, AE> {
@@ -216,7 +216,7 @@ func | (sess: [StateEventState], actions: [() -> ()]) -> FSMTableRow<AS, AE> {
         sess.reduce(into: [Transition]()) {
             $0.append(contentsOf: ($1 | actions).transitions)
         }
-    )
+        , modifiers: .empty)
 }
 
 func | (ses: StateEventState, action: @escaping () -> ()) -> FSMTableRow<AS, AE> {
@@ -229,5 +229,5 @@ func | (ses: StateEventState, actions: [() -> ()]) -> FSMTableRow<AS, AE> {
                     event: ses.event.erase,
                     nextState: ses.endState.erase,
                     actions: actions)]
-    )
+        , modifiers: .empty)
 }

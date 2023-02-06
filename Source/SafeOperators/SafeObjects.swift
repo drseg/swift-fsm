@@ -15,43 +15,50 @@ struct SuperState<S: SP, E: EP> {
     }
 }
 
-protocol SSGroup {
-    associatedtype S: StateProtocol
-    associatedtype E: EventProtocol
+struct RowModifiers<S: SP, E: EP> {
+    let superStates: [SuperState<S, E>]
+    let entryActions: [() -> ()]
+    let exitActions: [() -> ()]
     
-    var superStates: [SuperState<S, E>] { get }
-}
-
-extension SSGroup {
-    var allSuperWTAs: [WhenThenAction<S, E>] {
-        superStates.map { $0.wtas }.flatMap { $0 }
+    static var empty: Self {
+        RowModifiers(superStates: [], entryActions: [], exitActions: [])
     }
 }
 
-class _GivenBase<S: SP, E: EP>: SSGroup {
+protocol Modifiable {
+    associatedtype S: StateProtocol
+    associatedtype E: EventProtocol
+    
+    var modifiers: RowModifiers<S, E> { get }
+}
+
+extension Modifiable {
+    var allSuperWTAs: [WhenThenAction<S, E>] {
+        modifiers.superStates.map { $0.wtas }.flatMap { $0 }
+    }
+}
+
+class _GivenBase<S: SP, E: EP>: Modifiable {
     typealias SS = SuperState<S, E>
     typealias WTA = WhenThenAction<S, E>
     typealias WT = WhenThen<S, E>
     
     let states: [S]
-    let superStates: [SuperState<S, E>]
-    
-    var entryActions = [() -> ()]()
-    var exitActions = [() -> ()]()
+    let modifiers: RowModifiers<S, E>
     
     let file: String
     let line: Int
     
     init(_ states: S..., file: String = #file, line: Int = #line) {
         self.states = states
-        self.superStates = []
+        self.modifiers = .empty
         self.file = file
         self.line = line
     }
     
     fileprivate init(_ s: [S], _ ss: [SS], file: String, line: Int) {
         self.states = s
-        self.superStates = ss
+        self.modifiers = RowModifiers(superStates: ss, entryActions: [], exitActions: [])
         self.file = file
         self.line = line
     }
@@ -78,8 +85,7 @@ class _GivenBase<S: SP, E: EP>: SSGroup {
     ) -> FSMTableRow<S, E> {
         FSMTableRow(
             formFinalTransitions(with: wtas()),
-            entryActions: entryActions,
-            exitActions: exitActions
+            modifiers: modifiers
         )
     }
     
@@ -93,9 +99,7 @@ class _GivenBase<S: SP, E: EP>: SSGroup {
                         GivenWhenThen(given: $0,
                                       when: wt.when,
                                       then: wt.then,
-                                      superStates: superStates,
-                                      entryActions: entryActions,
-                                      exitActions: exitActions,
+                                      modifiers: modifiers,
                                       file: file,
                                       line: line))
                 }
@@ -124,7 +128,7 @@ class Given<S: SP, E: EP>: _GivenBase<S, E> {
     }
     
     private func include(_ newSuperStates: [SS]) -> FinalGiven<S, E> {
-        FinalGiven(states, newSuperStates + superStates,
+        FinalGiven(states, newSuperStates + modifiers.superStates,
                    file: file, line: line)
     }
 }
@@ -146,14 +150,12 @@ struct When<E: EP> {
     }
 }
 
-struct GivenWhen<S: SP, E: EP>: SSGroup {
+struct GivenWhen<S: SP, E: EP>: Modifiable {
+    
     let given: S
     let when: E
     
-    let superStates: [SuperState<S, E>]
-    
-    let entryActions: [() -> ()]
-    let exitActions: [() -> ()]
+    let modifiers: RowModifiers<S, E>
     
     let file: String
     let line: Int
@@ -172,15 +174,13 @@ struct Then<State: SP> {
     }
 }
 
-struct GivenWhenThen<S: SP, E: EP>: SSGroup {
+struct GivenWhenThen<S: SP, E: EP>: Modifiable {
+    
     let given: S
     let when: E
     let then: S
     
-    let superStates: [SuperState<S, E>]
-    
-    let entryActions: [() -> ()]
-    let exitActions: [() -> ()]
+    let modifiers: RowModifiers<S, E>
     
     let file: String
     let line: Int
@@ -205,10 +205,7 @@ struct GWTCollection<S: SP, E: EP> {
 }
 
 struct WhenThenAction<S: SP, E: EP>: Equatable {
-    static func == (
-        lhs: WhenThenAction<S, E>,
-        rhs: WhenThenAction<S, E>
-    ) -> Bool {
+    static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.when == rhs.when &&
         lhs.then == rhs.then
     }

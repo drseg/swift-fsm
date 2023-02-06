@@ -30,8 +30,7 @@ protocol FSMTableRowProtocol {
     associatedtype Event: EventProtocol
     
     var transitions: [Transition<State, Event>] { get }
-    var entryActions: [() -> ()] { get }
-    var exitActions: [() -> ()] { get }
+    var modifiers: RowModifiers<State, Event> { get }
 }
 
 struct FSMTableRowCollection<S: SP, E: EP> {
@@ -44,8 +43,7 @@ struct FSMTableRowCollection<S: SP, E: EP> {
 
 struct FSMTableRow<S: SP, E: EP>: FSMTableRowProtocol {
     let transitions: [Transition<S, E>]
-    let entryActions: [() -> ()]
-    let exitActions: [() -> ()]
+    let modifiers: RowModifiers<S, E>
     
     var startStates: Set<S> {
         Set(transitions.map { $0.givenState })
@@ -53,12 +51,10 @@ struct FSMTableRow<S: SP, E: EP>: FSMTableRowProtocol {
     
     init(
         _ transitions: [Transition<S, E>],
-        entryActions: [() -> ()] = [],
-        exitActions: [() -> ()] = []
+        modifiers: RowModifiers<S, E>
     ) {
         self.transitions = transitions
-        self.entryActions = entryActions
-        self.exitActions = exitActions
+        self.modifiers = modifiers
     }
 }
 
@@ -70,8 +66,7 @@ struct FSMTableBuilder<S: SP, E: EP> {
         _ e: TG
     ) -> TRC where TG.State == S, TG.Event == E {
         FSMTableRowCollection(rows: [FSMTableRow(e.transitions,
-                                                 entryActions: e.entryActions,
-                                                 exitActions: e.exitActions)])
+                                                 modifiers: e.modifiers)])
     }
     
     static func buildExpression(_ rows: [FSMTableRow<S, E>]) -> TRC {
