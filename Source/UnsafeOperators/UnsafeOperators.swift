@@ -10,29 +10,12 @@ import Foundation
 protocol StateProtocol: Hashable {}
 protocol EventProtocol: Hashable {}
 
-typealias SP = StateProtocol
-typealias EP = EventProtocol
-
-typealias AS = AnyState
-typealias AE = AnyEvent
-
-private extension Hashable {
-    func isEqual(to rhs: any Hashable) -> Bool {
-        guard let rhs = rhs as? Self else { return false }
-        return rhs == self
-    }
-}
-
 extension StateProtocol {
-    var erased: AnyState {
-        AnyState(base: self)
-    }
+    var erase: AnyState { AnyState(base: self) }
 }
 
 extension EventProtocol {
-    var erased: AnyEvent {
-        AnyEvent(base: self)
-    }
+    var erase: AnyEvent { AnyEvent(base: self) }
 }
 
 protocol Eraser {
@@ -49,13 +32,26 @@ extension Eraser {
     }
 }
 
-struct AnyEvent: Eraser, EventProtocol, Hashable {
+private extension Hashable {
+    func isEqual(to rhs: any Hashable) -> Bool {
+        guard let rhs = rhs as? Self else { return false }
+        return rhs == self
+    }
+}
+
+struct AnyEvent: Eraser, EventProtocol {
     let base: any Hashable
 }
 
-struct AnyState: Eraser, StateProtocol, Hashable {
+struct AnyState: Eraser, StateProtocol {
     let base: any Hashable
 }
+
+typealias SP = StateProtocol
+typealias EP = EventProtocol
+typealias AS = AnyState
+typealias AE = AnyEvent
+typealias AnyTransition = Transition<AS, AE>
 
 struct StateEvent {
     let state: any SP
@@ -149,29 +145,27 @@ func | (state: any SP, es: [EventState]) -> [StateEventState] {
     }
 }
 
-func | (states: [any SP], esas: [[EventStateAction]]) -> [Transition<AS, AE>] {
+func | (states: [any SP], esas: [[EventStateAction]]) -> [AnyTransition] {
     states | esas.flatMap { $0 }
 }
 
-func | (states: [any SP], esas: [EventStateAction]) -> [Transition<AS, AE>] {
-    
-        states.reduce(into: [Transition]()) {
-            $0.append(contentsOf: ($1 | esas))
-        }
+func | (states: [any SP], esas: [EventStateAction]) -> [AnyTransition] {
+    states.reduce(into: [Transition]()) {
+        $0.append(contentsOf: ($1 | esas))
+    }
 }
 
-func | (state: any SP, esas: [[EventStateAction]]) -> [Transition<AS, AE>] {
+func | (state: any SP, esas: [[EventStateAction]]) -> [AnyTransition] {
     state | esas.flatMap { $0 }
 }
 
-func | (state: any SP, esas: [EventStateAction]) -> [Transition<AS, AE>] {
-    
-        esas.reduce(into: [Transition]()) {
-            $0.append(Transition(givenState: state.erased,
-                                 event: $1.event.erased,
-                                 nextState: $1.state.erased,
-                                 actions: $1.actions))
-        }
+func | (state: any SP, esas: [EventStateAction]) -> [AnyTransition] {
+    esas.reduce(into: [Transition]()) {
+        $0.append(Transition(givenState: state.erase,
+                             event: $1.event.erase,
+                             nextState: $1.state.erase,
+                             actions: $1.actions))
+    }
 }
 
 func | (events: [any EP], state: any SP) -> [EventState] {
@@ -208,24 +202,23 @@ func | (stateEvent: StateEvent, state: any SP) -> StateEventState {
     StateEventState(stateEvent.state, stateEvent.event, state)
 }
 
-func | (sess: [StateEventState], action: @escaping () -> ()) -> [Transition<AS, AE>] {
+func | (sess: [StateEventState], action: @escaping () -> ()) -> [AnyTransition] {
     sess | [action]
 }
 
-func | (sess: [StateEventState], actions: [() -> ()]) -> [Transition<AS, AE>] {
-    
-        sess.reduce(into: [Transition]()) {
-            $0.append(contentsOf: ($1 | actions))
-        }
+func | (sess: [StateEventState], actions: [() -> ()]) -> [AnyTransition] {
+    sess.reduce(into: [Transition]()) {
+        $0.append(contentsOf: ($1 | actions))
+    }
 }
 
-func | (ses: StateEventState, action: @escaping () -> ()) -> [Transition<AS, AE>] {
+func | (ses: StateEventState, action: @escaping () -> ()) -> [AnyTransition] {
     ses | [action]
 }
 
-func | (ses: StateEventState, actions: [() -> ()]) -> [Transition<AS, AE>] {
-    [Transition(givenState: ses.startState.erased,
-                                     event: ses.event.erased,
-                                     nextState: ses.endState.erased,
-                                     actions: actions)]
+func | (ses: StateEventState, actions: [() -> ()]) -> [AnyTransition] {
+    [Transition(givenState: ses.startState.erase,
+                event: ses.event.erase,
+                nextState: ses.endState.erase,
+                actions: actions)]
 }

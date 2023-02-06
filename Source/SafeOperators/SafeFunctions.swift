@@ -30,12 +30,13 @@ func joinGivenToWhenThens<S: SP, E: EP> (
 ) -> [GivenWhenThen<S, E>] {
     given.states.reduce(into: [GivenWhenThen]()) { gwts, state in
         whenThens.flatMap { $0 }.forEach {
-            gwts.append(GivenWhenThen(given: state,
-                                      when: $0.when,
-                                      then: $0.then,
-                                      superStates: given.superStates,
-                                      file: given.file,
-                                      line: given.line))
+            gwts.append(
+                GivenWhenThen(given: state,
+                              when: $0.when,
+                              then: $0.then,
+                              superStates: given.superStates,
+                              file: given.file,
+                              line: given.line))
         }
     }
 }
@@ -82,26 +83,22 @@ func makeTransitions<S: SP, E: EP> (
     _ actions: [() -> ()]
 ) -> [Transition<S, E>] {
     var alreadyAdded = [GivenWhenThen<S, E>]()
-    return givenWhenThens.reduce(into: [Transition]()) { t1, gwt in
+    return givenWhenThens.reduce(into: [Transition]()) { ts, gwt in
         func t(_ g: S, _ w: E, _ t: S, _ a: [() -> ()]) -> Transition<S, E> {
-            Transition(givenState: g,
-                       event: w,
-                       nextState: t,
-                       actions: a,
-                       file: gwt.file,
-                       line: gwt.line)
+            Transition(givenState: g, event: w, nextState: t, actions: a,
+                       file: gwt.file, line: gwt.line)
         }
         
-        if !alreadyAdded.contains(where: { $0.given == gwt.given }) {
-            t1.append(contentsOf: gwt.allSuperWTAs.reduce(
-                into: [Transition]()) { t2, wta in
-                    t2.append(t(gwt.given, wta.when, wta.then, actions))
+        if !alreadyAdded.map(\.given).contains(gwt.given) {
+            ts.append(contentsOf: gwt.allSuperWTAs.reduce(
+                into: [Transition]()) {
+                    $0.append(t(gwt.given, $1.when, $1.then, actions))
                 }
             )
             alreadyAdded.append(gwt)
         }
         
-        t1.append(t(gwt.given, gwt.when, gwt.then, actions))
+        ts.append(t(gwt.given, gwt.when, gwt.then, actions))
     }
 }
 

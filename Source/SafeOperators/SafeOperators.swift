@@ -16,7 +16,7 @@ func |<S: SP, E: EP> (
 
 func |<S: SP, E: EP> (
     given: Given<S, E>,
-    whenThens: [[WhenThen<S, E >]]
+    whenThens: [[WhenThen<S, E>]]
 ) -> [GivenWhenThen<S, E>] {
     joinGivenToWhenThens(given, whenThens)
 }

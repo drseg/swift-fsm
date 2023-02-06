@@ -7,17 +7,9 @@
 
 import Foundation
 
-protocol TransitionGroup {
-    associatedtype State: StateProtocol
-    associatedtype Event: EventProtocol
-        
-    var transitions: [Transition<State, Event>] { get }
-}
-
 struct Transition<S: SP, E: EP>: Hashable {
     struct Key: Hashable {
-        let state: S
-        let event: E
+        let state: S, event: E
     }
     
     let givenState: S
@@ -51,12 +43,12 @@ struct Transition<S: SP, E: EP>: Hashable {
     }
     
     static func build(
-        @TransitionBuilder<S, E> _ content: () -> ([Transition<S, E>])
+        @TransitionBuilder<S, E> _ content: () -> ([Self])
     ) -> [Transition<S, E>] {
         content()
     }
     
-    static func == (lhs: Transition<S, E>, rhs: Transition<S, E>) -> Bool {
+    static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.givenState == rhs.givenState &&
         lhs.event == rhs.event &&
         lhs.nextState == rhs.nextState

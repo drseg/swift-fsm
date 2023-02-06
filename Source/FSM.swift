@@ -8,31 +8,30 @@
 import Foundation
 import ReflectiveEquality
 
-class FSMBase<State, Event>
-where State: StateProtocol, Event: EventProtocol {
-    typealias T = Transition<State, Event>
+class FSMBase<S, E> where S: SP, E: EP {
+    typealias T = Transition<S, E>
     typealias K = T.Key
-    typealias S = State
-    typealias E = Event
     
-    var state: State
+    var state: S
     var transitions = [K: T]()
     
-    init(initialState state: State) {
+    init(initialState state: S) {
         self.state = state
     }
     
-    func buildTransitions(
-        @TransitionBuilder<S, E> _ t: () -> [Transition<S, E>]
-    ) throws {
+    func buildTransitions(@TransitionBuilder<S, E> _ ts: () -> [T]) throws {
         var keys = Set<K>()
-        var invalidTransitions = Set<T>()
+        var duplicates = [T]()
         
-        transitions = t().reduce(into: [K: T]()) {
+        
+  
+        transitions = ts().reduce(into: [K: T]()) {
             let k = K(state: $1.givenState, event: $1.event)
             if keys.contains(k) {
-                invalidTransitions.insert($0[k]!)
-                invalidTransitions.insert($1)
+                if !duplicates.contains($0[k]!) {
+                    duplicates.append($0[k]!)
+                }
+                duplicates.append($1)
             }
             else {
                 keys.insert(k)
@@ -40,12 +39,12 @@ where State: StateProtocol, Event: EventProtocol {
             }
         }
         
-        guard invalidTransitions.isEmpty else {
-            throw ConflictingTransitionError(invalidTransitions)
+        guard duplicates.isEmpty else {
+            throw DuplicateTransitions(duplicates)
         }
     }
     
-    fileprivate func _handleEvent(_ event: Event) {
+    fileprivate func _handleEvent(_ event: E) {
         let key = K(state: state, event: event)
         if let t = transitions[key] {
             t.actions.forEach { $0() }
@@ -59,37 +58,35 @@ private extension String {
         URL(string: self)?.lastPathComponent ?? self
     }
 }
-#warning("Should this also throw for duplicate valid transitions?")
 
-final class FSM<State, Event>: FSMBase<State, Event>
-where State: SP, Event: EP {
-    override init(initialState state: State) {
+final class FSM<S, E>: FSMBase<S, E> where S: SP, E: EP {
+    override init(initialState state: S) {
         super.init(initialState: state)
     }
     
-    func handleEvent(_ event: Event) {
+    func handleEvent(_ event: E) {
         _handleEvent(event)
     }
 }
 
 final class UnsafeFSM: FSMBase<AnyState, AnyEvent> {
-    typealias US = AnyState
-    typealias UE = AnyEvent
-    typealias T = Transition<US, UE>
+    typealias AS = AnyState
+    typealias AE = AnyEvent
+    typealias T = Transition<AS, AE>
     
     init(initialState state: any StateProtocol) {
-        super.init(initialState: state.erased)
+        super.init(initialState: state.erase)
     }
     
     override func buildTransitions(
-        @TransitionBuilder<S, E> _ t: () -> [Transition<S, E>]
+        @TransitionBuilder<AS, AE> _ t: () -> [T]
     ) throws {
         try validate(t())
         try super.buildTransitions(t)
     }
     
     func handleEvent(_ event: any EventProtocol) {
-        _handleEvent(event.erased)
+        _handleEvent(event.erase)
     }
     
     private func validate(_ ts: [T]) throws {
@@ -113,36 +110,33 @@ final class UnsafeFSM: FSMBase<AnyState, AnyEvent> {
             try validateObject($0.nextState)
             
             guard areSameType(lhs: $0.givenState, rhs: $0.nextState) else {
-                throw MismatchedTypeError()
+                throw MismatchedType()
             }
         }
     }
 }
 
-struct ConflictingTransitionError<S: SP, E: EP>: Error {
-    let message =
-    """
-    The same 'given-when' combination cannot lead to more than one 'then' state.
-
-    The following conflicts were found:
-    """
-    
+struct DuplicateTransitions<S: SP, E: EP>: Error {
+    private let message =
+    "The same 'given-when' was found in multiple transitions:"
     let description: String
     
-    init(_ ts: Set<Transition<S, E>>) {
+    init<C: Collection>(_ ts: C) where C.Element == Transition<S, E> {
         self.description =  message + ts.map {
-            "\n\($0.givenState) | \($0.event) | *\($0.nextState)* (\($0.file.name): line \($0.line))"
-        }.sorted().joined()
+            "\n\($0.givenState) | \($0.event) | *\($0.nextState)* (\($0.file.name): \($0.line))"
+        }
+        .sorted()
+        .joined()
     }
 }
 
 struct NSObjectError: Error {
     var description: String {
-        "States and Events must not inherit from NSObject"
+        "States and Events must not inherit from, or include NSObject"
     }
 }
 
-struct MismatchedTypeError: Error {
+struct MismatchedType: Error {
     var description: String {
         "Given and Then states must be of the same type"
     }

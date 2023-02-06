@@ -209,35 +209,32 @@ final class SafeTransitionTests: SafeTests {
         
         t.first?.actions.first?()
         waitForExpectations(timeout: 0.1)
+#warning("Either prevent multiple .action/s calls or make it behave reasonably")
     }
     
     func testActionsModifier() {
         let e = expectation(description: "call action")
+        e.expectedFulfillmentCount = 2
         
         let t =
         G(.a, .b) {
             W(.h) | T(.b)
             W(.g) | T(.a)
-        }.actions({}, { e.fulfill() })
+        }.actions(e.fulfill, e.fulfill)
         
         assertContains(.a, .h, .b, t)
         assertContains(.b, .g, .a, t)
         assertCount(4, t)
         
-        t.first?.actions.last?()
+        t.first?.actions.forEach { $0() }
         waitForExpectations(timeout: 0.1)
     }
 
-    func assertAction(_ e: XCTestExpectation) {
-        e.fulfill()
-    }
-
-    func testActionPassedCorrectly() {
+    func testActionsPassedCorrectly() {
         let e = expectation(description: "passAction")
-        let t = G(.a) | W(.g) | T(.c) | [{}, {
-            self.assertAction(e)
-        }]
-        t.first?.actions.last?()
+        e.expectedFulfillmentCount = 2
+        let t = G(.a) | W(.g) | T(.c) | [e.fulfill, e.fulfill]
+        t.first?.actions.forEach { $0() }
         waitForExpectations(timeout: 0.1)
     }
     
@@ -248,6 +245,7 @@ final class SafeTransitionTests: SafeTests {
                 G(.a) | W(.g) | T(.b) | { }
             }
         }
+        
         XCTAssertEqual(ts.first, transition(.a, .g, .b))
     }
     
@@ -330,6 +328,7 @@ class SuperStateTransitionTests: SafeTests {
         let t4 = Transition.build  { G(.a).include(s1, s2) }
         
         assertOutput(t1, t2, t3, t4)
+#warning("Either prevent multiple .include calls or make it behave reasonably")
     }
     
     func testMultipleGiven() {
@@ -612,7 +611,7 @@ class FileLineTests: SafeTests {
         XCTAssertEqual(t1.first?.file, file)
         XCTAssertEqual(t2.first?.file, file)
     }
-#warning("really the line should be whatever line has the 'then' in it")
+#warning("the file/line should be sourced from the 'Then' not the 'Given'")
 }
 
 class DemonstrationTests: SafeTests {
@@ -663,5 +662,24 @@ class DemonstrationTests: SafeTests {
             
             Given("Alarming").include(resetable)
         }
+      
+        /*
+         Initial: Locked
+         FSM: Turnstile
+         {
+           (Resetable) {
+             Reset       Locked       -
+           }
+           Locked : Resetable <lock     {
+             Coin    Unlocked    -
+             Pass    Alarming    -
+           }
+           Unlocked : Resetable <unlock  {
+             Coin    Unlocked    thankyou
+             Pass    Locked      -
+           }
+           Alarming : Resetable <alarmOn >alarmOff   -    -    -
+         }
+         */
     }
 }

@@ -28,25 +28,30 @@ class FSMTests: SafeTests {
         calledActions = [String]()
     }
         
-    func testThrowsErrorWhenGivenConflictingTransitions() {
+    func testThrowsErrorWhenGivenDuplicates() {
         let fsm = FSMBase<State, Event>(initialState: .a)
         
         let file = URL(string: #file)!.lastPathComponent
-        let l1 = #line + 5
-        let l2 = #line + 5
-        let l3 = #line + 5
+        let l1 = #line + 6
+        let l2 = #line + 6
+        let l3 = #line + 6
+        let l4 = #line + 6
         
         XCTAssertThrowsError (try fsm.buildTransitions {
             G(.a) | W(.h) | T(.b) | action1
-            G(.a) | W(.h) | T(.c) | action2
+            G(.a) | W(.h) | T(.b) | action2
             G(.a) | W(.h) | T(.d) | action2
+            G(.a) | W(.h) | T(.d) | action1
         }) {
-            let e = $0 as! ConflictingTransitionError<State, Event>
-            XCTAssertEqual(e.description.suffix(113),
+            let e = $0 as! DuplicateTransitions<State, Event>
+            print(e.description)
+            XCTAssertEqual(e.description.split(separator: ":\n",
+                                               maxSplits: 1).last!,
 """
-a | h | *b* (\(file): line \(l1))
-a | h | *c* (\(file): line \(l2))
-a | h | *d* (\(file): line \(l3))
+a | h | *b* (\(file): \(l1))
+a | h | *b* (\(file): \(l2))
+a | h | *d* (\(file): \(l3))
+a | h | *d* (\(file): \(l4))
 """
             )
         }
@@ -71,7 +76,7 @@ a | h | *d* (\(file): line \(l3))
         }
         fsm.handleEvent(Event.g)
         XCTAssertEqual(calledActions, ["action1", "action2"])
-        XCTAssertEqual(fsm.state, State.c.erased)
+        XCTAssertEqual(fsm.state, State.c.erase)
     }
     
     func assertThrows<E: Error>(
@@ -94,7 +99,7 @@ a | h | *d* (\(file): line \(l3))
     }
     
     func testThrowsErrorIfStateTypesDoNotMatch() {
-        assertThrows(expected: MismatchedTypeError.self,
+        assertThrows(expected: MismatchedType.self,
                      building: "Cat" | Event.h | 2 | fail)
     }
 }

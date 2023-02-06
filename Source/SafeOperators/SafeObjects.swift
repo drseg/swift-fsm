@@ -7,10 +7,7 @@
 
 import Foundation
 
-struct SuperState<State: SP, Event: EP> {
-    typealias S = State
-    typealias E = Event
-    
+struct SuperState<S: SP, E: EP> {
     let wtas: [WhenThenAction<S, E>]
     
     init(@WTABuilder<S, E> _ content: () -> [WhenThenAction<S, E>]) {
@@ -18,14 +15,14 @@ struct SuperState<State: SP, Event: EP> {
     }
 }
 
-protocol HoldsSuperStates {
+protocol SSCollection {
     associatedtype S: StateProtocol
     associatedtype E: EventProtocol
     
     var superStates: [SuperState<S, E>]? { get }
 }
 
-extension HoldsSuperStates {
+extension SSCollection {
     var allSuperWTAs: [WhenThenAction<S, E>] {
         superStates?.map { $0.wtas }.flatMap { $0 } ?? []
     }
@@ -35,19 +32,17 @@ final class FinalGiven<S: SP, E: EP>: Given<S, E>, TransitionGroup {
     var transitions = [Transition<S, E>]()
     
     override init(
-        _ given: [S],
+        _ states: [S],
         _ superStates: [SS]?,
         file: String,
         line: Int
     ) {
-        super.init(given, superStates, file: file, line: line)
+        super.init(states, superStates, file: file, line: line)
         self.transitions = formTransitions(with: allSuperWTAs)
     }
 }
 
-class Given<State: SP, Event: EP>: HoldsSuperStates {
-    typealias S = State
-    typealias E = Event
+class Given<S: SP, E: EP>: SSCollection {
     typealias SS = SuperState<S, E>
     typealias WTA = WhenThenAction<S, E>
     typealias WT = WhenThen<S, E>
@@ -58,11 +53,11 @@ class Given<State: SP, Event: EP>: HoldsSuperStates {
     let line: Int
     
     init(
-        _ given: S...,
+        _ states: S...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.states = given
+        self.states = states
         self.superStates = nil
         self.file = file
         self.line = line
@@ -145,27 +140,26 @@ class Given<State: SP, Event: EP>: HoldsSuperStates {
     }
 }
 
-struct When<Event: EP> {
-    let events: [Event]
+struct When<E: EP> {
+    let events: [E]
     
-    init(_ when: Event...) {
+    init(_ when: E...) {
         self.events = when
     }
 }
 
-struct GivenWhen<State: SP, Event: EP>: HoldsSuperStates {
-    let given: State
-    let when: Event
+struct GivenWhen<S: SP, E: EP>: SSCollection {
+    let given: S
+    let when: E
     
-    let superStates: [SuperState<State, Event>]?
+    let superStates: [SuperState<S, E>]?
     let file: String
     let line: Int
-    
 }
 
-struct WhenThen<State: SP, Event: EP> {
-    let when: Event
-    let then: State
+struct WhenThen<S: SP, E: EP> {
+    let when: E
+    let then: S
 }
 
 struct Then<State: SP> {
@@ -176,12 +170,12 @@ struct Then<State: SP> {
     }
 }
 
-struct GivenWhenThen<State: SP, Event: EP>: HoldsSuperStates {
-    let given: State
-    let when: Event
-    let then: State
+struct GivenWhenThen<S: SP, E: EP>: SSCollection {
+    let given: S
+    let when: E
+    let then: S
     
-    let superStates: [SuperState<State, Event>]?
+    let superStates: [SuperState<S, E>]?
     let file: String
     let line: Int
 }
@@ -205,16 +199,16 @@ struct GWTCollection<S: SP, E: EP> {
     }
 }
 
-struct WhenThenAction<State: SP, Event: EP>: Equatable {
+struct WhenThenAction<S: SP, E: EP>: Equatable {
     static func == (
-        lhs: WhenThenAction<State, Event>,
-        rhs: WhenThenAction<State, Event>
+        lhs: WhenThenAction<S, E>,
+        rhs: WhenThenAction<S, E>
     ) -> Bool {
         lhs.when == rhs.when &&
         lhs.then == rhs.then
     }
     
-    let when: Event
-    let then: State
+    let when: E
+    let then: S
     let actions: [() -> ()]
 }

@@ -45,15 +45,15 @@ class UnsafeTransitionTests: XCTestCase {
         _ event: AEP,
         _ nextState: ASP
     ) -> Transition {
-        Transition(givenState: givenState.erased,
-                   event: event.erased,
-                   nextState: nextState.erased,
+        Transition(givenState: givenState.erase,
+                   event: event.erase,
+                   nextState: nextState.erase,
                    actions: [])
     }
     
     func key(_ state: ASP, _ event: AEP) -> Key {
-        Key(state: state.erased,
-            event: event.erased)
+        Key(state: state.erase,
+            event: event.erase)
     }
 
     var t: [Transition] = []
@@ -188,7 +188,7 @@ class UnsafeTransitionTests: XCTestCase {
         line: UInt = #line
     ) {
         let actual = t.first {
-            $0.givenState == s.erased && $0.event == e.erased
+            $0.givenState == s.erase && $0.event == e.erase
         }
         XCTAssertEqual(actual, transition(s1, e1, s2), line: line)
     }
@@ -354,64 +354,64 @@ final class ErasedHashableConformanceTests: XCTestCase {
     struct AlwaysEqualEvent: EventProtocol, Hashable, AlwaysEqual { }
     
     func testStateInequality() {
-        let s1 = NeverEqualState().erased
-        let s2 = NeverEqualState().erased
+        let s1 = NeverEqualState().erase
+        let s2 = NeverEqualState().erase
     
         XCTAssertNotEqual(s1, s2)
     }
     
     func testStateEquality() {
-        let s1 = AlwaysEqualState().erased
-        let s2 = AlwaysEqualState().erased
+        let s1 = AlwaysEqualState().erase
+        let s2 = AlwaysEqualState().erase
     
         XCTAssertEqual(s1, s2)
     }
 
     func testEventInequality() {
-        let e1 = NeverEqualEvent().erased
-        let e2 = NeverEqualEvent().erased
+        let e1 = NeverEqualEvent().erase
+        let e2 = NeverEqualEvent().erase
     
         XCTAssertNotEqual(e1, e2)
     }
 
     func testEventEquality() {
-        let e1 = AlwaysEqualEvent().erased
-        let e2 = AlwaysEqualEvent().erased
+        let e1 = AlwaysEqualEvent().erase
+        let e2 = AlwaysEqualEvent().erase
     
         XCTAssertEqual(e1, e2)
     }
 
     func testStateFalseSet() {
-        let s1 = NeverEqualState().erased
-        let s2 = NeverEqualState().erased
+        let s1 = NeverEqualState().erase
+        let s2 = NeverEqualState().erase
         
         XCTAssertEqual(2, Set([s1, s2]).count)
     }
 
     func testStateTrueSet() {
-        let s1 = AlwaysEqualState().erased
-        let s2 = AlwaysEqualState().erased
+        let s1 = AlwaysEqualState().erase
+        let s2 = AlwaysEqualState().erase
         
         XCTAssertEqual(1, Set([s1, s2]).count)
     }
 
     func testEventFalseSet() {
-        let e1 = NeverEqualEvent().erased
-        let e2 = NeverEqualEvent().erased
+        let e1 = NeverEqualEvent().erase
+        let e2 = NeverEqualEvent().erase
         
         XCTAssertEqual(2, Set([e1, e2]).count)
     }
 
     func testEventTrueSet() {
-        let e1 = AlwaysEqualEvent().erased
-        let e2 = AlwaysEqualEvent().erased
+        let e1 = AlwaysEqualEvent().erase
+        let e2 = AlwaysEqualEvent().erase
         
         XCTAssertEqual(1, Set([e1, e2]).count)
     }
 
     func testStateDictionaryLookup() {
-        let s1 = AlwaysEqualEvent().erased
-        let s2 = NeverEqualEvent().erased
+        let s1 = AlwaysEqualEvent().erase
+        let s2 = NeverEqualEvent().erase
 
         let a = [s1: "Pass"]
         let b = [s2: "Pass"]
@@ -430,7 +430,7 @@ final class ErasedHashableConformanceTests: XCTestCase {
         }
         
         let e = expectation(description: "hash")
-        let wrapper = StateSpy() { e.fulfill() }.erased
+        let wrapper = StateSpy() { e.fulfill() }.erase
         let _ = [wrapper: "Pass"]
         waitForExpectations(timeout: 0.1)
     }
