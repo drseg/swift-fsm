@@ -117,6 +117,14 @@ class Given<S: SP, E: EP> {
     private func include(_ ss: [SS]) -> GivenRow<S, E> {
         GivenRow(states, modifiers.addSuperStates(ss), file: file, line: line)
     }
+    
+    static func => (_ lhs: Given, rhs: SuperState<S, E>) -> GivenRow<S, E> {
+        lhs.include(rhs)
+    }
+    
+    static func => (_ lhs: Given, rhs: [SuperState<S, E>]) -> GivenRow<S, E> {
+        lhs.include(rhs)
+    }
 }
 
 final class GivenRow<S: SP, E: EP>: Given<S, E>, TableRowProtocol {
@@ -127,8 +135,8 @@ final class GivenRow<S: SP, E: EP>: Given<S, E>, TableRowProtocol {
 struct When<E: EP> {
     let events: [E]
 
-    init(_ when: E...) {
-        self.events = when.uniqueValues
+    init(_ events: E...) {
+        self.events = events.uniqueValues
     }
 }
 
@@ -150,8 +158,8 @@ struct WhenThen<S: SP, E: EP> {
 struct Then<State: SP> {
     let state: State
     
-    init(_ then: State) {
-        self.state = then
+    init(_ state: State) {
+        self.state = state
     }
 }
 

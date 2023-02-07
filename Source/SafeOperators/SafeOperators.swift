@@ -83,3 +83,5 @@ func |<S: SP, E: EP> (
 ) -> TableRow<S, E> {
     makeTransitions(given, whenThenActions)
 }
+
+infix operator =>: AdditionPrecedence

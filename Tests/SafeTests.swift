@@ -358,7 +358,7 @@ class SuperStateTransitionTests: SafeTests {
     }
 
     func testGiven() {
-        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s)], $0, line: line)
@@ -366,14 +366,21 @@ class SuperStateTransitionTests: SafeTests {
             }
         }
 
-        let tr1 = build { G(.a).include(s1) { W(.g) | T(.s) | { } } }
-        let tr2 = build { G(.a).include(s1) | W(.g) | T(.s) | { } }
+        let tr1 = build   { G(.a).include(s1) { W(.g) | T(.s) | { } } }
+        let tr2 = build   { G(.a).include(s1) | W(.g) | T(.s) | { } }
 
-        let tr3 = build { G(.a).include(ss) }
-        let tr4 = build { G(.a).include(s1, s2) }
-        let tr5 = build { G(.a).include(s1).include(s2) }
+        let tr3 = build   { G(.a).include(ss) }
+        let tr4 = build   { G(.a).include(s1, s2) }
+        let tr5 = build   { G(.a).include(s1).include(s2) }
         
-        assertOutput(tr1, tr2, tr3, tr4, tr5)
+        let tr6 = build   {(G(.a) => s1){ W(.g) | T(.s) | { } } }
+        let tr7 = build   { G(.a) => s1 | W(.g) | T(.s) | { } }
+        
+        let tr8 = build   { G(.a) => ss }
+        let tr9 = build   { G(.a) => [s1, s2] }
+        let tr10 = build  { G(.a) => s1 => s2 }
+
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6, tr7, tr8, tr9, tr10)
     }
 
     func testMultipleGiven() {
@@ -1169,17 +1176,22 @@ class DemonstrationTests: SafeTests {
            }
            Alarming : Resetable <alarmOn >alarmOff   -    -    -
          }
-
-         Given("Locked")
-            .include(resetable)
-            .onEnter(soSomething) // StateEvent held by Given
-            .onLeave(doSomethingElse) // StateEvent held by Given
-         {
-             W("Coin") | T("Unlocked") | unlock
-             W("Pass") | T("Alarming") | alarmOn
-             // change from [Transition] to FSMTableRow(entryActions, exitActions, transitions)
+         
+         let resetable = SuperState {
+             W("Reset") | T("Locked")  | []
          }
 
+         Given("Locked") => resetable <lock {
+             W("Coin") | T("Unlocked") | []
+             W("Pass") | T("Alarming") | []
+         }
+         
+         (Given("Unlocked") => resetable <unlock) {
+             W("Coin") | T("Unlocked") | thankyou
+             W("Pass") | T("Alarming") | []
+         }
+         
+         Given("Alarming") => resetable <alarmOn >alarmOff
          */
     }
 }
