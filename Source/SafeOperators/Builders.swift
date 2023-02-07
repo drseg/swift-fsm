@@ -52,7 +52,7 @@ class Builder<T> {
 }
 
 @resultBuilder
-class TableBuilder<S: SP, E: EP>: Builder<any TableRowProtocol<S, E>> {
+final class TableBuilder<S: SP, E: EP>: Builder<any TableRowProtocol<S, E>> {
     typealias TRP = TableRowProtocol<S, E>
     
     static func buildFinalResult(_ rows: [any TRP]) -> [Transition<S, E>] {
@@ -72,7 +72,7 @@ class TableBuilder<S: SP, E: EP>: Builder<any TableRowProtocol<S, E>> {
 }
 
 @resultBuilder
-class WTABuilder<S: SP, E: EP>: Builder<WhenThenAction<S, E>> { }
+final class WTABuilder<S: SP, E: EP>: Builder<WhenThenAction<S, E>> { }
 
 @resultBuilder
-class WTBuilder<S: SP, E: EP>: Builder<WhenThen<S, E>> { }
+final class WTBuilder<S: SP, E: EP>: Builder<WhenThen<S, E>> { }
