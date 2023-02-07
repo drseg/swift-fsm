@@ -25,15 +25,50 @@ struct TableRow<S: SP, E: EP>: TableRowProtocol {
 }
 
 @resultBuilder
-class Builder<T> {
-    static func buildExpression( _ row: T) -> [T] {
+struct TableBuilder<S: SP, E: EP> {
+    typealias TRP = TableRowProtocol<S, E>
+    
+    static func buildExpression( _ row: any TRP) -> [any TRP] {
         [row]
     }
     
-    static func buildExpression( _ rows: [T]) -> [T] {
-        rows
+    static func buildIf(_ collection: [any TRP]?) -> [any TRP] {
+        collection ?? []
     }
     
+    static func buildEither(first collection: [any TRP]) -> [any TRP] {
+        collection
+    }
+    
+    static func buildEither(second collection: [any TRP]) -> [any TRP] {
+        collection
+    }
+    
+    static func buildBlock(_ collections: [any TRP]...) -> [any TRP] {
+        collections.flatten
+    }
+    
+    static func buildFinalResult(_ collection: [any TRP]) -> [Transition<S, E>] {
+        collection.reduce(into: [Transition<S, E>]()) { ts, row in
+            row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
+                row.givenStates.forEach { given in
+                    ts.append(
+                        Transition(givenState: given,
+                                   event: wta.when,
+                                   nextState: wta.then,
+                                   actions: wta.actions)
+                    )
+                }
+            }
+        } + collection.map { $0.transitions }.flatten
+    }
+}
+
+protocol SlowBuilder {
+    associatedtype T
+}
+
+extension SlowBuilder {
     static func buildIf(_ collection: [T]?) -> [T] {
         collection ?? []
     }
@@ -46,33 +81,17 @@ class Builder<T> {
         collection
     }
     
-    static func buildBlock(_ collections: [T]...) -> [T] {
-        collections.flatten
+    static func buildBlock(_ cs: [T]...) -> [T] {
+        cs.flatten
     }
 }
 
 @resultBuilder
-final class TableBuilder<S: SP, E: EP>: Builder<any TableRowProtocol<S, E>> {
-    typealias TRP = TableRowProtocol<S, E>
-    
-    static func buildFinalResult(_ rows: [any TRP]) -> [Transition<S, E>] {
-        rows.reduce(into: [Transition<S, E>]()) { ts, row in
-            row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
-                row.givenStates.forEach { given in
-                    ts.append(
-                        Transition(givenState: given,
-                                   event: wta.when,
-                                   nextState: wta.then,
-                                   actions: wta.actions)
-                    )
-                }
-            }
-        } + rows.map { $0.transitions }.flatten
-    }
+class WTABuilder<S: SP, E: EP>: SlowBuilder {
+    typealias T = WhenThenAction<S, E>
 }
 
 @resultBuilder
-final class WTABuilder<S: SP, E: EP>: Builder<WhenThenAction<S, E>> { }
-
-@resultBuilder
-final class WTBuilder<S: SP, E: EP>: Builder<WhenThen<S, E>> { }
+class WTBuilder<S: SP, E: EP>: SlowBuilder {
+    typealias T = WhenThen<S, E>
+}

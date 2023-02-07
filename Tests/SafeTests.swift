@@ -729,12 +729,376 @@ class FileLineTests: SafeTests {
 }
 
 class DemonstrationTests: SafeTests {
+    typealias W = When<String>; typealias T = Then<String>
+    
+    func alarmOff() {}; func unlock() {}; func alarmOn() {}
+    func thankyou() {}; func lock() {}
+    
+    func testCompilation() {
+        let _ = build {
+            let resetable = SuperState {
+                W("Reset") | T("Locked")  | [alarmOff, lock]
+            }
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+
+            Given("Alarming").include(resetable)
+            
+            Given("Locked").include(resetable) {
+                W("Coin") | T("Unlocked") | unlock
+                W("Pass") | T("Alarming") | alarmOn
+            }
+
+            Given("Unlocked").include(resetable) {
+                W("Coin") | T("Unlocked") | thankyou
+                W("Pass") | T("Locked")   | lock
+            }
+        }
+    }
+    
     func testTurnstile() {
-        typealias W = When<String>; typealias T = Then<String>
-
-        func alarmOff() {}; func unlock() {}; func alarmOn() {}
-        func thankyou() {}; func lock() {}
-
     /*
      Initial: Locked
      FSM: Turnstile {

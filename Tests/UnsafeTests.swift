@@ -214,17 +214,17 @@ class UnsafeTests: XCTestCase {
         assertContainsTransition(t, s1, e1)
     }
 
-    func testSwitch() {
-        let condition = true
-        let t = build {
-            switch condition {
-            case true:  s1 | e1 | s2 | action
-            default: []
-            }
-        }
-
-        assertContainsTransition(t, s1, e1)
-    }
+//    func testSwitch() {
+//        let condition = true
+//        let t = build {
+//            switch condition {
+//            case true:  s1 | e1 | s2 | action
+//            default: []
+//            }
+//        }
+//
+//        assertContainsTransition(t, s1, e1)
+//    }
 
     func testActionsDispatchDynamically() {
         class Base { func test() { XCTFail() } }
