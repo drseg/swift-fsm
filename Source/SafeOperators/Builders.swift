@@ -11,55 +11,52 @@ protocol TableRowProtocol<State, Event> {
     associatedtype State: StateProtocol
     associatedtype Event: EventProtocol
     
-    var givenStates: any Collection<State> { get }
     var transitions: [Transition<State, Event>] { get }
     var modifiers: RowModifiers<State, Event> { get }
+    var givenStates: any Collection<State> { get }
 }
 
 struct TableRow<S: SP, E: EP>: TableRowProtocol {
     let transitions: [Transition<S, E>]
     let modifiers: RowModifiers<S, E>
-    
     var givenStates: any Collection<S> {
         Set(transitions.map(\.givenState))
     }
 }
 
 @resultBuilder
-class Builder {
-    static func buildIf(_ collection: [Any]?) -> [Any] {
+class Builder<T> {
+    static func buildExpression( _ row: T) -> [T] {
+        [row]
+    }
+    
+    static func buildExpression( _ rows: [T]) -> [T] {
+        rows
+    }
+    
+    static func buildIf(_ collection: [T]?) -> [T] {
         collection ?? []
     }
     
-    static func buildEither(first collection: [Any]) -> [Any] {
+    static func buildEither(first collection: [T]) -> [T] {
         collection
     }
     
-    static func buildEither(second collection: [Any]) -> [Any] {
+    static func buildEither(second collection: [T]) -> [T] {
         collection
     }
     
-    static func buildBlock(_ collections: [Any]...) -> [Any] {
+    static func buildBlock(_ collections: [T]...) -> [T] {
         collections.flatten
     }
 }
 
 @resultBuilder
-class TableBuilder<S: SP, E: EP>: Builder {
+class TableBuilder<S: SP, E: EP>: Builder<any TableRowProtocol<S, E>> {
     typealias TRP = TableRowProtocol<S, E>
     
-    static func buildExpression( _ row: any TRP) -> [Any] {
-        [row]
-    }
-    
-    static func buildExpression( _ rows: [any TRP]) -> [Any] {
-        rows
-    }
-    
-    static func buildFinalResult(_ collection: [Any]) -> [Transition<S, E>] {
-        let rows = collection as! [any TRP]
-        
-        return rows.reduce(into: [Transition<S, E>]()) { ts, row in
+    static func buildFinalResult(_ rows: [any TRP]) -> [Transition<S, E>] {
+        rows.reduce(into: [Transition<S, E>]()) { ts, row in
             row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
                 row.givenStates.forEach { given in
                     ts.append(
@@ -75,27 +72,19 @@ class TableBuilder<S: SP, E: EP>: Builder {
 }
 
 @resultBuilder
-class WTABuilder<S: SP, E: EP>: Builder {
+class WTABuilder<S: SP, E: EP>: Builder<WhenThenAction<S, E>> {
     typealias WTA = WhenThenAction<S, E>
     
-    static func buildExpression(_ wtas: [WTA]) -> [Any] {
+    static func buildFinalResult(_ wtas: [WTA]) -> [WTA] {
         wtas
-    }
-    
-    static func buildFinalResult(_ c: [Any]) -> [WTA] {
-        c as! [WTA]
     }
 }
 
 @resultBuilder
-class WTBuilder<S: SP, E: EP>: Builder {
+class WTBuilder<S: SP, E: EP>: Builder<WhenThen<S, E>> {
     typealias WT = WhenThen<S, E>
     
-    static func buildExpression(_ wtas: [WT]) -> [Any] {
-        wtas
-    }
-    
-    static func buildFinalResult(_ c: [Any]) -> [WT] {
-        c as! [WT]
+    static func buildFinalResult(_ wts: [WT]) -> [WT] {
+        wts
     }
 }
