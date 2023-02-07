@@ -189,7 +189,8 @@ func | (states: [any SP], esas: [EventStateAction]) -> TableRow<AS, AE> {
         transitions: states.reduce(into: [Transition]()) {
             $0.append(contentsOf: ($1 | esas).transitions)
         },
-        modifiers: .none)
+        modifiers: .none
+    )
 }
 
 func | (state: any SP, esas: [[EventStateAction]]) -> TableRow<AS, AE> {

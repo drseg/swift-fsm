@@ -25,28 +25,29 @@ struct WTBuilder<S: SP, E: EP> {
     }
 }
 
-protocol TableRowProtocol {
+protocol TableRowProtocol<State, Event> where State: StateProtocol, Event: EventProtocol {
     associatedtype State: StateProtocol
     associatedtype Event: EventProtocol
     
+    var givenStates: any Collection<State> { get }
     var transitions: [Transition<State, Event>] { get }
     var modifiers: RowModifiers<State, Event> { get }
 }
 
 struct TableRowCollection<S: SP, E: EP> {
-    let rows: [TableRow<S, E>]
+    let rows: [any TableRowProtocol<S, E>]
     
     var transitions: [Transition<S, E>] {
-        rows.map(\.transitions).flatten
+        rows.map { $0.transitions }.flatten
     }
 }
 
-struct TableRow<S: SP, E: EP>: TableRowProtocol {
+struct TableRow<S: SP, E: EP>: TableRowProtocol, Modifiable {
     let transitions: [Transition<S, E>]
     let modifiers: RowModifiers<S, E>
     
-    var startStates: Set<S> {
-        Set(transitions.map { $0.givenState })
+    var givenStates: any Collection<S> {
+        Set(transitions.map(\.givenState))
     }
 }
 
@@ -56,12 +57,7 @@ struct FSMTableBuilder<S: SP, E: EP> {
     
     static func buildExpression<TR>( _ row: TR) -> TRC
     where TR: TableRowProtocol, TR.State == S, TR.Event == E {
-        TableRowCollection(rows: [
-            TableRow(
-                transitions: row.transitions,
-                modifiers: row.modifiers
-            )
-        ])
+        TableRowCollection(rows: [row])
     }
     
     static func buildExpression(_ rows: [TableRow<S, E>]) -> TRC {
@@ -85,6 +81,15 @@ struct FSMTableBuilder<S: SP, E: EP> {
     }
     
     static func buildFinalResult(_ collection: TRC) -> [Transition<S, E>] {
-        collection.transitions
+        collection.rows.reduce(into: [Transition<S, E>]()) { ts, row in
+            row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
+                Set(row.givenStates).forEach { given in
+                    ts.append(Transition(givenState: given,
+                                         event: wta.when,
+                                         nextState: wta.then,
+                                         actions: wta.actions))
+                }
+            }
+        } + collection.transitions
     }
 }

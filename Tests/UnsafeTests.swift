@@ -1,6 +1,5 @@
 //
-//  ClassTransitionTests.swift
-//  FiniteStateMachineTests
+//  UnsafeTests.swift
 //
 //  Created by Daniel Segall on 29/01/2023.
 //
@@ -8,7 +7,7 @@
 import XCTest
 @testable import FiniteStateMachine
 
-class UnsafeTransitionTests: XCTestCase {
+class UnsafeTests: XCTestCase {
     typealias SP = StateProtocol
     typealias EP = EventProtocol
 
@@ -34,7 +33,7 @@ class UnsafeTransitionTests: XCTestCase {
     func action() { actionCalled = true }
 
     override func perform(_ run: XCTestRun) {
-        if Self.self != UnsafeTransitionTests.self {
+        if Self.self != UnsafeTests.self {
             super.perform(run)
         }
     }
@@ -170,7 +169,7 @@ class UnsafeTransitionTests: XCTestCase {
     }
 
     func testBuilder() {
-        let t = T.build {
+        let t = build {
             s1       | e1 | s2 | action
             s2       | e2 | s1 | action
             [s2, s1] | e3 | s2 | action
@@ -192,7 +191,7 @@ class UnsafeTransitionTests: XCTestCase {
 
     func testIf() {
         let condition = true
-        let t = T.build {
+        let t = build {
             if condition {
                 s1 | e1 | s2 | action
             }
@@ -203,7 +202,7 @@ class UnsafeTransitionTests: XCTestCase {
 
     func testElse() {
         let condition = false
-        let t = T.build {
+        let t = build {
             if condition {
                 s2 | e1 | s3 | action
             }
@@ -217,7 +216,7 @@ class UnsafeTransitionTests: XCTestCase {
 
     func testSwitch() {
         let condition = true
-        let t = T.build {
+        let t = build {
             switch condition {
             case true:  s1 | e1 | s2 | action
             default: []
@@ -236,7 +235,7 @@ class UnsafeTransitionTests: XCTestCase {
     }
 }
 
-final class EnumTransitionTests: UnsafeTransitionTests {
+final class EnumTransitionTests: UnsafeTests {
     override var s1: ASP { S.one }
     override var s2: ASP { S.two }
     override var s3: ASP { S.three }
@@ -249,7 +248,7 @@ final class EnumTransitionTests: UnsafeTransitionTests {
     enum E: EP { case one, two, three }
 }
 
-final class EnumValueTransitionTestsOne: UnsafeTransitionTests {
+final class EnumValueTransitionTestsOne: UnsafeTests {
     override var s1: ASP { S.one("") }
     override var s2: ASP { S.two("") }
     override var s3: ASP { S.three("") }
@@ -262,7 +261,7 @@ final class EnumValueTransitionTestsOne: UnsafeTransitionTests {
     enum E: EP { case one, two, three }
 }
 
-final class EnumValueTransitionTestsTwo: UnsafeTransitionTests {
+final class EnumValueTransitionTestsTwo: UnsafeTests {
     override var s1: ASP { S.one("1") }
     override var s2: ASP { S.one("2") }
     override var s3: ASP { S.one("3") }
@@ -275,7 +274,7 @@ final class EnumValueTransitionTestsTwo: UnsafeTransitionTests {
     enum E: EP { case one, two, three }
 }
 
-final class StructTransitionTests: UnsafeTransitionTests {
+final class StructTransitionTests: UnsafeTests {
     override var s1: ASP { S1() }
     override var s2: ASP { S2() }
     override var s3: ASP { S3() }
@@ -297,7 +296,7 @@ extension EqHa {
     func hash(into hasher: inout Hasher) { }
 }
 
-final class ClassTransitionTests: UnsafeTransitionTests {
+final class ClassTransitionTests: UnsafeTests {
     override var s1: ASP { S1() }
     override var s2: ASP { S2() }
     override var s3: ASP { S3() }
@@ -310,7 +309,7 @@ final class ClassTransitionTests: UnsafeTransitionTests {
     class E1: EP, EqHa {}; class E2: EP, EqHa {}; class E3: EP, EqHa {}
 }
 
-final class StringIntTransitionTests: UnsafeTransitionTests {
+final class StringIntTransitionTests: UnsafeTests {
     override var s1: ASP { "s1" }
     override var s2: ASP { "s2" }
     override var s3: ASP { "s3" }
@@ -320,7 +319,7 @@ final class StringIntTransitionTests: UnsafeTransitionTests {
     override var e3: AEP { 3 }
 }
 
-final class MixedMessTests: UnsafeTransitionTests {
+final class MixedMessTests: UnsafeTests {
     override var s1: ASP { "s1" }
     override var s2: ASP { 2 }
     override var s3: ASP { false }

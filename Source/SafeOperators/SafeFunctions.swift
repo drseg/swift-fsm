@@ -82,32 +82,23 @@ func makeTransitions<S: SP, E: EP> (
     _ gwts: [GivenWhenThen<S, E>],
     _ actions: [() -> ()]
 ) -> TableRow<S, E> {
-    var alreadyAdded = [GivenWhenThen<S, E>]()
     let transitions = gwts.reduce(into: [Transition<S, E>]()) { ts, gwt in
-        func t(_ g: S, _ w: E, _ t: S, _ a: [() -> ()]) -> Transition<S, E> {
-            Transition(givenState: g, event: w, nextState: t, actions: a,
-                       file: gwt.file, line: gwt.line)
-        }
-        
-        if !alreadyAdded.map(\.given).contains(gwt.given) {
-            ts.append(contentsOf: gwt.allSuperWTAs.reduce(
-                into: [Transition]()) {
-                    $0.append(t(gwt.given, $1.when, $1.then, actions))
-                }
-            )
-            alreadyAdded.append(gwt)
-        }
-        
-        ts.append(t(gwt.given, gwt.when, gwt.then, actions))
+        ts.append(
+            Transition(givenState: gwt.given,
+                       event: gwt.when,
+                       nextState: gwt.then,
+                       actions: actions,
+                       file: gwt.file,
+                       line: gwt.line))
     }
     return TableRow(transitions: transitions,
-                       modifiers: gwts.first?.modifiers ?? .none)
+                    modifiers: gwts.first?.modifiers ?? .none)
 }
 
 func makeTransitions<S: SP, E: EP> (
     _ given: Given<S, E>,
     _ wtas: [[WhenThenAction<S, E>]]
 ) -> TableRow<S, E> {
-    TableRow(transitions: given.formFinalTransitions(with: wtas.flatten),
-                modifiers: given.modifiers)
+    TableRow(transitions: given.formTransitions(with: wtas.flatten),
+             modifiers: given.modifiers)
 }

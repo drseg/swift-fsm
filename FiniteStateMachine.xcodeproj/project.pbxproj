@@ -13,14 +13,14 @@
 		6E9CB83E298B05870085064B /* SafeOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9CB83D298B05870085064B /* SafeOperators.swift */; };
 		6E9CB842298B05CA0085064B /* SafeFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9CB841298B05CA0085064B /* SafeFunctions.swift */; };
 		6E9CB844298B05D90085064B /* SafeObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9CB843298B05D90085064B /* SafeObjects.swift */; };
-		6EA3A02229871402007928C4 /* UnsafeOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02129871402007928C4 /* UnsafeOperatorTests.swift */; };
+		6EA3A02229871402007928C4 /* UnsafeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02129871402007928C4 /* UnsafeTests.swift */; };
 		6EA3A02529871E93007928C4 /* FSM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02329871CB7007928C4 /* FSM.swift */; };
 		6EA3A028298726BA007928C4 /* UnsafeOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A027298726BA007928C4 /* UnsafeOperators.swift */; };
 		6EA3A02C298726FD007928C4 /* Transition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02B298726FC007928C4 /* Transition.swift */; };
 		6EA3A02E29872A04007928C4 /* FSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3A02D29872A04007928C4 /* FSMTests.swift */; };
 		6EE64F8C2986BE3B009A361C /* FiniteStateMachine.docc in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */; };
 		6EE64F922986BE3B009A361C /* FiniteStateMachine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EE64F872986BE3B009A361C /* FiniteStateMachine.framework */; };
-		6EE64F972986BE3B009A361C /* SafeOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F962986BE3B009A361C /* SafeOperatorTests.swift */; };
+		6EE64F972986BE3B009A361C /* SafeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE64F962986BE3B009A361C /* SafeTests.swift */; };
 		6EE64F982986BE3B009A361C /* FiniteStateMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6EFE721F2991C5E100AF4758 /* Array+FSM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EFE721E2991C5E100AF4758 /* Array+FSM.swift */; };
 /* End PBXBuildFile section */
@@ -41,7 +41,7 @@
 		6E9CB83D298B05870085064B /* SafeOperators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SafeOperators.swift; sourceTree = "<group>"; };
 		6E9CB841298B05CA0085064B /* SafeFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeFunctions.swift; sourceTree = "<group>"; };
 		6E9CB843298B05D90085064B /* SafeObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeObjects.swift; sourceTree = "<group>"; };
-		6EA3A02129871402007928C4 /* UnsafeOperatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsafeOperatorTests.swift; sourceTree = "<group>"; };
+		6EA3A02129871402007928C4 /* UnsafeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsafeTests.swift; sourceTree = "<group>"; };
 		6EA3A02329871CB7007928C4 /* FSM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSM.swift; sourceTree = "<group>"; };
 		6EA3A027298726BA007928C4 /* UnsafeOperators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsafeOperators.swift; sourceTree = "<group>"; };
 		6EA3A02B298726FC007928C4 /* Transition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Transition.swift; sourceTree = "<group>"; };
@@ -51,7 +51,7 @@
 		6EE64F8A2986BE3B009A361C /* FiniteStateMachine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FiniteStateMachine.h; sourceTree = "<group>"; };
 		6EE64F8B2986BE3B009A361C /* FiniteStateMachine.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = FiniteStateMachine.docc; sourceTree = "<group>"; };
 		6EE64F912986BE3B009A361C /* FiniteStateMachineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FiniteStateMachineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		6EE64F962986BE3B009A361C /* SafeOperatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeOperatorTests.swift; sourceTree = "<group>"; };
+		6EE64F962986BE3B009A361C /* SafeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeTests.swift; sourceTree = "<group>"; };
 		6EFE721E2991C5E100AF4758 /* Array+FSM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+FSM.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -139,8 +139,8 @@
 			isa = PBXGroup;
 			children = (
 				6EA3A02D29872A04007928C4 /* FSMTests.swift */,
-				6EE64F962986BE3B009A361C /* SafeOperatorTests.swift */,
-				6EA3A02129871402007928C4 /* UnsafeOperatorTests.swift */,
+				6EE64F962986BE3B009A361C /* SafeTests.swift */,
+				6EA3A02129871402007928C4 /* UnsafeTests.swift */,
 				6E24F53B29919D3A00EE7F3A /* TestingConvenience.swift */,
 			);
 			path = Tests;
@@ -277,10 +277,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6EE64F972986BE3B009A361C /* SafeOperatorTests.swift in Sources */,
+				6EE64F972986BE3B009A361C /* SafeTests.swift in Sources */,
 				6E24F53C29919D3A00EE7F3A /* TestingConvenience.swift in Sources */,
 				6EA3A02E29872A04007928C4 /* FSMTests.swift in Sources */,
-				6EA3A02229871402007928C4 /* UnsafeOperatorTests.swift in Sources */,
+				6EA3A02229871402007928C4 /* UnsafeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -435,7 +435,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = DRS.FiniteStateMachine;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -471,7 +471,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = DRS.FiniteStateMachine;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";

@@ -12,10 +12,8 @@ extension String: StateProtocol, EventProtocol {}
 extension Int: EventProtocol, StateProtocol {}
 extension Bool: EventProtocol, StateProtocol {}
 
-extension Transition {
-    static func build(
-        @FSMTableBuilder<S, E> _ content: () -> [Transition<S, E>]
-    ) -> [Transition<S, E>] {
-        content()
-    }
+func build<S: SP, E: EP>(
+    @FSMTableBuilder<S, E> _ content: () -> [Transition<S, E>]
+) -> [Transition<S, E>] {
+    content()
 }

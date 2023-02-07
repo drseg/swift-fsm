@@ -64,10 +64,6 @@ class _GivenBase<S: SP, E: EP>: Modifiable {
         self.line = line
     }
     
-    func formFinalTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
-        formTransitions(with: allSuperWTAs) + formTransitions(with: wtas)
-    }
-    
     func formTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
             wtas.forEach {
@@ -84,8 +80,8 @@ class _GivenBase<S: SP, E: EP>: Modifiable {
     func callAsFunction(
         @WTABuilder<S, E> _ wtas: () -> [WTA]
     ) -> TableRow<S, E> {
-        TableRow(transitions: formFinalTransitions(with: wtas()),
-                    modifiers: modifiers)
+        TableRow(transitions: formTransitions(with: wtas()),
+                 modifiers: modifiers)
     }
     
     func callAsFunction(
@@ -136,11 +132,7 @@ class Given<S: SP, E: EP>: _GivenBase<S, E> {
 
 final class FinalGiven<S: SP, E: EP>: Given<S, E>, TableRowProtocol {
     var transitions = [Transition<S, E>]()
-    
-    override init(_ s: [S], _ m: RowModifiers<S, E>, file: String, line: Int) {
-        super.init(s, m, file: file, line: line)
-        self.transitions = formTransitions(with: allSuperWTAs)
-    }
+    var givenStates: any Collection<S> { states }
 }
 
 struct When<E: EP> {
