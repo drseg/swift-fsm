@@ -12,3 +12,9 @@ extension Array where Element: Collection {
         flatMap { $0 }
     }
 }
+
+extension Array where Element: Hashable {
+    var uniqueValues: Self {
+        Array(Set(self))
+    }
+}

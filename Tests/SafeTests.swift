@@ -105,6 +105,14 @@ final class SafeTransitionTests: SafeTests {
         assertCount(2, tr)
     }
     
+    func testMultiGivenConstructorWithDuplicates() {
+        let tr = G(.a, .b, .b) | W(.g) | T(.b) | { }
+        
+        assertContains(.a, .g, .b, tr)
+        assertContains(.b, .g, .b, tr)
+        assertCount(2, tr)
+    }
+    
     func testMultiActionConstructor() {
         let _ = G(.a) | W(.g) | T(.b) | [{ }, { }]
         // nothing to assert here, just needs to compile
@@ -130,6 +138,14 @@ final class SafeTransitionTests: SafeTests {
     
     func testMultiWhenConstructor() {
         let tr = G(.a) | W(.g, .h) | T(.c) | { }
+        
+        assertContains(.a, .g, .c, tr)
+        assertContains(.a, .h, .c, tr)
+        assertCount(2, tr)
+    }
+    
+    func testMultiWhenConstructorWithDuplicates() {
+        let tr = G(.a) | W(.g, .h, .h) | T(.c) | { }
         
         assertContains(.a, .g, .c, tr)
         assertContains(.a, .h, .c, tr)
@@ -179,10 +195,8 @@ final class SafeTransitionTests: SafeTests {
     func testEquality() {
         let x = G(.a, .b) | W(.g) | T(.c) | { }
         var y = G(.a, .b) | W(.g) | T(.c) | { }
-        XCTAssertEqual(x.transitions, y.transitions)
+        XCTAssertEqual(Set(x.transitions), Set(y.transitions))
         
-        y =     G(.a, .a) | W(.g) | T(.c) | { }
-        XCTAssertNotEqual(x.transitions, y.transitions)
         y =     G(.a, .b) | W(.h) | T(.c) | { }
         XCTAssertNotEqual(x.transitions, y.transitions)
         y =     G(.a, .b) | W(.g) | T(.b) | { }

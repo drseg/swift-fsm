@@ -44,9 +44,8 @@ class Given<S: SP, E: EP> {
     let file: String
     let line: Int
     
-#warning("what happens if you give it duplicates?")
     init(_ states: S..., file: String = #file, line: Int = #line) {
-        self.states = states
+        self.states = states.uniqueValues
         self.modifiers = .none
         self.file = file
         self.line = line
@@ -127,9 +126,9 @@ final class GivenRow<S: SP, E: EP>: Given<S, E>, TableRowProtocol {
 
 struct When<E: EP> {
     let events: [E]
-    
+
     init(_ when: E...) {
-        self.events = when
+        self.events = when.uniqueValues
     }
 }
 
