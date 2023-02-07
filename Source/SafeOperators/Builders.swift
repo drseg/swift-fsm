@@ -72,19 +72,7 @@ class TableBuilder<S: SP, E: EP>: Builder<any TableRowProtocol<S, E>> {
 }
 
 @resultBuilder
-class WTABuilder<S: SP, E: EP>: Builder<WhenThenAction<S, E>> {
-    typealias WTA = WhenThenAction<S, E>
-    
-    static func buildFinalResult(_ wtas: [WTA]) -> [WTA] {
-        wtas
-    }
-}
+class WTABuilder<S: SP, E: EP>: Builder<WhenThenAction<S, E>> { }
 
 @resultBuilder
-class WTBuilder<S: SP, E: EP>: Builder<WhenThen<S, E>> {
-    typealias WT = WhenThen<S, E>
-    
-    static func buildFinalResult(_ wts: [WT]) -> [WT] {
-        wts
-    }
-}
+class WTBuilder<S: SP, E: EP>: Builder<WhenThen<S, E>> { }
