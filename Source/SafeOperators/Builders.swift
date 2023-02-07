@@ -64,11 +64,11 @@ struct TableBuilder<S: SP, E: EP> {
     }
 }
 
-protocol SlowBuilder {
+protocol SubBuilder {
     associatedtype T
 }
 
-extension SlowBuilder {
+extension SubBuilder {
     static func buildIf(_ collection: [T]?) -> [T] {
         collection ?? []
     }
@@ -87,11 +87,11 @@ extension SlowBuilder {
 }
 
 @resultBuilder
-class WTABuilder<S: SP, E: EP>: SlowBuilder {
+struct WTABuilder<S: SP, E: EP>: SubBuilder {
     typealias T = WhenThenAction<S, E>
 }
 
 @resultBuilder
-class WTBuilder<S: SP, E: EP>: SlowBuilder {
+struct WTBuilder<S: SP, E: EP>: SubBuilder {
     typealias T = WhenThen<S, E>
 }
