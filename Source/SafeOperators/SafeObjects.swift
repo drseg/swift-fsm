@@ -13,20 +13,9 @@ struct RowModifiers<S: SP, E: EP> {
     let exitActions: [() -> ()]
     
     static var none: Self {
-        RowModifiers(superStates: [], entryActions: [], exitActions: [])
-    }
-}
-
-protocol Modifiable {
-    associatedtype S: StateProtocol
-    associatedtype E: EventProtocol
-    
-    var modifiers: RowModifiers<S, E> { get }
-}
-
-extension Modifiable {
-    var allSuperWTAs: [WhenThenAction<S, E>] {
-        modifiers.superStates.map { $0.wtas }.flatten
+        Self(superStates: [],
+             entryActions: [],
+             exitActions: [])
     }
 }
 
@@ -38,8 +27,7 @@ struct SuperState<S: SP, E: EP> {
     }
 }
 
-
-class _GivenBase<S: SP, E: EP>: Modifiable {
+class _GivenBase<S: SP, E: EP> {
     typealias SS = SuperState<S, E>
     typealias WTA = WhenThenAction<S, E>
     typealias WT = WhenThen<S, E>
@@ -143,8 +131,7 @@ struct When<E: EP> {
     }
 }
 
-struct GivenWhen<S: SP, E: EP>: Modifiable {
-    
+struct GivenWhen<S: SP, E: EP> {
     let given: S
     let when: E
     
@@ -167,8 +154,7 @@ struct Then<State: SP> {
     }
 }
 
-struct GivenWhenThen<S: SP, E: EP>: Modifiable {
-    
+struct GivenWhenThen<S: SP, E: EP> {
     let given: S
     let when: E
     let then: S

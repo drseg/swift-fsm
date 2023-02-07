@@ -189,7 +189,7 @@ final class SafeTransitionTests: SafeTests {
         XCTAssertNotEqual(x.transitions, y.transitions)
     }
     
-    func testFSMTableBuilder() {
+    func testTableBuilder() {
         let tr = build {
             G(.a, .b) | W(.g) | T(.c) | { }
             G(.c)     | W(.h) | T(.d) | { }

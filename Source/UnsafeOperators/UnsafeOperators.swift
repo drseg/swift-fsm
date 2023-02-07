@@ -227,8 +227,8 @@ func | (ses: StateEventState, action: @escaping () -> ()) -> TableRow<AS, AE> {
 func | (ses: StateEventState, actions: [() -> ()]) -> TableRow<AS, AE> {
     TableRow(
         transitions: [Transition(givenState: ses.startState.erase,
-                    event: ses.event.erase,
-                    nextState: ses.endState.erase,
-                    actions: actions)],
+                                 event: ses.event.erase,
+                                 nextState: ses.endState.erase,
+                                 actions: actions)],
         modifiers: .none)
 }

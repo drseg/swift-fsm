@@ -13,7 +13,7 @@ extension Int: EventProtocol, StateProtocol {}
 extension Bool: EventProtocol, StateProtocol {}
 
 func build<S: SP, E: EP>(
-    @FSMTableBuilder<S, E> _ content: () -> [Transition<S, E>]
+    @TableBuilder<S, E> _ content: () -> [Transition<S, E>]
 ) -> [Transition<S, E>] {
     content()
 }

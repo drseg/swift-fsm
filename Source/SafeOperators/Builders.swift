@@ -7,25 +7,7 @@
 
 import Foundation
 
-@resultBuilder
-struct WTABuilder<S: SP, E: EP> {
-    static func buildBlock<E>(
-        _ wtas: [WhenThenAction<S, E>]...
-    ) -> [WhenThenAction<S, E>] {
-        wtas.flatten
-    }
-}
-
-@resultBuilder
-struct WTBuilder<S: SP, E: EP> {
-    static func buildBlock(
-        _ wts: [WhenThen<S, E>]...
-    ) -> [WhenThen<S, E>] {
-        wts.flatten
-    }
-}
-
-protocol TableRowProtocol<State, Event> where State: StateProtocol, Event: EventProtocol {
+protocol TableRowProtocol<State, Event> {
     associatedtype State: StateProtocol
     associatedtype Event: EventProtocol
     
@@ -42,7 +24,7 @@ struct TableRowCollection<S: SP, E: EP> {
     }
 }
 
-struct TableRow<S: SP, E: EP>: TableRowProtocol, Modifiable {
+struct TableRow<S: SP, E: EP>: TableRowProtocol {
     let transitions: [Transition<S, E>]
     let modifiers: RowModifiers<S, E>
     
@@ -52,20 +34,19 @@ struct TableRow<S: SP, E: EP>: TableRowProtocol, Modifiable {
 }
 
 @resultBuilder
-struct FSMTableBuilder<S: SP, E: EP> {
+struct TableBuilder<S: SP, E: EP> {
     typealias TRC = TableRowCollection<S, E>
     
-    static func buildExpression<TR>( _ row: TR) -> TRC
-    where TR: TableRowProtocol, TR.State == S, TR.Event == E {
-        TableRowCollection(rows: [row])
+    static func buildExpression( _ row: any TableRowProtocol<S, E>) -> TRC {
+        TRC(rows: [row])
     }
     
-    static func buildExpression(_ rows: [TableRow<S, E>]) -> TRC {
-        TableRowCollection(rows: rows)
+    static func buildExpression( _ rows: [any TableRowProtocol<S, E>]) -> TRC {
+        TRC(rows: rows)
     }
     
     static func buildIf(_ collection: TRC?) -> TRC {
-        TableRowCollection(rows: collection?.rows ?? [])
+        TRC(rows: collection?.rows ?? [])
     }
     
     static func buildEither(first collection: TRC) -> TRC {
@@ -77,19 +58,34 @@ struct FSMTableBuilder<S: SP, E: EP> {
     }
     
     static func buildBlock(_ collections: TRC...) -> TRC {
-        TableRowCollection(rows: collections.map(\.rows).flatten)
+        TRC(rows: collections.map(\.rows).flatten)
     }
     
     static func buildFinalResult(_ collection: TRC) -> [Transition<S, E>] {
         collection.rows.reduce(into: [Transition<S, E>]()) { ts, row in
             row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
-                Set(row.givenStates).forEach { given in
-                    ts.append(Transition(givenState: given,
-                                         event: wta.when,
-                                         nextState: wta.then,
-                                         actions: wta.actions))
+                row.givenStates.forEach { given in
+                    ts.append(
+                        Transition(givenState: given,
+                                   event: wta.when,
+                                   nextState: wta.then,
+                                   actions: wta.actions)
+                    )
                 }
             }
         } + collection.transitions
     }
 }
+
+@resultBuilder
+class DefaultBuilder<C> {
+    static func buildBlock(_ cs: [C]...) -> [C] {
+        cs.flatten
+    }
+}
+
+@resultBuilder
+class WTABuilder<S: SP, E: EP>: DefaultBuilder<WhenThenAction<S, E>> { }
+
+@resultBuilder
+class WTBuilder<S: SP, E: EP>: DefaultBuilder<WhenThen<S, E>> { }
