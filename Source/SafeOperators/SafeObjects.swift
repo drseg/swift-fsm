@@ -17,6 +17,12 @@ struct RowModifiers<S: SP, E: EP> {
              entryActions: [],
              exitActions: [])
     }
+    
+    func addSuperStates(_ ss: [SuperState<S, E>]) -> Self {
+        Self(superStates: superStates + ss,
+             entryActions: entryActions,
+             exitActions: exitActions)
+    }
 }
 
 struct SuperState<S: SP, E: EP> {
@@ -27,7 +33,7 @@ struct SuperState<S: SP, E: EP> {
     }
 }
 
-class _GivenBase<S: SP, E: EP> {
+class Given<S: SP, E: EP> {
     typealias SS = SuperState<S, E>
     typealias WTA = WhenThenAction<S, E>
     typealias WT = WhenThen<S, E>
@@ -38,6 +44,7 @@ class _GivenBase<S: SP, E: EP> {
     let file: String
     let line: Int
     
+#warning("what happens if you give it duplicates?")
     init(_ states: S..., file: String = #file, line: Int = #line) {
         self.states = states
         self.modifiers = .none
@@ -89,9 +96,7 @@ class _GivenBase<S: SP, E: EP> {
             }
         )
     }
-}
-
-class Given<S: SP, E: EP>: _GivenBase<S, E> {
+    
     func include(
         _ superStates: SS...,
         @WTABuilder<S, E> wtas: () -> [WTA]
@@ -106,19 +111,16 @@ class Given<S: SP, E: EP>: _GivenBase<S, E> {
         include(superStates).callAsFunction(wts)
     }
     
-    func include(_ superStates: SS...) -> FinalGiven<S, E> {
+    func include(_ superStates: SS...) -> GivenRow<S, E> {
         include(superStates)
     }
     
-    private func include(_ ss: [SS]) -> FinalGiven<S, E> {
-        let modifiers = RowModifiers(superStates: modifiers.superStates + ss,
-                                     entryActions: modifiers.entryActions,
-                                     exitActions: modifiers.exitActions)
-        return FinalGiven(states, modifiers, file: file, line: line)
+    private func include(_ ss: [SS]) -> GivenRow<S, E> {
+        GivenRow(states, modifiers.addSuperStates(ss), file: file, line: line)
     }
 }
 
-final class FinalGiven<S: SP, E: EP>: Given<S, E>, TableRowProtocol {
+final class GivenRow<S: SP, E: EP>: Given<S, E>, TableRowProtocol {
     var transitions = [Transition<S, E>]()
     var givenStates: any Collection<S> { states }
 }
