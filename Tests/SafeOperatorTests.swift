@@ -11,13 +11,13 @@ import XCTest
 class SafeTests: XCTestCase {
     enum State: StateProtocol { case a, b, c, d, e, f, p, q, r, s, t, u, v, w }
     enum Event: EventProtocol { case g, h, i, j, k, l }
-    
+
     typealias G = Given<State, Event>
     typealias W = When<Event>
     typealias T = Then<State>
-    
-    typealias TR = FSMTableRow<State, Event>
-    
+
+    typealias TR = TableRow<State, Event>
+
     func transition(
         _ given: State,
         _ when: Event,
@@ -29,17 +29,25 @@ class SafeTests: XCTestCase {
                    nextState: then,
                    actions: actions)
     }
-    
+
     func assertContains(
         _ sess: [(State, Event, State)],
         _ tr: TR,
+        line: UInt = #line
+    ) {
+        assertContains(sess, tr.transitions)
+    }
+
+    func assertContains(
+        _ sess: [(State, Event, State)],
+        _ tr: [Transition<State, Event>],
         line: UInt = #line
     ) {
         sess.forEach {
             assertContains($0.0, $0.1, $0.2, tr, line: line)
         }
     }
-    
+
     func assertContains(
         _ given: State,
         _ when: Event,
@@ -47,31 +55,49 @@ class SafeTests: XCTestCase {
         _ tr: TR,
         line: UInt = #line
     ) {
-        XCTAssertTrue(tr.transitions.contains(where: {
+        assertContains(given, when, then, tr.transitions)
+    }
+
+    func assertContains(
+        _ given: State,
+        _ when: Event,
+        _ then: State,
+        _ tr: [Transition<State, Event>],
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(tr.contains(where: {
             $0.givenState == given &&
             $0.event == when &&
             $0.nextState == then
         }), line: line)
     }
-    
+
     func assertCount(
         _ expected: Int,
         _ tr: TR,
         line: UInt = #line
     ) {
-        XCTAssertEqual(tr.transitions.count, expected, line: line)
+        assertCount(expected, tr.transitions)
     }
-    
+
+    func assertCount(
+        _ expected: Int,
+        _ tr: [Transition<State, Event>],
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(tr.count, expected, line: line)
+    }
+
     func doNothing() {}
 }
 
 final class SafeTransitionTests: SafeTests {
     func testSimpleConstructor() {
         let tr = G(.a) | W(.g) | T(.b) | { }
-        
+
         assertContains(.a, .g, .b, tr)
     }
-    
+
     func testMultiGivenConstructor() {
         let tr = G(.a, .b) | W(.g) | T(.b) | { }
         
@@ -172,7 +198,7 @@ final class SafeTransitionTests: SafeTests {
             G(.e)     | W(.j) | T(.f) | { }
         }
         
-        XCTAssertEqual(tr.transitions.count, 5)
+        assertCount(5,  tr)
     }
     
     func testGivenBuilder() {
@@ -248,7 +274,7 @@ final class SafeTransitionTests: SafeTests {
             }
         }
         
-        XCTAssertEqual(trc.transitions.first, transition(.a, .g, .b))
+        XCTAssertEqual(trc.first, transition(.a, .g, .b))
     }
     
     func testBuilderIfFalse() {
@@ -258,7 +284,7 @@ final class SafeTransitionTests: SafeTests {
                 G(.a) | W(.g) | T(.b) | { }
             }
         }
-        XCTAssert(trc.transitions.isEmpty)
+        XCTAssert(trc.isEmpty)
     }
     
     func testBuilderElse() {
@@ -271,8 +297,9 @@ final class SafeTransitionTests: SafeTests {
                 G(.b) | W(.i) | T(.b) | { }
             }
         }
-        XCTAssertEqual(trc.transitions.count, 1)
-        XCTAssertEqual(trc.transitions.first, transition(.b, .i, .b))
+        
+        assertCount(1, trc)
+        XCTAssertEqual(trc.first, transition(.b, .i, .b))
     }
     
     func testBuilderSwitch() {
@@ -285,7 +312,7 @@ final class SafeTransitionTests: SafeTests {
             case .off: G(.b) | W(.i) | T(.b) | { }
             }
         }
-        XCTAssertEqual(trc.transitions.first, transition(.a, .g, .b))
+        XCTAssertEqual(trc.first, transition(.a, .g, .b))
     }
 }
 
@@ -298,44 +325,44 @@ class SuperStateTransitionTests: SafeTests {
                            then: then,
                            actions: [])
         }
-        
+
         let s = SuperState {
             W(.h) | T(.b) | { }
             W(.g) | T(.s) | { }
         }
-        
+
         XCTAssertEqual(s.wtas.first!, wta(.h, .b))
         XCTAssertEqual(s.wtas.last!, wta(.g, .s))
     }
-    
+
     let s1 = SuperState { W(.h) | T(.b) | { } }
     let s2 = SuperState { W(.g) | T(.s) | { } }
     let ss = SuperState {
         W(.h) | T(.b) | { }
         W(.g) | T(.s) | { }
     }
-    
+
     func testGiven() {
-        func assertOutput(_ t: TR..., line: UInt = #line) {
+        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s)], $0, line: line)
                 assertCount(2, $0, line: line)
             }
         }
-        
-        let tr1 = G(.a).include(s1) { W(.g) | T(.s) | { } }
-        let tr2 = G(.a).include(s1) | W(.g) | T(.s) | { }
-        
-        let tr3 = Transition.build { G(.a).include(ss) }.rows.first!
-        let tr4 = Transition.build { G(.a).include(s1, s2) }.rows.first!
-        let tr5 = Transition.build { G(.a).include(s1).include(s2) }.rows.first!
-        
+
+        let tr1 = G(.a).include(s1) { W(.g) | T(.s) | { } }.transitions
+        let tr2 = (G(.a).include(s1) | W(.g) | T(.s) | { }).transitions
+
+        let tr3 = Transition.build { G(.a).include(ss) }
+        let tr4 = Transition.build { G(.a).include(s1, s2) }
+        let tr5 = Transition.build { G(.a).include(s1).include(s2) }
+
         assertOutput(tr1, tr2, tr3, tr4, tr5)
     }
-    
+
     func testMultipleGiven() {
-        func assertOutput(_ t: TR..., line: UInt = #line) {
+        func assertOutput(_ t: [Transition<State, Event>]..., line: UInt = #line) {
             t.forEach {
                 assertContains([(.a, .h, .b),
                                 (.a, .g, .s),
@@ -344,16 +371,16 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(4, $0, line: line)
             }
         }
-        
-        let tr1 = G(.a, .b).include(s1) { W(.g) | T(.s) | { } }
-        let tr2 = G(.a, .b).include(s1) | W(.g) | T(.s) | { }
-        
-        let tr3 = Transition.build { G(.a, .b).include(ss) }.rows.first!
-        let tr4 = Transition.build { G(.a, .b).include(s1, s2) }.rows.first!
-        
+
+        let tr1 = G(.a, .b).include(s1) { W(.g) | T(.s) | { } }.transitions
+        let tr2 = (G(.a, .b).include(s1) | W(.g) | T(.s) | { }).transitions
+
+        let tr3 = Transition.build { G(.a, .b).include(ss) }
+        let tr4 = Transition.build { G(.a, .b).include(s1, s2) }
+
         assertOutput(tr1, tr2, tr3, tr4)
     }
-    
+
     func testMultipleWhenThenAction() {
         func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
@@ -363,7 +390,7 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(3, $0, line: line)
             }
         }
-        
+
         let tr1 = G(.a).include(s1) {
             W(.g) | T(.s) | { }
             W(.h) | T(.s) | { }
@@ -374,10 +401,10 @@ class SuperStateTransitionTests: SafeTests {
         let tr4 = G(.a).include(s1, s2)      | [W(.h) | T(.s) | { }]
         let tr5 = G(.a).include(ss) { W(.h)  | T(.s)  | { } }
         let tr6 = G(.a).include(s1, s2)      { W(.h)  | T(.s) | { } }
-        
+
         assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-    
+
     func testMultipleGivenMultipleWTA() {
         func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
@@ -390,7 +417,7 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(6, $0, line: line)
             }
         }
-        
+
         let tr1 = G(.a, .b).include(s1) {
             W(.g) | T(.s) | { }
             W(.h) | T(.s) | { }
@@ -399,10 +426,10 @@ class SuperStateTransitionTests: SafeTests {
                                                W(.h) | T(.s) | { }]
         let tr3 = G(.a, .b).include(ss)     | [W(.h) | T(.s) | { }]
         let tr4 = G(.a, .b).include(s1, s2) | [W(.h) | T(.s) | { }]
-        
+
         assertOutput(tr1, tr2, tr3, tr4)
     }
-    
+
     func testMultitipleWhen() {
         func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
@@ -413,7 +440,7 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(4, $0, line: line)
             }
         }
-        
+
         let tr1 = G(.a).include(s1) {
             W(.g, .h, .i) | T(.s) | { }
         }
@@ -422,10 +449,10 @@ class SuperStateTransitionTests: SafeTests {
         let tr4 = G(.a).include(ss)     | W(.h, .i)     | T(.s) | { }
         let tr5 = G(.a).include(s1, s2) { W(.h, .i)     | T(.s) | { } }
         let tr6 = G(.a).include(ss)     { W(.h, .i)     | T(.s) | { } }
-        
+
         assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-    
+
     func testMultipleGivenMultipleWhen() {
         func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
@@ -440,7 +467,7 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(8, $0, line: line)
             }
         }
-        
+
         let tr1 = G(.a, .b).include(s1) {
             W(.g, .h, .i) | T(.s) | { }
         }
@@ -449,10 +476,10 @@ class SuperStateTransitionTests: SafeTests {
         let tr4 = G(.a, .b).include(ss)     | W(.h, .i)     | T(.s) | { }
         let tr5 = G(.a, .b).include(s1, s2) { W(.h, .i)     | T(.s) | { } }
         let tr6 = G(.a, .b).include(ss)     { W(.h, .i)     | T(.s) | { } }
-        
+
         assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-    
+
     func testMultipleGivenMultipleWhenMultipleThenAction() {
         func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
@@ -469,7 +496,7 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(10, $0, line: line)
             }
         }
-        
+
         let tr1 = G(.a, .b).include(s1) {
             W(.g, .h) | T(.s) | { }
             W(.i, .j) | T(.d) | { }
@@ -488,10 +515,10 @@ class SuperStateTransitionTests: SafeTests {
             W(.h)     | T(.s) | { }
             W(.i, .j) | T(.d) | { }
         }
-        
+
         assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-    
+
     func testMultipleWhenThen() {
         func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
@@ -502,7 +529,7 @@ class SuperStateTransitionTests: SafeTests {
                 assertCount(4, $0)
             }
         }
-        
+
         let tr1 = G(.a).include(s1) {
             [W(.g) | T(.s),
              W(.h) | T(.s),
@@ -511,23 +538,23 @@ class SuperStateTransitionTests: SafeTests {
         let tr2 = G(.a).include(s1)     | [W(.g) | T(.s),
                                            W(.h) | T(.s),
                                            W(.i) | T(.s)] | { }
-        
+
         let tr3 = G(.a).include(s1, s2) | [W(.h) | T(.s),
                                            W(.i) | T(.s)] | { }
-        
+
         let tr4 = G(.a).include(ss)     | [W(.h) | T(.s),
                                            W(.i) | T(.s)] | { }
         let tr5 = G(.a).include(ss) {
             W(.h) | T(.s)
             W(.i) | T(.s) }.action { }
-        
+
         let tr6 = G(.a).include(s1, s2) {
             W(.h) | T(.s)
             W(.i) | T(.s) }.action { }
-        
+
         assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
-    
+
     func testAll() {
         func assertOutput(_ t: TR..., line: UInt = #line) {
             t.forEach {
@@ -549,53 +576,53 @@ class SuperStateTransitionTests: SafeTests {
                                 (.b, .j, .s),
                                 (.b, .j, .t),
                                 (.b, .k, .t)], $0, line: line)
-                
+
                 assertCount(18, $0, line: line)
             }
         }
-        
+
         let tr1 = G(.a, .b).include(s1) {
             [W(.g, .h) | T(.s),
              W(.h, .i) | T(.t)] | { }
-            
+
             [W(.i, .j) | T(.s),
              W(.j, .k) | T(.t)] | { }
         }
-        
+
         let tr2 = G(.a, .b).include(s1)     | [[W(.g, .h) | T(.s),
                                                 W(.h, .i) | T(.t)] | { },
-                                               
+
                                                [W(.i, .j) | T(.s),
                                                 W(.j, .k) | T(.t)] | { }]
-        
+
         let tr3 = G(.a, .b).include(s1, s2) | [[W(.h)     | T(.s),
                                                 W(.h, .i) | T(.t)] | { },
-                                               
+
                                                [W(.i, .j) | T(.s),
                                                 W(.j, .k) | T(.t)] | { }]
-        
+
         let tr4 = G(.a, .b).include(ss)     | [[W(.h)     | T(.s),
                                                 W(.h, .i) | T(.t)] | { },
-                                               
+
                                                [W(.i, .j) | T(.s),
                                                 W(.j, .k) | T(.t)] | { }]
-        
+
         let tr5 = G(.a, .b).include(s1, s2) {
             [W(.h)     | T(.s),
              W(.h, .i) | T(.t)] | { }
-            
+
             [W(.i, .j) | T(.s),
              W(.j, .k) | T(.t)] | { }
         }
-        
+
         let tr6 = G(.a, .b).include(ss) {
             [W(.h)     | T(.s),
              W(.h, .i) | T(.t)] | { }
-            
+
             [W(.i, .j) | T(.s),
              W(.j, .k) | T(.t)] | { }
         }
-        
+
         assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
     }
 }
@@ -603,15 +630,15 @@ class SuperStateTransitionTests: SafeTests {
 class FileLineTests: SafeTests {
     func testFileAndLine() {
         let file: String = String(#file)
-        
+
         let l1 = #line; let tr1 = G(.a) {
             W(.g) | T(.s) | { }
         }
         let l2 = #line; let tr2 = G(.a) | W(.g) | T(.s) | { }
-        
+
         XCTAssertEqual(tr1.transitions.first?.line, l1)
         XCTAssertEqual(tr2.transitions.first?.line, l2)
-        
+
         XCTAssertEqual(tr1.transitions.first?.file, file)
         XCTAssertEqual(tr2.transitions.first?.file, file)
     }
@@ -621,27 +648,27 @@ class FileLineTests: SafeTests {
 class DemonstrationTests: SafeTests {
     func testTurnstile() {
         typealias W = When<String>; typealias T = Then<String>
-        
+
         func alarmOff() {}; func unlock() {}; func alarmOn() {}
         func thankyou() {}; func lock() {}
-        
+
     /*
      Initial: Locked
      FSM: Turnstile {
         (Resetable)  {
             Reset       Locked       {alarmOff lock}
         } // This is an abstract super state.
-         
+
         Locked : Resetable    {
              Coin    Unlocked    unlock
              Pass    Alarming    alarmOn
         }
-        
+
         Unlocked : Resetable {
              Coin    Unlocked    thankyou
              Pass    Locked      lock
          }
-         
+
         Alarming : Resetable { // inherits all its transitions from Resetable }
      }
      */
@@ -650,20 +677,20 @@ class DemonstrationTests: SafeTests {
             let resetable = SuperState {
                 W("Reset") | T("Locked")  | [alarmOff, lock]
             }
-            
+
             Given("Locked").include(resetable) {
                 W("Coin") | T("Unlocked") | unlock
                 W("Pass") | T("Alarming") | alarmOn
             }
-            
+
             Given("Unlocked").include(resetable) {
                 W("Coin") | T("Unlocked") | thankyou
                 W("Pass") | T("Locked")   | lock
             }
-            
+
             Given("Alarming").include(resetable)
         }
-      
+
         /*
          Initial: Locked
          FSM: Turnstile
@@ -681,7 +708,7 @@ class DemonstrationTests: SafeTests {
            }
            Alarming : Resetable <alarmOn >alarmOff   -    -    -
          }
-         
+
          Given("Locked")
             .include(resetable)
             .onEnter(soSomething) // StateEvent held by Given
@@ -691,7 +718,7 @@ class DemonstrationTests: SafeTests {
              W("Pass") | T("Alarming") | alarmOn
              // change from [Transition] to FSMTableRow(entryActions, exitActions, transitions)
          }
-         
+
          */
     }
 }

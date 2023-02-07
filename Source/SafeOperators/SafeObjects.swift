@@ -7,20 +7,12 @@
 
 import Foundation
 
-struct SuperState<S: SP, E: EP> {
-    let wtas: [WhenThenAction<S, E>]
-    
-    init(@WTABuilder<S, E> _ content: () -> [WhenThenAction<S, E>]) {
-        wtas = content()
-    }
-}
-
 struct RowModifiers<S: SP, E: EP> {
     let superStates: [SuperState<S, E>]
     let entryActions: [() -> ()]
     let exitActions: [() -> ()]
     
-    static var empty: Self {
+    static var none: Self {
         RowModifiers(superStates: [], entryActions: [], exitActions: [])
     }
 }
@@ -38,6 +30,15 @@ extension Modifiable {
     }
 }
 
+struct SuperState<S: SP, E: EP> {
+    let wtas: [WhenThenAction<S, E>]
+    
+    init(@WTABuilder<S, E> _ content: () -> [WhenThenAction<S, E>]) {
+        wtas = content()
+    }
+}
+
+
 class _GivenBase<S: SP, E: EP>: Modifiable {
     typealias SS = SuperState<S, E>
     typealias WTA = WhenThenAction<S, E>
@@ -51,7 +52,7 @@ class _GivenBase<S: SP, E: EP>: Modifiable {
     
     init(_ states: S..., file: String = #file, line: Int = #line) {
         self.states = states
-        self.modifiers = .empty
+        self.modifiers = .none
         self.file = file
         self.line = line
     }
@@ -82,8 +83,8 @@ class _GivenBase<S: SP, E: EP>: Modifiable {
     
     func callAsFunction(
         @WTABuilder<S, E> _ wtas: () -> [WTA]
-    ) -> FSMTableRow<S, E> {
-        FSMTableRow(transitions: formFinalTransitions(with: wtas()),
+    ) -> TableRow<S, E> {
+        TableRow(transitions: formFinalTransitions(with: wtas()),
                     modifiers: modifiers)
     }
     
@@ -110,7 +111,7 @@ class Given<S: SP, E: EP>: _GivenBase<S, E> {
     func include(
         _ superStates: SS...,
         @WTABuilder<S, E> wtas: () -> [WTA]
-    ) -> FSMTableRow<S, E> {
+    ) -> TableRow<S, E> {
         include(superStates).callAsFunction(wtas)
     }
     
@@ -125,15 +126,15 @@ class Given<S: SP, E: EP>: _GivenBase<S, E> {
         include(superStates)
     }
     
-    private func include(_ newSuperStates: [SS]) -> FinalGiven<S, E> {
-        let modifiers = RowModifiers(superStates: modifiers.superStates + newSuperStates,
+    private func include(_ ss: [SS]) -> FinalGiven<S, E> {
+        let modifiers = RowModifiers(superStates: modifiers.superStates + ss,
                                      entryActions: modifiers.entryActions,
                                      exitActions: modifiers.exitActions)
         return FinalGiven(states, modifiers, file: file, line: line)
     }
 }
 
-final class FinalGiven<S: SP, E: EP>: Given<S, E>, FSMTableRowProtocol {
+final class FinalGiven<S: SP, E: EP>: Given<S, E>, TableRowProtocol {
     var transitions = [Transition<S, E>]()
     
     override init(_ s: [S], _ m: RowModifiers<S, E>, file: String, line: Int) {
@@ -195,11 +196,11 @@ struct GWTCollection<S: SP, E: EP> {
         givenWhenThens = gwts
     }
     
-    func action(_ action: @escaping () -> ()) -> FSMTableRow<S, E> {
+    func action(_ action: @escaping () -> ()) -> TableRow<S, E> {
         actions(action)
     }
     
-    func actions(_ actions: (() -> ())...) -> FSMTableRow<S, E> {
+    func actions(_ actions: (() -> ())...) -> TableRow<S, E> {
         givenWhenThens | actions
     }
 }

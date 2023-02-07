@@ -25,7 +25,7 @@ struct WTBuilder<S: SP, E: EP> {
     }
 }
 
-protocol FSMTableRowProtocol {
+protocol TableRowProtocol {
     associatedtype State: StateProtocol
     associatedtype Event: EventProtocol
     
@@ -33,15 +33,15 @@ protocol FSMTableRowProtocol {
     var modifiers: RowModifiers<State, Event> { get }
 }
 
-struct FSMTableRowCollection<S: SP, E: EP> {
-    let rows: [FSMTableRow<S, E>]
+struct TableRowCollection<S: SP, E: EP> {
+    let rows: [TableRow<S, E>]
     
     var transitions: [Transition<S, E>] {
         rows.map(\.transitions).flatten
     }
 }
 
-struct FSMTableRow<S: SP, E: EP>: FSMTableRowProtocol {
+struct TableRow<S: SP, E: EP>: TableRowProtocol {
     let transitions: [Transition<S, E>]
     let modifiers: RowModifiers<S, E>
     
@@ -52,32 +52,39 @@ struct FSMTableRow<S: SP, E: EP>: FSMTableRowProtocol {
 
 @resultBuilder
 struct FSMTableBuilder<S: SP, E: EP> {
-    typealias TRC = FSMTableRowCollection<S, E>
+    typealias TRC = TableRowCollection<S, E>
     
-    static func buildExpression<TG: FSMTableRowProtocol>(
-        _ e: TG
-    ) -> TRC where TG.State == S, TG.Event == E {
-        FSMTableRowCollection(rows: [FSMTableRow(transitions: e.transitions,
-                                                 modifiers: e.modifiers)])
+    static func buildExpression<TR>( _ row: TR) -> TRC
+    where TR: TableRowProtocol, TR.State == S, TR.Event == E {
+        TableRowCollection(rows: [
+            TableRow(
+                transitions: row.transitions,
+                modifiers: row.modifiers
+            )
+        ])
     }
     
-    static func buildExpression(_ rows: [FSMTableRow<S, E>]) -> TRC {
-        FSMTableRowCollection(rows: rows)
+    static func buildExpression(_ rows: [TableRow<S, E>]) -> TRC {
+        TableRowCollection(rows: rows)
     }
     
-    static func buildIf(_ components: TRC?) -> TRC {
-        FSMTableRowCollection(rows: components?.rows ?? [])
+    static func buildIf(_ collection: TRC?) -> TRC {
+        TableRowCollection(rows: collection?.rows ?? [])
     }
     
-    static func buildEither(first component: TRC) -> TRC {
-        component
+    static func buildEither(first collection: TRC) -> TRC {
+        collection
     }
     
-    static func buildEither(second component: TRC) -> TRC {
-        component
+    static func buildEither(second collection: TRC) -> TRC {
+        collection
     }
     
-    static func buildBlock(_ components: TRC...) -> TRC {
-        FSMTableRowCollection(rows: components.map(\.rows).flatten)
+    static func buildBlock(_ collections: TRC...) -> TRC {
+        TableRowCollection(rows: collections.map(\.rows).flatten)
+    }
+    
+    static func buildFinalResult(_ collection: TRC) -> [Transition<S, E>] {
+        collection.transitions
     }
 }

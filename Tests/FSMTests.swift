@@ -80,7 +80,7 @@ a | h | *d* (\(file): \(l4))
     
     func assertThrows<E: Error>(
         expected: E.Type,
-        building t: FSMTableRow<AS, AE>
+        building t: TableRow<AS, AE>
     ) {
         let fsm = UnsafeFSM(initialState: State.a)
         XCTAssertThrowsError(

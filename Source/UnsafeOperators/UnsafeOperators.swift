@@ -180,54 +180,54 @@ func | (stateEvent: StateEvent, state: any SP) -> StateEventState {
 }
 
 
-func | (states: [any SP], esas: [[EventStateAction]]) -> FSMTableRow<AS, AE> {
+func | (states: [any SP], esas: [[EventStateAction]]) -> TableRow<AS, AE> {
     states | esas.flatten
 }
 
-func | (states: [any SP], esas: [EventStateAction]) -> FSMTableRow<AS, AE> {
-    FSMTableRow(
+func | (states: [any SP], esas: [EventStateAction]) -> TableRow<AS, AE> {
+    TableRow(
         transitions: states.reduce(into: [Transition]()) {
             $0.append(contentsOf: ($1 | esas).transitions)
         },
-        modifiers: .empty)
+        modifiers: .none)
 }
 
-func | (state: any SP, esas: [[EventStateAction]]) -> FSMTableRow<AS, AE> {
+func | (state: any SP, esas: [[EventStateAction]]) -> TableRow<AS, AE> {
     state | esas.flatten
 }
 
-func | (state: any SP, esas: [EventStateAction]) -> FSMTableRow<AS, AE> {
-    FSMTableRow(
+func | (state: any SP, esas: [EventStateAction]) -> TableRow<AS, AE> {
+    TableRow(
         transitions: esas.reduce(into: [Transition]()) {
             $0.append(Transition(givenState: state.erase,
                                  event: $1.event.erase,
                                  nextState: $1.state.erase,
                                  actions: $1.actions))
         },
-        modifiers: .empty)
+        modifiers: .none)
 }
 
-func | (sess: [StateEventState], action: @escaping () -> ()) -> FSMTableRow<AS, AE> {
+func | (sess: [StateEventState], action: @escaping () -> ()) -> TableRow<AS, AE> {
     sess | [action]
 }
 
-func | (sess: [StateEventState], actions: [() -> ()]) -> FSMTableRow<AS, AE> {
-    FSMTableRow (
+func | (sess: [StateEventState], actions: [() -> ()]) -> TableRow<AS, AE> {
+    TableRow (
         transitions: sess.reduce(into: [Transition]()) {
             $0.append(contentsOf: ($1 | actions).transitions)
         },
-        modifiers: .empty)
+        modifiers: .none)
 }
 
-func | (ses: StateEventState, action: @escaping () -> ()) -> FSMTableRow<AS, AE> {
+func | (ses: StateEventState, action: @escaping () -> ()) -> TableRow<AS, AE> {
     ses | [action]
 }
 
-func | (ses: StateEventState, actions: [() -> ()]) -> FSMTableRow<AS, AE> {
-    FSMTableRow(
+func | (ses: StateEventState, actions: [() -> ()]) -> TableRow<AS, AE> {
+    TableRow(
         transitions: [Transition(givenState: ses.startState.erase,
                     event: ses.event.erase,
                     nextState: ses.endState.erase,
                     actions: actions)],
-        modifiers: .empty)
+        modifiers: .none)
 }
