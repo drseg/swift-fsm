@@ -103,7 +103,7 @@ a | h | *d* (\(file): \(l4))
     }
 }
 
-class SuperStateTransitionTests: SafeTests {
+class ModifierTests: SafeTests {
     typealias TS = [Transition<State, Event>]
     
     var fsm: FSM<State, Event>!
@@ -122,7 +122,9 @@ class SuperStateTransitionTests: SafeTests {
         try! fsm.buildTransitions(ts)
         return Array(fsm.transitions.values)
     }
-    
+}
+
+class SuperStateTests: ModifierTests {
     func testBuilder() {
         func wta(
             _ when: Event, _ then: State
@@ -534,6 +536,10 @@ class SuperStateTransitionTests: SafeTests {
     }
 }
 
+class EntryExitActionsTests: ModifierTests {
+    
+}
+
 class FileLineTests: SafeTests {
     func testFileAndLine() {
         let file: String = String(#file)
@@ -551,9 +557,6 @@ class FileLineTests: SafeTests {
     }
 #warning("the file/line should be sourced from the 'Then' not the 'Given'")
 }
-
-extension NSObject: StateProtocol {}
-extension NSObject: EventProtocol {}
 
 class FSMPerformanceTests: SafeTests {
     var didPass = false

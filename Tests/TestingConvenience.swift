@@ -11,9 +11,10 @@ import Foundation
 extension String: StateProtocol, EventProtocol {}
 extension Int: EventProtocol, StateProtocol {}
 extension Bool: EventProtocol, StateProtocol {}
+extension NSObject: StateProtocol, EventProtocol {}
 
 func build<S: SP, E: EP>(
     @TableBuilder<S, E> _ content: () -> [any TableRowProtocol<S, E>]
 ) -> [Transition<S, E>] {
-    content().map { $0.transitions }.flatten
+    content().transitions()
 }

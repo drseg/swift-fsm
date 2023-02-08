@@ -27,9 +27,11 @@ class FSMBase<S: SP, E: EP> {
         
         transitions = makeTransitions(from: ts()).reduce(into: [K: T]()) {
             let k = K(state: $1.givenState, event: $1.event)
+            
             if keys.contains(k) {
-                if !duplicates.contains($0[k]!) {
-                    duplicates.append($0[k]!)
+                let existing = $0[k]!
+                if !duplicates.contains(existing) {
+                    duplicates.append(existing)
                 }
                 duplicates.append($1)
             }
@@ -63,7 +65,7 @@ class FSMBase<S: SP, E: EP> {
                     )
                 }
             }
-        } + rows.map { $0.transitions }.flatten
+        } + rows.transitions()
     }
     
     func throwError(_ e: Error) throws {
@@ -92,7 +94,7 @@ class AnyFSM: FSMBase<AnyState, AnyEvent> {
     override func buildTransitions(
         @TableBuilder<AS, AE> _ t: () -> [any TableRowProtocol<AS, AE>]
     ) throws {
-        try validate(t().map { $0.transitions }.flatten)
+        try validate(t().transitions())
         try super.buildTransitions(t)
     }
     

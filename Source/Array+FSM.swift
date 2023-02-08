@@ -18,3 +18,9 @@ extension Array where Element: Hashable {
         Array(Set(self))
     }
 }
+
+extension Array {
+    func transitions<S: SP, E: EP>() -> [Transition<S, E>] {
+        map { ($0 as! (any TableRowProtocol<S, E>)).transitions }.flatten
+    }
+}
