@@ -13,7 +13,7 @@ extension Int: EventProtocol, StateProtocol {}
 extension Bool: EventProtocol, StateProtocol {}
 
 func build<S: SP, E: EP>(
-    @TableBuilder<S, E> _ content: () -> [Transition<S, E>]
+    @TableBuilder<S, E> _ content: () -> [any TableRowProtocol<S, E>]
 ) -> [Transition<S, E>] {
-    content()
+    content().map { $0.transitions }.flatten
 }

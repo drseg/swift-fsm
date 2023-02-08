@@ -8,7 +8,7 @@
 import Foundation
 import ReflectiveEquality
 
-class FSMBase<S, E> where S: SP, E: EP {
+class FSMBase<S: SP, E: EP> {
     typealias T = Transition<S, E>
     typealias K = T.Key
     
@@ -20,12 +20,12 @@ class FSMBase<S, E> where S: SP, E: EP {
     }
     
     func buildTransitions(
-        @TableBuilder<S, E> _ ts: () -> [T]
+        @TableBuilder<S, E> _ ts: () -> [any TableRowProtocol<S, E>]
     ) throws {
         var keys = Set<K>()
         var duplicates = [T]()
         
-        transitions = ts().reduce(into: [K: T]()) {
+        transitions = makeTransitions(from: ts()).reduce(into: [K: T]()) {
             let k = K(state: $1.givenState, event: $1.event)
             if keys.contains(k) {
                 if !duplicates.contains($0[k]!) {
@@ -52,7 +52,7 @@ class FSMBase<S, E> where S: SP, E: EP {
     }
     
     func makeTransitions(from rows: [any TableRowProtocol<S, E>]) -> [T] {
-        rows.reduce(into: [Transition<S, E>]()) { ts, row in
+        rows.reduce(into: [T]()) { ts, row in
             row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
                 row.givenStates.forEach { given in
                     ts.append(
@@ -71,7 +71,7 @@ class FSMBase<S, E> where S: SP, E: EP {
     }
 }
 
-final class FSM<S, E>: FSMBase<S, E> where S: SP, E: EP {
+class FSM<S: SP, E: EP>: FSMBase<S, E> {
     override init(initialState state: S) {
         super.init(initialState: state)
     }
@@ -81,19 +81,18 @@ final class FSM<S, E>: FSMBase<S, E> where S: SP, E: EP {
     }
 }
 
-final class UnsafeFSM: FSMBase<AnyState, AnyEvent> {
+class AnyFSM: FSMBase<AnyState, AnyEvent> {
     typealias AS = AnyState
     typealias AE = AnyEvent
-    typealias T = Transition<AS, AE>
     
     init(initialState state: any StateProtocol) {
         super.init(initialState: state.erase)
     }
     
     override func buildTransitions(
-        @TableBuilder<AS, AE> _ t: () -> [T]
+        @TableBuilder<AS, AE> _ t: () -> [any TableRowProtocol<AS, AE>]
     ) throws {
-        try validate(t())
+        try validate(t().map { $0.transitions }.flatten)
         try super.buildTransitions(t)
     }
     

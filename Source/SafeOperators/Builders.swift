@@ -24,51 +24,11 @@ struct TableRow<S: SP, E: EP>: TableRowProtocol {
     }
 }
 
-@resultBuilder
-struct TableBuilder<S: SP, E: EP> {
-    typealias TRP = TableRowProtocol<S, E>
-    
-    static func buildExpression( _ row: any TRP) -> [any TRP] {
-        [row]
-    }
-    
-    static func buildIf(_ collection: [any TRP]?) -> [any TRP] {
-        collection ?? []
-    }
-    
-    static func buildEither(first collection: [any TRP]) -> [any TRP] {
-        collection
-    }
-    
-    static func buildEither(second collection: [any TRP]) -> [any TRP] {
-        collection
-    }
-    
-    static func buildBlock(_ collections: [any TRP]...) -> [any TRP] {
-        collections.flatten
-    }
-    
-    static func buildFinalResult(_ collection: [any TRP]) -> [Transition<S, E>] {
-        collection.reduce(into: [Transition<S, E>]()) { ts, row in
-            row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
-                row.givenStates.forEach { given in
-                    ts.append(
-                        Transition(givenState: given,
-                                   event: wta.when,
-                                   nextState: wta.then,
-                                   actions: wta.actions)
-                    )
-                }
-            }
-        } + collection.map { $0.transitions }.flatten
-    }
-}
-
-protocol SubBuilder {
+protocol Builder {
     associatedtype T
 }
 
-extension SubBuilder {
+extension Builder {
     static func buildIf(_ collection: [T]?) -> [T] {
         collection ?? []
     }
@@ -87,11 +47,20 @@ extension SubBuilder {
 }
 
 @resultBuilder
-struct WTABuilder<S: SP, E: EP>: SubBuilder {
+struct TableBuilder<S: SP, E: EP>: Builder {
+    typealias T = any TableRowProtocol<S, E>
+    
+    static func buildExpression( _ row: T) -> [T] {
+        [row]
+    }
+}
+
+@resultBuilder
+struct WTABuilder<S: SP, E: EP>: Builder {
     typealias T = WhenThenAction<S, E>
 }
 
 @resultBuilder
-struct WTBuilder<S: SP, E: EP>: SubBuilder {
+struct WTBuilder<S: SP, E: EP>: Builder {
     typealias T = WhenThen<S, E>
 }

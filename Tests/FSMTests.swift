@@ -68,7 +68,7 @@ a | h | *d* (\(file): \(l4))
     }
     
     func testHandleUnsafeEvent() {
-        let fsm = UnsafeFSM(initialState: State.a)
+        let fsm = AnyFSM(initialState: State.a)
         try! fsm.buildTransitions {
             State.a | Event.h | State.b | fail
             State.a | Event.g | State.c | [action1, action2]
@@ -82,7 +82,7 @@ a | h | *d* (\(file): \(l4))
         expected: E.Type,
         building t: TableRow<AS, AE>
     ) {
-        let fsm = UnsafeFSM(initialState: State.a)
+        let fsm = AnyFSM(initialState: State.a)
         XCTAssertThrowsError(
             try fsm.buildTransitions { t }
         ) { XCTAssert(type(of: $0) == expected) }
@@ -101,6 +101,455 @@ a | h | *d* (\(file): \(l4))
         assertThrows(expected: MismatchedType.self,
                      building: "Cat" | Event.h | 2 | fail)
     }
+}
+
+class SuperStateTransitionTests: SafeTests {
+    typealias TS = [Transition<State, Event>]
+    
+    var fsm: FSM<State, Event>!
+    
+    class NoThrowFSM<S: SP, E: EP>: FSM<S, E> {
+        override func throwError(_ e: Error) throws { }
+    }
+    
+    override func setUp() {
+        fsm = NoThrowFSM<State, Event>(initialState: .a)
+    }
+    
+    func build(
+        @TableBuilder<State, Event> _ ts: () -> [any TableRowProtocol<State, Event>]
+    ) ->  TS {
+        try! fsm.buildTransitions(ts)
+        return Array(fsm.transitions.values)
+    }
+    
+    func testBuilder() {
+        func wta(
+            _ when: Event, _ then: State
+        ) -> WhenThenAction<State, Event> {
+            WhenThenAction(when: when,
+                           then: then,
+                           actions: [])
+        }
+
+        let s = SuperState {
+            W(.h) | T(.b) | { }
+            W(.g) | T(.s) | { }
+        }
+
+        XCTAssertEqual(s.wtas.first!, wta(.h, .b))
+        XCTAssertEqual(s.wtas.last!, wta(.g, .s))
+    }
+
+    let s1 = SuperState { W(.h) | T(.b) | { } }
+    let s2 = SuperState { W(.g) | T(.s) | { } }
+    let ss = SuperState {
+        W(.h) | T(.b) | { }
+        W(.g) | T(.s) | { }
+    }
+
+    func testGiven() {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
+            t.forEach {
+                assertContains([(.a, .h, .b),
+                                (.a, .g, .s)], $0, line: line)
+                assertCount(2, $0, line: line)
+            }
+        }
+
+        let tr1 = build   { G(.a).include(s1) { W(.g) | T(.s) | { } } }
+        let tr2 = build   { G(.a).include(s1) | W(.g) | T(.s) | { } }
+
+        let tr3 = build   { G(.a).include(ss) }
+        let tr4 = build   { G(.a).include(s1, s2) }
+        let tr5 = build   { G(.a).include(s1).include(s2) }
+
+        let tr6 = build   {(G(.a) => s1){ W(.g) | T(.s) | { } } }
+        let tr7 = build   { G(.a) => s1 | W(.g) | T(.s) | { } }
+
+        let tr8 = build   { G(.a) => ss }
+        let tr9 = build   { G(.a) => [s1, s2] }
+        let tr10 = build  { G(.a) => s1 => s2 }
+
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6, tr7, tr8, tr9, tr10)
+    }
+
+    func testMultipleGiven() {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
+            t.forEach {
+                assertContains([(.a, .h, .b),
+                                (.a, .g, .s),
+                                (.b, .h, .b),
+                                (.b, .g, .s)], $0, line: line)
+                assertCount(4, $0, line: line)
+            }
+        }
+
+        let tr1 = build {
+            G(.a, .b).include(s1) { W(.g) | T(.s) | { } } }
+        let tr2 = build {
+            G(.a, .b).include(s1) | W(.g) | T(.s) | { } }
+
+        let tr3 = build { G(.a, .b).include(ss) }
+        let tr4 = build { G(.a, .b).include(s1, s2) }
+
+        assertOutput(tr1, tr2, tr3, tr4)
+    }
+
+    func testMultipleWhenThenAction() {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
+            t.forEach {
+                assertContains([(.a, .h, .b),
+                                (.a, .g, .s),
+                                (.a, .i, .s)], $0, line: line)
+                assertCount(3, $0, line: line)
+            }
+        }
+
+        let tr1 = build {
+            G(.a).include(s1) {
+                W(.g) | T(.s) | { }
+                W(.i) | T(.s) | { }
+            }
+        }
+        let tr2 = build {
+            G(.a).include(s1) | [W(.g) | T(.s) | { },
+                                 W(.i) | T(.s) | { }] }
+
+        let tr3 = build {
+            G(.a).include(ss) | [W(.i) | T(.s) | { }]
+        }
+
+        let tr4 = build {
+            G(.a).include(s1, s2) | [W(.i) | T(.s) | { }]
+        }
+
+        let tr5 = build {
+            G(.a).include(ss) { W(.i)  | T(.s)  | { } }
+        }
+
+        let tr6 = build {
+            G(.a).include(s1, s2) { W(.i)  | T(.s) | { } }
+        }
+
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
+    }
+
+    func testMultipleGivenMultipleWTA() {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
+            t.forEach {
+                assertContains([(.a, .h, .b),
+                                (.a, .g, .s),
+                                (.a, .i, .s),
+                                (.b, .h, .b),
+                                (.b, .g, .s),
+                                (.b, .i, .s)], $0, line: line)
+                assertCount(6, $0, line: line)
+            }
+        }
+
+        let tr1 = build {
+            G(.a, .b).include(s1) {
+                W(.g) | T(.s) | { }
+                W(.i) | T(.s) | { }
+            }
+        }
+
+        let tr2 = build {
+            G(.a, .b).include(s1) | [W(.g) | T(.s) | { },
+                                     W(.i) | T(.s) | { }]
+        }
+
+        let tr3 = build {
+            G(.a, .b).include(ss) | [W(.i) | T(.s) | { }]
+        }
+
+        let tr4 = build {
+            G(.a, .b).include(s1, s2) | [W(.i) | T(.s) | { }]
+        }
+
+        assertOutput(tr1, tr2, tr3, tr4)
+    }
+
+    func testMultitipleWhen() {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
+            t.forEach {
+                assertContains([(.a, .h, .b),
+                                (.a, .g, .s),
+                                (.a, .i, .s),
+                                (.a, .j, .s)], $0, line: line)
+                assertCount(4, $0, line: line)
+            }
+        }
+
+        let tr1 = build { G(.a).include(s1) {
+            W(.g, .i, .j) | T(.s) | { }
+        } }
+        let tr2 = build {
+            G(.a).include(s1)     | W(.g, .i, .j) | T(.s) | { } }
+        let tr3 = build {
+            G(.a).include(s1, s2) | W(.i, .j)     | T(.s) | { } }
+        let tr4 = build {
+            G(.a).include(ss)     | W(.i, .j)     | T(.s) | { } }
+        let tr5 = build {
+            G(.a).include(s1, s2) { W(.i, .j)     | T(.s) | { } } }
+        let tr6 = build {
+            G(.a).include(ss)     { W(.i, .j)     | T(.s) | { } } }
+
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
+    }
+
+    func testMultipleGivenMultipleWhen() {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
+            t.forEach {
+                assertContains([(.a, .h, .b),
+                                (.a, .g, .s),
+                                (.a, .i, .s),
+                                (.a, .j, .s),
+                                (.b, .h, .b),
+                                (.b, .g, .s),
+                                (.b, .i, .s),
+                                (.b, .j, .s)], $0, line: line)
+                assertCount(8, $0, line: line)
+            }
+        }
+
+        let tr1 = build {
+            G(.a, .b).include(s1) {
+                W(.g, .i, .j) | T(.s) | { }
+            } }
+        let tr2 = build {
+            G(.a, .b).include(s1)     | W(.g, .i, .j) | T(.s) | { } }
+        let tr3 = build {
+            G(.a, .b).include(s1, s2) | W(.i, .j)     | T(.s) | { } }
+        let tr4 = build {
+            G(.a, .b).include(ss)     | W(.i, .j)     | T(.s) | { } }
+        let tr5 = build {
+            G(.a, .b).include(s1, s2) { W(.i, .j)     | T(.s) | { } } }
+        let tr6 = build {
+            G(.a, .b).include(ss)     { W(.i, .j)     | T(.s) | { } } }
+
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
+    }
+
+    func testMultipleGivenMultipleWhenMultipleThenAction() {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
+            t.forEach {
+                assertContains([(.a, .h, .b),
+                                
+                                (.a, .g, .s),
+                                (.a, .i, .s),
+                                (.a, .j, .d),
+                                (.a, .k, .d),
+                                
+                                (.b, .h, .b),
+                                
+                                (.b, .g, .s),
+                                (.b, .i, .s),
+                                (.b, .j, .d),
+                                (.b, .k, .d)], $0, line: line)
+                assertCount(10, $0, line: line)
+            }
+        }
+
+        let tr1 = build {
+            G(.a, .b).include(s1) {
+                W(.g, .i) | T(.s) | { }
+                W(.j, .k) | T(.d) | { }
+            }
+        }
+
+        let tr2 = build {
+            G(.a, .b).include(s1) | [W(.g, .i) | T(.s) | { },
+                                     W(.j, .k) | T(.d) | { }]
+        }
+
+        let tr3 = build {
+            G(.a, .b).include(s1, s2) | [W(.g, .i) | T(.s) | { },
+                                         W(.j, .k) | T(.d) | { }]
+        }
+
+        let tr4 = build {
+            G(.a, .b).include(ss) | [W(.g, .i) | T(.s) | { },
+                                     W(.j, .k) | T(.d) | { }]
+        }
+
+        let tr5 = build {
+            G(.a, .b).include(s1, s2) {
+                W(.i)     | T(.s) | { }
+                W(.j, .k) | T(.d) | { }
+            }
+        }
+
+        let tr6 = build {
+            G(.a, .b).include(ss) {
+                W(.i)     | T(.s) | { }
+                W(.j, .k) | T(.d) | { }
+            }
+        }
+
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
+    }
+
+    func testMultipleWhenThen() {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
+            t.forEach {
+                assertContains([(.a, .h, .b),
+                                (.a, .g, .s),
+                                (.a, .i, .s),
+                                (.a, .j, .s)], $0, line: line)
+                assertCount(4, $0)
+            }
+        }
+
+        let tr1 = build {
+            G(.a).include(s1) {
+                [W(.g) | T(.s),
+                 W(.i) | T(.s),
+                 W(.j) | T(.s)] | { }
+            }
+        }
+
+        let tr2 = build {
+            G(.a).include(s1) | [W(.g) | T(.s),
+                                 W(.i) | T(.s),
+                                 W(.j) | T(.s)] | { }
+        }
+
+        let tr3 = build {
+            G(.a).include(s1, s2) | [W(.i) | T(.s),
+                                     W(.j) | T(.s)] | { }
+        }
+
+        let tr4 = build {
+            G(.a).include(ss) | [W(.i) | T(.s),
+                                 W(.j) | T(.s)] | { }
+        }
+
+        let tr5 = build {
+            G(.a).include(ss) {
+                W(.i) | T(.s)
+                W(.j) | T(.s) }.action { }
+        }
+
+        let tr6 = build {
+            G(.a).include(s1, s2) {
+                W(.i) | T(.s)
+                W(.j) | T(.s) }.action { }
+        }
+
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
+    }
+
+    func testAll() {
+        func assertOutput(_ t: TS..., line: UInt = #line) {
+            t.forEach {
+                assertContains([(.a, .h, .b),
+                                
+                                (.a, .g, .s),
+                                (.a, .i, .s),
+                                
+                                (.a, .j, .t),
+                                (.a, .k, .t),
+                            
+                                (.a, .l, .s),
+                                (.a, .m, .s),
+                                
+                                (.a, .n, .t),
+                                (.a, .o, .t),
+                                
+                                (.b, .h, .b),
+                                
+                                (.b, .g, .s),
+                                (.b, .i, .s),
+                                
+                                (.b, .j, .t),
+                                (.b, .k, .t),
+                                
+                                (.b, .l, .s),
+                                (.b, .m, .s),
+                                
+                                (.b, .n, .t),
+                                (.b, .o, .t)], $0, line: line)
+
+                assertCount(18, $0, line: line)
+            }
+        }
+
+        let tr1 = build {
+            G(.a, .b).include(s1) {
+                [W(.g, .i) | T(.s),
+                 W(.j, .k) | T(.t)] | { }
+
+                [W(.l, .m) | T(.s),
+                 W(.n, .o) | T(.t)] | { }
+            }
+        }
+
+        let tr2 = build {
+            G(.a, .b).include(s1) | [[W(.g, .i) | T(.s),
+                                      W(.j, .k) | T(.t)] | { },
+
+                                     [W(.l, .m) | T(.s),
+                                      W(.n, .o) | T(.t)] | { }]
+        }
+
+        let tr3 = build {
+            G(.a, .b).include(s1, s2) | [[W(.g, .i) | T(.s),
+                                          W(.j, .k) | T(.t)] | { },
+
+                                         [W(.l, .m) | T(.s),
+                                          W(.n, .o) | T(.t)] | { }]
+        }
+
+        let tr4 = build {
+            G(.a, .b).include(ss) | [[W(.g, .i) | T(.s),
+                                      W(.j, .k) | T(.t)] | { },
+
+                                     [W(.l, .m) | T(.s),
+                                      W(.n, .o) | T(.t)] | { }]
+        }
+
+        let tr5 = build {
+            G(.a, .b).include(s1, s2) {
+                [W(.g, .i) | T(.s),
+                 W(.j, .k) | T(.t)] | { }
+
+                [W(.l, .m) | T(.s),
+                 W(.n, .o) | T(.t)] | { }
+            }
+        }
+
+        let tr6 = build {
+            G(.a, .b).include(ss) {
+                [W(.g, .i) | T(.s),
+                 W(.j, .k) | T(.t)] | { }
+
+                [W(.l, .m) | T(.s),
+                 W(.n, .o) | T(.t)] | { }
+            }
+        }
+
+        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
+    }
+}
+
+class FileLineTests: SafeTests {
+    func testFileAndLine() {
+        let file: String = String(#file)
+
+        let l1 = #line; let tr1 = G(.a) {
+            W(.g) | T(.s) | { }
+        }
+        let l2 = #line; let tr2 = G(.a) | W(.g) | T(.s) | { }
+
+        XCTAssertEqual(tr1.transitions.first?.line, l1)
+        XCTAssertEqual(tr2.transitions.first?.line, l2)
+
+        XCTAssertEqual(tr1.transitions.first?.file, file)
+        XCTAssertEqual(tr2.transitions.first?.file, file)
+    }
+#warning("the file/line should be sourced from the 'Then' not the 'Given'")
 }
 
 extension NSObject: StateProtocol {}
@@ -142,7 +591,7 @@ class FSMPerformanceTests: SafeTests {
     }
     
     func testUnsafePerformance() throws {
-        let fsm = UnsafeFSM(initialState: State.a)
+        let fsm = AnyFSM(initialState: State.a)
         try! fsm.buildTransitions { State.a | Event.g | State.c | pass }
         
         measure { 250000.times { fsm.handleEvent(Event.g) } }
