@@ -33,29 +33,41 @@ class FSMBase<S, E> where S: SP, E: EP {
                 }
                 duplicates.append($1)
             }
-            else {
-                keys.insert(k)
-                $0[k] = $1
-            }
+            
+            keys.insert(k)
+            $0[k] = $1
         }
         
-        guard duplicates.isEmpty else {
-            throw DuplicateTransitions(duplicates)
+        if !duplicates.isEmpty {
+            try throwError(DuplicateTransitions(duplicates))
         }
     }
     
-    fileprivate func _handleEvent(_ event: E) {
+    func _handleEvent(_ event: E) {
         let key = K(state: state, event: event)
         if let t = transitions[key] {
             t.actions.forEach { $0() }
             state = t.nextState
         }
     }
-}
-
-private extension String {
-    var name: String {
-        URL(string: self)?.lastPathComponent ?? self
+    
+    func makeTransitions(from rows: [any TableRowProtocol<S, E>]) -> [T] {
+        rows.reduce(into: [Transition<S, E>]()) { ts, row in
+            row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
+                row.givenStates.forEach { given in
+                    ts.append(
+                        Transition(givenState: given,
+                                   event: wta.when,
+                                   nextState: wta.then,
+                                   actions: wta.actions)
+                    )
+                }
+            }
+        } + rows.map { $0.transitions }.flatten
+    }
+    
+    func throwError(_ e: Error) throws {
+        throw e
     }
 }
 
@@ -89,10 +101,10 @@ final class UnsafeFSM: FSMBase<AnyState, AnyEvent> {
         _handleEvent(event.erase)
     }
     
-    private func validate(_ ts: [T]) throws {
+    func validate(_ ts: [T]) throws {
         func validateObject<E: Eraser>(_ e: E) throws {
-            guard !isNSObject(e.base) else {
-                throw NSObjectError()
+            if isNSObject(e.base) {
+                try throwError(NSObjectError())
             }
         }
         
@@ -109,16 +121,15 @@ final class UnsafeFSM: FSMBase<AnyState, AnyEvent> {
             try validateObject($0.event)
             try validateObject($0.nextState)
             
-            guard areSameType(lhs: $0.givenState, rhs: $0.nextState) else {
-                throw MismatchedType()
+            if !areSameType(lhs: $0.givenState, rhs: $0.nextState) {
+                try throwError(MismatchedType())
             }
         }
     }
 }
 
 struct DuplicateTransitions<S: SP, E: EP>: Error {
-    private let message =
-    "The same 'given-when' was found in multiple transitions:"
+    let message = "The same 'given-when' was found in multiple transitions:"
     let description: String
     
     init<C: Collection>(_ ts: C) where C.Element == Transition<S, E> {
@@ -142,3 +153,8 @@ struct MismatchedType: Error {
     }
 }
 
+private extension String {
+    var name: String {
+        URL(string: self)?.lastPathComponent ?? self
+    }
+}
