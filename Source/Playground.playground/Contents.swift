@@ -1,21 +1,9 @@
-protocol GenericProtocol<GP> {
-    associatedtype GP: Hashable
+enum BuilderObjects<S, E> {
+    struct Given {}
 }
 
-class GPImpl: GenericProtocol, Hashable {
-    static func == (lhs: GPImpl, rhs: GPImpl) -> Bool {
-        true
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        
-    }
-    
-    typealias GP = GPImpl
-}
+protocol Builder { }
 
-struct Generic1<A: Hashable> {
-    let c: any GenericProtocol<A>
+extension Builder {
+    typealias G = BuilderObjects<String, String>.Given
 }
-
-let g = Generic1(c: GPImpl())

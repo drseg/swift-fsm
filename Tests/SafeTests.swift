@@ -336,12 +336,12 @@ final class SafeTransitionTests: SafeTests {
 }
 
 class DemonstrationTests: SafeTests {
-    typealias W = When<String>; typealias T = Then<String>
-    
     func alarmOff() {}; func unlock() {}; func alarmOn() {}
     func thankyou() {}; func lock() {}
     
     func testCompilation() {
+        typealias W = When<String>; typealias T = Then<String>
+        
         let _ = build {
             let resetable = SuperState {
                 W("Reset") | T("Locked")  | [alarmOff, lock]
@@ -725,8 +725,18 @@ class DemonstrationTests: SafeTests {
             Given("Alarming").include(resetable)
         }
     }
-    
+        
     func testTurnstile() {
+        typealias W = When<TurnstileEvent>
+        typealias T = Then<TurnstileState>
+        
+        enum TurnstileState: SP {
+            case locked, unlocked, alarming
+        }
+        
+        enum TurnstileEvent: EP {
+            case reset, coin, pass
+        }
     /*
      Initial: Locked
      FSM: Turnstile {
@@ -747,25 +757,68 @@ class DemonstrationTests: SafeTests {
         Alarming : Resetable { // inherits all its transitions from Resetable }
      }
      */
-        let fsm = FSM<String, String>(initialState: "Locked")
+        let fsm = FSM<TurnstileState, TurnstileEvent>(initialState: .locked)
         try! fsm.buildTransitions {
             let resetable = SuperState {
-                W("Reset") | T("Locked")  | [alarmOff, lock]
+                W(.reset) | T(.locked)  | [alarmOff, lock]
             }
 
-            Given("Locked").include(resetable) {
-                W("Coin") | T("Unlocked") | unlock
-                W("Pass") | T("Alarming") | alarmOn
+            (Given(.locked) => resetable) {
+                W(.coin) | T(.unlocked) | unlock
+                W(.pass) | T(.alarming) | alarmOn
             }
 
-            Given("Unlocked").include(resetable) {
-                W("Coin") | T("Unlocked") | thankyou
-                W("Pass") | T("Locked")   | lock
+            (Given(.unlocked) => resetable) {
+                W(.coin) | T(.unlocked) | thankyou
+                W(.pass) | T(.locked)   | lock
             }
 
-            Given("Alarming").include(resetable)
+            Given(.alarming) => resetable
         }
+        
+        /*
+         let resetable = superState {
+             when(.reset, then: .locked) { alarmOff(); lock() }
+         }
 
+         given(.locked).include(resetable) {
+             when(.coin, then: .unlocked) { unlock() }
+             when(.pass, then: .alarming) { alarmOn() }
+         }
+
+         given(.unlocked).include(resetable) {
+             when(.coin, then: .unlocked) { thankyou() }
+             when(.pass, then: .locked) { lock() }
+         }
+
+         given(.alarming).include(resetable)
+         */
+        
+        /*
+         let resetable = superState {
+             when(.reset, then: .locked) { alarmOff(); lock() }
+         }
+
+         given(.locked) {
+             include(resetable) {
+                 when(.coin, then: .unlocked) { unlock()  }
+                 when(.pass, then: .alarming) { alarmOn() }
+             }
+         }
+         .onEnter {}
+         .onLeave {}
+
+         given(.unlocked) {
+             include(resetable) {
+                 when(.coin, then: .unlocked) { thankyou() }
+                 when(.pass, then: .locked) { lock() }
+             }
+         }
+
+         given(.alarming).include(resetable)
+         */
+        
+        
         /*
          Initial: Locked
          FSM: Turnstile
@@ -773,14 +826,17 @@ class DemonstrationTests: SafeTests {
            (Resetable) {
              Reset       Locked       -
            }
+         
            Locked : Resetable <lock     {
              Coin    Unlocked    -
              Pass    Alarming    -
            }
+         
            Unlocked : Resetable <unlock  {
              Coin    Unlocked    thankyou
              Pass    Locked      -
            }
+         
            Alarming : Resetable <alarmOn >alarmOff   -    -    -
          }
          
