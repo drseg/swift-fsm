@@ -22,11 +22,15 @@ protocol WTARowProtocol<State, Event> {
     
     var wtas: [WhenThenAction<State, Event>] { get }
     var modifiers: RowModifiers<State, Event> { get }
+    var file: String { get }
+    var line: Int { get }
 }
 
 struct WTARow<S: SP, E: EP>: WTARowProtocol {
     let wtas: [WhenThenAction<S, E>]
     let modifiers: RowModifiers<S, E>
+    let file: String
+    let line: Int
 }
 
 struct TableRow<S: SP, E: EP>: TableRowProtocol {

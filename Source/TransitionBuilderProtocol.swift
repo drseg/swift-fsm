@@ -12,15 +12,17 @@ protocol TransitionBuilder {
     associatedtype Event: EventProtocol
 }
 
+protocol ComplexTransitionBuilder: TransitionBuilder {
+    associatedtype Predicate: StateProtocol
+}
+
 extension TransitionBuilder {
     typealias S = State
     typealias E = Event
     
     func define(
         _ states: S...,
-        @WTABuilder<S, E> rows: () -> [any WTARowProtocol<S, E>],
-        file: String = #file,
-        line: Int = #line
+        @WTABuilder<S, E> rows: () -> [any WTARowProtocol<S, E>]
     ) -> TableRow<S, E> {
         let rows = rows()
         
@@ -36,9 +38,7 @@ extension TransitionBuilder {
                                      entryActions: entryActions,
                                      exitActions: exitActions)
         let transitions = formTransitions(states: states,
-                                          wtas: rows.wtas(),
-                                          file: file,
-                                          line: line)
+                                          rows: rows)
         
         return TableRow(transitions: transitions,
                         modifiers: modifiers)
@@ -46,18 +46,18 @@ extension TransitionBuilder {
     
     private func formTransitions(
         states: [S],
-        wtas: [WhenThenAction<S, E>],
-        file: String,
-        line: Int
+        rows: [any WTARowProtocol<S, E>]
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
-            wtas.forEach {
-                ts.append(Transition(givenState: given,
-                                     event: $0.when,
-                                     nextState: $0.then,
-                                     actions: $0.actions,
-                                     file: file,
-                                     line: line))
+            rows.forEach { row in
+                row.wtas.forEach {
+                    ts.append(Transition(givenState: given,
+                                         event: $0.when,
+                                         nextState: $0.then,
+                                         actions: $0.actions,
+                                         file: row.file,
+                                         line: row.line))
+                }
             }
         }
     }
@@ -66,14 +66,16 @@ extension TransitionBuilder {
         WTARow(wtas: [],
                modifiers: RowModifiers(superStates: [],
                                        entryActions: actions,
-                                       exitActions: []))
+                                       exitActions: []),
+               file: #file, line: #line)
     }
     
     func onExit(_ actions: [() -> ()]) -> WTARow<S, E> {
         WTARow(wtas: [],
                modifiers: RowModifiers(superStates: [],
                                        entryActions: [],
-                                       exitActions: actions))
+                                       exitActions: actions),
+               file: #file, line: #line)
     }
     
     func implements(
@@ -82,44 +84,56 @@ extension TransitionBuilder {
         WTARow(wtas: [],
                modifiers: RowModifiers(superStates: ss,
                                        entryActions: [],
-                                       exitActions: []))
+                                       exitActions: []),
+               file: #file, line: #line)
     }
     
-    func when(_ events: E..., then state: S) -> [WhenThen<S, E>] {
-        events.reduce(into: [WhenThen]()) {
-            $0.append(WhenThen(when: $1, then: state))
-        }
-    }
+//    func when(_ events: E..., then state: S) -> [WhenThen<S, E>] {
+//        events.reduce(into: [WhenThen]()) {
+//            $0.append(WhenThen(when: $1, then: state))
+//        }
+//    }
     
-    func when(_ events: E..., then state: S) -> WTARow<S, E> {
-        when(events, then: state, actions: [])
+    func when(
+        _ events: E...,
+        then state: S,
+        file: String = #file,
+        line: Int = #line
+    ) -> WTARow<S, E> {
+        when(events, then: state, actions: [], file: file, line: line)
     }
     
     func when(
         _ events: E...,
         then state: S,
-        action: @escaping () -> ()
+        action: @escaping () -> (),
+        file: String = #file,
+        line: Int = #line
     ) -> WTARow<S, E> {
-        when(events, then: state, actions: [action])
+        when(events, then: state, actions: [action], file: file, line: line)
     }
     
     func when(
         _ events: E...,
         then state: S,
-        actions: [() -> ()]
+        actions: [() -> ()],
+        file: String = #file,
+        line: Int = #line
     ) -> WTARow<S, E> {
-        when(events, then: state, actions: actions)
+        when(events, then: state, actions: actions, file: file, line: line)
     }
     
     private func when(
         _ events: [E],
         then state: S,
-        actions: [() -> ()]
+        actions: [() -> ()],
+        file: String,
+        line: Int
     ) -> WTARow<S, E> {
         WTARow(wtas: events.reduce(into: [WhenThenAction]()) {
             $0.append(WhenThenAction(when: $1,
                                      then: state,
                                      actions: actions))
-        }, modifiers: .none)
+        }, modifiers: .none, file: file, line: line)
     }
 }

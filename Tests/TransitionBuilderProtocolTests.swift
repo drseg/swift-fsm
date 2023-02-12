@@ -106,6 +106,14 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
         assertContains(.unlocked, .pass, .locked, tr)
     }
     
+    func testMultipleWhens() {
+        
+    }
+    
+    func testActionBlock() {
+        
+    }
+    
     let actions = [{}, {}]
     
     func testEntryActions() {
