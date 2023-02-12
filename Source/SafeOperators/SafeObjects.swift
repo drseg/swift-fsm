@@ -81,32 +81,32 @@ class Given<S: SP, E: EP> {
             }
         }
     }
-    
-    func callAsFunction(
-        @WTABuilder<S, E> _ rows: () -> [any WTARowProtocol<S, E>]
-    ) -> TableRow<S, E> {
-        TableRow(transitions: formTransitions(with: rows().wtas()),
-                 modifiers: modifiers)
-    }
-    
-    func callAsFunction(
-        @WTBuilder<S, E> _ content: () -> [WT]
-    ) -> GWTCollection<S, E> {
-        GWTCollection(
-            content().reduce(into: [GivenWhenThen]()) { gwts, wt in
-                states.forEach {
-                    gwts.append(
-                        GivenWhenThen(given: $0,
-                                      when: wt.when,
-                                      then: wt.then,
-                                      modifiers: modifiers,
-                                      file: file,
-                                      line: line))
-                }
-            }
-        )
-    }
-    
+//
+//    func callAsFunction(
+//        @WTABuilder<S, E> _ rows: () -> [any WTARowProtocol<S, E>]
+//    ) -> TableRow<S, E> {
+//        TableRow(transitions: formTransitions(with: rows().wtas()),
+//                 modifiers: modifiers)
+//    }
+//
+//    func callAsFunction(
+//        @WTBuilder<S, E> _ content: () -> [WT]
+//    ) -> GWTCollection<S, E> {
+//        GWTCollection(
+//            content().reduce(into: [GivenWhenThen]()) { gwts, wt in
+//                states.forEach {
+//                    gwts.append(
+//                        GivenWhenThen(given: $0,
+//                                      when: wt.when,
+//                                      then: wt.then,
+//                                      modifiers: modifiers,
+//                                      file: file,
+//                                      line: line))
+//                }
+//            }
+//        )
+//    }
+//    
 //    func include(
 //        _ superStates: SS...,
 //        @WTABuilder<S, E> wtas: () -> [WTA]
@@ -185,23 +185,23 @@ struct GivenWhenThen<S: SP, E: EP> {
     let line: Int
 }
 
-struct GWTCollection<S: SP, E: EP> {
-    typealias GWT = GivenWhenThen<S, E>
-    
-    let givenWhenThens: [GWT]
-    
-    init(_ gwts: [GWT]) {
-        givenWhenThens = gwts
-    }
-    
-    func action(_ action: @escaping () -> ()) -> TableRow<S, E> {
-        actions(action)
-    }
-    
-    func actions(_ actions: (() -> ())...) -> TableRow<S, E> {
-        givenWhenThens | actions
-    }
-}
+//struct GWTCollection<S: SP, E: EP> {
+//    typealias GWT = GivenWhenThen<S, E>
+//
+//    let givenWhenThens: [GWT]
+//
+//    init(_ gwts: [GWT]) {
+//        givenWhenThens = gwts
+//    }
+//
+//    func action(_ action: @escaping () -> ()) -> TableRow<S, E> {
+//        actions(action)
+//    }
+//
+//    func actions(_ actions: (() -> ())...) -> TableRow<S, E> {
+//        givenWhenThens | actions
+//    }
+//}
 
 struct WhenThenAction<S: SP, E: EP>: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {

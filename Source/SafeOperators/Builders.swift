@@ -16,6 +16,12 @@ protocol TableRowProtocol<State, Event> {
     var givenStates: any Collection<State> { get }
 }
 
+struct TableRow<S: SP, E: EP>: TableRowProtocol {
+    let transitions: [Transition<S, E>]
+    let modifiers: RowModifiers<S, E>
+    let givenStates: any Collection<S>
+}
+
 protocol WTARowProtocol<State, Event> {
     associatedtype State: StateProtocol
     associatedtype Event: EventProtocol
@@ -46,14 +52,6 @@ struct WTRow<S: SP, E: EP>: WTRowProtocol {
     let wts: [WhenThen<S, E>]
     let file: String
     let line: Int
-}
-
-struct TableRow<S: SP, E: EP>: TableRowProtocol {
-    let transitions: [Transition<S, E>]
-    let modifiers: RowModifiers<S, E>
-    var givenStates: any Collection<S> {
-        Set(transitions.map(\.givenState))
-    }
 }
 
 protocol Builder {

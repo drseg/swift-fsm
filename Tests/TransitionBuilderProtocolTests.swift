@@ -16,7 +16,7 @@ enum TurnstileEvent: String, EP {
     case reset, coin, pass
 }
 
-class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
+class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     typealias State = TurnstileState
     typealias Event = TurnstileEvent
     
@@ -135,15 +135,19 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
     
     func testActionBlock() {
         let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 2
+        e.expectedFulfillmentCount = 3
         let tr = define(.locked) {
-            action(e.fulfill, e.fulfill) {
+            actions(e.fulfill, e.fulfill) {
                 when(.coin, then: .unlocked)
+            }
+            
+            action(e.fulfill) {
                 when(.pass, then: .locked)
             }
             
 //            when(.coin, then: .unlocked) |
 //            when(.pass, then: .locked) | e.fulfill
+///           alternative syntax to consider?
         }
         
         assertContains(.locked, .coin, .unlocked, tr)
@@ -151,6 +155,7 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
         
         tr.transitions.first?.actions.first?()
         tr.transitions.first?.actions.last?()
+        tr.transitions.last?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
     
@@ -186,6 +191,68 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
         XCTAssertEqual(2, tr.modifiers.exitActions.count)
     }
 }
+
+class FSMBuilderTests: XCTestCase, TransitionBuilder {
+    typealias State = TurnstileState
+    typealias Event = TurnstileEvent
+    
+    var states = [State]()
+    var events = [Event]()
+    var actions = [String]()
+    
+    func alarmOn() { actions.append("alarmOn") }
+    func alarmOff() { actions.append("alarmOff") }
+    func lock() { actions.append("lock") }
+    func unlock() { actions.append("unlock") }
+    func thankyou() { actions.append("thankyou") }
+    
+    let fsm = FSM<State, Event>(initialState: .locked)
+    var s: SuperState<State, Event>!
+    
+    override func setUp() {
+        s = SuperState {
+            when(.reset, then: .locked, actions: alarmOff, lock)
+        }
+    }
+    
+    func testSuperState() {
+        try! fsm.buildTransitions {
+            define(.locked) {
+                implements(s)
+            }
+        }
+        
+        fsm.handleEvent(.reset)
+        XCTAssertEqual(actions, ["alarmOff", "lock"])
+    }
+    
+    func testTurnstile() {
+        try? fsm.buildTransitions {
+            let resetable = SuperState {
+                when(.reset, then: .locked, actions: alarmOff, lock)
+            }
+
+            define(.locked) {
+                implements(resetable); onEnter(lock)
+                
+                when(.coin, then: .unlocked)
+                when(.pass, then: .alarming)
+            }
+
+            define(.unlocked) {
+                implements(resetable); onEnter(unlock)
+                
+                when(.coin, then: .unlocked, actions: thankyou)
+                when(.pass, then: .locked)
+            }
+
+            define(.alarming) {
+                implements(resetable); onEnter(alarmOn); onExit(alarmOff)
+            }
+        }
+    }
+}
+
 
 extension TableRow<TurnstileState, TurnstileEvent> {
     var description: String {
