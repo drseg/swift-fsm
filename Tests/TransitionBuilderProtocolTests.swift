@@ -54,25 +54,23 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
             file: file, line: line)
     }
     
-    func testSuperState() {
-        let s = SuperState {
+    var s: SuperState<State, Event>!
+    
+    override func setUp() {
+        s = SuperState {
             when(.reset, then: .unlocked, actions: [])
             when(.coin, then: .unlocked) { }
             when(.pass, then: .locked)
         }
+    }
         
+    func testSuperState() {
         assertContains(.reset, .unlocked, s)
         assertContains(.coin, .unlocked, s)
         assertContains(.pass, .locked, s)
     }
     
     func testImplements() {
-        let s = SuperState {
-            when(.reset, then: .unlocked, actions: [])
-            when(.coin, then: .unlocked) { }
-            when(.pass, then: .locked)
-        }
-        
         let tr = define(.locked) {
             implements(s)
         }
@@ -84,18 +82,28 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
     }
     
     func testDoubleImplements() {
-        let s = SuperState {
-            when(.reset, then: .unlocked, actions: [])
-            when(.coin, then: .unlocked) { }
-            when(.pass, then: .locked)
-        }
-        
         let tr = define(.locked) {
             implements(s)
             implements(s)
         }
         
         XCTAssertEqual(1, tr.modifiers.superStates.count)
+    }
+    
+    func testSimpleTransitions() {
+        let tr = define(.locked, .unlocked) {
+            when(.reset, then: .unlocked, actions: [])
+            when(.coin, then: .unlocked) { }
+            when(.pass, then: .locked)
+        }
+        
+        assertContains(.locked, .reset, .unlocked, tr)
+        assertContains(.locked, .coin, .unlocked, tr)
+        assertContains(.locked, .pass, .locked, tr)
+        
+        assertContains(.unlocked, .reset, .unlocked, tr)
+        assertContains(.unlocked, .coin, .unlocked, tr)
+        assertContains(.unlocked, .pass, .locked, tr)
     }
     
     let actions = [{}, {}]
@@ -117,12 +125,6 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
     }
     
     func testAllModifiers() {
-        let s = SuperState {
-            when(.reset, then: .unlocked, actions: [])
-            when(.coin, then: .unlocked) { }
-            when(.pass, then: .locked)
-        }
-        
         let tr = define(.locked) {
             implements(s); onEnter(actions); onExit(actions)
         }
