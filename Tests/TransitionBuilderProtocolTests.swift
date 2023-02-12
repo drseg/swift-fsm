@@ -35,6 +35,25 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
             file: file, line: line)
     }
     
+    func assertContains(
+        _ g: State,
+        _ w: Event,
+        _ t: State,
+        _ tr: TableRow<State, Event>,
+        _ file: StaticString = #file,
+        _ line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            tr.transitions.contains(
+                Transition(givenState: g,
+                           event: w,
+                           nextState: t,
+                           actions: [])
+            )
+            , "\n(\(g), \(w), \(t)) not found in: \n\(tr.description)",
+            file: file, line: line)
+    }
+    
     func testSuperState() {
         let s = SuperState {
             when(.reset, then: .unlocked, actions: [])
@@ -45,6 +64,29 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
         assertContains(.reset, .unlocked, s)
         assertContains(.coin, .unlocked, s)
         assertContains(.pass, .locked, s)
+    }
+    
+    func testImplements() {
+        let s = SuperState {
+            when(.reset, then: .unlocked, actions: [])
+            when(.coin, then: .unlocked) { }
+            when(.pass, then: .locked)
+        }
+        
+        let tr = define(.locked) {
+            implements(s)
+        }
+        
+        let trs = tr.modifiers.superStates.first!
+        assertContains(.reset, .unlocked, trs)
+        assertContains(.coin, .unlocked, trs)
+        assertContains(.pass, .locked, trs)
+    }
+}
+
+extension TableRow<TurnstileState, TurnstileEvent> {
+    var description: String {
+        transitions.map(\.description).reduce("", +)
     }
 }
 
@@ -59,3 +101,10 @@ extension WhenThenAction<TurnstileState, TurnstileEvent> {
         String("(\(when.rawValue), \(then.rawValue))\n")
     }
 }
+
+extension Transition<TurnstileState, TurnstileEvent> {
+    var description: String {
+        String("(\(givenState.rawValue), \(event.rawValue), \(nextState.rawValue))\n")
+    }
+}
+

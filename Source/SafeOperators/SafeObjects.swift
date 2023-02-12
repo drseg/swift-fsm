@@ -28,8 +28,8 @@ struct RowModifiers<S: SP, E: EP> {
 struct SuperState<S: SP, E: EP> {
     let wtas: [WhenThenAction<S, E>]
     
-    init(@WTABuilder<S, E> _ content: () -> [WhenThenAction<S, E>]) {
-        wtas = content()
+    init(@WTABuilder<S, E> _ content: () -> [any WTARowProtocol<S, E>]) {
+        wtas = content().wtas()
     }
 }
 
@@ -45,6 +45,13 @@ class Given<S: SP, E: EP> {
     let line: Int
     
     init(_ states: S..., file: String = #file, line: Int = #line) {
+        self.states = states.uniqueValues
+        self.modifiers = .none
+        self.file = file
+        self.line = line
+    }
+    
+    init(_ states: [S], file: String = #file, line: Int = #line) {
         self.states = states.uniqueValues
         self.modifiers = .none
         self.file = file
@@ -72,9 +79,9 @@ class Given<S: SP, E: EP> {
     }
     
     func callAsFunction(
-        @WTABuilder<S, E> _ wtas: () -> [WTA]
+        @WTABuilder<S, E> _ rows: () -> [any WTARowProtocol<S, E>]
     ) -> TableRow<S, E> {
-        TableRow(transitions: formTransitions(with: wtas()),
+        TableRow(transitions: formTransitions(with: rows().wtas()),
                  modifiers: modifiers)
     }
     
@@ -96,35 +103,35 @@ class Given<S: SP, E: EP> {
         )
     }
     
-    func include(
-        _ superStates: SS...,
-        @WTABuilder<S, E> wtas: () -> [WTA]
-    ) -> TableRow<S, E> {
-        include(superStates).callAsFunction(wtas)
-    }
-    
-    func include(
-        _ superStates: SS...,
-        @WTBuilder<S, E> wts: () -> [WT]
-    ) -> GWTCollection<S, E> {
-        include(superStates).callAsFunction(wts)
-    }
-    
-    func include(_ superStates: SS...) -> GivenRow<S, E> {
-        include(superStates)
-    }
-    
-    private func include(_ ss: [SS]) -> GivenRow<S, E> {
-        GivenRow(states, modifiers.addSuperStates(ss), file: file, line: line)
-    }
-    
-    static func => (_ lhs: Given, rhs: SuperState<S, E>) -> GivenRow<S, E> {
-        lhs.include(rhs)
-    }
-    
-    static func => (_ lhs: Given, rhs: [SuperState<S, E>]) -> GivenRow<S, E> {
-        lhs.include(rhs)
-    }
+//    func include(
+//        _ superStates: SS...,
+//        @WTABuilder<S, E> wtas: () -> [WTA]
+//    ) -> TableRow<S, E> {
+//        include(superStates).callAsFunction(wtas)
+//    }
+//    
+//    func include(
+//        _ superStates: SS...,
+//        @WTBuilder<S, E> wts: () -> [WT]
+//    ) -> GWTCollection<S, E> {
+//        include(superStates).callAsFunction(wts)
+//    }
+//    
+//    func include(_ superStates: SS...) -> GivenRow<S, E> {
+//        include(superStates)
+//    }
+//    
+//    private func include(_ ss: [SS]) -> GivenRow<S, E> {
+//        GivenRow(states, modifiers.addSuperStates(ss), file: file, line: line)
+//    }
+//    
+//    static func => (_ lhs: Given, rhs: SuperState<S, E>) -> GivenRow<S, E> {
+//        lhs.include(rhs)
+//    }
+//    
+//    static func => (_ lhs: Given, rhs: [SuperState<S, E>]) -> GivenRow<S, E> {
+//        lhs.include(rhs)
+//    }
 }
 
 final class GivenRow<S: SP, E: EP>: Given<S, E>, TableRowProtocol {

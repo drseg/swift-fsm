@@ -16,6 +16,19 @@ protocol TableRowProtocol<State, Event> {
     var givenStates: any Collection<State> { get }
 }
 
+protocol WTARowProtocol<State, Event> {
+    associatedtype State: StateProtocol
+    associatedtype Event: EventProtocol
+    
+    var wtas: [WhenThenAction<State, Event>] { get }
+    var modifiers: RowModifiers<State, Event> { get }
+}
+
+struct WTARow<S: SP, E: EP>: WTARowProtocol {
+    let wtas: [WhenThenAction<S, E>]
+    let modifiers: RowModifiers<S, E>
+}
+
 struct TableRow<S: SP, E: EP>: TableRowProtocol {
     let transitions: [Transition<S, E>]
     let modifiers: RowModifiers<S, E>
@@ -29,6 +42,10 @@ protocol Builder {
 }
 
 extension Builder {
+    static func buildExpression( _ row: T) -> [T] {
+        [row]
+    }
+    
     static func buildIf(_ collection: [T]?) -> [T] {
         collection ?? []
     }
@@ -49,15 +66,11 @@ extension Builder {
 @resultBuilder
 struct TableBuilder<S: SP, E: EP>: Builder {
     typealias T = any TableRowProtocol<S, E>
-    
-    static func buildExpression( _ row: T) -> [T] {
-        [row]
-    }
 }
 
 @resultBuilder
 struct WTABuilder<S: SP, E: EP>: Builder {
-    typealias T = WhenThenAction<S, E>
+    typealias T = any WTARowProtocol<S, E>
 }
 
 @resultBuilder
