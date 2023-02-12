@@ -206,7 +206,7 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
     func unlock() { actions.append("unlock") }
     func thankyou() { actions.append("thankyou") }
     
-    let fsm = FSM<State, Event>(initialState: .locked)
+    let fsm = FSM<State, Event>(initialState: .unlocked)
     var s: SuperState<State, Event>!
     
     override func setUp() {
@@ -216,14 +216,72 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
     }
     
     func testSuperState() {
-        try! fsm.buildTransitions {
-            define(.locked) {
+        try? fsm.buildTransitions {
+            define(.unlocked) {
                 implements(s)
             }
         }
         
         fsm.handleEvent(.reset)
+        fsm.handleEvent(.coin)
+        fsm.handleEvent(.coin)
+        fsm.handleEvent(.coin)
         XCTAssertEqual(actions, ["alarmOff", "lock"])
+        XCTAssertEqual(fsm.state, .locked)
+    }
+    
+    func testEntryAction() {
+        try? fsm.buildTransitions {
+            define(.locked) {
+                onEnter(thankyou)
+            }
+            
+            define(.unlocked) {
+                when(.reset, then: .locked, actions: alarmOff, lock)
+            }
+        }
+        
+        fsm.handleEvent(.reset)
+        XCTAssertEqual(actions.last, "thankyou")
+    }
+    
+    func testEntryActionNotCalledIfAlreadyInState() {
+        try? fsm.buildTransitions {
+            define(.unlocked) {
+                onEnter(thankyou)
+                
+                when(.reset, then: .unlocked, actions: alarmOff, lock)
+            }
+        }
+        
+        fsm.handleEvent(.reset)
+        XCTAssertEqual(actions,  ["alarmOff", "lock"])
+    }
+    
+    func testExitAction() {
+        try? fsm.buildTransitions {
+            define(.unlocked) {
+                onExit(thankyou)
+                
+                when(.reset, then: .locked, actions: alarmOff, lock)
+            }
+        }
+        
+        fsm.handleEvent(.reset)
+        XCTAssertEqual(actions.last, "thankyou")
+    }
+    
+    func testExitActionNotCalledIfRemainingInState() {
+        try? fsm.buildTransitions {
+            define(.unlocked) {
+                onExit(thankyou)
+                
+                when(.reset, then: .unlocked, actions: alarmOff, lock)
+            }
+        }
+        
+        fsm.handleEvent(.reset)
+        XCTAssertEqual(actions.last, "lock")
     }
     
     func testTurnstile() {

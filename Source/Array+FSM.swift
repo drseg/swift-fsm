@@ -27,8 +27,4 @@ extension Array {
     func wtas<S: SP, E: EP>() -> [WhenThenAction<S, E>] {
         map { ($0 as! (any WTARowProtocol<S, E>)).wtas }.flatten
     }
-    
-    func entryActions<S: SP, E: EP>() -> [WhenThenAction<S, E>] {
-        map { ($0 as! (any WTARowProtocol<S, E>)).wtas }.flatten
-    }
 }
