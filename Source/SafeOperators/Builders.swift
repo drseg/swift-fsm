@@ -26,9 +26,24 @@ protocol WTARowProtocol<State, Event> {
     var line: Int { get }
 }
 
+protocol WTRowProtocol<State, Event> {
+    associatedtype State: StateProtocol
+    associatedtype Event: EventProtocol
+    
+    var wts: [WhenThen<State, Event>] { get }
+    var file: String { get }
+    var line: Int { get }
+}
+
 struct WTARow<S: SP, E: EP>: WTARowProtocol {
     let wtas: [WhenThenAction<S, E>]
     let modifiers: RowModifiers<S, E>
+    let file: String
+    let line: Int
+}
+
+struct WTRow<S: SP, E: EP>: WTRowProtocol {
+    let wts: [WhenThen<S, E>]
     let file: String
     let line: Int
 }
@@ -46,6 +61,10 @@ protocol Builder {
 }
 
 extension Builder {
+    static func buildExpression( _ row: [T]) -> [T] {
+        row
+    }
+    
     static func buildExpression( _ row: T) -> [T] {
         [row]
     }
@@ -79,5 +98,5 @@ struct WTABuilder<S: SP, E: EP>: Builder {
 
 @resultBuilder
 struct WTBuilder<S: SP, E: EP>: Builder {
-    typealias T = WhenThen<S, E>
+    typealias T = any WTRowProtocol<S, E>
 }

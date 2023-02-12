@@ -134,7 +134,17 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
     }
     
     func testActionBlock() {
+        let e = expectation(description: "action")
+        let tr = define(.locked) {
+            action([e.fulfill]) {
+                when(.coin, then: .unlocked)
+            }
+        }
         
+        assertContains(.locked, .coin, .unlocked, tr)
+        
+        tr.transitions.first?.actions.first?()
+        waitForExpectations(timeout: 0.1)
     }
     
     let actions = [{}, {}]

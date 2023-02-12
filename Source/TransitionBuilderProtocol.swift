@@ -88,11 +88,41 @@ extension TransitionBuilder {
                file: #file, line: #line)
     }
     
-//    func when(_ events: E..., then state: S) -> [WhenThen<S, E>] {
-//        events.reduce(into: [WhenThen]()) {
-//            $0.append(WhenThen(when: $1, then: state))
-//        }
-//    }
+    func when(
+        _ events: E...,
+        then state: S,
+        file: String = #file,
+        line: Int = #line
+    ) -> any WTRowProtocol<S, E> {
+        WTRow(
+            wts: events.reduce(into: [WhenThen]()) {
+                $0.append(WhenThen(when: $1, then: state))
+            },
+            file: file,
+            line: line
+        )
+    }
+    
+    func action(
+        _ actions: [() -> ()],
+        @WTBuilder<S, E> rows: () -> [any WTRowProtocol<S, E>]
+    ) -> [any WTARowProtocol<S, E>] {
+        rows().reduce(into: [WTARow]()) { wtRows, wtRow in
+            let wtas = wtRow.wts.reduce(into: [WhenThenAction<S, E>]()) {
+                $0.append(
+                    WhenThenAction(when: $1.when,
+                                   then: $1.then,
+                                   actions: actions)
+                )
+            }
+            
+            wtRows.append(
+                WTARow(wtas: wtas,
+                       modifiers: .none,
+                       file: wtRow.file,
+                       line: wtRow.line))
+        }
+    }
     
     func when(
         _ events: E...,
