@@ -13,12 +13,15 @@ protocol TransitionBuilder {
 }
 
 extension TransitionBuilder {
+    typealias S = State
+    typealias E = Event
+    
     func define(
-        _ states: State...,
-        @WTABuilder<State, Event> rows: () -> [any WTARowProtocol<State, Event>],
+        _ states: S...,
+        @WTABuilder<S, E> rows: () -> [any WTARowProtocol<S, E>],
         file: String = #file,
         line: Int = #line
-    ) -> TableRow<State, Event> {
+    ) -> TableRow<S, E> {
         let rows = rows()
         let allModifiers = rows.map { $0.modifiers }
         
@@ -39,11 +42,11 @@ extension TransitionBuilder {
     }
     
     private func formTransitions(
-        states: [State],
-        wtas: [WhenThenAction<State, Event>],
+        states: [S],
+        wtas: [WhenThenAction<S, E>],
         file: String,
         line: Int
-    ) -> [Transition<State, Event>] {
+    ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
             wtas.forEach {
                 ts.append(Transition(givenState: given,
@@ -56,46 +59,60 @@ extension TransitionBuilder {
         }
     }
     
+    func onEnter(_ actions: [() -> ()]) -> WTARow<S, E> {
+        WTARow(wtas: [],
+               modifiers: RowModifiers(superStates: [],
+                                       entryActions: actions,
+                                       exitActions: []))
+    }
+    
+    func onExit(_ actions: [() -> ()]) -> WTARow<S, E> {
+        WTARow(wtas: [],
+               modifiers: RowModifiers(superStates: [],
+                                       entryActions: [],
+                                       exitActions: actions))
+    }
+    
     func implements(
-        _ ss: SuperState<State, Event>...
-    ) -> WTARow<State, Event> {
+        _ ss: SuperState<S, E>...
+    ) -> WTARow<S, E> {
         WTARow(wtas: [],
                modifiers: RowModifiers(superStates: ss,
                                        entryActions: [],
                                        exitActions: []))
     }
     
-    func when(_ events: Event..., then state: State) -> [WhenThen<State, Event>] {
+    func when(_ events: E..., then state: S) -> [WhenThen<S, E>] {
         events.reduce(into: [WhenThen]()) {
             $0.append(WhenThen(when: $1, then: state))
         }
     }
     
-    func when(_ events: Event..., then state: State) -> WTARow<State, Event> {
+    func when(_ events: E..., then state: S) -> WTARow<S, E> {
         when(events, then: state, actions: [])
     }
     
     func when(
-        _ events: Event...,
-        then state: State,
+        _ events: E...,
+        then state: S,
         action: @escaping () -> ()
-    ) -> WTARow<State, Event> {
+    ) -> WTARow<S, E> {
         when(events, then: state, actions: [action])
     }
     
     func when(
-        _ events: Event...,
-        then state: State,
+        _ events: E...,
+        then state: S,
         actions: [() -> ()]
-    ) -> WTARow<State, Event> {
+    ) -> WTARow<S, E> {
         when(events, then: state, actions: actions)
     }
     
     private func when(
-        _ events: [Event],
-        then state: State,
+        _ events: [E],
+        then state: S,
         actions: [() -> ()]
-    ) -> WTARow<State, Event> {
+    ) -> WTARow<S, E> {
         WTARow(wtas: events.reduce(into: [WhenThenAction]()) {
             $0.append(WhenThenAction(when: $1,
                                      then: state,

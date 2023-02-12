@@ -82,6 +82,26 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
         assertContains(.coin, .unlocked, trs)
         assertContains(.pass, .locked, trs)
     }
+    
+    func testEntryActions() {
+        let actions = [{}, {}]
+        
+        let tr = define(.locked) {
+            onEnter(actions)
+        }
+        
+        XCTAssertEqual(2, tr.modifiers.entryActions.count)
+    }
+    
+    func testExitActions() {
+        let actions = [{}, {}]
+        
+        let tr = define(.locked) {
+            onExit(actions)
+        }
+        
+        XCTAssertEqual(2, tr.modifiers.exitActions.count)
+    }
 }
 
 extension TableRow<TurnstileState, TurnstileEvent> {
