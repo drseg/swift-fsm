@@ -117,12 +117,19 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
     
     func testActions() {
         let e = expectation(description: "action")
+        e.expectedFulfillmentCount = 4
         let tr = define(.locked) {
-            when(.reset, .coin, then: .unlocked) {
-                e.fulfill()
-            }
+            when(.reset, then: .unlocked, action: e.fulfill)
+            when(.reset, then: .unlocked, actions: e.fulfill)
+            when(.reset, then: .unlocked, actions: {}, e.fulfill)
+            when(.reset, then: .unlocked) { [{}, e.fulfill] }
         }
-        tr.transitions.first?.actions.first?()
+        
+        tr.transitions[0].actions[0]()
+        tr.transitions[1].actions[0]()
+        tr.transitions[2].actions[1]()
+        tr.transitions[3].actions[1]()
+        
         waitForExpectations(timeout: 0.1)
     }
     

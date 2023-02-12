@@ -116,6 +116,26 @@ extension TransitionBuilder {
     func when(
         _ events: E...,
         then state: S,
+        actions: () -> ()...,
+        file: String = #file,
+        line: Int = #line
+    ) -> WTARow<S, E> {
+        when(events, then: state, actions: actions, file: file, line: line)
+    }
+    
+    func when(
+        _ events: E...,
+        then state: S,
+        actions: () -> ([() -> ()]),
+        file: String = #file,
+        line: Int = #line
+    ) -> WTARow<S, E> {
+        when(events, then: state, actions: actions(), file: file, line: line)
+    }
+    
+    func when(
+        _ events: E...,
+        then state: S,
         actions: [() -> ()],
         file: String = #file,
         line: Int = #line
