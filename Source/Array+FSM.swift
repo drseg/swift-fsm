@@ -28,3 +28,9 @@ extension Array {
         map { ($0 as! (any WTARowProtocol<S, E>)).wtas }.flatten
     }
 }
+
+extension Array where Element == () -> () {
+    func executeAll() {
+        forEach { $0() }
+    }
+}

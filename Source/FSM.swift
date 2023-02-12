@@ -56,7 +56,7 @@ class FSMBase<S: SP, E: EP> {
         let key = K(state: state, event: event)
         
         if let t = transitions[key] {
-            t.actions.forEach { $0() }
+            t.actions.executeAll()
             let previousState = state
             state = t.nextState
             
@@ -67,13 +67,13 @@ class FSMBase<S: SP, E: EP> {
     
     func executeEntryActions(previousState: S) {
         if let entries = entryActions[state], state != previousState  {
-            entries.forEach { $0() }
+            entries.executeAll()
         }
     }
     
     func executeExitActions(previousState: S) {
         if let exits = exitActions[previousState], state != previousState {
-            exits.forEach { $0() }
+            exits.executeAll()
         }
     }
     
