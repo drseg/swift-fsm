@@ -107,7 +107,23 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
     }
     
     func testMultipleWhens() {
+        let tr = define(.locked) {
+            when(.reset, .coin, then: .unlocked, actions: [])
+        }
         
+        assertContains(.locked, .reset, .unlocked, tr)
+        assertContains(.locked, .coin, .unlocked, tr)
+    }
+    
+    func testActions() {
+        let e = expectation(description: "action")
+        let tr = define(.locked) {
+            when(.reset, .coin, then: .unlocked) {
+                e.fulfill()
+            }
+        }
+        tr.transitions.first?.actions.first?()
+        waitForExpectations(timeout: 0.1)
     }
     
     func testActionBlock() {
