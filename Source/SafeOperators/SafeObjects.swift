@@ -25,8 +25,12 @@ struct RowModifiers<S: SP, E: EP> {
     }
 }
 
-struct SuperState<S: SP, E: EP> {
+struct SuperState<S: SP, E: EP>: Hashable {
     let wtas: [WhenThenAction<S, E>]
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(wtas)
+    }
     
     init(@WTABuilder<S, E> _ content: () -> [any WTARowProtocol<S, E>]) {
         wtas = content().wtas()
@@ -199,10 +203,15 @@ struct GWTCollection<S: SP, E: EP> {
     }
 }
 
-struct WhenThenAction<S: SP, E: EP>: Equatable {
+struct WhenThenAction<S: SP, E: EP>: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.when == rhs.when &&
         lhs.then == rhs.then
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(when)
+        hasher.combine(then)
     }
     
     let when: E

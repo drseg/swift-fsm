@@ -23,11 +23,14 @@ extension TransitionBuilder {
         line: Int = #line
     ) -> TableRow<S, E> {
         let rows = rows()
-        let allModifiers = rows.map { $0.modifiers }
         
-        let superStates = allModifiers.map { $0.superStates }.flatten
-        let entryActions = allModifiers.map { $0.entryActions }.flatten
-        let exitActions = allModifiers.map { $0.exitActions }.flatten
+        func flatten<T>(_ map: (RowModifiers<S, E>) -> [T]) -> [T] {
+            rows.map { $0.modifiers }.map(map).flatten
+        }
+        
+        let superStates = flatten { $0.superStates }.uniqueValues
+        let entryActions = flatten { $0.entryActions }
+        let exitActions = flatten { $0.exitActions }
         
         let modifiers = RowModifiers(superStates: superStates,
                                      entryActions: entryActions,

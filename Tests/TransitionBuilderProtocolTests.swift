@@ -83,9 +83,24 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
         assertContains(.pass, .locked, trs)
     }
     
-    func testEntryActions() {
-        let actions = [{}, {}]
+    func testDoubleImplements() {
+        let s = SuperState {
+            when(.reset, then: .unlocked, actions: [])
+            when(.coin, then: .unlocked) { }
+            when(.pass, then: .locked)
+        }
         
+        let tr = define(.locked) {
+            implements(s)
+            implements(s)
+        }
+        
+        XCTAssertEqual(1, tr.modifiers.superStates.count)
+    }
+    
+    let actions = [{}, {}]
+    
+    func testEntryActions() {
         let tr = define(.locked) {
             onEnter(actions)
         }
@@ -94,12 +109,30 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
     }
     
     func testExitActions() {
-        let actions = [{}, {}]
-        
         let tr = define(.locked) {
             onExit(actions)
         }
         
+        XCTAssertEqual(2, tr.modifiers.exitActions.count)
+    }
+    
+    func testAllModifiers() {
+        let s = SuperState {
+            when(.reset, then: .unlocked, actions: [])
+            when(.coin, then: .unlocked) { }
+            when(.pass, then: .locked)
+        }
+        
+        let tr = define(.locked) {
+            implements(s); onEnter(actions); onExit(actions)
+        }
+        
+        let trs = tr.modifiers.superStates.first!
+        assertContains(.reset, .unlocked, trs)
+        assertContains(.coin, .unlocked, trs)
+        assertContains(.pass, .locked, trs)
+        
+        XCTAssertEqual(2, tr.modifiers.entryActions.count)
         XCTAssertEqual(2, tr.modifiers.exitActions.count)
     }
 }
