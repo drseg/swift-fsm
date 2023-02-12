@@ -104,8 +104,25 @@ extension TransitionBuilder {
     }
     
     func action(
+        _ a1: @escaping () -> (),
+        _ a2: (() -> ())? = nil,
+        _ a3: (() -> ())? = nil,
+        _ a4: (() -> ())? = nil,
+        _ a5: (() -> ())? = nil,
+        _ a6: (() -> ())? = nil,
+        _ a7: (() -> ())? = nil,
+        _ a8: (() -> ())? = nil,
+        _ a9: (() -> ())? = nil,
+        _ a10: (() -> ())? = nil,
+        @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
+    ) -> [any WTARowProtocol<S, E>] {
+        action([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10].compactMap { $0 },
+               rows)
+    }
+    
+    func action(
         _ actions: [() -> ()],
-        @WTBuilder<S, E> rows: () -> [any WTRowProtocol<S, E>]
+        @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
     ) -> [any WTARowProtocol<S, E>] {
         rows().reduce(into: [WTARow]()) { wtRows, wtRow in
             let wtas = wtRow.wts.reduce(into: [WhenThenAction<S, E>]()) {

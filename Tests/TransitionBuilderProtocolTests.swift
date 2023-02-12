@@ -135,15 +135,22 @@ class TransitionBuilderProtocolTests: XCTestCase, TransitionBuilder {
     
     func testActionBlock() {
         let e = expectation(description: "action")
+        e.expectedFulfillmentCount = 2
         let tr = define(.locked) {
-            action([e.fulfill]) {
+            action(e.fulfill, e.fulfill) {
                 when(.coin, then: .unlocked)
+                when(.pass, then: .locked)
             }
+            
+//            when(.coin, then: .unlocked) |
+//            when(.pass, then: .locked) | e.fulfill
         }
         
         assertContains(.locked, .coin, .unlocked, tr)
+        assertContains(.locked, .pass, .locked, tr)
         
         tr.transitions.first?.actions.first?()
+        tr.transitions.first?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
     
