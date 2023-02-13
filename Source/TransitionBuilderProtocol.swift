@@ -117,15 +117,15 @@ extension TransitionBuilder {
                             line: line))
     }
     
-    func action(
-        _ a1: @escaping () -> (),
+    func context(
+        action a1: @escaping () -> (),
         @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
     ) -> [any WTARowProtocol<S, E>] {
-        actions([a1], rows)
+        context(actions: [a1], rows)
     }
     
-    func actions(
-        _ a1: @escaping () -> (),
+    func context(
+        actions a1: @escaping () -> (),
         _ a2: (() -> ())? = nil,
         _ a3: (() -> ())? = nil,
         _ a4: (() -> ())? = nil,
@@ -137,12 +137,12 @@ extension TransitionBuilder {
         _ a10: (() -> ())? = nil,
         @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
     ) -> [any WTARowProtocol<S, E>] {
-        actions([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10].compactMap { $0 },
+        context(actions: [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10].compactMap { $0 },
                 rows)
     }
     
-    func actions(
-        _ actions: [() -> ()],
+    func context(
+        actions: [() -> ()],
         @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
     ) -> [any WTARowProtocol<S, E>] {
         rows().reduce(into: [WTARow]()) { wtRows, wtRow in

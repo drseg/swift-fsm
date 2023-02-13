@@ -138,11 +138,11 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
         e.expectedFulfillmentCount = 3
         
         let tr = define(.locked) {
-            actions(e.fulfill, e.fulfill) {
+            context(actions: e.fulfill, e.fulfill) {
                 when(.coin) | then(.unlocked)
             }
 
-            action(e.fulfill) {
+            context(action: e.fulfill) {
                 when(.pass) | then(.locked)
             }
         }
@@ -192,15 +192,13 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
 class FSMBuilderTests: XCTestCase, TransitionBuilder {
     typealias State = TurnstileState
     typealias Event = TurnstileEvent
-    
-    var states = [State]()
-    var events = [Event]()
+
     var actions = [String]()
     
-    func alarmOn() { actions.append("alarmOn") }
+    func alarmOn()  { actions.append("alarmOn")  }
     func alarmOff() { actions.append("alarmOff") }
-    func lock() { actions.append("lock") }
-    func unlock() { actions.append("unlock") }
+    func lock()     { actions.append("lock")     }
+    func unlock()   { actions.append("unlock")   }
     func thankyou() { actions.append("thankyou") }
     
     let fsm = FSM<State, Event>(initialState: .unlocked)
@@ -313,10 +311,12 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
         XCTAssertEqual(fsm.firstTransition?.line, line)
     }
     
-    func testTurnstile() {
+    func buildTurnstile() {
+        fsm.state = .locked
+        
         try? fsm.buildTransitions {
             let resetable = SuperState {
-                when(.reset) | then(.locked) | [alarmOff, lock]
+                when(.reset) | then(.locked)
             }
 
             define(.locked) {
@@ -338,8 +338,30 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
             }
         }
     }
+    
+    func assertEventActions(_ eas: (Event, [String])..., line: UInt = #line) {
+        var actual = [String]()
+        eas.forEach {
+            actual += $0.1
+            fsm.handleEvent($0.0)
+            XCTAssertEqual(actions, actual, line: line)
+        }
+    }
+    
+    func testTurnstile() {
+        buildTurnstile()
+        assertEventActions(
+            (.coin,  ["unlock"]),
+            (.pass,  ["lock"]),
+            (.pass,  ["alarmOn"]),
+            (.reset, ["alarmOff", "lock"]),
+            (.coin,  ["unlock"]),
+            (.coin,  ["thankyou"]),
+            (.coin,  ["thankyou"]),
+            (.reset, ["lock"])
+        )
+    }
 }
-
 
 extension TableRow<TurnstileState, TurnstileEvent> {
     var description: String {
