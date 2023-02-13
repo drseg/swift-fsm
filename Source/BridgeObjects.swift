@@ -19,18 +19,13 @@ struct RowModifiers<S: SP, E: EP> {
 
 struct SuperState<S: SP, E: EP>: Hashable {
     let wtas: [WhensThenActions<S, E>]
-    let file: String
-    let line: Int
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(wtas)
     }
     
-    init(@WTABuilder<S, E> _ content: () -> [any WTARowProtocol<S, E>], file: String = #file,
-         line: Int = #line) {
+    init(@WTABuilder<S, E> _ content: () -> [any WTARowProtocol<S, E>]) {
         wtas = content().wtas()
-        self.file = file
-        self.line = line
     }
 }
 
@@ -62,11 +57,11 @@ struct WhensThen<S: SP, E: EP> {
     static func | (lhs: Self, rhs: [() -> ()]) -> WTARow<S, E> {
         let wta = WhensThenActions(events: lhs.events,
                                    state: lhs.state,
-                                   actions: rhs)
+                                   actions: rhs,
+                                   file: lhs.file,
+                                   line: lhs.line)
         return WTARow(wta: wta,
-                      modifiers: .none,
-                      file: lhs.file,
-                      line: lhs.line)
+                      modifiers: .none)
     }
     
     let events: [E]
@@ -97,4 +92,6 @@ struct WhensThenActions<S: SP, E: EP>: Hashable {
     let events: [E]
     let state: S
     let actions: [() -> ()]
+    let file: String
+    let line: Int
 }

@@ -28,8 +28,6 @@ protocol WTARowProtocol<State, Event> {
     
     var wta: WhensThenActions<State, Event>? { get }
     var modifiers: RowModifiers<State, Event> { get }
-    var file: String { get }
-    var line: Int { get }
 }
 
 protocol WTRowProtocol<State, Event> {
@@ -44,8 +42,6 @@ protocol WTRowProtocol<State, Event> {
 struct WTARow<S: SP, E: EP>: WTARowProtocol {
     let wta: WhensThenActions<S, E>?
     let modifiers: RowModifiers<S, E>
-    let file: String
-    let line: Int
 }
 
 struct WTRow<S: SP, E: EP>: WTRowProtocol {

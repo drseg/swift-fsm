@@ -28,9 +28,9 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
-            ss.wtas.contains(
-                WhensThenActions(events: [e], state: s, actions: [])
-            )
+            ss.wtas.contains(where: {
+                $0.state == s && $0.events.contains(e)
+            })
             , "\n(\(e), \(s)) not found in: \n\(ss.description)",
             file: file, line: line)
     }
@@ -296,6 +296,38 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
         XCTAssertEqual(actions, ["alarmOff", "lock"])
     }
     
+    func testSuperStateFileLine() {
+        let file = #file
+        let line = #line + 4
+        
+        try? fsm.buildTransitions {
+            let s = SuperState {
+                when(.coin) | then(.locked)
+            }
+            
+            define(.locked) {
+                implements(s)
+            }
+        }
+        
+        XCTAssertEqual(fsm.firstTransition?.file, file)
+        XCTAssertEqual(fsm.firstTransition?.line, line)
+    }
+    
+    func testTransitionFileLine() {
+        let file = #file
+        let line = #line + 4
+        
+        try? fsm.buildTransitions {
+            define(.locked) {
+                when(.coin) | then(.locked)
+            }
+        }
+        
+        XCTAssertEqual(fsm.firstTransition?.file, file)
+        XCTAssertEqual(fsm.firstTransition?.line, line)
+    }
+    
     func testTurnstile() {
         try? fsm.buildTransitions {
             let resetable = SuperState {
@@ -350,3 +382,8 @@ extension Transition<TurnstileState, TurnstileEvent> {
     }
 }
 
+extension FSM<TurnstileState, TurnstileEvent> {
+    var firstTransition: Transition<TurnstileState, TurnstileEvent>? {
+        transitionTable.values.first
+    }
+}

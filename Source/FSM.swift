@@ -68,8 +68,8 @@ class FSMBase<S: SP, E: EP> {
                                            event: $0,
                                            nextState: wta.state,
                                            actions: wta.actions,
-                                           file: ss.file,
-                                           line: ss.line)
+                                           file: wta.file,
+                                           line: wta.line)
                             )
                         }
                     }
