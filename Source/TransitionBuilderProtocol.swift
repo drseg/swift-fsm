@@ -111,11 +111,10 @@ extension TransitionBuilder {
         file: String = #file,
         line: Int = #line
     ) -> any WTRowProtocol<S, E> {
-        WTRow(
-            wt: WhensThen(events: events, state: state),
-            file: file,
-            line: line
-        )
+        WTRow(wt: WhensThen(events: events,
+                            state: state,
+                            file: file,
+                            line: line))
     }
     
     func action(
@@ -150,66 +149,12 @@ extension TransitionBuilder {
             let wta = WhensThenActions(events: wtRow.wt.events,
                                        state: wtRow.wt.state,
                                        actions: actions,
-                                       file: wtRow.file,
-                                       line: wtRow.line)
+                                       file: wtRow.wt.file,
+                                       line: wtRow.wt.line)
             
             wtRows.append(
                 WTARow(wta: wta, modifiers: .none)
             )
         }
-    }
-    
-    func when(
-        _ events: E...,
-        then state: S,
-        file: String = #file,
-        line: Int = #line
-    ) -> WTARow<S, E> {
-        when(events, then: state, actions: [], file: file, line: line)
-    }
-    
-    func when(
-        _ events: E...,
-        then state: S,
-        action: @escaping () -> (),
-        file: String = #file,
-        line: Int = #line
-    ) -> WTARow<S, E> {
-        when(events, then: state, actions: [action], file: file, line: line)
-    }
-    
-    func when(
-        _ events: E...,
-        then state: S,
-        actions: () -> ()...,
-        file: String = #file,
-        line: Int = #line
-    ) -> WTARow<S, E> {
-        when(events, then: state, actions: actions, file: file, line: line)
-    }
-    
-    func when(
-        _ events: E...,
-        then state: S,
-        actions: [() -> ()],
-        file: String = #file,
-        line: Int = #line
-    ) -> WTARow<S, E> {
-        when(events, then: state, actions: actions, file: file, line: line)
-    }
-    
-    private func when(
-        _ events: [E],
-        then state: S,
-        actions: [() -> ()],
-        file: String,
-        line: Int
-    ) -> WTARow<S, E> {
-        WTARow(wta: WhensThenActions(events: events,
-                                     state: state,
-                                     actions: actions,
-                                     file: file,
-                                     line: line),
-               modifiers: .none)
     }
 }

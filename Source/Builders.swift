@@ -35,8 +35,6 @@ protocol WTRowProtocol<State, Event> {
     associatedtype Event: EventProtocol
     
     var wt: WhensThen<State, Event> { get }
-    var file: String { get }
-    var line: Int { get }
 }
 
 struct WTARow<S: SP, E: EP>: WTARowProtocol {
@@ -46,8 +44,6 @@ struct WTARow<S: SP, E: EP>: WTARowProtocol {
 
 struct WTRow<S: SP, E: EP>: WTRowProtocol {
     let wt: WhensThen<S, E>
-    let file: String
-    let line: Int
 }
 
 protocol Builder {

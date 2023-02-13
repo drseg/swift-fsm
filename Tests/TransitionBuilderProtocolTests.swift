@@ -60,9 +60,9 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     
     override func setUp() {
         s = SuperState {
-            when(.reset, then: .unlocked, actions: [])
-            when(.coin, then: .unlocked) { }
-            when(.pass, then: .locked)
+            when(.reset) | then(.unlocked) | []
+            when(.coin) | then(.unlocked) | {}
+            when(.pass) | then(.locked)
         }
     }
         
@@ -92,22 +92,6 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
         XCTAssertEqual(1, tr.modifiers.superStates.count)
     }
     
-    func testSimpleTransitions() {
-        let tr = define(.locked, .unlocked) {
-            when(.reset, then: .unlocked, actions: [])
-            when(.coin, then: .unlocked) { }
-            when(.pass, then: .locked)
-        }
-        
-        assertContains(.locked, .reset, .unlocked, tr)
-        assertContains(.locked, .coin, .unlocked, tr)
-        assertContains(.locked, .pass, .locked, tr)
-        
-        assertContains(.unlocked, .reset, .unlocked, tr)
-        assertContains(.unlocked, .coin, .unlocked, tr)
-        assertContains(.unlocked, .pass, .locked, tr)
-    }
-    
     func testSimpleTransitionsWithOperators() {
         let tr = define(.locked, .unlocked) {
             when(.reset) | then(.unlocked) | []
@@ -126,7 +110,7 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     
     func testMultipleWhens() {
         let tr = define(.locked) {
-            when(.reset, .coin, then: .unlocked, actions: [])
+            when(.reset, .coin) | then(.unlocked) | []
         }
         
         assertContains(.locked, .reset, .unlocked, tr)
@@ -137,9 +121,9 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
         let e = expectation(description: "action")
         e.expectedFulfillmentCount = 3
         let tr = define(.locked) {
-            when(.reset, then: .unlocked, action: e.fulfill)
-            when(.reset, then: .unlocked, actions: e.fulfill)
-            when(.reset, then: .unlocked, actions: {}, e.fulfill)
+            when(.reset) | then(.unlocked) | e.fulfill
+            when(.reset) | then(.unlocked) | [e.fulfill]
+            when(.reset) | then(.unlocked) | [ {}, e.fulfill ]
         }
         
         tr.transitions[0].actions[0]()
@@ -152,19 +136,20 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     func testActionBlock() {
         let e = expectation(description: "action")
         e.expectedFulfillmentCount = 3
+        
         let tr = define(.locked) {
             actions(e.fulfill, e.fulfill) {
-                when(.coin, then: .unlocked)
+                when(.coin) | then(.unlocked)
             }
-            
+
             action(e.fulfill) {
-                when(.pass, then: .locked)
+                when(.pass) | then(.locked)
             }
         }
-        
+
         assertContains(.locked, .coin, .unlocked, tr)
         assertContains(.locked, .pass, .locked, tr)
-        
+
         tr.transitions.first?.actions.first?()
         tr.transitions.first?.actions.last?()
         tr.transitions.last?.actions.last?()
@@ -223,7 +208,7 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
     
     override func setUp() {
         s = SuperState {
-            when(.reset, then: .locked, actions: alarmOff, lock)
+            when(.reset) | then(.locked) | [alarmOff, lock]
         }
     }
     
@@ -249,7 +234,7 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
             }
             
             define(.unlocked) {
-                when(.reset, then: .locked, actions: alarmOff, lock)
+                when(.reset) | then(.locked) | [alarmOff, lock]
             }
         }
         
@@ -262,7 +247,7 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
             define(.unlocked) {
                 onEnter(thankyou)
                 
-                when(.reset, then: .unlocked, actions: alarmOff, lock)
+                when(.reset) | then(.unlocked) | [alarmOff, lock]
             }
         }
         
@@ -275,7 +260,7 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
             define(.unlocked) {
                 onExit(thankyou)
                 
-                when(.reset, then: .locked, actions: alarmOff, lock)
+                when(.reset) | then(.locked) | [alarmOff, lock]
             }
         }
         
@@ -288,7 +273,7 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
             define(.unlocked) {
                 onExit(thankyou)
                 
-                when(.reset, then: .unlocked, actions: alarmOff, lock)
+                when(.reset) | then(.unlocked) | [alarmOff, lock]
             }
         }
         
