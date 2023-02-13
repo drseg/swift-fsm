@@ -189,7 +189,11 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     }
 }
 
-class FSMBuilderTests: TestingBase, TransitionBuilder {
+class FSMTests: TestingBase {
+    let fsm = FSM<State, Event>(initialState: .unlocked)
+}
+
+class FSMBuilderTests: FSMTests, TransitionBuilder {
     var actions = [String]()
     
     func alarmOn()  { actions.append("alarmOn")  }
@@ -197,9 +201,7 @@ class FSMBuilderTests: TestingBase, TransitionBuilder {
     func lock()     { actions.append("lock")     }
     func unlock()   { actions.append("unlock")   }
     func thankyou() { actions.append("thankyou") }
-    
-    let fsm = FSM<State, Event>(initialState: .unlocked)
-    
+        
     override func setUp() {
         s = SuperState {
             when(.reset) | then(.locked) | [alarmOff, lock]
@@ -307,6 +309,34 @@ class FSMBuilderTests: TestingBase, TransitionBuilder {
         XCTAssertEqual(fsm.firstTransition?.line, line)
     }
     
+    func testThrowsErrorWhenGivenDuplicates() {
+        let file = URL(string: #file)!.lastPathComponent
+        let l1 = #line + 7
+        let l2 = #line + 7
+        let l3 = #line + 7
+        let l4 = #line + 7
+        
+        XCTAssertThrowsError (try fsm.buildTransitions {
+            define(.alarming) {
+                when(.coin) | then(.locked)
+                when(.coin) | then(.locked)
+                when(.coin) | then(.unlocked)
+                when(.coin) | then(.unlocked)
+            }
+        }) {
+            let e = $0 as! DuplicateTransitions<State, Event>
+            XCTAssertEqual(e.description.split(separator: ":\n",
+                                               maxSplits: 1).last!,
+"""
+alarming | coin | *locked* (\(file): \(l1))
+alarming | coin | *locked* (\(file): \(l2))
+alarming | coin | *unlocked* (\(file): \(l3))
+alarming | coin | *unlocked* (\(file): \(l4))
+"""
+            )
+        }
+    }
+    
     func buildTurnstile() {
         fsm.state = .locked
         
@@ -360,8 +390,53 @@ class FSMBuilderTests: TestingBase, TransitionBuilder {
     }
 }
 
+class FSMPerformanceTests: FSMTests, TransitionBuilder {
+    var didPass = false
+    func pass() {
+        didPass = true
+    }
+
+    func fail() {
+        XCTFail()
+    }
+
+    override func setUpWithError() throws {
+        throw XCTSkip("Skip performance tests")
+    }
+
+    func testBenchmarkBestCaseScenario() throws {
+        func handleEvent(_ e: TurnstileEvent) {
+            if (true) {
+                if (true) {
+                    if (true) {
+                        switch e { case .reset: pass(); default: fail() }
+                    }
+                }
+            }
+        }
+
+        measure { 250000.times { handleEvent(.reset) } }
+    }
+
+    func testGenericPerformance() throws {
+        try? fsm.buildTransitions {
+            define(.unlocked) {
+                when(.reset) | then(.unlocked) | pass
+            }
+        }
+
+        measure { 250000.times { self.fsm.handleEvent(.reset) } }
+    }
+}
+
 class ComplexTransitionBuilderTests: TestingBase, ComplexTransitionBuilder {
     typealias Predicate = String
+}
+
+extension Int {
+    func times(_ block: @escaping () -> ()) {
+        for _ in 1...self { block() }
+    }
 }
 
 extension TableRow<TurnstileState, TurnstileEvent> {
