@@ -48,7 +48,9 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
                 Transition(givenState: g,
                            event: w,
                            nextState: t,
-                           actions: [])
+                           actions: [],
+                           file: "",
+                           line: 0)
             )
             , "\n(\(g), \(w), \(t)) not found in: \n\(tr.description)",
             file: file, line: line)
@@ -297,24 +299,21 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
     func testTurnstile() {
         try? fsm.buildTransitions {
             let resetable = SuperState {
-                when(.reset, then: .locked, actions: alarmOff, lock)
+                when(.reset) | then(.locked) | [alarmOff, lock]
             }
 
             define(.locked) {
                 implements(resetable); onEnter(lock)
                 
-                when(.coin, then: .unlocked)
-                when(.pass, then: .alarming)
+                when(.coin) | then(.unlocked)
+                when(.pass) | then(.alarming)
             }
 
             define(.unlocked) {
                 implements(resetable); onEnter(unlock)
                 
-//                when(.coin) | then(.unlocked) | thankyou
-//                when(.pass) | then(.locked)
-                
-                when(.coin, then: .unlocked, action: thankyou)
-                when(.pass, then: .locked)
+                when(.coin) | then(.unlocked) | thankyou
+                when(.pass) | then(.locked)
             }
 
             define(.alarming) {

@@ -59,15 +59,19 @@ class FSMBase<S: SP, E: EP> {
     
     func transitions(from rows: [any TRP]) -> [T] {
         rows.reduce(into: [T]()) { ts, row in
-            row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
+            row.modifiers.superStates.forEach { ss in
                 row.givenStates.forEach { given in
-                    wta.events.forEach {
-                        ts.append(
-                            Transition(givenState: given,
-                                       event: $0,
-                                       nextState: wta.state,
-                                       actions: wta.actions)
-                        )
+                    ss.wtas.forEach { wta in
+                        wta.events.forEach {
+                            ts.append(
+                                Transition(givenState: given,
+                                           event: $0,
+                                           nextState: wta.state,
+                                           actions: wta.actions,
+                                           file: ss.file,
+                                           line: ss.line)
+                            )
+                        }
                     }
                 }
             }

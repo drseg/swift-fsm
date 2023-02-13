@@ -19,13 +19,18 @@ struct RowModifiers<S: SP, E: EP> {
 
 struct SuperState<S: SP, E: EP>: Hashable {
     let wtas: [WhensThenActions<S, E>]
+    let file: String
+    let line: Int
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(wtas)
     }
     
-    init(@WTABuilder<S, E> _ content: () -> [any WTARowProtocol<S, E>]) {
+    init(@WTABuilder<S, E> _ content: () -> [any WTARowProtocol<S, E>], file: String = #file,
+         line: Int = #line) {
         wtas = content().wtas()
+        self.file = file
+        self.line = line
     }
 }
 

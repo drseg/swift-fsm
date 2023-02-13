@@ -8,25 +8,19 @@
 import Foundation
 
 struct Transition<S: SP, E: EP>: Hashable {
-    struct Key: Hashable {
-        let state: S, event: E
-    }
+    struct Key: Hashable { let state: S, event: E }
     
-    let givenState: S
-    let event: E
-    let nextState: S
-    let actions: [() -> ()]
+    let givenState: S, event: E, nextState: S, actions: [() -> ()]
     
-    let file: String
-    let line: Int
+    let file: String, line: Int
     
     init(
         givenState: S,
         event: E,
         nextState: S,
         actions: [() -> Void],
-        file: String = #file,
-        line: Int = #line
+        file: String,
+        line: Int
     ) {
         self.givenState = givenState
         self.event = event
