@@ -156,11 +156,11 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
         waitForExpectations(timeout: 0.1)
     }
     
-    let actions = [{}, {}]
+    let twoActions = [{}, {}]
     
     func testEntryActions() {
         let tr = define(.locked) {
-            onEnter(actions)
+            onEnter(twoActions)
         }
         
         XCTAssertEqual(2, tr.modifiers.entryActions.count)
@@ -168,7 +168,7 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     
     func testExitActions() {
         let tr = define(.locked) {
-            onExit(actions)
+            onExit(twoActions)
         }
         
         XCTAssertEqual(2, tr.modifiers.exitActions.count)
@@ -176,7 +176,7 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     
     func testAllModifiers() {
         let tr = define(.locked) {
-            implements(s); onEnter(actions); onExit(actions)
+            implements(s); onEnter(twoActions); onExit(twoActions)
         }
         
         let trs = tr.modifiers.superStates.first!
@@ -348,18 +348,24 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
         }
     }
     
+    var actual = [String]()
+    func assertEventAction(_ e: Event, _ a: String..., line: UInt = #line) {
+        actual += a
+        fsm.handleEvent(e)
+        XCTAssertEqual(actions, actual, line: line)
+    }
+    
     func testTurnstile() {
         buildTurnstile()
-        assertEventActions(
-            (.coin,  ["unlock"]),
-            (.pass,  ["lock"]),
-            (.pass,  ["alarmOn"]),
-            (.reset, ["alarmOff", "lock"]),
-            (.coin,  ["unlock"]),
-            (.coin,  ["thankyou"]),
-            (.coin,  ["thankyou"]),
-            (.reset, ["lock"])
-        )
+        
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.pass,  "lock")
+        assertEventAction(.pass,  "alarmOn")
+        assertEventAction(.reset, "alarmOff", "lock")
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.coin,  "thankyou")
+        assertEventAction(.coin,  "thankyou")
+        assertEventAction(.reset, "lock")
     }
 }
 
