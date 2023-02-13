@@ -51,13 +51,15 @@ extension TransitionBuilder {
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
             rows.forEach { row in
-                row.wtas.forEach {
-                    ts.append(Transition(givenState: given,
-                                         event: $0.when,
-                                         nextState: $0.then,
-                                         actions: $0.actions,
-                                         file: row.file,
-                                         line: row.line))
+                if let wta = row.wta {
+                    wta.events.forEach {
+                        ts.append(Transition(givenState: given,
+                                             event: $0,
+                                             nextState: wta.state,
+                                             actions: wta.actions,
+                                             file: row.file,
+                                             line: row.line))
+                    }
                 }
             }
         }
@@ -68,7 +70,7 @@ extension TransitionBuilder {
     }
     
     func onEnter(_ actions: [() -> ()]) -> WTARow<S, E> {
-        WTARow(wtas: [],
+        WTARow(wta: nil,
                modifiers: RowModifiers(superStates: [],
                                        entryActions: actions,
                                        exitActions: []),
@@ -81,7 +83,7 @@ extension TransitionBuilder {
     }
     
     func onExit(_ actions: [() -> ()]) -> WTARow<S, E> {
-        WTARow(wtas: [],
+        WTARow(wta: nil,
                modifiers: RowModifiers(superStates: [],
                                        entryActions: [],
                                        exitActions: actions),
@@ -91,11 +93,19 @@ extension TransitionBuilder {
     func implements(
         _ ss: SuperState<S, E>...
     ) -> WTARow<S, E> {
-        WTARow(wtas: [],
+        WTARow(wta: nil,
                modifiers: RowModifiers(superStates: ss,
                                        entryActions: [],
                                        exitActions: []),
                file: #file, line: #line)
+    }
+    
+    func when(_ events: E..., file: String = #file, line: Int = #line) -> Whens<S, E> {
+        Whens(events: events, file: file, line: line)
+    }
+    
+    func then(_ state: S) -> S {
+        state
     }
     
     func when(
@@ -105,9 +115,7 @@ extension TransitionBuilder {
         line: Int = #line
     ) -> any WTRowProtocol<S, E> {
         WTRow(
-            wts: events.reduce(into: [WhenThen]()) {
-                $0.append(WhenThen(when: $1, then: state))
-            },
+            wt: WhensThen(events: events, state: state),
             file: file,
             line: line
         )
@@ -142,16 +150,12 @@ extension TransitionBuilder {
         @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
     ) -> [any WTARowProtocol<S, E>] {
         rows().reduce(into: [WTARow]()) { wtRows, wtRow in
-            let wtas = wtRow.wts.reduce(into: [WhenThenAction<S, E>]()) {
-                $0.append(
-                    WhenThenAction(when: $1.when,
-                                   then: $1.then,
-                                   actions: actions)
-                )
-            }
+            let wta = WhensThenActions(events: wtRow.wt.events,
+                                     state: wtRow.wt.state,
+                                     actions: actions)
             
             wtRows.append(
-                WTARow(wtas: wtas,
+                WTARow(wta: wta,
                        modifiers: .none,
                        file: wtRow.file,
                        line: wtRow.line))
@@ -190,16 +194,6 @@ extension TransitionBuilder {
     func when(
         _ events: E...,
         then state: S,
-        actions: () -> ([() -> ()]),
-        file: String = #file,
-        line: Int = #line
-    ) -> WTARow<S, E> {
-        when(events, then: state, actions: actions(), file: file, line: line)
-    }
-    
-    func when(
-        _ events: E...,
-        then state: S,
         actions: [() -> ()],
         file: String = #file,
         line: Int = #line
@@ -214,10 +208,7 @@ extension TransitionBuilder {
         file: String,
         line: Int
     ) -> WTARow<S, E> {
-        WTARow(wtas: events.reduce(into: [WhenThenAction]()) {
-            $0.append(WhenThenAction(when: $1,
-                                     then: state,
-                                     actions: actions))
-        }, modifiers: .none, file: file, line: line)
+        WTARow(wta: WhensThenActions(events: events, state: state, actions: actions),
+               modifiers: .none, file: file, line: line)
     }
 }

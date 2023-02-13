@@ -24,14 +24,14 @@
 //    }
 //}
 //
-//func joinGivenToWhenThens<S: SP, E: EP> (
+//func joinGivenToWhensThens<S: SP, E: EP> (
 //    _ given: Given<S, E>,
-//    _ whenThens: [[WhenThen<S, E >]]
-//) -> [GivenWhenThen<S, E>] {
-//    given.states.reduce(into: [GivenWhenThen]()) { gwts, state in
+//    _ whenThens: [[WhensThen<S, E >]]
+//) -> [GivenWhensThen<S, E>] {
+//    given.states.reduce(into: [GivenWhensThen]()) { gwts, state in
 //        whenThens.flatten.forEach {
 //            gwts.append(
-//                GivenWhenThen(given: state,
+//                GivenWhensThen(given: state,
 //                              when: $0.when,
 //                              then: $0.then,
 //                              modifiers: given.modifiers,
@@ -44,10 +44,10 @@
 //func joinGivenWhensToThen<S: SP, E: EP> (
 //    _ givenWhens: [GivenWhen<S, E>],
 //    _ then: Then<S>
-//) -> [GivenWhenThen<S, E>] {
-//    givenWhens.reduce(into: [GivenWhenThen]()) { gwts, gw in
+//) -> [GivenWhensThen<S, E>] {
+//    givenWhens.reduce(into: [GivenWhensThen]()) { gwts, gw in
 //        gwts.append(
-//            GivenWhenThen(given: gw.given,
+//            GivenWhensThen(given: gw.given,
 //                          when: gw.when,
 //                          then: then.state,
 //                          modifiers: gw.modifiers,
@@ -60,26 +60,26 @@
 //func joinWhenToThen<S: SP, E: EP> (
 //    _ when: When<E>,
 //    _ then: Then<S>
-//) -> [WhenThen<S, E>] {
-//    when.events.reduce(into: [WhenThen]()) {
-//        $0.append(WhenThen(when: $1,
+//) -> [WhensThen<S, E>] {
+//    when.events.reduce(into: [WhensThen]()) {
+//        $0.append(WhensThen(when: $1,
 //                           then: then.state))
 //    }
 //}
 //
-//func joinWhenThensToAction<S: SP, E: EP> (
-//    _ whenThens: [WhenThen<S, E>],
+//func joinWhensThensToAction<S: SP, E: EP> (
+//    _ whenThens: [WhensThen<S, E>],
 //    _ actions: [() -> ()]
-//) -> [WhenThenAction<S, E>] {
-//    whenThens.reduce(into: [WhenThenAction]()) {
-//        $0.append(WhenThenAction(when: $1.when,
+//) -> [WhensThenActions<S, E>] {
+//    whenThens.reduce(into: [WhensThenActions]()) {
+//        $0.append(WhensThenActions(when: $1.when,
 //                                 then: $1.then,
 //                                 actions: actions))
 //    }
 //}
 //
 //func makeTransitions<S: SP, E: EP> (
-//    _ gwts: [GivenWhenThen<S, E>],
+//    _ gwts: [GivenWhensThen<S, E>],
 //    _ actions: [() -> ()]
 //) -> TableRow<S, E> {
 //    let transitions = gwts.reduce(into: [Transition<S, E>]()) { ts, gwt in
@@ -97,7 +97,7 @@
 //
 //func makeTransitions<S: SP, E: EP> (
 //    _ given: Given<S, E>,
-//    _ wtas: [[WhenThenAction<S, E>]]
+//    _ wtas: [[WhensThenActions<S, E>]]
 //) -> TableRow<S, E> {
 //    TableRow(transitions: given.formTransitions(with: wtas.flatten),
 //             modifiers: given.modifiers)

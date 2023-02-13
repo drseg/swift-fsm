@@ -11,6 +11,7 @@ import ReflectiveEquality
 class FSMBase<S: SP, E: EP> {
     typealias T = Transition<S, E>
     typealias K = T.Key
+    typealias TRP = TableRowProtocol<S, E>
     
     var transitionTable = [K: T]()
     var entryActions = [S: [() -> ()]]()
@@ -23,7 +24,7 @@ class FSMBase<S: SP, E: EP> {
     }
     
     func buildTransitions(
-        @TableBuilder<S, E> _ tableRows: () -> [any TableRowProtocol<S, E>]
+        @TableBuilder<S, E> _ tableRows: () -> [any TRP]
     ) throws {
         let rows = tableRows()
         
@@ -33,20 +34,20 @@ class FSMBase<S: SP, E: EP> {
         try addToTable(transitions(from: rows))
     }
     
-    func makeEntryActions(from rows: [any TableRowProtocol<S, E>]) {
+    func makeEntryActions(from rows: [any TRP]) {
         makeActions(from: rows) {
             entryActions[$0] = $1.entryActions
         }
     }
     
-    func makeExitActions(from rows: [any TableRowProtocol<S, E>]) {
+    func makeExitActions(from rows: [any TRP]) {
         makeActions(from: rows) {
             exitActions[$0] = $1.exitActions
         }
     }
     
     func makeActions(
-        from rows: [any TableRowProtocol<S, E>],
+        from rows: [any TRP],
         _ block: (S, RowModifiers<S, E>) -> ()
     ) {
         rows.forEach { row in
@@ -56,16 +57,18 @@ class FSMBase<S: SP, E: EP> {
         }
     }
     
-    func transitions(from rows: [any TableRowProtocol<S, E>]) -> [T] {
+    func transitions(from rows: [any TRP]) -> [T] {
         rows.reduce(into: [T]()) { ts, row in
             row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
                 row.givenStates.forEach { given in
-                    ts.append(
-                        Transition(givenState: given,
-                                   event: wta.when,
-                                   nextState: wta.then,
-                                   actions: wta.actions)
-                    )
+                    wta.events.forEach {
+                        ts.append(
+                            Transition(givenState: given,
+                                       event: $0,
+                                       nextState: wta.state,
+                                       actions: wta.actions)
+                        )
+                    }
                 }
             }
         } + rows.transitions()

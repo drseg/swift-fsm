@@ -29,7 +29,7 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     ) {
         XCTAssertTrue(
             ss.wtas.contains(
-                WhenThenAction(when: e, then: s, actions: [])
+                WhensThenActions(events: [e], state: s, actions: [])
             )
             , "\n(\(e), \(s)) not found in: \n\(ss.description)",
             file: file, line: line)
@@ -84,7 +84,7 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     func testDoubleImplements() {
         let tr = define(.locked) {
             implements(s)
-            implements(s)
+            implements(s, s)
         }
         
         XCTAssertEqual(1, tr.modifiers.superStates.count)
@@ -95,6 +95,22 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
             when(.reset, then: .unlocked, actions: [])
             when(.coin, then: .unlocked) { }
             when(.pass, then: .locked)
+        }
+        
+        assertContains(.locked, .reset, .unlocked, tr)
+        assertContains(.locked, .coin, .unlocked, tr)
+        assertContains(.locked, .pass, .locked, tr)
+        
+        assertContains(.unlocked, .reset, .unlocked, tr)
+        assertContains(.unlocked, .coin, .unlocked, tr)
+        assertContains(.unlocked, .pass, .locked, tr)
+    }
+    
+    func testSimpleTransitionsWithOperators() {
+        let tr = define(.locked, .unlocked) {
+            when(.reset) | then(.unlocked) | []
+            when(.coin)  | then(.unlocked) | { }
+            when(.pass)  | then(.locked)
         }
         
         assertContains(.locked, .reset, .unlocked, tr)
@@ -117,18 +133,16 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     
     func testActions() {
         let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 4
+        e.expectedFulfillmentCount = 3
         let tr = define(.locked) {
             when(.reset, then: .unlocked, action: e.fulfill)
             when(.reset, then: .unlocked, actions: e.fulfill)
             when(.reset, then: .unlocked, actions: {}, e.fulfill)
-            when(.reset, then: .unlocked) { [{}, e.fulfill] }
         }
         
         tr.transitions[0].actions[0]()
         tr.transitions[1].actions[0]()
         tr.transitions[2].actions[1]()
-        tr.transitions[3].actions[1]()
         
         waitForExpectations(timeout: 0.1)
     }
@@ -144,10 +158,6 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
             action(e.fulfill) {
                 when(.pass, then: .locked)
             }
-            
-//            when(.coin, then: .unlocked) |
-//            when(.pass, then: .locked) | e.fulfill
-///           alternative syntax to consider?
         }
         
         assertContains(.locked, .coin, .unlocked, tr)
@@ -281,7 +291,7 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
         }
         
         fsm.handleEvent(.reset)
-        XCTAssertEqual(actions.last, "lock")
+        XCTAssertEqual(actions, ["alarmOff", "lock"])
     }
     
     func testTurnstile() {
@@ -300,7 +310,10 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
             define(.unlocked) {
                 implements(resetable); onEnter(unlock)
                 
-                when(.coin, then: .unlocked, actions: thankyou)
+//                when(.coin) | then(.unlocked) | thankyou
+//                when(.pass) | then(.locked)
+                
+                when(.coin, then: .unlocked, action: thankyou)
                 when(.pass, then: .locked)
             }
 
@@ -324,9 +337,11 @@ extension SuperState<TurnstileState, TurnstileEvent> {
     }
 }
 
-extension WhenThenAction<TurnstileState, TurnstileEvent> {
+extension WhensThenActions<TurnstileState, TurnstileEvent> {
     var description: String {
-        String("(\(when.rawValue), \(then.rawValue))\n")
+        events.reduce("") {
+            $0 + String("(\($1.rawValue), \(state.rawValue))\n")
+        }
     }
 }
 

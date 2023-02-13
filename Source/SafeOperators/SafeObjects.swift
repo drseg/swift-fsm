@@ -13,20 +13,12 @@ struct RowModifiers<S: SP, E: EP> {
     let exitActions: [() -> ()]
     
     static var none: Self {
-        Self(superStates: [],
-             entryActions: [],
-             exitActions: [])
-    }
-    
-    func addSuperStates(_ ss: [SuperState<S, E>]) -> Self {
-        Self(superStates: superStates + ss,
-             entryActions: entryActions,
-             exitActions: exitActions)
+        Self(superStates: [], entryActions: [], exitActions: [])
     }
 }
 
 struct SuperState<S: SP, E: EP>: Hashable {
-    let wtas: [WhenThenAction<S, E>]
+    let wtas: [WhensThenActions<S, E>]
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(wtas)
@@ -37,184 +29,67 @@ struct SuperState<S: SP, E: EP>: Hashable {
     }
 }
 
-class Given<S: SP, E: EP> {
-    typealias SS = SuperState<S, E>
-    typealias WTA = WhenThenAction<S, E>
-    typealias WT = WhenThen<S, E>
-    
-    let states: [S]
-    let modifiers: RowModifiers<S, E>
-    
-    let file: String
-    let line: Int
-    
-    init(_ states: S..., file: String = #file, line: Int = #line) {
-        self.states = states.uniqueValues
-        self.modifiers = .none
-        self.file = file
-        self.line = line
-    }
-    
-    init(_ states: [S], file: String = #file, line: Int = #line) {
-        self.states = states.uniqueValues
-        self.modifiers = .none
-        self.file = file
-        self.line = line
-    }
-    
-    fileprivate init(_ s: [S], _ m: RowModifiers<S, E>, file: String, line: Int) {
-        self.states = s
-        self.modifiers = m
-        self.file = file
-        self.line = line
-    }
-    
-    func formTransitions(with wtas: [WTA]) -> [Transition<S, E>] {
-        states.reduce(into: [Transition]()) { ts, given in
-            wtas.forEach {
-                ts.append(Transition(givenState: given,
-                                     event: $0.when,
-                                     nextState: $0.then,
-                                     actions: $0.actions,
-                                     file: file,
-                                     line: line))
-            }
-        }
-    }
-//
-//    func callAsFunction(
-//        @WTABuilder<S, E> _ rows: () -> [any WTARowProtocol<S, E>]
-//    ) -> TableRow<S, E> {
-//        TableRow(transitions: formTransitions(with: rows().wtas()),
-//                 modifiers: modifiers)
-//    }
-//
-//    func callAsFunction(
-//        @WTBuilder<S, E> _ content: () -> [WT]
-//    ) -> GWTCollection<S, E> {
-//        GWTCollection(
-//            content().reduce(into: [GivenWhenThen]()) { gwts, wt in
-//                states.forEach {
-//                    gwts.append(
-//                        GivenWhenThen(given: $0,
-//                                      when: wt.when,
-//                                      then: wt.then,
-//                                      modifiers: modifiers,
-//                                      file: file,
-//                                      line: line))
-//                }
-//            }
-//        )
-//    }
-//    
-//    func include(
-//        _ superStates: SS...,
-//        @WTABuilder<S, E> wtas: () -> [WTA]
-//    ) -> TableRow<S, E> {
-//        include(superStates).callAsFunction(wtas)
-//    }
-//    
-//    func include(
-//        _ superStates: SS...,
-//        @WTBuilder<S, E> wts: () -> [WT]
-//    ) -> GWTCollection<S, E> {
-//        include(superStates).callAsFunction(wts)
-//    }
-//    
-//    func include(_ superStates: SS...) -> GivenRow<S, E> {
-//        include(superStates)
-//    }
-//    
-//    private func include(_ ss: [SS]) -> GivenRow<S, E> {
-//        GivenRow(states, modifiers.addSuperStates(ss), file: file, line: line)
-//    }
-//    
-//    static func => (_ lhs: Given, rhs: SuperState<S, E>) -> GivenRow<S, E> {
-//        lhs.include(rhs)
-//    }
-//    
-//    static func => (_ lhs: Given, rhs: [SuperState<S, E>]) -> GivenRow<S, E> {
-//        lhs.include(rhs)
-//    }
-}
-
-final class GivenRow<S: SP, E: EP>: Given<S, E>, TableRowProtocol {
-    var transitions = [Transition<S, E>]()
-    var givenStates: any Collection<S> { states }
-}
-
-struct When<E: EP> {
+struct Whens<S: SP, E: EP> {
     let events: [E]
-
-    init(_ events: E...) {
-        self.events = events.uniqueValues
+    let file: String
+    let line: Int
+    
+    static func | (lhs: Self, rhs: S) -> WTARow<S, E> {
+        WhensThen(events: lhs.events,
+                  state: rhs,
+                  file: lhs.file,
+                  line: lhs.line) | []
+    }
+    
+    static func | (lhs: Self, rhs: S) -> WhensThen<S, E> {
+        WhensThen(events: lhs.events,
+                  state: rhs,
+                  file: lhs.file,
+                  line: lhs.line)
     }
 }
 
-struct GivenWhen<S: SP, E: EP> {
-    let given: S
-    let when: E
+struct WhensThen<S: SP, E: EP> {
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> WTARow<S, E> {
+        lhs | [rhs]
+    }
     
-    let modifiers: RowModifiers<S, E>
+    static func | (lhs: Self, rhs: [() -> ()]) -> WTARow<S, E> {
+        let wta = WhensThenActions(events: lhs.events,
+                                   state: lhs.state,
+                                   actions: rhs)
+        return WTARow(wta: wta,
+                      modifiers: .none,
+                      file: lhs.file,
+                      line: lhs.line)
+    }
     
-    let file: String
-    let line: Int
-}
-
-struct WhenThen<S: SP, E: EP> {
-    let when: E
-    let then: S
-}
-
-struct Then<State: SP> {
-    let state: State
+    let events: [E]
+    let state: S
     
-    init(_ state: State) {
+    private let file: String
+    private let line: Int
+    
+    init(events: [E], state: S, file: String = "", line: Int = 0) {
+        self.events = events
         self.state = state
+        self.file = file
+        self.line = line
     }
 }
 
-struct GivenWhenThen<S: SP, E: EP> {
-    let given: S
-    let when: E
-    let then: S
-    
-    let modifiers: RowModifiers<S, E>
-    
-    let file: String
-    let line: Int
-}
-
-//struct GWTCollection<S: SP, E: EP> {
-//    typealias GWT = GivenWhenThen<S, E>
-//
-//    let givenWhenThens: [GWT]
-//
-//    init(_ gwts: [GWT]) {
-//        givenWhenThens = gwts
-//    }
-//
-//    func action(_ action: @escaping () -> ()) -> TableRow<S, E> {
-//        actions(action)
-//    }
-//
-//    func actions(_ actions: (() -> ())...) -> TableRow<S, E> {
-//        givenWhenThens | actions
-//    }
-//}
-
-struct WhenThenAction<S: SP, E: EP>: Hashable {
+struct WhensThenActions<S: SP, E: EP>: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.when == rhs.when &&
-        lhs.then == rhs.then
+        lhs.events == rhs.events &&
+        lhs.state == rhs.state
     }
     
     func hash(into hasher: inout Hasher) {
-        hasher.combine(when)
-        hasher.combine(then)
+        hasher.combine(events)
+        hasher.combine(state)
     }
     
-    let when: E
-    let then: S
+    let events: [E]
+    let state: S
     let actions: [() -> ()]
 }

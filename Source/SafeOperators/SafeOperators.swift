@@ -16,70 +16,70 @@
 //
 //func |<S: SP, E: EP> (
 //    given: Given<S, E>,
-//    whenThens: [[WhenThen<S, E>]]
-//) -> [GivenWhenThen<S, E>] {
-//    joinGivenToWhenThens(given, whenThens)
+//    whenThens: [[WhensThen<S, E>]]
+//) -> [GivenWhensThen<S, E>] {
+//    joinGivenToWhensThens(given, whenThens)
 //}
 //
 //func |<S: SP, E: EP> (
 //    givenWhens: [GivenWhen<S, E>],
 //    then: Then<S>
-//) -> [GivenWhenThen<S, E>] {
+//) -> [GivenWhensThen<S, E>] {
 //    joinGivenWhensToThen(givenWhens, then)
 //}
 //
 //func |<S: SP, E: EP> (
 //    when: When<E>,
 //    then: Then<S>
-//) -> [WhenThen<S, E>] {
+//) -> [WhensThen<S, E>] {
 //    joinWhenToThen(when, then)
 //}
 //
 //func |<S: SP, E: EP> (
-//    whenThens: [[WhenThen<S, E>]],
+//    whenThens: [[WhensThen<S, E>]],
 //    action: @escaping () -> ()
-//) -> [WhenThenAction<S, E>] {
+//) -> [WhensThenActions<S, E>] {
 //    whenThens | [action]
 //}
 //
 //func |<S: SP, E: EP> (
-//    whenThens: [[WhenThen<S, E>]],
+//    whenThens: [[WhensThen<S, E>]],
 //    actions: [() -> ()]
-//) -> [WhenThenAction<S, E>] {
+//) -> [WhensThenActions<S, E>] {
 //    whenThens.flatten | actions
 //}
 //
 //func |<S: SP, E: EP> (
-//    whenThens: [WhenThen<S, E>],
+//    whenThens: [WhensThen<S, E>],
 //    action: @escaping () -> ()
-//) -> [WhenThenAction<S, E>] {
+//) -> [WhensThenActions<S, E>] {
 //    whenThens | [action]
 //}
 //
 //func |<S: SP, E: EP> (
-//    whenThens: [WhenThen<S, E>],
+//    whenThens: [WhensThen<S, E>],
 //    actions: [() -> ()]
-//) -> [WhenThenAction<S, E>] {
-//    joinWhenThensToAction(whenThens, actions)
+//) -> [WhensThenActions<S, E>] {
+//    joinWhensThensToAction(whenThens, actions)
 //}
 //
 //func |<S: SP, E: EP> (
-//    givenWhenThens: [GivenWhenThen<S, E>],
+//    givenWhensThens: [GivenWhensThen<S, E>],
 //    action: @escaping () -> ()
 //) -> TableRow<S, E> {
-//    givenWhenThens | [action]
+//    givenWhensThens | [action]
 //}
 //
 //func |<S: SP, E: EP> (
-//    givenWhenThens: [GivenWhenThen<S, E>],
+//    givenWhensThens: [GivenWhensThen<S, E>],
 //    actions: [() -> ()]
 //) -> TableRow<S, E> {
-//    makeTransitions(givenWhenThens, actions)
+//    makeTransitions(givenWhensThens, actions)
 //}
 //
 //func |<S: SP, E: EP> (
 //    given: Given<S, E>,
-//    whenThenActions: [[WhenThenAction<S, E>]]
+//    whenThenActions: [[WhensThenActions<S, E>]]
 //) -> TableRow<S, E> {
 //    makeTransitions(given, whenThenActions)
 //}

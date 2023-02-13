@@ -26,7 +26,7 @@ protocol WTARowProtocol<State, Event> {
     associatedtype State: StateProtocol
     associatedtype Event: EventProtocol
     
-    var wtas: [WhenThenAction<State, Event>] { get }
+    var wta: WhensThenActions<State, Event>? { get }
     var modifiers: RowModifiers<State, Event> { get }
     var file: String { get }
     var line: Int { get }
@@ -36,20 +36,20 @@ protocol WTRowProtocol<State, Event> {
     associatedtype State: StateProtocol
     associatedtype Event: EventProtocol
     
-    var wts: [WhenThen<State, Event>] { get }
+    var wt: WhensThen<State, Event> { get }
     var file: String { get }
     var line: Int { get }
 }
 
 struct WTARow<S: SP, E: EP>: WTARowProtocol {
-    let wtas: [WhenThenAction<S, E>]
+    let wta: WhensThenActions<S, E>?
     let modifiers: RowModifiers<S, E>
     let file: String
     let line: Int
 }
 
 struct WTRow<S: SP, E: EP>: WTRowProtocol {
-    let wts: [WhenThen<S, E>]
+    let wt: WhensThen<S, E>
     let file: String
     let line: Int
 }

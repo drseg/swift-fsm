@@ -128,8 +128,8 @@
 //    func testBuilder() {
 //        func wta(
 //            _ when: Event, _ then: State
-//        ) -> WhenThenAction<State, Event> {
-//            WhenThenAction(when: when,
+//        ) -> WhensThenActions<State, Event> {
+//            WhensThenActions(when: when,
 //                           then: then,
 //                           actions: [])
 //        }
@@ -198,7 +198,7 @@
 //        assertOutput(tr1, tr2, tr3, tr4)
 //    }
 //
-//    func testMultipleWhenThenAction() {
+//    func testMultipleWhensThenActions() {
 //        func assertOutput(_ t: TS..., line: UInt = #line) {
 //            t.forEach {
 //                assertContains([(.a, .h, .b),
@@ -393,7 +393,7 @@
 //        assertOutput(tr1, tr2, tr3, tr4, tr5, tr6)
 //    }
 //
-//    func testMultipleWhenThen() {
+//    func testMultipleWhensThen() {
 //        func assertOutput(_ t: TS..., line: UInt = #line) {
 //            t.forEach {
 //                assertContains([(.a, .h, .b),

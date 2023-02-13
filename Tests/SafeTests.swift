@@ -124,7 +124,7 @@
 //        // nothing to assert here, just needs to compile
 //    }
 //    
-//    func testMultiWhenThenActionConstructor() {
+//    func testMultiWhensThenActionsConstructor() {
 //        let tr = G(.a) | [W(.g) | T(.b) | { },
 //                          W(.h) | T(.c) | { }]
 //        
@@ -133,7 +133,7 @@
 //        assertCount(2, tr)
 //    }
 //    
-//    func testCombineMultiGivenAndMultiWhenThenAction() {
+//    func testCombineMultiGivenAndMultiWhensThenActions() {
 //        let tr = G(.a, .b) | [W(.g) | T(.c) | { },
 //                              W(.h) | T(.c) | { }]
 //        
@@ -166,7 +166,7 @@
 //        assertCount(4, tr)
 //    }
 //    
-//    func testCombineMultiGivenMultiWhenMultiWhenThenAction() {
+//    func testCombineMultiGivenMultiWhenMultiWhensThenActions() {
 //        let tr = G(.a, .b) | [
 //            W(.g, .h) | T(.c) | { },
 //            W(.i, .j) | T(.d) | { }
@@ -177,7 +177,7 @@
 //        assertCount(8, tr)
 //    }
 //    
-//    func testMultiWhenThenConstructor() {
+//    func testMultiWhensThenConstructor() {
 //        let tr = G(.a) | [W(.g) | T(.c),
 //                          W(.h) | T(.d)] | { }
 //        
@@ -231,7 +231,7 @@
 //        assertCount(4, tr)
 //    }
 //    
-//    func testGivenBuilderWithWhenThenArray() {
+//    func testGivenBuilderWithWhensThenArray() {
 //        let tr = G(.a, .b) {
 //            [W(.h) | T(.b),
 //             W(.g) | T(.a)] | { }
