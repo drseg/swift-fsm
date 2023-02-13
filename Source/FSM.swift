@@ -12,7 +12,7 @@ class FSMBase<S: SP, E: EP> {
     typealias T = Transition<S, E>
     typealias K = T.Key
     
-    var transitions = [K: T]()
+    var transitionTable = [K: T]()
     var entryActions = [S: [() -> ()]]()
     var exitActions = [S: [() -> ()]]()
     
@@ -25,26 +25,69 @@ class FSMBase<S: SP, E: EP> {
     func buildTransitions(
         @TableBuilder<S, E> _ tableRows: () -> [any TableRowProtocol<S, E>]
     ) throws {
-        var keys = Set<K>()
-        var duplicates = [T]()
         let rows = tableRows()
         
         makeEntryActions(from: rows)
         makeExitActions(from: rows)
         
-        transitions = makeTransitions(from: rows).reduce(into: [K: T]()) {
-            let k = K(state: $1.givenState, event: $1.event)
+        try addToTable(transitions(from: rows))
+    }
+    
+    func makeEntryActions(from rows: [any TableRowProtocol<S, E>]) {
+        makeActions(from: rows) {
+            entryActions[$0] = $1.entryActions
+        }
+    }
+    
+    func makeExitActions(from rows: [any TableRowProtocol<S, E>]) {
+        makeActions(from: rows) {
+            exitActions[$0] = $1.exitActions
+        }
+    }
+    
+    func makeActions(
+        from rows: [any TableRowProtocol<S, E>],
+        _ block: (S, RowModifiers<S, E>) -> ()
+    ) {
+        rows.forEach { row in
+            row.givenStates.forEach {
+                block($0, row.modifiers)
+            }
+        }
+    }
+    
+    func transitions(from rows: [any TableRowProtocol<S, E>]) -> [T] {
+        rows.reduce(into: [T]()) { ts, row in
+            row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
+                row.givenStates.forEach { given in
+                    ts.append(
+                        Transition(givenState: given,
+                                   event: wta.when,
+                                   nextState: wta.then,
+                                   actions: wta.actions)
+                    )
+                }
+            }
+        } + rows.transitions()
+    }
+    
+    func addToTable(_ ts: [T]) throws {
+        var keys = Set<K>()
+        var duplicates = [T]()
+        
+        ts.forEach {
+            let k = K(state: $0.givenState, event: $0.event)
             
             if keys.contains(k) {
-                let existing = $0[k]!
+                let existing = transitionTable[k]!
                 if !duplicates.contains(existing) {
                     duplicates.append(existing)
                 }
-                duplicates.append($1)
+                duplicates.append($0)
             }
             
             keys.insert(k)
-            $0[k] = $1
+            transitionTable[k] = $0
         }
         
         if !duplicates.isEmpty {
@@ -52,12 +95,17 @@ class FSMBase<S: SP, E: EP> {
         }
     }
     
+    func throwError(_ e: Error) throws {
+        throw e
+    }
+    
     func _handleEvent(_ event: E) {
         let key = K(state: state, event: event)
         
-        if let t = transitions[key] {
-            t.actions.executeAll()
+        if let t = transitionTable[key] {
             let previousState = state
+            
+            t.actions.executeAll()
             state = t.nextState
             
             executeExitActions(previousState: previousState)
@@ -75,45 +123,6 @@ class FSMBase<S: SP, E: EP> {
         if let exits = exitActions[previousState], state != previousState {
             exits.executeAll()
         }
-    }
-    
-    func makeEntryActions(from rows: [any TableRowProtocol<S, E>]) {
-        makeActions(from: rows) {
-            entryActions[$0] = $1.entryActions
-        }
-    }
-    
-    func makeExitActions(from rows: [any TableRowProtocol<S, E>]) {
-        makeActions(from: rows) {
-            exitActions[$0] = $1.exitActions
-        }
-    }
-    
-    func makeActions(from rows: [any TableRowProtocol<S, E>], _ block: (S, RowModifiers<S, E>) -> ()) {
-        rows.forEach { row in
-            row.givenStates.forEach {
-                block($0, row.modifiers)
-            }
-        }
-    }
-    
-    func makeTransitions(from rows: [any TableRowProtocol<S, E>]) -> [T] {
-        rows.reduce(into: [T]()) { ts, row in
-            row.modifiers.superStates.map(\.wtas).flatten.forEach { wta in
-                row.givenStates.forEach { given in
-                    ts.append(
-                        Transition(givenState: given,
-                                   event: wta.when,
-                                   nextState: wta.then,
-                                   actions: wta.actions)
-                    )
-                }
-            }
-        } + rows.transitions()
-    }
-    
-    func throwError(_ e: Error) throws {
-        throw e
     }
 }
 
