@@ -8,7 +8,7 @@
 import Foundation
 import ReflectiveEquality
 
-class FSMBase<S: SP, E: EP> {
+class FSM<S: SP, E: EP> {
     typealias T = Transition<S, E>
     typealias K = T.Key
     typealias TRP = TableRowProtocol<S, E>
@@ -106,7 +106,7 @@ class FSMBase<S: SP, E: EP> {
         throw e
     }
     
-    func _handleEvent(_ event: E) {
+    func handleEvent(_ event: E) {
         let key = K(state: state, event: event)
         
         if let t = transitionTable[key] {
@@ -129,62 +129,6 @@ class FSMBase<S: SP, E: EP> {
     func executeExitActions(previousState: S) {
         if let exits = exitActions[previousState], state != previousState {
             exits.executeAll()
-        }
-    }
-}
-
-class FSM<S: SP, E: EP>: FSMBase<S, E> {
-    override init(initialState state: S) {
-        super.init(initialState: state)
-    }
-    
-    func handleEvent(_ event: E) {
-        _handleEvent(event)
-    }
-}
-
-class AnyFSM: FSMBase<AnyState, AnyEvent> {
-    typealias AS = AnyState
-    typealias AE = AnyEvent
-    
-    init(initialState state: any StateProtocol) {
-        super.init(initialState: state.erase)
-    }
-    
-    override func buildTransitions(
-        @TableBuilder<AS, AE> _ t: () -> [any TableRowProtocol<AS, AE>]
-    ) throws {
-        try validate(t().transitions())
-        try super.buildTransitions(t)
-    }
-    
-    func handleEvent(_ event: any EventProtocol) {
-        _handleEvent(event.erase)
-    }
-    
-    func validate(_ ts: [T]) throws {
-        func validateObject<E: Eraser>(_ e: E) throws {
-            if isNSObject(e.base) {
-                try throwError(NSObjectError())
-            }
-        }
-        
-        func isNSObject(_ a: Any) -> Bool {
-            deepDescription(a).contains("NSObject")
-        }
-        
-        func areSameType<E: Eraser>(lhs: E, rhs: E) -> Bool {
-            type(of: lhs.base) == type(of: rhs.base)
-        }
-        
-        try ts.forEach {
-            try validateObject($0.givenState)
-            try validateObject($0.event)
-            try validateObject($0.nextState)
-            
-            if !areSameType(lhs: $0.givenState, rhs: $0.nextState) {
-                try throwError(MismatchedType())
-            }
         }
     }
 }

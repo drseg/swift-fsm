@@ -418,6 +418,8 @@ class FSMPerformanceTests: FSMTests, TransitionBuilder {
         measure { 250000.times { handleEvent(.reset) } }
     }
 
+#warning("State and Event as associated types from a protocol doubles the time taken")
+#warning("Time taken also becomes much more variable for the same reason")
     func testGenericPerformance() throws {
         try? fsm.buildTransitions {
             define(.unlocked) {
