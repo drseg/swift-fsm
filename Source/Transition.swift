@@ -7,33 +7,26 @@
 
 import Foundation
 
-struct Transition<S: SP, E: EP>: Hashable {
-    struct Key: Hashable { let state: S, event: E }
-    
-    let givenState: S, event: E, nextState: S, actions: [() -> ()]
-    
-    let file: String, line: Int
-    
-    init(
-        givenState: S,
-        event: E,
-        nextState: S,
-        actions: [() -> Void],
-        file: String,
-        line: Int
-    ) {
-        self.givenState = givenState
-        self.event = event
-        self.nextState = nextState
-        self.actions = actions
-        self.file = file
-        self.line = line
+struct Transition<S: SP, E: EP>: Equatable {
+    struct Key: Hashable {
+        let state: S, event: E
     }
     
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(givenState)
-        hasher.combine(event)
-        hasher.combine(nextState)
+    let givenState: S
+    let event: E
+    let nextState: S
+    let actions: [() -> ()]
+    
+    let file: String
+    let line: Int
+    
+    init(g: S, w: E, t: S, a: [() -> Void], f: String, l: Int) {
+        givenState = g
+        event = w
+        nextState = t
+        actions = a
+        file = f
+        line = l
     }
     
     static func == (lhs: Self, rhs: Self) -> Bool {

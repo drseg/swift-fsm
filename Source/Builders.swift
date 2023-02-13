@@ -40,6 +40,14 @@ protocol WTRowProtocol<State, Event> {
 struct WTARow<S: SP, E: EP>: WTARowProtocol {
     let wta: WhensThenActions<S, E>?
     let modifiers: RowModifiers<S, E>
+    
+    init(
+        wta: WhensThenActions<S, E>? = nil,
+        modifiers: RowModifiers<S, E> = .none
+    ) {
+        self.wta = wta
+        self.modifiers = modifiers
+    }
 }
 
 struct WTRow<S: SP, E: EP>: WTRowProtocol {

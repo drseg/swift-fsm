@@ -16,7 +16,7 @@ enum TurnstileEvent: String, EP {
     case reset, coin, pass
 }
 
-class TransitionBuilderTests: XCTestCase, TransitionBuilder {
+class TestingBase: XCTestCase {
     typealias State = TurnstileState
     typealias Event = TurnstileEvent
     
@@ -45,19 +45,21 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     ) {
         XCTAssertTrue(
             tr.transitions.contains(
-                Transition(givenState: g,
-                           event: w,
-                           nextState: t,
-                           actions: [],
-                           file: "",
-                           line: 0)
+                Transition(g: g,
+                           w: w,
+                           t: t,
+                           a: [],
+                           f: "",
+                           l: 0)
             )
             , "\n(\(g), \(w), \(t)) not found in: \n\(tr.description)",
             file: file, line: line)
     }
     
     var s: SuperState<State, Event>!
-    
+}
+
+class TransitionBuilderTests: TestingBase, TransitionBuilder {
     override func setUp() {
         s = SuperState {
             when(.reset) | then(.unlocked) | []
@@ -155,12 +157,10 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
         tr.transitions.last?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
-    
-    let twoActions = [{}, {}]
-    
+        
     func testEntryActions() {
         let tr = define(.locked) {
-            onEnter(twoActions)
+            onEnter({}, {})
         }
         
         XCTAssertEqual(2, tr.modifiers.entryActions.count)
@@ -168,7 +168,7 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     
     func testExitActions() {
         let tr = define(.locked) {
-            onExit(twoActions)
+            onExit({}, {})
         }
         
         XCTAssertEqual(2, tr.modifiers.exitActions.count)
@@ -176,7 +176,7 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     
     func testAllModifiers() {
         let tr = define(.locked) {
-            implements(s); onEnter(twoActions); onExit(twoActions)
+            implements(s); onEnter({}, {}); onExit({}, {})
         }
         
         let trs = tr.modifiers.superStates.first!
@@ -189,10 +189,7 @@ class TransitionBuilderTests: XCTestCase, TransitionBuilder {
     }
 }
 
-class FSMBuilderTests: XCTestCase, TransitionBuilder {
-    typealias State = TurnstileState
-    typealias Event = TurnstileEvent
-
+class FSMBuilderTests: TestingBase, TransitionBuilder {
     var actions = [String]()
     
     func alarmOn()  { actions.append("alarmOn")  }
@@ -202,7 +199,6 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
     func thankyou() { actions.append("thankyou") }
     
     let fsm = FSM<State, Event>(initialState: .unlocked)
-    var s: SuperState<State, Event>!
     
     override func setUp() {
         s = SuperState {
@@ -339,23 +335,18 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
         }
     }
     
-    func assertEventActions(_ eas: (Event, [String])..., line: UInt = #line) {
+    func testTurnstile() {
         var actual = [String]()
-        eas.forEach {
-            actual += $0.1
-            fsm.handleEvent($0.0)
+        func assertEventAction(
+            _ e: Event,
+            _ a: String...,
+            line: UInt = #line
+        ) {
+            actual += a
+            fsm.handleEvent(e)
             XCTAssertEqual(actions, actual, line: line)
         }
-    }
-    
-    var actual = [String]()
-    func assertEventAction(_ e: Event, _ a: String..., line: UInt = #line) {
-        actual += a
-        fsm.handleEvent(e)
-        XCTAssertEqual(actions, actual, line: line)
-    }
-    
-    func testTurnstile() {
+        
         buildTurnstile()
         
         assertEventAction(.coin,  "unlock")
@@ -367,6 +358,10 @@ class FSMBuilderTests: XCTestCase, TransitionBuilder {
         assertEventAction(.coin,  "thankyou")
         assertEventAction(.reset, "lock")
     }
+}
+
+class ComplexTransitionBuilderTests: TestingBase, ComplexTransitionBuilder {
+    typealias Predicate = String
 }
 
 extension TableRow<TurnstileState, TurnstileEvent> {

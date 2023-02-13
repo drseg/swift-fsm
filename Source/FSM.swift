@@ -64,12 +64,12 @@ class FSMBase<S: SP, E: EP> {
                     ss.wtas.forEach { wta in
                         wta.events.forEach {
                             ts.append(
-                                Transition(givenState: given,
-                                           event: $0,
-                                           nextState: wta.state,
-                                           actions: wta.actions,
-                                           file: wta.file,
-                                           line: wta.line)
+                                Transition(g: given,
+                                           w: $0,
+                                           t: wta.state,
+                                           a: wta.actions,
+                                           f: wta.file,
+                                           l: wta.line)
                             )
                         }
                     }

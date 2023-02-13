@@ -19,6 +19,7 @@ protocol ComplexTransitionBuilder: TransitionBuilder {
 extension TransitionBuilder {
     typealias S = State
     typealias E = Event
+    typealias P = AnyState
     
     func define(
         _ states: S...,
@@ -30,13 +31,14 @@ extension TransitionBuilder {
             rows.map { $0.modifiers }.map(map).flatten
         }
         
-        let superStates = flatten { $0.superStates }.uniqueValues
+        let superStates  = flatten { $0.superStates  }.uniqueValues
         let entryActions = flatten { $0.entryActions }
-        let exitActions = flatten { $0.exitActions }
+        let exitActions  = flatten { $0.exitActions  }
         
         let modifiers = RowModifiers(superStates: superStates,
                                      entryActions: entryActions,
                                      exitActions: exitActions)
+        
         let transitions = formTransitions(states: states, rows: rows)
         
         return TableRow(transitions: transitions,
@@ -50,53 +52,35 @@ extension TransitionBuilder {
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
             rows.forEach { row in
-                if let wta = row.wta {
-                    wta.events.forEach {
-                        ts.append(Transition(givenState: given,
-                                             event: $0,
-                                             nextState: wta.state,
-                                             actions: wta.actions,
-                                             file: wta.file,
-                                             line: wta.line))
-                    }
+                row.wta?.events.forEach {
+                    ts.append(Transition(g: given,
+                                         w: $0,
+                                         t: row.wta!.state,
+                                         a: row.wta!.actions,
+                                         f: row.wta!.file,
+                                         l: row.wta!.line))
                 }
             }
         }
     }
     
     func onEnter(_ actions: () -> ()...) -> WTARow<S, E> {
-         onEnter(actions)
+        WTARow(modifiers: RowModifiers(entryActions: actions))
     }
-    
-    func onEnter(_ actions: [() -> ()]) -> WTARow<S, E> {
-        WTARow(wta: nil,
-               modifiers: RowModifiers(superStates: [],
-                                       entryActions: actions,
-                                       exitActions: []))
-    }
-    
     
     func onExit(_ actions: () -> ()...) -> WTARow<S, E> {
-        onExit(actions)
+        WTARow(modifiers: RowModifiers(exitActions: actions))
     }
     
-    func onExit(_ actions: [() -> ()]) -> WTARow<S, E> {
-        WTARow(wta: nil,
-               modifiers: RowModifiers(superStates: [],
-                                       entryActions: [],
-                                       exitActions: actions))
+    func implements(_ s: SuperState<S, E>...) -> WTARow<S, E> {
+        WTARow(modifiers: RowModifiers(superStates: s))
     }
     
-    func implements(
-        _ s: SuperState<S, E>...
-    ) -> WTARow<S, E> {
-        WTARow(wta: nil,
-               modifiers: RowModifiers(superStates: s,
-                                       entryActions: [],
-                                       exitActions: []))
-    }
-    
-    func when(_ events: E..., file: String = #file, line: Int = #line) -> Whens<S, E> {
+    func when(
+        _ events: E...,
+        file: String = #file,
+        line: Int = #line
+    ) -> Whens<S, E> {
         Whens(events: events, file: file, line: line)
     }
     
@@ -121,11 +105,11 @@ extension TransitionBuilder {
         _ a7: (() -> ())? = nil,
         _ a8: (() -> ())? = nil,
         _ a9: (() -> ())? = nil,
-        _ a10: (() -> ())? = nil,
+        _ a0: (() -> ())? = nil,
         @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
     ) -> [any WTARowProtocol<S, E>] {
         context(
-            actions: [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10].compactMap { $0 },
+            actions: [a1, a2, a3, a4, a5, a6, a7, a8, a9, a0].compactMap { $0 },
             rows
         )
     }
@@ -141,9 +125,11 @@ extension TransitionBuilder {
                                        file: wtRow.wt.file,
                                        line: wtRow.wt.line)
             
-            wtRows.append(
-                WTARow(wta: wta, modifiers: .none)
-            )
+            wtRows.append(WTARow(wta: wta))
         }
     }
+}
+
+extension ComplexTransitionBuilder {
+    typealias P = Predicate
 }

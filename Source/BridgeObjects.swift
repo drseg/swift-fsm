@@ -12,8 +12,18 @@ struct RowModifiers<S: SP, E: EP> {
     let entryActions: [() -> ()]
     let exitActions: [() -> ()]
     
+    init(
+        superStates: [SuperState<S, E>] = [],
+        entryActions: [() -> ()] = [],
+        exitActions: [() -> ()] = []
+    ) {
+        self.superStates = superStates
+        self.entryActions = entryActions
+        self.exitActions = exitActions
+    }
+    
     static var none: Self {
-        Self(superStates: [], entryActions: [], exitActions: [])
+        Self()
     }
 }
 
