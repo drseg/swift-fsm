@@ -410,10 +410,6 @@ alarming | coin | *unlocked* (\(file): \(l4))
 }
 
 class FSMPerformanceTests: FSMTests, TransitionBuilder {
-    override func setUpWithError() throws {
-//        throw XCTSkip("Skip performance tests")
-    }
-    
     func compareTime(
         repeats: Int,
         times: Int,
@@ -438,7 +434,10 @@ class FSMPerformanceTests: FSMTests, TransitionBuilder {
         XCTAssertLessThan(first, second * Double(maxRatio), message)
     }
     
-    func measureTime(repeats: Int, _ block: @escaping () -> Void) -> TimeInterval {
+    func measureTime(
+        repeats: Int,
+        _ block: @escaping () -> Void
+    ) -> TimeInterval {
         var total: TimeInterval = 0
         
         repeats.times {
@@ -490,6 +489,42 @@ class FSMPerformanceTests: FSMTests, TransitionBuilder {
         XCTAssertEqual(repeats * times * 2, callCount)
     }
 }
+
+protocol TestingSP: SP { init() }
+protocol TestingEP: EP { init() }
+
+extension NSObject: TestingSP { }
+extension NSObject: TestingEP { }
+extension String:   TestingSP { }
+extension String:   TestingEP { }
+
+class NSObjectTestBase<S: TestingSP, E: TestingEP>: XCTestCase, TransitionBuilder {
+    typealias State = S
+    typealias Event = E
+    
+    func test() {
+        let fsm = FSM<State, Event>(initialState: State())
+        
+        XCTAssertThrowsError(
+            try fsm.buildTransitions {
+                define(State()) {
+                    when(Event()) | then(State())
+                }
+            }
+        ) {
+            XCTAssertTrue($0 is NSObjectError)
+        }
+    }
+}
+
+struct NSState: TestingSP { let s = NSObject() }
+struct NSEvent: TestingEP { let e = NSObject() }
+
+class FSMRejectsNSObjectStates: NSObjectTestBase<NSObject, String> { }
+class FSMRejectsNSObjectEvents: NSObjectTestBase<String, NSObject> { }
+
+class FSMRejectsStatesHoldingNSObject: NSObjectTestBase<NSState, String> { }
+class FSMRejectsEventsHoldingNSObject: NSObjectTestBase<String, NSEvent> { }
 
 class ComplexTransitionBuilderTests: TestingBase, ComplexTransitionBuilder {
     typealias Predicate = String

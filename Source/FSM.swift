@@ -32,6 +32,16 @@ class FSM<S: SP, E: EP> {
         makeExitActions(from: rows)
         
         try addToTable(transitions(from: rows))
+        
+        if includeNSObject {
+            try throwError(NSObjectError())
+        }
+    }
+    
+    var includeNSObject: Bool {
+        (deepDescription(transitionTable.keys.first?.state as Any) +
+         deepDescription(transitionTable.keys.first?.event as Any))
+            .contains("NSObject")
     }
     
     func makeEntryActions(from rows: [any TRP]) {
@@ -139,12 +149,6 @@ struct DuplicateTransitions<S: SP, E: EP>: Error {
 struct NSObjectError: Error {
     var description: String {
         "States and Events must not inherit from, or include NSObject"
-    }
-}
-
-struct MismatchedType: Error {
-    var description: String {
-        "Given and Then states must be of the same type"
     }
 }
 
