@@ -108,26 +108,27 @@ class FSM<S: SP, E: EP> {
     
     func handleEvent(_ event: E) {
         let key = K(state: state, event: event)
-        
+
         if let t = transitionTable[key] {
-            let previousState = state
-            
             t.actions.executeAll()
-            state = t.nextState
-            
-            executeExitActions(previousState: previousState)
-            executeEntryActions(previousState: previousState)
+
+            if state != t.nextState {
+                executeExitActions(currentState: state)
+                executeEntryActions(nextState: t.nextState)
+
+                state = t.nextState
+            }
         }
     }
     
-    func executeEntryActions(previousState: S) {
-        if let entries = entryActions[state], state != previousState  {
+    func executeEntryActions(nextState: S) {
+        if let entries = entryActions[nextState]  {
             entries.executeAll()
         }
     }
     
-    func executeExitActions(previousState: S) {
-        if let exits = exitActions[previousState], state != previousState {
+    func executeExitActions(currentState: S) {
+        if let exits = exitActions[currentState] {
             exits.executeAll()
         }
     }

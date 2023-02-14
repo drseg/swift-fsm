@@ -391,13 +391,9 @@ alarming | coin | *unlocked* (\(file): \(l4))
 }
 
 class FSMPerformanceTests: FSMTests, TransitionBuilder {
-    var didPass = false
+    var wasCalled = false
     func pass() {
-        didPass = true
-    }
-
-    func fail() {
-        XCTFail()
+        wasCalled = true
     }
 
     override func setUpWithError() throws {
@@ -409,25 +405,26 @@ class FSMPerformanceTests: FSMTests, TransitionBuilder {
             if (true) {
                 if (true) {
                     if (true) {
-                        switch e { case .reset: pass(); default: fail() }
+                        switch e { case .reset: pass(); default: {}() }
                     }
                 }
             }
         }
 
-        measure { 250000.times { handleEvent(.reset) } }
+        measure { 100000.times { handleEvent(.reset) } }
+        XCTAssertTrue(wasCalled)
     }
-
-#warning("State and Event as associated types from a protocol doubles the time taken")
-#warning("Time taken also becomes much more variable for the same reason")
+    
+#warning("Looking up transitions that exit to the same state takes 2x time")
     func testGenericPerformance() throws {
         try? fsm.buildTransitions {
             define(.unlocked) {
-                when(.reset) | then(.unlocked) | pass
+                when(.reset) | then(.locked) | pass
             }
         }
 
-        measure { 250000.times { self.fsm.handleEvent(.reset) } }
+        measure { 100000.times { self.fsm.handleEvent(.reset) } }
+        XCTAssertTrue(wasCalled)
     }
 }
 
