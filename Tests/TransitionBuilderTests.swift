@@ -120,6 +120,16 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertContains(.locked, .coin, .unlocked, tr)
     }
     
+    func testDefaultThen() {
+        let tr = define(.locked) {
+            when(.reset) | ()
+            when(.pass)  | () | {}
+        }
+        
+        assertContains(.locked, .reset, .locked, tr)
+        assertContains(.locked, .pass, .locked, tr)
+    }
+    
     func testActions() {
         let e = expectation(description: "action")
         e.expectedFulfillmentCount = 3
@@ -142,7 +152,8 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         
         let tr = define(.locked) {
             context(actions: e.fulfill, e.fulfill) {
-                when(.coin) | then(.unlocked)
+                when(.coin)  | then(.unlocked)
+                when(.reset) | ()
             }
 
             context(action: e.fulfill) {
@@ -151,6 +162,7 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         }
 
         assertContains(.locked, .coin, .unlocked, tr)
+        assertContains(.locked, .reset, .locked, tr)
         assertContains(.locked, .pass, .locked, tr)
 
         tr.transitions.first?.actions.first?()
@@ -504,7 +516,7 @@ extension SuperState<TurnstileState, TurnstileEvent> {
 extension WhensThenActions<TurnstileState, TurnstileEvent> {
     var description: String {
         events.reduce("") {
-            $0 + String("(\($1.rawValue), \(state.rawValue))\n")
+            $0 + String("(\($1.rawValue), \(state?.rawValue))\n")
         }
     }
 }

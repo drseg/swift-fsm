@@ -66,7 +66,7 @@ class FSM<S: SP, E: EP> {
                             ts.append(
                                 Transition(g: given,
                                            w: $0,
-                                           t: wta.state,
+                                           t: wta.state ?? given,
                                            a: wta.actions,
                                            f: wta.file,
                                            l: wta.line)

@@ -44,11 +44,27 @@ struct Whens<S: SP, E: EP> {
     let file: String
     let line: Int
     
+    static func | (lhs: Self, _: ()) -> WTARow<S, E> {
+        WhensThen(events: lhs.events,
+                  state: nil,
+                  file: lhs.file,
+                  line: lhs.line) | []
+    }
+    
     static func | (lhs: Self, rhs: S) -> WTARow<S, E> {
         WhensThen(events: lhs.events,
                   state: rhs,
                   file: lhs.file,
                   line: lhs.line) | []
+    }
+    
+    static func | (lhs: Self, rhs: ()) -> WTRow<S, E> {
+        let wt = WhensThen<S, E>(events: lhs.events,
+                                 state: nil,
+                                 file: lhs.file,
+                                 line: lhs.line)
+        
+        return WTRow(wt: wt)
     }
     
     static func | (lhs: Self, rhs: S) -> WTRow<S, E> {
@@ -58,6 +74,13 @@ struct Whens<S: SP, E: EP> {
                            line: lhs.line)
         
         return WTRow(wt: wt)
+    }
+    
+    static func | (lhs: Self, _: ()) -> WhensThen<S, E> {
+        WhensThen(events: lhs.events,
+                  state: nil,
+                  file: lhs.file,
+                  line: lhs.line)
     }
     
     static func | (lhs: Self, rhs: S) -> WhensThen<S, E> {
@@ -84,7 +107,7 @@ struct WhensThen<S: SP, E: EP> {
     }
     
     let events: [E]
-    let state: S
+    let state: S?
     let file: String
     let line: Int
 }
@@ -101,7 +124,7 @@ struct WhensThenActions<S: SP, E: EP>: Hashable {
     }
     
     let events: [E]
-    let state: S
+    let state: S?
     let actions: [() -> ()]
     let file: String
     let line: Int

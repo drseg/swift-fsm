@@ -55,7 +55,7 @@ extension TransitionBuilder {
                 row.wta?.events.forEach {
                     ts.append(Transition(g: given,
                                          w: $0,
-                                         t: row.wta!.state,
+                                         t: row.wta!.state ?? given,
                                          a: row.wta!.actions,
                                          f: row.wta!.file,
                                          l: row.wta!.line))
