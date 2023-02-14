@@ -157,7 +157,7 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
             }
 
             context(action: e.fulfill) {
-                when(.pass) | then(.locked)
+                when(.pass)  | then(.locked)
             }
         }
 
@@ -472,7 +472,7 @@ class FSMPerformanceTests: FSMTests, TransitionBuilder {
         
         let switcher = SwitchFSM(pass: pass)
         let transitions = define(.unlocked) {
-            when(.reset) | then(.unlocked) | pass
+            when(.reset) | () | pass
         }
         
         try? switcher.buildTransitions { transitions }
