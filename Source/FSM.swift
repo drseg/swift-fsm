@@ -59,21 +59,10 @@ class FSM<S: SP, E: EP> {
     
     func transitions(from rows: [any TRP]) -> [T] {
         rows.reduce(into: [T]()) { ts, row in
-            row.modifiers.superStates.forEach { ss in
-                row.givenStates.forEach { given in
-                    ss.wtas.forEach { wta in
-                        wta.events.forEach {
-                            ts.append(
-                                Transition(g: given,
-                                           w: $0,
-                                           t: wta.state ?? given,
-                                           a: wta.actions,
-                                           f: wta.file,
-                                           l: wta.line)
-                            )
-                        }
-                    }
-                }
+            row.modifiers.superStates.forEach {
+                ts.append(
+                    contentsOf: $0.makeTransitions(given: row.givenStates)
+                )
             }
         } + rows.transitions()
     }
@@ -156,6 +145,31 @@ struct NSObjectError: Error {
 struct MismatchedType: Error {
     var description: String {
         "Given and Then states must be of the same type"
+    }
+}
+
+extension SuperState {
+    func makeTransitions(
+        given states: any Collection<S>
+    ) -> [Transition<S, E>] {
+        states.reduce(into: [Transition]()) { ts, state in
+            wtas.forEach {
+                ts.append(contentsOf: $0.makeTransitions(given: state))
+            }
+        }
+    }
+}
+
+extension WhensThenActions {
+    func makeTransitions(given state: S) -> [Transition<S, E>] {
+        events.reduce(into: [Transition]()) {
+            $0.append(Transition(g: state,
+                                 w: $1,
+                                 t: self.state ?? state,
+                                 a: actions,
+                                 f: file,
+                                 l: line))
+        }
     }
 }
 
