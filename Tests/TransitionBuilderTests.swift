@@ -5,6 +5,7 @@
 //  Created by Daniel Segall on 12/02/2023.
 //
 
+import Foundation
 import XCTest
 @testable import FiniteStateMachine
 
@@ -191,6 +192,12 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
 
 class FSMTests: TestingBase {
     let fsm = FSM<State, Event>(initialState: .unlocked)
+    
+    func buildTransitions(
+        @TableBuilder<State, Event> _ tableRows: () -> [any TableRowProtocol<State, Event>]
+    ) {
+        try? fsm.buildTransitions(tableRows)
+    }
 }
 
 class FSMBuilderTests: FSMTests, TransitionBuilder {
@@ -209,7 +216,7 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
     }
     
     func testSuperState() {
-        try? fsm.buildTransitions {
+        buildTransitions {
             define(.unlocked) {
                 implements(s)
             }
@@ -224,7 +231,7 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
     }
     
     func testEntryAction() {
-        try? fsm.buildTransitions {
+        buildTransitions {
             define(.locked) {
                 onEnter(thankyou)
             }
@@ -239,7 +246,7 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
     }
     
     func testEntryActionNotCalledIfAlreadyInState() {
-        try? fsm.buildTransitions {
+        buildTransitions {
             define(.unlocked) {
                 onEnter(thankyou)
                 
@@ -265,7 +272,7 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
     }
     
     func testExitActionNotCalledIfRemainingInState() {
-        try? fsm.buildTransitions {
+        buildTransitions {
             define(.unlocked) {
                 onExit(thankyou)
                 
@@ -281,7 +288,7 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
         let file = #file
         let line = #line + 4
         
-        try? fsm.buildTransitions {
+        buildTransitions {
             let s = SuperState {
                 when(.coin) | then(.locked)
             }
@@ -299,7 +306,7 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
         let file = #file
         let line = #line + 4
         
-        try? fsm.buildTransitions {
+        buildTransitions {
             define(.locked) {
                 when(.coin) | then(.locked)
             }
@@ -340,7 +347,7 @@ alarming | coin | *unlocked* (\(file): \(l4))
     func buildTurnstile() {
         fsm.state = .locked
         
-        try? fsm.buildTransitions {
+        buildTransitions {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
             }
@@ -391,40 +398,84 @@ alarming | coin | *unlocked* (\(file): \(l4))
 }
 
 class FSMPerformanceTests: FSMTests, TransitionBuilder {
-    var wasCalled = false
-    func pass() {
-        wasCalled = true
-    }
-
     override func setUpWithError() throws {
-        throw XCTSkip("Skip performance tests")
-    }
-
-    func testBenchmarkBestCaseScenario() throws {
-        func handleEvent(_ e: TurnstileEvent) {
-            if (true) {
-                if (true) {
-                    if (true) {
-                        switch e { case .reset: pass(); default: {}() }
-                    }
-                }
-            }
-        }
-
-        measure { 100000.times { handleEvent(.reset) } }
-        XCTAssertTrue(wasCalled)
+//        throw XCTSkip("Skip performance tests")
     }
     
-#warning("Looking up transitions that exit to the same state takes 2x time")
-    func testGenericPerformance() throws {
-        try? fsm.buildTransitions {
-            define(.unlocked) {
-                when(.reset) | then(.locked) | pass
+    func compareTime(
+        repeats: Int,
+        times: Int,
+        maxRatio: Int,
+        b1: @escaping @autoclosure () -> (),
+        b2: @escaping @autoclosure () -> ()
+    ) {
+        let first = measureTime(repeats: repeats) {
+            times.times { b1() }
+        }
+        
+        let second = measureTime(repeats: repeats) {
+            times.times { b2() }
+        }
+        
+        let multiplier = first / second
+        let message = "first: \(first),"
+        + " second: \(second),"
+        + " multiplier: \(multiplier)"
+        
+        print(message)
+        XCTAssertLessThan(first, second * Double(maxRatio), message)
+    }
+    
+    func measureTime(repeats: Int, _ block: @escaping () -> Void) -> TimeInterval {
+        var total: TimeInterval = 0
+        
+        repeats.times {
+            let started = Date()
+            block()
+            let finished = Date()
+            total += finished.timeIntervalSince(started)
+        }
+        
+        return total / Double(repeats)
+    }
+    
+    func testPerformance() throws {
+        var callCount = 0
+        func pass() {
+            callCount += 1
+        }
+        
+        class SwitchFSM: FSM<State, Event> {
+            let pass: () -> ()
+            
+            init(pass: @escaping () -> ()) {
+                self.pass = pass
+                super.init(initialState: .unlocked)
+            }
+            
+            override func handleEvent(_ event: FSMPerformanceTests.Event) {
+                switch event { case .reset: pass(); default: {}() }
             }
         }
-
-        measure { 100000.times { self.fsm.handleEvent(.reset) } }
-        XCTAssertTrue(wasCalled)
+        
+        let switcher = SwitchFSM(pass: pass)
+        let transitions = define(.unlocked) {
+            when(.reset) | then(.unlocked) | pass
+        }
+        
+        try? switcher.buildTransitions { transitions }
+        try? fsm.buildTransitions { transitions }
+        
+        let repeats = 10
+        let times = 15000
+        
+        compareTime(repeats: repeats,
+                    times: times,
+                    maxRatio: 10,
+                    b1: self.fsm.handleEvent(.reset),
+                    b2: switcher.handleEvent(.reset))
+        
+        XCTAssertEqual(repeats * times * 2, callCount)
     }
 }
 
