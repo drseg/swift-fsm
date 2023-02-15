@@ -24,7 +24,7 @@ extension TransitionBuilder {
     
     func define(
         _ states: S...,
-        @WTABuilder<S, E> rows: () -> [any WTARowProtocol<S, E>]
+        @WTABuilder<S, E> rows: () -> [WTARow<S, E>]
     ) -> TableRow<S, E> {
         let rows = rows()
         
@@ -49,7 +49,7 @@ extension TransitionBuilder {
     
     private func formTransitions(
         states: [S],
-        rows: [any WTARowProtocol<S, E>]
+        rows: [WTARow<S, E>]
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
             rows.forEach { row in
@@ -86,8 +86,8 @@ extension TransitionBuilder {
     
     func context(
         action a1: @escaping () -> (),
-        @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
-    ) -> [any WTARowProtocol<S, E>] {
+        @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
+    ) -> [WTARow<S, E>] {
         context(actions: [a1], rows)
     }
     
@@ -102,8 +102,8 @@ extension TransitionBuilder {
         _ a8: (() -> ())? = nil,
         _ a9: (() -> ())? = nil,
         _ a0: (() -> ())? = nil,
-        @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
-    ) -> [any WTARowProtocol<S, E>] {
+        @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
+    ) -> [WTARow<S, E>] {
         context(
             actions: [a1, a2, a3, a4, a5, a6, a7, a8, a9, a0].compactMap { $0 },
             rows
@@ -112,8 +112,8 @@ extension TransitionBuilder {
     
     func context(
         actions: [() -> ()],
-        @WTBuilder<S, E> _ rows: () -> [any WTRowProtocol<S, E>]
-    ) -> [any WTARowProtocol<S, E>] {
+        @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
+    ) -> [WTARow<S, E>] {
         rows().reduce(into: [WTARow]()) { wtRows, wtRow in
             let wta = WhensThenActions(events: wtRow.wt.events,
                                        state: wtRow.wt.state,

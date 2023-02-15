@@ -21,11 +21,11 @@ extension Array where Element: Hashable {
 
 extension Array {
     func transitions<S: SP, E: EP>() -> [Transition<S, E>] {
-        map { ($0 as! (any TableRowProtocol<S, E>)).transitions }.flatten
+        map { ($0 as! (TableRow<S, E>)).transitions }.flatten
     }
     
     func wtas<S: SP, E: EP>() -> [WhensThenActions<S, E>] {
-        map { ($0 as! (any WTARowProtocol<S, E>)).wta }.compactMap { $0 }
+        map { ($0 as! (WTARow<S, E>)).wta }.compactMap { $0 }
     }
 }
 

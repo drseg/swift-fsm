@@ -12,7 +12,7 @@ class FSMTests: TestingBase {
     let fsm = FSM<State, Event>(initialState: .unlocked)
     
     func buildTransitions(
-        @TableBuilder<State, Event> _ tableRows: () -> [any TableRowProtocol<State, Event>]
+        @TableBuilder<State, Event> _ tableRows: () -> [TableRow<State, Event>]
     ) {
         try? fsm.buildTransitions(tableRows)
     }
@@ -272,7 +272,7 @@ class FSMPerformanceTests: FSMTests, TransitionBuilder {
             }
             
             override func handleEvent(_ event: FSMPerformanceTests.Event) {
-                switch event { case .reset: pass(); default: {}() }
+                switch event { case .reset: pass(); default: { }() }
             }
         }
         

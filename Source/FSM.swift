@@ -8,10 +8,10 @@
 import Foundation
 import ReflectiveEquality
 
-class FSM<S: SP, E: EP> {
+class FSMBase<S: SP, E: EP> {
     typealias T = Transition<S, E>
     typealias K = T.Key
-    typealias TRP = TableRowProtocol<S, E>
+    typealias TRP = TableRow<S, E>
     
     var transitionTable = [K: T]()
     var entryActions = [S: [() -> ()]]()
@@ -24,7 +24,7 @@ class FSM<S: SP, E: EP> {
     }
     
     func buildTransitions(
-        @TableBuilder<S, E> _ tableRows: () -> [any TRP]
+        @TableBuilder<S, E> _ tableRows: () -> [TRP]
     ) throws {
         let rows = tableRows()
         
@@ -44,20 +44,20 @@ class FSM<S: SP, E: EP> {
         .contains("NSObject")
     }
     
-    func makeEntryActions(from rows: [any TRP]) {
+    func makeEntryActions(from rows: [TRP]) {
         makeActions(from: rows) {
             entryActions[$0] = $1.entryActions
         }
     }
     
-    func makeExitActions(from rows: [any TRP]) {
+    func makeExitActions(from rows: [TRP]) {
         makeActions(from: rows) {
             exitActions[$0] = $1.exitActions
         }
     }
     
     func makeActions(
-        from rows: [any TRP],
+        from rows: [TRP],
         _ block: (S, RowModifiers<S, E>) -> ()
     ) {
         rows.forEach { row in
@@ -67,7 +67,7 @@ class FSM<S: SP, E: EP> {
         }
     }
     
-    func transitions(from rows: [any TRP]) -> [T] {
+    func transitions(from rows: [TRP]) -> [T] {
         rows.reduce(into: [T]()) { ts, row in
             row.modifiers.superStates.forEach {
                 ts.append(
@@ -105,6 +105,20 @@ class FSM<S: SP, E: EP> {
         throw e
     }
     
+    func executeEntryActions(nextState: S) {
+        if let entries = entryActions[nextState]  {
+            entries.executeAll()
+        }
+    }
+    
+    func executeExitActions(currentState: S) {
+        if let exits = exitActions[currentState] {
+            exits.executeAll()
+        }
+    }
+}
+
+class FSM<S: SP, E: EP>: FSMBase<S, E> {
     func handleEvent(_ event: E) {
         let key = K(state: state, event: event)
 
@@ -117,18 +131,6 @@ class FSM<S: SP, E: EP> {
 
                 state = t.nextState
             }
-        }
-    }
-    
-    func executeEntryActions(nextState: S) {
-        if let entries = entryActions[nextState]  {
-            entries.executeAll()
-        }
-    }
-    
-    func executeExitActions(currentState: S) {
-        if let exits = exitActions[currentState] {
-            exits.executeAll()
         }
     }
 }

@@ -27,15 +27,15 @@ extension ResultBuilder {
 
 @resultBuilder
 struct TableBuilder<S: SP, E: EP>: ResultBuilder {
-    typealias T = any TableRowProtocol<S, E>
+    typealias T = TableRow<S, E>
 }
 
 @resultBuilder
 struct WTABuilder<S: SP, E: EP>: ResultBuilder {
-    typealias T = any WTARowProtocol<S, E>
+    typealias T = WTARow<S, E>
 }
 
 @resultBuilder
 struct WTBuilder<S: SP, E: EP>: ResultBuilder {
-    typealias T = any WTRowProtocol<S, E>
+    typealias T = WTRow<S, E>
 }

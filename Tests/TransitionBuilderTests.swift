@@ -202,10 +202,6 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     }
 }
 
-class ComplexTransitionBuilderTests: TestingBase, ComplexTransitionBuilder {
-    typealias Predicate = String
-}
-
 extension TableRow<TurnstileState, TurnstileEvent> {
     var description: String {
         transitions.map(\.description).reduce("", +)

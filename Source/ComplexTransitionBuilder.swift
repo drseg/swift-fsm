@@ -23,13 +23,13 @@ extension PredicateProtocol {
     }
     
     var allCases: [any PredicateProtocol] {
-        return type(of: self).allCases as! [any PredicateProtocol]
+        Self.allCases as! [any PredicateProtocol]
     }
 }
 
 struct AnyPredicate: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs.base.isEqual(to: rhs.base)
+        lhs.base.isEqual(to: rhs.base)
     }
     
     let base: any PredicateProtocol

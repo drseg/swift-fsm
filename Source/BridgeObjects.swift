@@ -7,50 +7,29 @@
 
 import Foundation
 
-protocol TableRowProtocol<State, Event> {
-    associatedtype State: StateProtocol
-    associatedtype Event: EventProtocol
-    
-    var transitions: [Transition<State, Event>] { get }
-    var modifiers: RowModifiers<State, Event> { get }
-    var givenStates: any Collection<State> { get }
-}
-
-struct TableRow<S: SP, E: EP>: TableRowProtocol {
+struct TableRow<S: SP, E: EP> {
     let transitions: [Transition<S, E>]
     let modifiers: RowModifiers<S, E>
     let givenStates: any Collection<S>
 }
 
-protocol WTARowProtocol<State, Event> {
-    associatedtype State: StateProtocol
-    associatedtype Event: EventProtocol
-    
-    var wta: WhensThenActions<State, Event>? { get }
-    var modifiers: RowModifiers<State, Event> { get }
-}
-
-struct WTARow<S: SP, E: EP>: WTARowProtocol {
+struct WTARow<S: SP, E: EP> {
     let wta: WhensThenActions<S, E>?
     let modifiers: RowModifiers<S, E>
+    let predicates: [AnyPredicate]
     
     init(
         wta: WhensThenActions<S, E>? = nil,
-        modifiers: RowModifiers<S, E> = .none
+        modifiers: RowModifiers<S, E> = .none,
+        predicates: [AnyPredicate] = []
     ) {
         self.wta = wta
         self.modifiers = modifiers
+        self.predicates = predicates
     }
 }
 
-protocol WTRowProtocol<State, Event> {
-    associatedtype State: StateProtocol
-    associatedtype Event: EventProtocol
-    
-    var wt: WhensThen<State, Event> { get }
-}
-
-struct WTRow<S: SP, E: EP>: WTRowProtocol {
+struct WTRow<S: SP, E: EP> {
     let wt: WhensThen<S, E>
 }
 
@@ -81,7 +60,7 @@ struct SuperState<S: SP, E: EP>: Hashable {
         hasher.combine(wtas)
     }
     
-    init(@WTABuilder<S, E> _ content: () -> [any WTARowProtocol<S, E>]) {
+    init(@WTABuilder<S, E> _ content: () -> [WTARow<S, E>]) {
         wtas = content().wtas()
     }
 }
