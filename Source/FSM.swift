@@ -39,9 +39,9 @@ class FSM<S: SP, E: EP> {
     }
     
     var includeNSObject: Bool {
-        (deepDescription(transitionTable.keys.first?.state as Any) +
-         deepDescription(transitionTable.keys.first?.event as Any))
-            .contains("NSObject")
+        deepDescription([transitionTable.keys.first?.state as Any,
+                         transitionTable.keys.first?.event as Any])
+        .contains("NSObject")
     }
     
     func makeEntryActions(from rows: [any TRP]) {
@@ -148,7 +148,7 @@ struct DuplicateTransitions<S: SP, E: EP>: Error {
 
 struct NSObjectError: Error {
     var description: String {
-        "States and Events must not inherit from, or include NSObject"
+        "States and Events must not inherit from NSObject, or include NSObject instances"
     }
 }
 

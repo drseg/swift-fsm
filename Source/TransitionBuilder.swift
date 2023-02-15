@@ -7,6 +7,12 @@
 
 import Foundation
 
+protocol StateProtocol: Hashable {}
+protocol EventProtocol: Hashable {}
+
+typealias SP = StateProtocol
+typealias EP = EventProtocol
+
 protocol TransitionBuilder {
     associatedtype State: StateProtocol
     associatedtype Event: EventProtocol
@@ -52,13 +58,8 @@ extension TransitionBuilder {
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
             rows.forEach { row in
-                row.wta?.events.forEach {
-                    ts.append(Transition(g: given,
-                                         w: $0,
-                                         t: row.wta!.state ?? given,
-                                         a: row.wta!.actions,
-                                         f: row.wta!.file,
-                                         l: row.wta!.line))
+                if let wta = row.wta {
+                    ts.append(contentsOf: wta.makeTransitions(given: given))
                 }
             }
         }

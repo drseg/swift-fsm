@@ -7,7 +7,58 @@
 
 import Foundation
 
+protocol TableRowProtocol<State, Event> {
+    associatedtype State: StateProtocol
+    associatedtype Event: EventProtocol
+    
+    var transitions: [Transition<State, Event>] { get }
+    var modifiers: RowModifiers<State, Event> { get }
+    var givenStates: any Collection<State> { get }
+}
+
+struct TableRow<S: SP, E: EP>: TableRowProtocol {
+    let transitions: [Transition<S, E>]
+    let modifiers: RowModifiers<S, E>
+    let givenStates: any Collection<S>
+}
+
+protocol WTARowProtocol<State, Event> {
+    associatedtype State: StateProtocol
+    associatedtype Event: EventProtocol
+    
+    var wta: WhensThenActions<State, Event>? { get }
+    var modifiers: RowModifiers<State, Event> { get }
+}
+
+struct WTARow<S: SP, E: EP>: WTARowProtocol {
+    let wta: WhensThenActions<S, E>?
+    let modifiers: RowModifiers<S, E>
+    
+    init(
+        wta: WhensThenActions<S, E>? = nil,
+        modifiers: RowModifiers<S, E> = .none
+    ) {
+        self.wta = wta
+        self.modifiers = modifiers
+    }
+}
+
+protocol WTRowProtocol<State, Event> {
+    associatedtype State: StateProtocol
+    associatedtype Event: EventProtocol
+    
+    var wt: WhensThen<State, Event> { get }
+}
+
+struct WTRow<S: SP, E: EP>: WTRowProtocol {
+    let wt: WhensThen<S, E>
+}
+
 struct RowModifiers<S: SP, E: EP> {
+    static var none: Self {
+        Self()
+    }
+    
     let superStates: [SuperState<S, E>]
     let entryActions: [() -> ()]
     let exitActions: [() -> ()]
@@ -20,10 +71,6 @@ struct RowModifiers<S: SP, E: EP> {
         self.superStates = superStates
         self.entryActions = entryActions
         self.exitActions = exitActions
-    }
-    
-    static var none: Self {
-        Self()
     }
 }
 
@@ -40,10 +87,6 @@ struct SuperState<S: SP, E: EP>: Hashable {
 }
 
 struct Whens<S: SP, E: EP> {
-    let events: [E]
-    let file: String
-    let line: Int
-    
     static func | (lhs: Self, _: ()) -> WTARow<S, E> {
         WhensThen(events: lhs.events,
                   state: nil,
@@ -89,6 +132,10 @@ struct Whens<S: SP, E: EP> {
                   file: lhs.file,
                   line: lhs.line)
     }
+    
+    let events: [E]
+    let file: String
+    let line: Int
 }
 
 struct WhensThen<S: SP, E: EP> {

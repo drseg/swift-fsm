@@ -7,9 +7,6 @@
 
 import Foundation
 
-protocol StateProtocol: Hashable {}
-protocol EventProtocol: Hashable {}
-
 extension StateProtocol {
     var erase: AnyState { AnyState(base: self) }
 }
@@ -47,8 +44,6 @@ struct AnyState: Eraser, StateProtocol {
     let base: any Hashable
 }
 
-typealias SP = StateProtocol
-typealias EP = EventProtocol
 typealias AS = AnyState
 typealias AE = AnyEvent
 typealias AnyTransition = Transition<AS, AE>
