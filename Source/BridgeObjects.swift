@@ -16,16 +16,13 @@ struct TableRow<S: SP, E: EP> {
 struct WTARow<S: SP, E: EP> {
     let wta: WhensThenActions<S, E>?
     let modifiers: RowModifiers<S, E>
-    let predicates: [AnyPredicate]
     
     init(
         wta: WhensThenActions<S, E>? = nil,
-        modifiers: RowModifiers<S, E> = .none,
-        predicates: [AnyPredicate] = []
+        modifiers: RowModifiers<S, E> = .none
     ) {
         self.wta = wta
         self.modifiers = modifiers
-        self.predicates = predicates
     }
 }
 
@@ -128,8 +125,7 @@ struct WhensThen<S: SP, E: EP> {
                                    actions: rhs,
                                    file: lhs.file,
                                    line: lhs.line)
-        return WTARow(wta: wta,
-                      modifiers: .none)
+        return WTARow(wta: wta, modifiers: .none)
     }
     
     let events: [E]
@@ -141,17 +137,36 @@ struct WhensThen<S: SP, E: EP> {
 struct WhensThenActions<S: SP, E: EP>: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.events == rhs.events &&
-        lhs.state == rhs.state
+        lhs.state == rhs.state &&
+        lhs.predicates == rhs.predicates
     }
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(events)
         hasher.combine(state)
+        hasher.combine(predicates)
     }
     
     let events: [E]
     let state: S?
     let actions: [() -> ()]
+    let predicates: [AnyPredicate]
     let file: String
     let line: Int
+    
+    init(
+        events: [E],
+        state: S?,
+        actions: [() -> ()],
+        predicates: [AnyPredicate] = [],
+        file: String,
+        line: Int
+    ) {
+        self.events = events
+        self.state = state
+        self.actions = actions
+        self.predicates = predicates
+        self.file = file
+        self.line = line
+    }
 }
