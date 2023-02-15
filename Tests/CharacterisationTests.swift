@@ -23,8 +23,7 @@ final class CharacterisationTests: XCTestCase {
         let expected: Set<Set<AnyPredicate>> = [[P2.g, P1.a].erased.s,
                                                 [P2.g, P1.b].erased.s,
                                                 [P2.h, P1.a].erased.s,
-                                                [P2.h, P1.b].erased.s
-        ].s
+                                                [P2.h, P1.b].erased.s].s
         XCTAssertEqual(expected, states.uniqueAndTypedPermutations)
     }
 }
@@ -37,26 +36,29 @@ extension Array where Element: Hashable {
 
 extension Array where Element == any PredicateProtocol {
     var uniqueAndTypedPermutations: Set<Set<AnyPredicate>> {
-        let uniqueTypes = Set(map { String(describing: type(of: $0)) })
-        
-        return Set(
-            allCases
-                .erased
-                .uniquePermutations(ofCount: count)
-                .map(Set.init)
-                .filter {
-                    Set($0.map {
-                        String(describing: type(of: $0.base))
-                    }).count == $0.count
-                }
+        Set(allPossibleCases
+            .erased
+            .uniquePermutations(ofCount: count)
+            .map(Set.init)
+            .filter(\.elementsAreUniquelyTyped)
         )
     }
     
-    var allCases: [any PredicateProtocol] {
+    var allPossibleCases: [any PredicateProtocol] {
         map { $0.allCases }.flatten
     }
 
     var erased: [AnyPredicate] {
         map { $0.erased }
+    }
+}
+
+extension Collection where Element == AnyPredicate {
+    var elementsAreUniquelyTyped: Bool {
+        uniqueElementTypes.count == count
+    }
+    
+    var uniqueElementTypes: Set<String> {
+        Set(map { String(describing: type(of: $0.base)) })
     }
 }
