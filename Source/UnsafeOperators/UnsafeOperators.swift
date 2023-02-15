@@ -7,46 +7,21 @@
 
 import Foundation
 
-extension StateProtocol {
-    var erase: AnyState { AnyState(base: self) }
-}
-
-extension EventProtocol {
-    var erase: AnyEvent { AnyEvent(base: self) }
-}
-
-protocol Eraser {
-    var base: any Hashable { get }
-}
-
-extension Eraser {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs.base.isEqual(to: rhs.base)
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(base)
-    }
-}
-
-private extension Hashable {
-    func isEqual(to rhs: any Hashable) -> Bool {
-        guard let rhs = rhs as? Self else { return false }
-        return rhs == self
-    }
-}
-
-struct AnyEvent: Eraser, EventProtocol {
-    let base: any Hashable
-}
-
-struct AnyState: Eraser, StateProtocol {
-    let base: any Hashable
-}
-
-typealias AS = AnyState
-typealias AE = AnyEvent
-typealias AnyTransition = Transition<AS, AE>
+//extension StateProtocol {
+//    var erase: AnyState { AnyState(base: self) }
+//}
+//
+//extension EventProtocol {
+//    var erase: AnyEvent { AnyEvent(base: self) }
+//}
+//
+//struct AnyState: Eraser, StateProtocol {
+//    let base: any Hashable
+//}
+//
+//typealias AS = AnyState
+//typealias AE = AnyEvent
+//typealias AnyTransition = Transition<AS, AE>
 
 //struct StateEvent {
 //    let state: any SP

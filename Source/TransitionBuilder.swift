@@ -9,9 +9,42 @@ import Foundation
 
 protocol StateProtocol: Hashable {}
 protocol EventProtocol: Hashable {}
+protocol PredicateProtocol: CaseIterable, Hashable {}
 
 typealias SP = StateProtocol
 typealias EP = EventProtocol
+typealias PP = PredicateProtocol
+
+extension PredicateProtocol {
+    func isEqual(to rhs: any PredicateProtocol) -> Bool {
+        guard let rhs = rhs as? Self else { return false }
+        return rhs == self
+    }
+    
+    var erased: AnyPredicate {
+        AnyPredicate(base: self)
+    }
+    
+    var allCases: [any PredicateProtocol] {
+        return type(of: self).allCases as! [any PredicateProtocol]
+    }
+}
+
+struct AnyPredicate: Hashable, CustomStringConvertible {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.base.isEqual(to: rhs.base)
+    }
+    
+    let base: any PredicateProtocol
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(base)
+    }
+    
+    var description: String {
+        "\(base)"
+    }
+}
 
 protocol TransitionBuilder {
     associatedtype State: StateProtocol
@@ -25,7 +58,6 @@ protocol ComplexTransitionBuilder: TransitionBuilder {
 extension TransitionBuilder {
     typealias S = State
     typealias E = Event
-    typealias P = AnyState
     
     func define(
         _ states: S...,
