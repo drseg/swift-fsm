@@ -10,21 +10,23 @@ import Algorithms
 @testable import FiniteStateMachine
 
 final class CharacterisationTests: XCTestCase {
-    enum P1: PredicateProtocol {
-        case a, b
-    }
-    
-    enum P2: PredicateProtocol {
-        case g, h
-    }
+    enum P1: PredicateProtocol { case a, b }
+    enum P2: PredicateProtocol { case g, h }
+    enum P3: PredicateProtocol { case x, y }
     
     func testPermutations() {
-        let states: [any PredicateProtocol] = [P2.g, P1.a]
-        let expected: Set<Set<AnyPredicate>> = [[P2.g, P1.a].erased.s,
-                                                [P2.g, P1.b].erased.s,
-                                                [P2.h, P1.a].erased.s,
-                                                [P2.h, P1.b].erased.s].s
-        XCTAssertEqual(expected, states.uniqueAndTypedPermutations)
+        let states: [any PredicateProtocol] = [P2.g, P2.h, P1.a, P1.b, P3.y]
+        
+        let expected: Set<Set<AnyPredicate>> = [[P1.a, P2.g, P3.x].erased.s,
+                                                [P1.b, P2.g, P3.x].erased.s,
+                                                [P1.a, P2.g, P3.y].erased.s,
+                                                [P1.b, P2.g, P3.y].erased.s,
+                                                [P1.a, P2.h, P3.x].erased.s,
+                                                [P1.b, P2.h, P3.x].erased.s,
+                                                [P1.a, P2.h, P3.y].erased.s,
+                                                [P1.b, P2.h, P3.y].erased.s,].s
+        
+        XCTAssertEqual(expected, states.uniquePermutationsOfElementCases)
     }
 }
 
@@ -35,30 +37,47 @@ extension Array where Element: Hashable {
 }
 
 extension Array where Element == any PredicateProtocol {
-    var uniqueAndTypedPermutations: Set<Set<AnyPredicate>> {
-        Set(allPossibleCases
-            .erased
-            .uniquePermutations(ofCount: count)
-            .map(Set.init)
-            .filter(\.elementsAreUniquelyTyped)
+    var uniquePermutationsOfElementCases: Set<Set<AnyPredicate>> {
+        return Set(
+            uniqueTypes
+                .allPossibleCases
+                .erased
+                .uniquePermutations(ofCount: uniqueTypes.count)
+                .map(Set.init)
+                .filter(\.elementsAreUniquelyTyped)
         )
     }
     
-    var allPossibleCases: [any PredicateProtocol] {
-        map { $0.allCases }.flatten
+    var uniqueTypes: [AnyPredicate] {
+        let erased = self.erased
+        return erased.uniqueElementTypes.reduce(
+            into: [AnyPredicate]()
+        ) { predicates, type in
+            predicates.append(erased.first { $0.type == type }!)
+        }
     }
-
+    
     var erased: [AnyPredicate] {
         map { $0.erased }
     }
 }
 
 extension Collection where Element == AnyPredicate {
+    var allPossibleCases: [any PredicateProtocol] {
+        map { $0.base.allCases }.flatten
+    }
+    
     var elementsAreUniquelyTyped: Bool {
         uniqueElementTypes.count == count
     }
     
     var uniqueElementTypes: Set<String> {
-        Set(map { String(describing: type(of: $0.base)) })
+        Set(map(\.type))
+    }
+}
+
+extension AnyPredicate {
+    var type: String {
+        String(describing: Swift.type(of: base))
     }
 }
