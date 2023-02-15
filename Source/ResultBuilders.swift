@@ -20,19 +20,6 @@ extension ResultBuilder {
         [row]
     }
     
-#warning("these conditionals should likely be removed")
-    static func buildIf(_ collection: [T]?) -> [T] {
-        collection ?? []
-    }
-    
-    static func buildEither(first collection: [T]) -> [T] {
-        collection
-    }
-    
-    static func buildEither(second collection: [T]) -> [T] {
-        collection
-    }
-    
     static func buildBlock(_ cs: [T]...) -> [T] {
         cs.flatten
     }

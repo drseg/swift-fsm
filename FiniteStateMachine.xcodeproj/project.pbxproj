@@ -11,6 +11,7 @@
 		6E38FB25299C61320009668E /* FSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E38FB24299C61320009668E /* FSMTests.swift */; };
 		6E38FB27299D1E530009668E /* CharacterisationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E38FB26299D1E530009668E /* CharacterisationTests.swift */; };
 		6E38FB2A299D49610009668E /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 6E38FB29299D49610009668E /* Algorithms */; };
+		6E38FB2C299D6FBC0009668E /* ComplexTransitionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E38FB2B299D6FBC0009668E /* ComplexTransitionBuilder.swift */; };
 		6E9CB844298B05D90085064B /* BridgeObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9CB843298B05D90085064B /* BridgeObjects.swift */; };
 		6EA37A9629990AC20087F147 /* TransitionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA37A9529990AC20087F147 /* TransitionBuilder.swift */; };
 		6EA37A9829990AD20087F147 /* TransitionBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA37A9729990AD20087F147 /* TransitionBuilderTests.swift */; };
@@ -38,6 +39,7 @@
 /* Begin PBXFileReference section */
 		6E38FB24299C61320009668E /* FSMTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSMTests.swift; sourceTree = "<group>"; };
 		6E38FB26299D1E530009668E /* CharacterisationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterisationTests.swift; sourceTree = "<group>"; };
+		6E38FB2B299D6FBC0009668E /* ComplexTransitionBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplexTransitionBuilder.swift; sourceTree = "<group>"; };
 		6E9CB843298B05D90085064B /* BridgeObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeObjects.swift; sourceTree = "<group>"; };
 		6EA37A9529990AC20087F147 /* TransitionBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransitionBuilder.swift; sourceTree = "<group>"; };
 		6EA37A9729990AD20087F147 /* TransitionBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransitionBuilderTests.swift; sourceTree = "<group>"; };
@@ -113,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				6EA37A9529990AC20087F147 /* TransitionBuilder.swift */,
+				6E38FB2B299D6FBC0009668E /* ComplexTransitionBuilder.swift */,
 				6E9CB843298B05D90085064B /* BridgeObjects.swift */,
 				6EA3A02B298726FC007928C4 /* Transition.swift */,
 				6EFE72212992D5AB00AF4758 /* ResultBuilders.swift */,
@@ -257,6 +260,7 @@
 				6EA37A9629990AC20087F147 /* TransitionBuilder.swift in Sources */,
 				6EA3A02529871E93007928C4 /* FSM.swift in Sources */,
 				6EA3A02C298726FD007928C4 /* Transition.swift in Sources */,
+				6E38FB2C299D6FBC0009668E /* ComplexTransitionBuilder.swift in Sources */,
 				6EE64F8C2986BE3B009A361C /* FiniteStateMachine.docc in Sources */,
 				6EFE72222992D5AB00AF4758 /* ResultBuilders.swift in Sources */,
 				6E9CB844298B05D90085064B /* BridgeObjects.swift in Sources */,
