@@ -77,6 +77,14 @@ extension TransitionBuilder {
         file: String = #file,
         line: Int = #line
     ) -> Whens<S, E> {
+        when(events, file: file, line: line)
+    }
+    
+    func when(
+        _ events: [E],
+        file: String = #file,
+        line: Int = #line
+    ) -> Whens<S, E> {
         Whens(events: events, file: file, line: line)
     }
     

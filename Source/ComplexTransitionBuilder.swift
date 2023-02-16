@@ -82,21 +82,20 @@ extension ComplexTransitionBuilder {
         _ e: Event...,
         file: String = #file,
         line: Int = #line
-    ) -> WTAPRow<S, E> {
-        when(e)
+    ) -> WAPRow<E> {
+        when(e, file: file, line: line)
     }
     
     func when(
         _ e: [Event],
         file: String = #file,
         line: Int = #line
-    ) -> WTAPRow<S, E> {
-        WTAPRow(wtap: WTAP<S, E>(events: e,
-                                 state: nil,
-                                 actions: [],
-                                 predicates: [],
-                                 file: file,
-                                 line: line))
+    ) -> WAPRow<E> {
+        WAPRow(wap: WAP<E>(events: e,
+                           actions: [],
+                           predicates: [],
+                           file: file,
+                           line: line))
     }
     
     func when(
@@ -125,9 +124,27 @@ extension ComplexTransitionBuilder {
     func then(_ state: S) -> TAPRow<S> {
         TAPRow(tap: TAP(state: state))
     }
+    
+    func then(
+        _ s: State,
+        @WAPBuilder<E> rows: () -> [WAPRow<E>]
+    ) -> [WTAPRow<S, E>] {
+        rows().reduce(into: [WTAPRow]()) {
+            $0.append(WTAPRow(wtap: WTAP(state: s, wap: $1.wap)))
+        }
+    }
 }
 
 extension WTAP {
+    init(state: S, wap: WAP<E>) {
+        self.init(events: wap.events,
+                  state: state,
+                  actions: wap.actions,
+                  predicates: wap.predicates,
+                  file: wap.file,
+                  line: wap.line)
+    }
+    
     init(events: [E], tap: TAP<S>, file: String, line: Int) {
         self.init(events: events,
                   state: tap.state,

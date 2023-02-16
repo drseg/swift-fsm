@@ -38,7 +38,9 @@ final class ComplexTransitionBuilderTests:
         assertContains(g, w, t, tr, line)
         let predicates = tr.transitions.map(\.predicates).map(Set.init)
         let expected = Set(p.erased)
-        XCTAssertTrue(predicates.contains(expected), "\(predicates)", line: line)
+        XCTAssertTrue(predicates.contains(expected),
+                      "\(predicates)",
+                      line: line)
     }
     
     func testWithExpectation(
@@ -75,64 +77,41 @@ final class ComplexTransitionBuilderTests:
     }
     
     func testActionNestedInPredicateContext() {
-        testWithExpectation(count: 3) { e in
+        testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
                 predicate(.a) {
                     action(e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
-                        when(.reset)
                     }
                 }
             }
             
             assertContains(.locked, .coin, .unlocked, .a, tr: tr)
             assertContains(.locked, .pass, .locked, .a, tr: tr)
-            assertContains(.locked, .reset, .locked, .a, tr: tr)
             
             tr.transitions.map(\.actions).flatten.executeAll()
         }
     }
     
     func testActionsNestedInPredicateContext() {
-        testWithExpectation(count: 6) { e in
+        testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
                 predicate(.a) {
                     actions(e.fulfill, e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
-                        when(.reset)
                     }
                 }
             }
             
             assertContains(.locked, .coin, .unlocked, .a, tr: tr)
             assertContains(.locked, .pass, .locked, .a, tr: tr)
-            assertContains(.locked, .reset, .locked, .a, tr: tr)
             
             tr.transitions.map(\.actions).flatten.executeAll()
         }
-    }
-    
-    func testWhenWithNoThen() {
-        let w1 = when(.reset)
-        let w2 = when(.reset, .pass)
-        let w3 = when([.reset, .pass])
-        
-        XCTAssertEqual(w1.wtap?.events, [.reset])
-        XCTAssertEqual(w2.wtap?.events, [.reset, .pass])
-        XCTAssertEqual(w3.wtap?.events, [.reset, .pass])
-        
-        let allWtaps = [w1, w2, w3].map(\.wtap).compactMap { $0 }
-        let allThens = allWtaps.map(\.state).compactMap { $0 }
-        let allActions = allWtaps.map(\.actions).flatten
-        let allPredicates = allWtaps.map(\.predicates).flatten
-        
-        XCTAssertTrue(allThens.isEmpty)
-        XCTAssertTrue(allActions.isEmpty)
-        XCTAssertTrue(allPredicates.isEmpty)
     }
     
     func testThenWithNoArgument() {
@@ -146,21 +125,19 @@ final class ComplexTransitionBuilderTests:
     }
     
     func testArrayActionsNestedInPredicateContext() {
-        testWithExpectation(count: 6) { e in
+        testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
                 predicate(.a) {
                     actions([e.fulfill, e.fulfill]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
-                        when(.reset)
                     }
                 }
             }
             
             assertContains(.locked, .coin, .unlocked, .a, tr: tr)
             assertContains(.locked, .pass, .locked, .a, tr: tr)
-            assertContains(.locked, .reset, .locked, .a, tr: tr)
             
             tr.transitions.map(\.actions).flatten.executeAll()
         }
@@ -313,6 +290,59 @@ final class ComplexTransitionBuilderTests:
             tr[1].actions.first?()
             tr[2].actions[0]()
             tr[3].actions[0]()
+        }
+    }
+    
+    func testWhenActionCombinations() {
+        let l1 = #line; let wap1 = when(.reset)          | { }
+        let l2 = #line; let wap2 = when(.reset, .pass)   | { }
+        let l3 = #line; let wap3 = when([.reset, .pass]) | { }
+        
+        let l4 = #line; let wap4 = when(.reset)
+        let l5 = #line; let wap5 = when(.reset, .pass)
+        let l6 = #line; let wap6 = when([.reset, .pass])
+        
+        let all = [wap1, wap2, wap3, wap4, wap5, wap6]
+        let allLines = [l1, l2, l3, l4, l5, l6]
+        
+        all.prefix(3).forEach {
+            XCTAssertEqual($0.wap.actions.count, 1)
+        }
+        
+        all.suffix(3).forEach {
+            XCTAssertEqual($0.wap.actions.count, 0)
+        }
+        
+        zip(all, allLines).forEach {
+            XCTAssertEqual($0.0.wap.file, #file)
+            XCTAssertEqual($0.0.wap.line, $0.1)
+        }
+        
+        [wap1, wap4].map(\.wap).map(\.events).forEach {
+            XCTAssertEqual($0, [.reset])
+        }
+        
+        [wap2, wap3, wap5, wap6].map(\.wap).map(\.events).forEach {
+            XCTAssertEqual($0, [.reset, .pass])
+        }
+    }
+    
+    func testThenContext() {
+        testWithExpectation(count: 2) { e in
+            let tr =
+            define(.locked) {
+                then(.alarming) {
+                    when(.reset) | e.fulfill
+                    when(.pass)  | e.fulfill
+                }
+            }
+            
+            assertContains(.locked, .reset, .alarming, tr)
+            assertContains(.locked, .pass, .alarming, tr)
+            assertCount(2, tr)
+
+            tr.transitions[0].actions[0]()
+            tr.transitions[1].actions[0]()
         }
     }
 }

@@ -39,3 +39,8 @@ struct WTAPBuilder<S: SP, E: EP>: ResultBuilder {
 struct TAPBuilder<S: SP>: ResultBuilder {
     typealias T = TAPRow<S>
 }
+
+@resultBuilder
+struct WAPBuilder<E: EP>: ResultBuilder {
+    typealias T = WAPRow<E>
+}
