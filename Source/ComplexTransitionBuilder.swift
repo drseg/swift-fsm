@@ -83,6 +83,14 @@ extension ComplexTransitionBuilder {
         file: String = #file,
         line: Int = #line
     ) -> WTAPRow<S, E> {
+        when(e)
+    }
+    
+    func when(
+        _ e: [Event],
+        file: String = #file,
+        line: Int = #line
+    ) -> WTAPRow<S, E> {
         WTAPRow(wtap: WTAP<S, E>(events: e,
                                  state: nil,
                                  actions: [],

@@ -116,6 +116,35 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
+    func testWhenWithNoThen() {
+        let w1 = when(.reset)
+        let w2 = when(.reset, .pass)
+        let w3 = when([.reset, .pass])
+        
+        XCTAssertEqual(w1.wtap?.events, [.reset])
+        XCTAssertEqual(w2.wtap?.events, [.reset, .pass])
+        XCTAssertEqual(w3.wtap?.events, [.reset, .pass])
+        
+        let allWtaps = [w1, w2, w3].map(\.wtap).compactMap { $0 }
+        let allThens = allWtaps.map(\.state).compactMap { $0 }
+        let allActions = allWtaps.map(\.actions).flatten
+        let allPredicates = allWtaps.map(\.predicates).flatten
+        
+        XCTAssertTrue(allThens.isEmpty)
+        XCTAssertTrue(allActions.isEmpty)
+        XCTAssertTrue(allPredicates.isEmpty)
+    }
+    
+    func testThenWithNoArgument() {
+        let t1: Then = then()
+        let t2: TAPRow = then()
+        
+        XCTAssertNil(t1.state)
+        XCTAssertNil(t2.tap.state)
+        XCTAssertTrue(t2.tap.actions.isEmpty)
+        XCTAssertTrue(t2.tap.predicates.isEmpty)
+    }
+    
     func testArrayActionsNestedInPredicateContext() {
         testWithExpectation(count: 6) { e in
             let tr =
