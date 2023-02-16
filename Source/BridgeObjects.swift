@@ -26,9 +26,17 @@ struct WTAPRow<S: SP, E: EP> {
     }
 }
 
+struct TAPRow<S: SP> {
+    static var empty: Self {
+        .init(tap: .init())
+    }
+    
+    let tap: TAP<S>
+}
+
 struct RowModifiers<S: SP, E: EP> {
     static var none: Self {
-        Self()
+        .init()
     }
     
     let superStates: [SuperState<S, E>]
@@ -98,19 +106,35 @@ struct WhensThen<S: SP, E: EP> {
     }
     
     static func | (lhs: Self, rhs: [() -> ()]) -> WTAPRow<S, E> {
-        let wta = WTAP(events: lhs.events,
-                                             state: lhs.state,
-                                             actions: rhs,
-                                             predicates: [],
-                                             file: lhs.file,
-                                             line: lhs.line)
-        return WTAPRow(wtap: wta, modifiers: .none)
+        let wtap = WTAP(events: lhs.events,
+                        state: lhs.state,
+                        actions: rhs,
+                        predicates: [],
+                        file: lhs.file,
+                        line: lhs.line)
+        return WTAPRow(wtap: wtap, modifiers: .none)
     }
     
     let events: [E]
     let state: S?
     let file: String
     let line: Int
+}
+
+struct TAP<S: SP> {
+    let state: S?
+    let actions: [() -> ()]
+    let predicates: [AnyPredicate]
+    
+    init(
+        state: S? = nil,
+        actions: [() -> ()] = [],
+        predicates: [AnyPredicate] = []
+    ) {
+        self.state = state
+        self.actions = actions
+        self.predicates = predicates
+    }
 }
 
 struct WTAP<S: SP, E: EP>: Hashable {

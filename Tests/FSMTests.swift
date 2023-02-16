@@ -215,7 +215,8 @@ class FSMPerformanceTests: FSMTests, TransitionBuilder {
         times: Int,
         maxRatio: Int,
         b1: @escaping @autoclosure () -> (),
-        b2: @escaping @autoclosure () -> ()
+        b2: @escaping @autoclosure () -> (),
+        line: UInt = #line
     ) {
         let first = measureTime(repeats: repeats) {
             times.times { b1() }
@@ -231,7 +232,7 @@ class FSMPerformanceTests: FSMTests, TransitionBuilder {
         + " multiplier: \(multiplier)"
         
         print(message)
-        XCTAssertLessThan(first, second * Double(maxRatio), message)
+        XCTAssertLessThan(first, second * Double(maxRatio), message, line: line)
     }
     
     func measureTime(

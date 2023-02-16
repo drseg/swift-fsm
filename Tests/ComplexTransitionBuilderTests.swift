@@ -3,16 +3,28 @@ import XCTest
 
 enum P: PredicateProtocol { case `true`, `false` }
 
-final class ComplexTransitionBuilderTests: TestingBase, ComplexTransitionBuilder {
+final class ComplexTransitionBuilderTests:
+    TestingBase, ComplexTransitionBuilder
+{
     typealias Predicate = P
-    
     
     func assertContains(
         _ g: State,
         _ w: Event,
         _ t: State,
-        _ p: (Predicate)...,
+        _ p: Predicate...,
         tr: TableRow<State, Event>,
+        _ line: UInt = #line
+    ) {
+        assertContains(g, w, t, p, tr)
+    }
+    
+    func assertContains(
+        _ g: State,
+        _ w: Event,
+        _ t: State,
+        _ p: [Predicate] = [],
+        _ tr: TableRow<State, Event>,
         _ line: UInt = #line
     ) {
         assertContains(g, w, t, tr, line)
@@ -29,6 +41,27 @@ final class ComplexTransitionBuilderTests: TestingBase, ComplexTransitionBuilder
         }
         
         assertContains(.locked, .coin, .locked, .true, .false, tr: tr)
+    }
+    
+    func testWhenContext() {
+        let e = expectation(description: "action")
+        e.expectedFulfillmentCount = 2
+        let tr = define(.locked) {
+            context(.coin) {
+                then(.unlocked) | e.fulfill
+                then()          | e.fulfill
+                then(.alarming)
+            }
+        }
+        
+        assertContains(.locked, .coin, .unlocked, tr)
+        assertContains(.locked, .coin, .locked, tr)
+        assertContains(.locked, .coin, .alarming, tr)
+
+        tr[0].actions[0]()
+        tr[1].actions[0]()
+        tr[2].actions.first?()
+        waitForExpectations(timeout: 0.1)
     }
     
     func testActionNestedInPredicateContext() {
@@ -54,6 +87,10 @@ extension Array where Element == P {
 }
 
 extension TableRow {
+    subscript(index: Int) -> Transition<S, E> {
+        transitions[index]
+    }
+    
     var firstActions: [() -> ()] {
         transitions.first?.actions ?? []
     }

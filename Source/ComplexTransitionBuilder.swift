@@ -61,9 +61,69 @@ extension ComplexTransitionBuilder {
             }
         }
     }
+    
+    func context(
+        _ e: Event...,
+        @TAPBuilder<S> rows: () -> [TAPRow<S>],
+        file: String = #file,
+        line: Int = #line
+    ) -> [WTAPRow<S, E>] {
+        context(e, rows: rows, file: file, line: line)
+    }
+    
+    func context(
+        _ e: [Event],
+        @TAPBuilder<S> rows: () -> [TAPRow<S>],
+        file: String = #file,
+        line: Int = #line
+    ) -> [WTAPRow<S, E>] {
+        rows().reduce(into: [WTAPRow]()) {
+            $0.append(WTAPRow(wtap: WTAP(events: e,
+                                         tap: $1.tap,
+                                         file: file,
+                                         line: line)))
+        }
+    }
+    
+    func then() -> Then<S> {
+        Then(state: nil)
+    }
+    
+    func then(_ state: S) -> Then<S> {
+        Then(state: state)
+    }
+    
+    func then() -> TAPRow<S> {
+        .empty
+    }
+    
+    func then(_ state: S) -> TAPRow<S> {
+        TAPRow(tap: TAP(state: state))
+    }
+}
+
+struct Then<S: StateProtocol> {
+    let state: S?
+    
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> TAPRow<S> {
+        lhs | [rhs]
+    }
+    
+    static func | (lhs: Self, rhs: [() -> ()]) -> TAPRow<S> {
+        TAPRow(tap: TAP(state: lhs.state, actions: rhs, predicates: []))
+    }
 }
 
 extension WTAP {
+    init(events: [E], tap: TAP<S>, file: String, line: Int) {
+        self.init(events: events,
+                  state: tap.state,
+                  actions: tap.actions,
+                  predicates: tap.predicates,
+                  file: file,
+                  line: line)
+    }
+    
     func addPredicates(_ p: [any PredicateProtocol]) -> Self {
         WTAP(events: events,
              state: state,
