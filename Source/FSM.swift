@@ -166,7 +166,7 @@ extension SuperState {
     }
 }
 
-extension WhensThenActionsPredicates {
+extension WTAP {
     func makeTransitions(given state: S) -> [Transition<S, E>] {
         events.reduce(into: [Transition]()) {
             $0.append(Transition(g: state,

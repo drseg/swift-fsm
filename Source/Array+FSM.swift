@@ -24,7 +24,7 @@ extension Array {
         map { ($0 as! (TableRow<S, E>)).transitions }.flatten
     }
     
-    func wtas<S: SP, E: EP>() -> [WhensThenActionsPredicates<S, E>] {
+    func wtas<S: SP, E: EP>() -> [WTAP<S, E>] {
         map { ($0 as! (WTAPRow<S, E>)).wtap }.compactMap { $0 }
     }
 }

@@ -16,15 +16,15 @@ final class ComplexTransitionBuilderTests: TestingBase, ComplexTransitionBuilder
         _ line: UInt = #line
     ) {
         assertContains(g, w, t, tr, line)
-        XCTAssertEqual(Set(p.map(\.erased)),
-                       Set(tr.transitions.first?.predicates ?? []),
-                       line: line)
+        XCTAssertEqual(Set(p.erased), Set(tr.firstPredicates), line: line)
     }
     
     func testPredicateContext() {
         let tr = define(.locked) {
-            context(.true, .false) {
-                when(.coin) | ()
+            context(.true) {
+                context(.false) {
+                    when(.coin) | ()
+                }
             }
         }
         
@@ -32,15 +32,34 @@ final class ComplexTransitionBuilderTests: TestingBase, ComplexTransitionBuilder
     }
     
     func testActionNestedInPredicateContext() {
+        let e = expectation(description: "action")
         let tr = define(.locked) {
             context(.true, .false) {
-                context({ }) {
+                context(e.fulfill) {
                     when(.coin) | then(.locked)
                 }
             }
         }
         
         assertContains(.locked, .coin, .locked, .true, .false, tr: tr)
+        tr.firstActions[0]()
+        waitForExpectations(timeout: 0.1)
+    }
+}
+
+extension Array where Element == P {
+    var erased: [AnyPredicate] {
+        map(\.erased)
+    }
+}
+
+extension TableRow {
+    var firstActions: [() -> ()] {
+        transitions.first?.actions ?? []
+    }
+    
+    var firstPredicates: [AnyPredicate] {
+        transitions.first?.predicates ?? []
     }
 }
 

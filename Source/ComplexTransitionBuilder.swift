@@ -46,67 +46,31 @@ protocol ComplexTransitionBuilder: TransitionBuilder {
 extension ComplexTransitionBuilder {
     func context(
         _ p: Predicate...,
-        @WTABuilder<S, E> rows: () -> [WTARow<S, E>]
+        @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
         context(p, rows: rows)
     }
-
+    
     func context(
         _ p: [Predicate],
-        @WTABuilder<S, E> rows: () -> [WTARow<S, E>]
+        @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        rows().reduce(into: [WTAPRow]()) { wtapRows, wtaRow in
-            let wtap = WhensThenActionsPredicates(events: wtaRow.wta.events,
-                                                  state: wtaRow.wta.state,
-                                                  actions: wtaRow.wta.actions,
-                                                  predicates: p.map(\.erased),
-                                                  file: wtaRow.wta.file,
-                                                  line: wtaRow.wta.line)
-            
-            wtapRows.append(WTAPRow(wtap: wtap))
+        rows().reduce(into: [WTAPRow]()) {
+            if let wtap = $1.wtap {
+                $0.append(WTAPRow(wtap: wtap.addPredicates(p)))
+            }
         }
     }
-    
-#warning("duplicate code")
-    func context(
-        _ a1: @escaping () -> (),
-        @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
-    ) -> [WTARow<S, E>] {
-        context([a1], rows)
-    }
-    
-    func context(
-        _ a1: @escaping () -> (),
-        _ a2: (() -> ())? = nil,
-        _ a3: (() -> ())? = nil,
-        _ a4: (() -> ())? = nil,
-        _ a5: (() -> ())? = nil,
-        _ a6: (() -> ())? = nil,
-        _ a7: (() -> ())? = nil,
-        _ a8: (() -> ())? = nil,
-        _ a9: (() -> ())? = nil,
-        _ a0: (() -> ())? = nil,
-        @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
-    ) -> [WTARow<S, E>] {
-        context(
-            [a1, a2, a3, a4, a5, a6, a7, a8, a9, a0].compactMap { $0 },
-            rows
-        )
-    }
-    
-    func context(
-        _ actions: [() -> ()],
-        @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
-    ) -> [WTARow<S, E>] {
-        rows().reduce(into: [WTARow]()) { wtRows, wtRow in
-            let wta = WhensThenActions(events: wtRow.wt.events,
-                                       state: wtRow.wt.state,
-                                       actions: actions,
-                                       file: wtRow.wt.file,
-                                       line: wtRow.wt.line)
-            
-            wtRows.append(WTARow(wta: wta))
-        }
+}
+
+extension WTAP {
+    func addPredicates(_ p: [any PredicateProtocol]) -> Self {
+        WTAP(events: events,
+             state: state,
+             actions: actions,
+             predicates: predicates + p.map(\.erased),
+             file: file,
+             line: line)
     }
 }
 

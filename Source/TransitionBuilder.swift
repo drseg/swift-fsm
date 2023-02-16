@@ -85,14 +85,14 @@ extension TransitionBuilder {
     }
     
     func context(
-        action a1: @escaping () -> (),
-        @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
+        _ a1: @escaping () -> (),
+        @WTAPBuilder<S, E> _ rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        context(actions: [a1], rows)
+        context([a1], rows)
     }
     
     func context(
-        actions a1: @escaping () -> (),
+        _ a1: @escaping () -> (),
         _ a2: (() -> ())? = nil,
         _ a3: (() -> ())? = nil,
         _ a4: (() -> ())? = nil,
@@ -102,27 +102,33 @@ extension TransitionBuilder {
         _ a8: (() -> ())? = nil,
         _ a9: (() -> ())? = nil,
         _ a0: (() -> ())? = nil,
-        @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
+        @WTAPBuilder<S, E> _ rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
         context(
-            actions: [a1, a2, a3, a4, a5, a6, a7, a8, a9, a0].compactMap { $0 },
+            [a1, a2, a3, a4, a5, a6, a7, a8, a9, a0].compactMap { $0 },
             rows
         )
     }
     
     func context(
-        actions: [() -> ()],
-        @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
+        _ actions: [() -> ()],
+        @WTAPBuilder<S, E> _ rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
         rows().reduce(into: [WTAPRow]()) { wtRows, wtRow in
-            let wta = WhensThenActionsPredicates(events: wtRow.wt.events,
-                                                 state: wtRow.wt.state,
-                                                 actions: actions,
-                                                 predicates: [],
-                                                 file: wtRow.wt.file,
-                                                 line: wtRow.wt.line)
-            
-            wtRows.append(WTAPRow(wtap: wta))
+            if let wtap = wtRow.wtap {
+                wtRows.append(WTAPRow(wtap: wtap.addActions(actions)))
+            }
         }
+    }
+}
+
+extension WTAP {
+    func addActions(_ a: [() -> ()]) -> Self {
+        WTAP(events: events,
+             state: state,
+             actions: actions + a,
+             predicates: predicates,
+             file: file,
+             line: line)
     }
 }

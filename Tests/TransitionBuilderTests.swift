@@ -140,25 +140,24 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     
     func testActionBlock() {
         let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 3
+        e.expectedFulfillmentCount = 4
         
         let tr = define(.locked) {
-            context(actions: e.fulfill, e.fulfill) {
+            context(e.fulfill, e.fulfill) {
                 when(.coin)  | then(.unlocked)
-                when(.reset) | ()
             }
 
-            context(action: e.fulfill) {
-                when(.pass)  | then(.locked)
+            context(e.fulfill) {
+                when(.pass)  | then(.locked) | e.fulfill
             }
         }
 
         assertContains(.locked, .coin, .unlocked, tr)
-        assertContains(.locked, .reset, .locked, tr)
         assertContains(.locked, .pass, .locked, tr)
 
         tr.transitions.first?.actions.first?()
         tr.transitions.first?.actions.last?()
+        tr.transitions.last?.actions.first?()
         tr.transitions.last?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
@@ -206,7 +205,7 @@ extension SuperState<TurnstileState, TurnstileEvent> {
     }
 }
 
-extension WhensThenActionsPredicates<TurnstileState, TurnstileEvent> {
+extension WTAP<TurnstileState, TurnstileEvent> {
     var description: String {
         events.reduce("") {
             $0 + String("(\($1.rawValue), \(state?.rawValue))\n")

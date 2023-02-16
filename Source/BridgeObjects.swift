@@ -14,24 +14,16 @@ struct TableRow<S: SP, E: EP> {
 }
 
 struct WTAPRow<S: SP, E: EP> {
-    let wtap: WhensThenActionsPredicates<S, E>?
+    let wtap: WTAP<S, E>?
     let modifiers: RowModifiers<S, E>
     
     init(
-        wtap: WhensThenActionsPredicates<S, E>? = nil,
+        wtap: WTAP<S, E>? = nil,
         modifiers: RowModifiers<S, E> = .none
     ) {
         self.wtap = wtap
         self.modifiers = modifiers
     }
-}
-
-struct WTARow<S: SP, E: EP> {
-    let wta: WhensThenActions<S, E>
-}
-
-struct WTRow<S: SP, E: EP> {
-    let wt: WhensThen<S, E>
 }
 
 struct RowModifiers<S: SP, E: EP> {
@@ -55,7 +47,7 @@ struct RowModifiers<S: SP, E: EP> {
 }
 
 struct SuperState<S: SP, E: EP>: Hashable {
-    let wtas: [WhensThenActionsPredicates<S, E>]
+    let wtas: [WTAP<S, E>]
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(wtas)
@@ -74,42 +66,11 @@ struct Whens<S: SP, E: EP> {
                   line: lhs.line) | []
     }
     
-    static func | (lhs: Self, _: ()) -> WTARow<S, E> {
-        WhensThen(events: lhs.events,
-                  state: nil,
-                  file: lhs.file,
-                  line: lhs.line) | []
-    }
-    
     static func | (lhs: Self, rhs: S) -> WTAPRow<S, E> {
         WhensThen(events: lhs.events,
                   state: rhs,
                   file: lhs.file,
                   line: lhs.line) | []
-    }
-    static func | (lhs: Self, rhs: S) -> WTARow<S, E> {
-        WhensThen(events: lhs.events,
-                  state: rhs,
-                  file: lhs.file,
-                  line: lhs.line) | []
-    }
-    
-    static func | (lhs: Self, rhs: ()) -> WTRow<S, E> {
-        let wt = WhensThen<S, E>(events: lhs.events,
-                                 state: nil,
-                                 file: lhs.file,
-                                 line: lhs.line)
-        
-        return WTRow(wt: wt)
-    }
-    
-    static func | (lhs: Self, rhs: S) -> WTRow<S, E> {
-        let wt = WhensThen(events: lhs.events,
-                           state: rhs,
-                           file: lhs.file,
-                           line: lhs.line)
-        
-        return WTRow(wt: wt)
     }
     
     static func | (lhs: Self, _: ()) -> WhensThen<S, E> {
@@ -136,12 +97,8 @@ struct WhensThen<S: SP, E: EP> {
         lhs | [rhs]
     }
     
-    static func | (lhs: Self, rhs: @escaping () -> ()) -> WTARow<S, E> {
-        lhs | [rhs]
-    }
-    
     static func | (lhs: Self, rhs: [() -> ()]) -> WTAPRow<S, E> {
-        let wta = WhensThenActionsPredicates(events: lhs.events,
+        let wta = WTAP(events: lhs.events,
                                              state: lhs.state,
                                              actions: rhs,
                                              predicates: [],
@@ -150,39 +107,13 @@ struct WhensThen<S: SP, E: EP> {
         return WTAPRow(wtap: wta, modifiers: .none)
     }
     
-    static func | (lhs: Self, rhs: [() -> ()]) -> WTARow<S, E> {
-        let wta = WhensThenActions(events: lhs.events,
-                                   state: lhs.state,
-                                   actions: rhs,
-                                   file: lhs.file,
-                                   line: lhs.line)
-        return WTARow(wta: wta)
-    }
-    
     let events: [E]
     let state: S?
-    let file: String
-    let line: Int
-}
-struct WhensThenActions<S: SP, E: EP>: Hashable {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.events == rhs.events &&
-        lhs.state == rhs.state
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(events)
-        hasher.combine(state)
-    }
-    
-    let events: [E]
-    let state: S?
-    let actions: [() -> ()]
     let file: String
     let line: Int
 }
 
-struct WhensThenActionsPredicates<S: SP, E: EP>: Hashable {
+struct WTAP<S: SP, E: EP>: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.events == rhs.events &&
         lhs.state == rhs.state &&
