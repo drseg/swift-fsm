@@ -166,13 +166,14 @@ extension SuperState {
     }
 }
 
-extension WhensThenActions {
+extension WhensThenActionsPredicates {
     func makeTransitions(given state: S) -> [Transition<S, E>] {
         events.reduce(into: [Transition]()) {
             $0.append(Transition(g: state,
                                  w: $1,
                                  t: self.state ?? state,
                                  a: actions,
+                                 p: predicates,
                                  f: file,
                                  l: line))
         }

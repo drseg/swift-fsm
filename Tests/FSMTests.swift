@@ -1,10 +1,3 @@
-//
-//  FSMTests.swift
-//  FiniteStateMachineTests
-//
-//  Created by Daniel Segall on 15/02/2023.
-//
-
 import XCTest
 @testable import FiniteStateMachine
 

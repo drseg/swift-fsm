@@ -24,7 +24,7 @@ extension TransitionBuilder {
     
     func define(
         _ states: S...,
-        @WTABuilder<S, E> rows: () -> [WTARow<S, E>]
+        @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> TableRow<S, E> {
         let rows = rows()
         
@@ -49,27 +49,27 @@ extension TransitionBuilder {
     
     private func formTransitions(
         states: [S],
-        rows: [WTARow<S, E>]
+        rows: [WTAPRow<S, E>]
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
             rows.forEach { row in
-                if let wta = row.wta {
+                if let wta = row.wtap {
                     ts.append(contentsOf: wta.makeTransitions(given: given))
                 }
             }
         }
     }
     
-    func onEnter(_ actions: () -> ()...) -> WTARow<S, E> {
-        WTARow(modifiers: RowModifiers(entryActions: actions))
+    func onEnter(_ actions: () -> ()...) -> WTAPRow<S, E> {
+        WTAPRow(modifiers: RowModifiers(entryActions: actions))
     }
     
-    func onExit(_ actions: () -> ()...) -> WTARow<S, E> {
-        WTARow(modifiers: RowModifiers(exitActions: actions))
+    func onExit(_ actions: () -> ()...) -> WTAPRow<S, E> {
+        WTAPRow(modifiers: RowModifiers(exitActions: actions))
     }
     
-    func implements(_ s: SuperState<S, E>...) -> WTARow<S, E> {
-        WTARow(modifiers: RowModifiers(superStates: s))
+    func implements(_ s: SuperState<S, E>...) -> WTAPRow<S, E> {
+        WTAPRow(modifiers: RowModifiers(superStates: s))
     }
     
     func when(
@@ -87,7 +87,7 @@ extension TransitionBuilder {
     func context(
         action a1: @escaping () -> (),
         @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
-    ) -> [WTARow<S, E>] {
+    ) -> [WTAPRow<S, E>] {
         context(actions: [a1], rows)
     }
     
@@ -103,7 +103,7 @@ extension TransitionBuilder {
         _ a9: (() -> ())? = nil,
         _ a0: (() -> ())? = nil,
         @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
-    ) -> [WTARow<S, E>] {
+    ) -> [WTAPRow<S, E>] {
         context(
             actions: [a1, a2, a3, a4, a5, a6, a7, a8, a9, a0].compactMap { $0 },
             rows
@@ -113,15 +113,16 @@ extension TransitionBuilder {
     func context(
         actions: [() -> ()],
         @WTBuilder<S, E> _ rows: () -> [WTRow<S, E>]
-    ) -> [WTARow<S, E>] {
-        rows().reduce(into: [WTARow]()) { wtRows, wtRow in
-            let wta = WhensThenActions(events: wtRow.wt.events,
-                                       state: wtRow.wt.state,
-                                       actions: actions,
-                                       file: wtRow.wt.file,
-                                       line: wtRow.wt.line)
+    ) -> [WTAPRow<S, E>] {
+        rows().reduce(into: [WTAPRow]()) { wtRows, wtRow in
+            let wta = WhensThenActionsPredicates(events: wtRow.wt.events,
+                                                 state: wtRow.wt.state,
+                                                 actions: actions,
+                                                 predicates: [],
+                                                 file: wtRow.wt.file,
+                                                 line: wtRow.wt.line)
             
-            wtRows.append(WTARow(wta: wta))
+            wtRows.append(WTAPRow(wtap: wta))
         }
     }
 }

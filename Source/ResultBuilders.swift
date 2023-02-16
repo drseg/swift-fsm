@@ -31,6 +31,11 @@ struct TableBuilder<S: SP, E: EP>: ResultBuilder {
 }
 
 @resultBuilder
+struct WTAPBuilder<S: SP, E: EP>: ResultBuilder {
+    typealias T = WTAPRow<S, E>
+}
+
+@resultBuilder
 struct WTABuilder<S: SP, E: EP>: ResultBuilder {
     typealias T = WTARow<S, E>
 }

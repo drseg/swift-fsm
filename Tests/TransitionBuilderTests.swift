@@ -1,10 +1,3 @@
-//
-//  TransitionBuilderProtocolTests.swift
-//  FiniteStateMachineTests
-//
-//  Created by Daniel Segall on 12/02/2023.
-//
-
 import Foundation
 import XCTest
 @testable import FiniteStateMachine
@@ -25,7 +18,6 @@ class TestingBase: XCTestCase {
         _ e: Event,
         _ s: State,
         _ ss: SuperState<State, Event>,
-        _ file: StaticString = #file,
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
@@ -33,7 +25,7 @@ class TestingBase: XCTestCase {
                 $0.state == s && $0.events.contains(e)
             })
             , "\n(\(e), \(s)) not found in: \n\(ss.description)",
-            file: file, line: line)
+            line: line)
     }
     
     func assertContains(
@@ -41,7 +33,6 @@ class TestingBase: XCTestCase {
         _ w: Event,
         _ t: State,
         _ tr: TableRow<State, Event>,
-        _ file: StaticString = #file,
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
@@ -50,11 +41,12 @@ class TestingBase: XCTestCase {
                            w: w,
                            t: t,
                            a: [],
+                           p: [],
                            f: "",
                            l: 0)
             )
             , "\n(\(g), \(w), \(t)) not found in: \n\(tr.description)",
-            file: file, line: line)
+            line: line)
     }
     
     var s: SuperState<State, Event>!
@@ -214,7 +206,7 @@ extension SuperState<TurnstileState, TurnstileEvent> {
     }
 }
 
-extension WhensThenActions<TurnstileState, TurnstileEvent> {
+extension WhensThenActionsPredicates<TurnstileState, TurnstileEvent> {
     var description: String {
         events.reduce("") {
             $0 + String("(\($1.rawValue), \(state?.rawValue))\n")

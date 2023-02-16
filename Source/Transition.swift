@@ -27,7 +27,7 @@ struct Transition<S: SP, E: EP>: Equatable {
     let file: String
     let line: Int
     
-    init(g: S, w: E, t: S, a: [() -> ()], p: [AnyPredicate] = [], f: String, l: Int) {
+    init(g: S, w: E, t: S, a: [() -> ()], p: [AnyPredicate], f: String, l: Int) {
         givenState = g
         event = w
         nextState = t

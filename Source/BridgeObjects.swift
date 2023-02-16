@@ -13,17 +13,21 @@ struct TableRow<S: SP, E: EP> {
     let givenStates: any Collection<S>
 }
 
-struct WTARow<S: SP, E: EP> {
-    let wta: WhensThenActions<S, E>?
+struct WTAPRow<S: SP, E: EP> {
+    let wtap: WhensThenActionsPredicates<S, E>?
     let modifiers: RowModifiers<S, E>
     
     init(
-        wta: WhensThenActions<S, E>? = nil,
+        wtap: WhensThenActionsPredicates<S, E>? = nil,
         modifiers: RowModifiers<S, E> = .none
     ) {
-        self.wta = wta
+        self.wtap = wtap
         self.modifiers = modifiers
     }
+}
+
+struct WTARow<S: SP, E: EP> {
+    let wta: WhensThenActions<S, E>
 }
 
 struct WTRow<S: SP, E: EP> {
@@ -51,18 +55,25 @@ struct RowModifiers<S: SP, E: EP> {
 }
 
 struct SuperState<S: SP, E: EP>: Hashable {
-    let wtas: [WhensThenActions<S, E>]
+    let wtas: [WhensThenActionsPredicates<S, E>]
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(wtas)
     }
     
-    init(@WTABuilder<S, E> _ content: () -> [WTARow<S, E>]) {
+    init(@WTAPBuilder<S, E> _ content: () -> [WTAPRow<S, E>]) {
         wtas = content().wtas()
     }
 }
 
 struct Whens<S: SP, E: EP> {
+    static func | (lhs: Self, _: ()) -> WTAPRow<S, E> {
+        WhensThen(events: lhs.events,
+                  state: nil,
+                  file: lhs.file,
+                  line: lhs.line) | []
+    }
+    
     static func | (lhs: Self, _: ()) -> WTARow<S, E> {
         WhensThen(events: lhs.events,
                   state: nil,
@@ -70,6 +81,12 @@ struct Whens<S: SP, E: EP> {
                   line: lhs.line) | []
     }
     
+    static func | (lhs: Self, rhs: S) -> WTAPRow<S, E> {
+        WhensThen(events: lhs.events,
+                  state: rhs,
+                  file: lhs.file,
+                  line: lhs.line) | []
+    }
     static func | (lhs: Self, rhs: S) -> WTARow<S, E> {
         WhensThen(events: lhs.events,
                   state: rhs,
@@ -115,8 +132,22 @@ struct Whens<S: SP, E: EP> {
 }
 
 struct WhensThen<S: SP, E: EP> {
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> WTAPRow<S, E> {
+        lhs | [rhs]
+    }
+    
     static func | (lhs: Self, rhs: @escaping () -> ()) -> WTARow<S, E> {
         lhs | [rhs]
+    }
+    
+    static func | (lhs: Self, rhs: [() -> ()]) -> WTAPRow<S, E> {
+        let wta = WhensThenActionsPredicates(events: lhs.events,
+                                             state: lhs.state,
+                                             actions: rhs,
+                                             predicates: [],
+                                             file: lhs.file,
+                                             line: lhs.line)
+        return WTAPRow(wtap: wta, modifiers: .none)
     }
     
     static func | (lhs: Self, rhs: [() -> ()]) -> WTARow<S, E> {
@@ -125,7 +156,7 @@ struct WhensThen<S: SP, E: EP> {
                                    actions: rhs,
                                    file: lhs.file,
                                    line: lhs.line)
-        return WTARow(wta: wta, modifiers: .none)
+        return WTARow(wta: wta)
     }
     
     let events: [E]
@@ -133,8 +164,25 @@ struct WhensThen<S: SP, E: EP> {
     let file: String
     let line: Int
 }
-
 struct WhensThenActions<S: SP, E: EP>: Hashable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.events == rhs.events &&
+        lhs.state == rhs.state
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(events)
+        hasher.combine(state)
+    }
+    
+    let events: [E]
+    let state: S?
+    let actions: [() -> ()]
+    let file: String
+    let line: Int
+}
+
+struct WhensThenActionsPredicates<S: SP, E: EP>: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.events == rhs.events &&
         lhs.state == rhs.state &&
@@ -153,20 +201,4 @@ struct WhensThenActions<S: SP, E: EP>: Hashable {
     let predicates: [AnyPredicate]
     let file: String
     let line: Int
-    
-    init(
-        events: [E],
-        state: S?,
-        actions: [() -> ()],
-        predicates: [AnyPredicate] = [],
-        file: String,
-        line: Int
-    ) {
-        self.events = events
-        self.state = state
-        self.actions = actions
-        self.predicates = predicates
-        self.file = file
-        self.line = line
-    }
 }
