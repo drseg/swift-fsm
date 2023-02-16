@@ -19,6 +19,14 @@ final class ComplexTransitionBuilderTests:
         assertContains(g, w, t, p, tr, line)
     }
     
+    func assertCount(
+        _ c: Int,
+        _ tr: TableRow<State, Event>,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(c, tr.transitions.count, line: line)
+    }
+    
     func assertContains(
         _ g: State,
         _ w: Event,
@@ -33,11 +41,19 @@ final class ComplexTransitionBuilderTests:
         XCTAssertTrue(predicates.contains(expected), "\(predicates)", line: line)
     }
     
-    func testWithExpectation(count: Int = 1, _ block: (XCTestExpectation) -> ()) {
+    func testWithExpectation(
+        count: Int = 1,
+        line: UInt = #line,
+        _ block: (XCTestExpectation) -> ()
+    ) {
         let e = expectation(description: "action")
         e.expectedFulfillmentCount = count
         block(e)
-        waitForExpectations(timeout: 0.1)
+        waitForExpectations(timeout: 0.1) { e in
+            if let e {
+                XCTFail(e.localizedDescription, line: line)
+            }
+        }
     }
     
     func testPredicateContext() {
@@ -136,7 +152,7 @@ final class ComplexTransitionBuilderTests:
             assertContains(.locked, .coin, .unlocked, tr)
             assertContains(.locked, .coin, .locked, tr)
             assertContains(.locked, .coin, .alarming, tr)
-            XCTAssertEqual(tr.transitions.count, 4)
+            assertCount(4, tr)
             
             tr[0].actions.first?()
             tr[1].actions.first?()
@@ -158,7 +174,7 @@ final class ComplexTransitionBuilderTests:
             }
             
             assertContains(.locked, .coin, .unlocked, tr)
-            XCTAssertEqual(tr.transitions.count, 8)
+            assertCount(8, tr)
             
             tr[0].actions.first?()
             tr[1].actions.first?()
@@ -185,8 +201,8 @@ final class ComplexTransitionBuilderTests:
             }
             
             assertContains(.locked, .coin, .unlocked, tr)
-            XCTAssertEqual(tr.transitions.count, 8)
-            
+            assertCount(8, tr)
+
             tr[0].actions.first?()
             tr[1].actions.first?()
             tr[2].actions.first?()
@@ -199,16 +215,11 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func testWhenPlusPredicate() {
-        testWithExpectation(count: 4) { e in
+    func testWhenPlusSinglePredicate() {
+        testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
                 when(.coin) {
-                    then(.unlocked)
-                    then()
-                    then(.unlocked) | e.fulfill
-                    then()          | e.fulfill
-                    
                     predicate(.a) {
                         then(.alarming)
                         then()
@@ -218,20 +229,61 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, tr)
             assertContains(.locked, .coin, .alarming, .a, tr: tr)
-            
-            XCTAssertEqual(tr.transitions.count, 8)
-            
+            assertCount(4, tr)
+
             tr[0].actions.first?()
             tr[1].actions.first?()
             tr[2].actions[0]()
             tr[3].actions[0]()
+        }
+    }
+    
+    func testWhenPlusPredicates() {
+        testWithExpectation(count: 2) { e in
+            let tr =
+            define(.locked) {
+                when(.coin) {
+                    predicate(.a, .b) {
+                        then(.alarming)
+                        then()
+                        then(.alarming) | e.fulfill
+                        then()          | e.fulfill
+                    }
+                }
+            }
             
-            tr[4].actions.first?()
-            tr[5].actions.first?()
-            tr[6].actions[0]()
-            tr[7].actions[0]()
+            assertContains(.locked, .coin, .alarming, .a, .b, tr: tr)
+            assertCount(4, tr)
+
+            tr[0].actions.first?()
+            tr[1].actions.first?()
+            tr[2].actions[0]()
+            tr[3].actions[0]()
+        }
+    }
+    
+    func testWhenPlusArrayPredicates() {
+        testWithExpectation(count: 2) { e in
+            let tr =
+            define(.locked) {
+                when(.coin) {
+                    predicate([.a, .b]) {
+                        then(.alarming)
+                        then()
+                        then(.alarming) | e.fulfill
+                        then()          | e.fulfill
+                    }
+                }
+            }
+            
+            assertContains(.locked, .coin, .alarming, .a, .b, tr: tr)
+            assertCount(4, tr)
+
+            tr[0].actions.first?()
+            tr[1].actions.first?()
+            tr[2].actions[0]()
+            tr[3].actions[0]()
         }
     }
 }
