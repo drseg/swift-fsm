@@ -84,14 +84,14 @@ extension TransitionBuilder {
         state
     }
     
-    func context(
+    func action(
         _ a1: @escaping () -> (),
         @WTAPBuilder<S, E> _ rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        context([a1], rows)
+        actions([a1], rows)
     }
     
-    func context(
+    func actions(
         _ a1: @escaping () -> (),
         _ a2: (() -> ())? = nil,
         _ a3: (() -> ())? = nil,
@@ -104,13 +104,13 @@ extension TransitionBuilder {
         _ a0: (() -> ())? = nil,
         @WTAPBuilder<S, E> _ rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        context(
+        actions(
             [a1, a2, a3, a4, a5, a6, a7, a8, a9, a0].compactMap { $0 },
             rows
         )
     }
     
-    func context(
+    func actions(
         _ actions: [() -> ()],
         @WTAPBuilder<S, E> _ rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {

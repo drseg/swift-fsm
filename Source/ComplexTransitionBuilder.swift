@@ -44,14 +44,14 @@ protocol ComplexTransitionBuilder: TransitionBuilder {
 }
 
 extension ComplexTransitionBuilder {
-    func context(
+    func predicate(
         _ p: Predicate...,
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        context(p, rows: rows)
+        predicate(p, rows: rows)
     }
     
-    func context(
+    func predicate(
         _ p: [Predicate],
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
@@ -62,16 +62,32 @@ extension ComplexTransitionBuilder {
         }
     }
     
-    func context(
+    func predicate(
+        _ p: Predicate...,
+        @TAPBuilder<S> rows: () -> [TAPRow<S>]
+    ) -> [TAPRow<S>] {
+        predicate(p, rows: rows)
+    }
+    
+    func predicate(
+        _ p: [Predicate],
+        @TAPBuilder<S> rows: () -> [TAPRow<S>]
+    ) -> [TAPRow<S>] {
+        rows().reduce(into: [TAPRow]()) {
+            $0.append(TAPRow(tap: $1.tap.addPredicates(p)))
+        }
+    }
+    
+    func when(
         _ e: Event...,
         @TAPBuilder<S> rows: () -> [TAPRow<S>],
         file: String = #file,
         line: Int = #line
     ) -> [WTAPRow<S, E>] {
-        context(e, rows: rows, file: file, line: line)
+        when(e, rows: rows, file: file, line: line)
     }
     
-    func context(
+    func when(
         _ e: [Event],
         @TAPBuilder<S> rows: () -> [TAPRow<S>],
         file: String = #file,
@@ -125,12 +141,20 @@ extension WTAP {
     }
     
     func addPredicates(_ p: [any PredicateProtocol]) -> Self {
-        WTAP(events: events,
+        .init(events: events,
              state: state,
              actions: actions,
              predicates: predicates + p.map(\.erased),
              file: file,
              line: line)
+    }
+}
+
+extension TAP {
+    func addPredicates(_ p: [any PredicateProtocol]) -> Self {
+        .init(state: state,
+              actions: actions,
+              predicates: predicates + p.map(\.erased))
     }
 }
 

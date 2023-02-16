@@ -143,11 +143,11 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         e.expectedFulfillmentCount = 4
         
         let tr = define(.locked) {
-            context(e.fulfill, e.fulfill) {
+            actions(e.fulfill, e.fulfill) {
                 when(.coin)  | then(.unlocked)
             }
 
-            context(e.fulfill) {
+            action(e.fulfill) {
                 when(.pass)  | then(.locked) | e.fulfill
             }
         }
