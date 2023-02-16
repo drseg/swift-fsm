@@ -67,30 +67,16 @@ struct SuperState<S: SP, E: EP>: Hashable {
 }
 
 struct Whens<S: SP, E: EP> {
-    static func | (lhs: Self, _: ()) -> WTAPRow<S, E> {
+    static func | (lhs: Self, rhs: Then<S>) -> WTAPRow<S, E> {
         WhensThen(events: lhs.events,
-                  state: nil,
+                  state: rhs.state,
                   file: lhs.file,
                   line: lhs.line) | []
     }
     
-    static func | (lhs: Self, rhs: S) -> WTAPRow<S, E> {
+    static func | (lhs: Self, rhs: Then<S>) -> WhensThen<S, E> {
         WhensThen(events: lhs.events,
-                  state: rhs,
-                  file: lhs.file,
-                  line: lhs.line) | []
-    }
-    
-    static func | (lhs: Self, _: ()) -> WhensThen<S, E> {
-        WhensThen(events: lhs.events,
-                  state: nil,
-                  file: lhs.file,
-                  line: lhs.line)
-    }
-    
-    static func | (lhs: Self, rhs: S) -> WhensThen<S, E> {
-        WhensThen(events: lhs.events,
-                  state: rhs,
+                  state: rhs.state,
                   file: lhs.file,
                   line: lhs.line)
     }
@@ -98,6 +84,18 @@ struct Whens<S: SP, E: EP> {
     let events: [E]
     let file: String
     let line: Int
+}
+
+struct Then<S: StateProtocol> {
+    let state: S?
+    
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> TAPRow<S> {
+        lhs | [rhs]
+    }
+    
+    static func | (lhs: Self, rhs: [() -> ()]) -> TAPRow<S> {
+        TAPRow(tap: TAP(state: lhs.state, actions: rhs, predicates: []))
+    }
 }
 
 struct WhensThen<S: SP, E: EP> {

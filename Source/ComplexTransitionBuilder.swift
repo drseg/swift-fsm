@@ -80,6 +80,19 @@ extension ComplexTransitionBuilder {
     
     func when(
         _ e: Event...,
+        file: String = #file,
+        line: Int = #line
+    ) -> WTAPRow<S, E> {
+        WTAPRow(wtap: WTAP<S, E>(events: e,
+                                 state: nil,
+                                 actions: [],
+                                 predicates: [],
+                                 file: file,
+                                 line: line))
+    }
+    
+    func when(
+        _ e: Event...,
         @TAPBuilder<S> rows: () -> [TAPRow<S>],
         file: String = #file,
         line: Int = #line
@@ -101,32 +114,8 @@ extension ComplexTransitionBuilder {
         }
     }
     
-    func then() -> Then<S> {
-        Then(state: nil)
-    }
-    
-    func then(_ state: S) -> Then<S> {
-        Then(state: state)
-    }
-    
-    func then() -> TAPRow<S> {
-        .empty
-    }
-    
     func then(_ state: S) -> TAPRow<S> {
         TAPRow(tap: TAP(state: state))
-    }
-}
-
-struct Then<S: StateProtocol> {
-    let state: S?
-    
-    static func | (lhs: Self, rhs: @escaping () -> ()) -> TAPRow<S> {
-        lhs | [rhs]
-    }
-    
-    static func | (lhs: Self, rhs: [() -> ()]) -> TAPRow<S> {
-        TAPRow(tap: TAP(state: lhs.state, actions: rhs, predicates: []))
     }
 }
 

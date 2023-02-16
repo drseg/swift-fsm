@@ -272,7 +272,7 @@ class FSMPerformanceTests: FSMTests, TransitionBuilder {
         
         let switcher = SwitchFSM(pass: pass)
         let transitions = define(.unlocked) {
-            when(.reset) | () | pass
+            when(.reset) | then() | pass
         }
         
         try? switcher.buildTransitions { transitions }

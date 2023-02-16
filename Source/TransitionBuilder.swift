@@ -80,8 +80,16 @@ extension TransitionBuilder {
         Whens(events: events, file: file, line: line)
     }
     
-    func then(_ state: S) -> S {
-        state
+    func then() -> Then<S> {
+        Then(state: nil)
+    }
+    
+    func then(_ state: S) -> Then<S> {
+        Then(state: state)
+    }
+    
+    func then() -> TAPRow<S> {
+        .empty
     }
     
     func action(

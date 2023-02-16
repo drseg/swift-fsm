@@ -114,8 +114,8 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     
     func testDefaultThen() {
         let tr = define(.locked) {
-            when(.reset) | ()
-            when(.pass)  | () | {}
+            when(.reset) | then()
+            when(.pass)  | then() | {}
         }
         
         assertContains(.locked, .reset, .locked, tr)
