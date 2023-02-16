@@ -33,215 +33,206 @@ final class ComplexTransitionBuilderTests:
         XCTAssertTrue(predicates.contains(expected), "\(predicates)", line: line)
     }
     
-    func testPredicateContext() {
+    func testWithExpectation(count: Int = 1, _ block: (XCTestExpectation) -> ()) {
         let e = expectation(description: "action")
-        let tr =
-        define(.locked) {
-            predicate(.a) {
-                predicate(.b, .c) {
-                    predicate([.d, .e]) {
-                        when(.coin) | then() | e.fulfill
+        e.expectedFulfillmentCount = count
+        block(e)
+        waitForExpectations(timeout: 0.1)
+    }
+    
+    func testPredicateContext() {
+        testWithExpectation { e in
+            let tr =
+            define(.locked) {
+                predicate(.a) {
+                    predicate(.b, .c) {
+                        predicate([.d, .e]) {
+                            when(.coin) | then() | e.fulfill
+                        }
                     }
                 }
             }
+            
+            assertContains(.locked, .coin, .locked, .a, .b, .c, .d, .e, tr: tr)
+            tr.firstActions[0]()
         }
-        
-        assertContains(.locked, .coin, .locked, .a, .b, .c, .d, .e, tr: tr)
-        tr.firstActions[0]()
-        waitForExpectations(timeout: 0.1)
     }
     
     func testActionNestedInPredicateContext() {
-        let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 3
-        
-        let tr =
-        define(.locked) {
-            predicate(.a) {
-                action(e.fulfill) {
-                    when(.coin) | then(.unlocked)
-                    when(.pass) | then()
-                    when(.reset)
+        testWithExpectation(count: 3) { e in
+            let tr =
+            define(.locked) {
+                predicate(.a) {
+                    action(e.fulfill) {
+                        when(.coin) | then(.unlocked)
+                        when(.pass) | then()
+                        when(.reset)
+                    }
                 }
             }
+            
+            assertContains(.locked, .coin, .unlocked, .a, tr: tr)
+            assertContains(.locked, .pass, .locked, .a, tr: tr)
+            assertContains(.locked, .reset, .locked, .a, tr: tr)
+            
+            tr.transitions.map(\.actions).flatten.executeAll()
         }
-        
-        assertContains(.locked, .coin, .unlocked, .a, tr: tr)
-        assertContains(.locked, .pass, .locked, .a, tr: tr)
-        assertContains(.locked, .reset, .locked, .a, tr: tr)
-        
-        tr.transitions.map(\.actions).flatten.executeAll()
-        waitForExpectations(timeout: 0.1)
     }
     
     func testActionsNestedInPredicateContext() {
-        let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 6
-        
-        let tr =
-        define(.locked) {
-            predicate(.a) {
-                actions(e.fulfill, e.fulfill) {
-                    when(.coin) | then(.unlocked)
-                    when(.pass) | then()
-                    when(.reset)
+        testWithExpectation(count: 6) { e in
+            let tr =
+            define(.locked) {
+                predicate(.a) {
+                    actions(e.fulfill, e.fulfill) {
+                        when(.coin) | then(.unlocked)
+                        when(.pass) | then()
+                        when(.reset)
+                    }
                 }
             }
+            
+            assertContains(.locked, .coin, .unlocked, .a, tr: tr)
+            assertContains(.locked, .pass, .locked, .a, tr: tr)
+            assertContains(.locked, .reset, .locked, .a, tr: tr)
+            
+            tr.transitions.map(\.actions).flatten.executeAll()
         }
-        
-        assertContains(.locked, .coin, .unlocked, .a, tr: tr)
-        assertContains(.locked, .pass, .locked, .a, tr: tr)
-        assertContains(.locked, .reset, .locked, .a, tr: tr)
-        
-        tr.transitions.map(\.actions).flatten.executeAll()
-        waitForExpectations(timeout: 0.1)
     }
     
     func testArrayActionsNestedInPredicateContext() {
-        let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 6
-        
-        let tr =
-        define(.locked) {
-            predicate(.a) {
-                actions([e.fulfill, e.fulfill]) {
-                    when(.coin) | then(.unlocked)
-                    when(.pass) | then()
-                    when(.reset)
+        testWithExpectation(count: 6) { e in
+            let tr =
+            define(.locked) {
+                predicate(.a) {
+                    actions([e.fulfill, e.fulfill]) {
+                        when(.coin) | then(.unlocked)
+                        when(.pass) | then()
+                        when(.reset)
+                    }
                 }
             }
+            
+            assertContains(.locked, .coin, .unlocked, .a, tr: tr)
+            assertContains(.locked, .pass, .locked, .a, tr: tr)
+            assertContains(.locked, .reset, .locked, .a, tr: tr)
+            
+            tr.transitions.map(\.actions).flatten.executeAll()
         }
-        
-        assertContains(.locked, .coin, .unlocked, .a, tr: tr)
-        assertContains(.locked, .pass, .locked, .a, tr: tr)
-        assertContains(.locked, .reset, .locked, .a, tr: tr)
-        
-        tr.transitions.map(\.actions).flatten.executeAll()
-        waitForExpectations(timeout: 0.1)
     }
     
     func testSingleWhenContext() {
-        let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 2
-        
-        let tr =
-        define(.locked) {
-            when(.coin) {
-                then(.unlocked)
-                then()
-                then(.unlocked) | e.fulfill
-                then()          | e.fulfill
-            }
-        }
-        
-        assertContains(.locked, .coin, .unlocked, tr)
-        XCTAssertEqual(tr.transitions.count, 4)
-
-        tr[0].actions.first?()
-        tr[1].actions.first?()
-        tr[2].actions[0]()
-        tr[3].actions[0]()
-        
-        waitForExpectations(timeout: 0.1)
-    }
-    
-    func testMultipleWhenContext() {
-        let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 4
-        
-        let tr =
-        define(.locked) {
-            when(.coin, .pass) {
-                then(.unlocked)
-                then()
-                then(.unlocked) | e.fulfill
-                then()          | e.fulfill
-            }
-        }
-        
-        assertContains(.locked, .coin, .unlocked, tr)
-        XCTAssertEqual(tr.transitions.count, 8)
-
-        tr[0].actions.first?()
-        tr[1].actions.first?()
-        tr[2].actions.first?()
-        tr[3].actions.first?()
-        
-        tr[4].actions[0]()
-        tr[5].actions[0]()
-        tr[6].actions[0]()
-        tr[7].actions[0]()
-        
-        waitForExpectations(timeout: 0.1)
-    }
-    
-    func testWhenArrayContext() {
-        let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 4
-        
-        let tr =
-        define(.locked) {
-            when([.coin, .pass]) {
-                then(.unlocked)
-                then()
-                then(.unlocked) | e.fulfill
-                then()          | e.fulfill
-            }
-        }
-        
-        assertContains(.locked, .coin, .unlocked, tr)
-        XCTAssertEqual(tr.transitions.count, 8)
-
-        tr[0].actions.first?()
-        tr[1].actions.first?()
-        tr[2].actions.first?()
-        tr[3].actions.first?()
-        
-        tr[4].actions[0]()
-        tr[5].actions[0]()
-        tr[6].actions[0]()
-        tr[7].actions[0]()
-        
-        waitForExpectations(timeout: 0.1)
-    }
-    
-    func testWhenPlusPredicate() {
-        let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 4
-        
-        let tr =
-        define(.locked) {
-            when(.coin) {
-                then(.unlocked)
-                then()
-                then(.unlocked) | e.fulfill
-                then()          | e.fulfill
-
-                predicate(.a) {
-                    then(.alarming)
+        testWithExpectation(count: 2) { e in
+            let tr =
+            define(.locked) {
+                when(.coin) {
+                    then(.unlocked)
                     then()
                     then(.alarming) | e.fulfill
                     then()          | e.fulfill
                 }
             }
+            
+            assertContains(.locked, .coin, .unlocked, tr)
+            assertContains(.locked, .coin, .locked, tr)
+            assertContains(.locked, .coin, .alarming, tr)
+            XCTAssertEqual(tr.transitions.count, 4)
+            
+            tr[0].actions.first?()
+            tr[1].actions.first?()
+            tr[2].actions[0]()
+            tr[3].actions[0]()
         }
-        
-        assertContains(.locked, .coin, .unlocked, tr)
-        assertContains(.locked, .coin, .alarming, .a, tr: tr)
-        
-        XCTAssertEqual(tr.transitions.count, 8)
-
-        tr[0].actions.first?()
-        tr[1].actions.first?()
-        tr[2].actions[0]()
-        tr[3].actions[0]()
-        
-        tr[4].actions.first?()
-        tr[5].actions.first?()
-        tr[6].actions[0]()
-        tr[7].actions[0]()
-
-        waitForExpectations(timeout: 0.1)
+    }
+    
+    func testMultipleWhenContext() {
+        testWithExpectation(count: 4) { e in
+            let tr =
+            define(.locked) {
+                when(.coin, .pass) {
+                    then(.unlocked)
+                    then()
+                    then(.unlocked) | e.fulfill
+                    then()          | e.fulfill
+                }
+            }
+            
+            assertContains(.locked, .coin, .unlocked, tr)
+            XCTAssertEqual(tr.transitions.count, 8)
+            
+            tr[0].actions.first?()
+            tr[1].actions.first?()
+            tr[2].actions.first?()
+            tr[3].actions.first?()
+            
+            tr[4].actions[0]()
+            tr[5].actions[0]()
+            tr[6].actions[0]()
+            tr[7].actions[0]()
+        }
+    }
+    
+    func testWhenArrayContext() {
+        testWithExpectation(count: 4) { e in
+            let tr =
+            define(.locked) {
+                when([.coin, .pass]) {
+                    then(.unlocked)
+                    then()
+                    then(.unlocked) | e.fulfill
+                    then()          | e.fulfill
+                }
+            }
+            
+            assertContains(.locked, .coin, .unlocked, tr)
+            XCTAssertEqual(tr.transitions.count, 8)
+            
+            tr[0].actions.first?()
+            tr[1].actions.first?()
+            tr[2].actions.first?()
+            tr[3].actions.first?()
+            
+            tr[4].actions[0]()
+            tr[5].actions[0]()
+            tr[6].actions[0]()
+            tr[7].actions[0]()
+        }
+    }
+    
+    func testWhenPlusPredicate() {
+        testWithExpectation(count: 4) { e in
+            let tr =
+            define(.locked) {
+                when(.coin) {
+                    then(.unlocked)
+                    then()
+                    then(.unlocked) | e.fulfill
+                    then()          | e.fulfill
+                    
+                    predicate(.a) {
+                        then(.alarming)
+                        then()
+                        then(.alarming) | e.fulfill
+                        then()          | e.fulfill
+                    }
+                }
+            }
+            
+            assertContains(.locked, .coin, .unlocked, tr)
+            assertContains(.locked, .coin, .alarming, .a, tr: tr)
+            
+            XCTAssertEqual(tr.transitions.count, 8)
+            
+            tr[0].actions.first?()
+            tr[1].actions.first?()
+            tr[2].actions[0]()
+            tr[3].actions[0]()
+            
+            tr[4].actions.first?()
+            tr[5].actions.first?()
+            tr[6].actions[0]()
+            tr[7].actions[0]()
+        }
     }
 }
 
