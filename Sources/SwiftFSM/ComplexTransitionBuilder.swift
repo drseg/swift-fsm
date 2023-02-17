@@ -25,12 +25,18 @@ extension PredicateProtocol {
     }
 }
 
-struct AnyPredicate: Hashable {
+struct AnyPredicate: Hashable, CustomStringConvertible {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.base.isEqual(to: rhs.base)
     }
     
     let base: any PredicateProtocol
+    
+    var description: String {
+        String(describing: Swift.type(of: base)) +
+        "." +
+        String(describing: base)
+    }
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(base)
@@ -49,7 +55,6 @@ extension ComplexTransitionBuilder {
         match(any: [p], rows: rows)
     }
     
-    
     func match(
         any p: Predicate,
         _ ps: Predicate...,
@@ -64,7 +69,7 @@ extension ComplexTransitionBuilder {
     ) -> [WTAPRow<S, E>] {
         rows().reduce(into: [WTAPRow]()) {
             if let wtap = $1.wtap {
-                $0.append(WTAPRow(wtap: wtap.addMatch(Match(any: p))))
+                $0.append(WTAPRow(wtap: wtap.addMatch(Match(anyOf: p))))
             }
         }
     }
@@ -89,7 +94,7 @@ extension ComplexTransitionBuilder {
         @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [TAPRow<S>] {
         rows().reduce(into: [TAPRow]()) {
-            $0.append(TAPRow(tap: $1.tap.addMatch(Match(any: p))))
+            $0.append(TAPRow(tap: $1.tap.addMatch(Match(anyOf: p))))
         }
     }
     
@@ -113,7 +118,7 @@ extension ComplexTransitionBuilder {
         @WAPBuilder<E> rows: () -> [WAPRow<E>]
     ) -> [WAPRow<E>] {
         rows().reduce(into: [WAPRow]()) {
-            $0.append(WAPRow(wap: $1.wap.addMatch(Match(any: p))))
+            $0.append(WAPRow(wap: $1.wap.addMatch(Match(anyOf: p))))
         }
     }
     

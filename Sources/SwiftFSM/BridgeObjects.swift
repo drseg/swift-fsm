@@ -71,22 +71,22 @@ struct SuperState<S: SP, E: EP>: Hashable {
 }
 
 struct Match: Hashable {
-    let all: [AnyPredicate]
-    let any: [AnyPredicate]
+    let allOf: [AnyPredicate]
+    let anyOf: [AnyPredicate]
     
-    init(all: [AnyPredicate] = [], any: [AnyPredicate] = []) {
-        self.all = all
-        self.any = any
+    init(allOf: [AnyPredicate] = [], anyOf: [AnyPredicate] = []) {
+        self.allOf = allOf
+        self.anyOf = anyOf
     }
     
-    init(all: [any PredicateProtocol] = [], any: [any PredicateProtocol] = []) {
-        self.all = all.erased
-        self.any = any.erased
+    init(allOf: [any PredicateProtocol] = [], anyOf: [any PredicateProtocol] = []) {
+        self.allOf = allOf.erased
+        self.anyOf = anyOf.erased
     }
     
     init() {
-        self.all = []
-        self.any = []
+        self.allOf = []
+        self.anyOf = []
     }
     
     
@@ -95,11 +95,11 @@ struct Match: Hashable {
     }
     
     static func + (lhs: Self, rhs: Self) -> Self {
-        lhs.add(all: rhs.all, any: rhs.any)
+        lhs.add(all: rhs.allOf, any: rhs.anyOf)
     }
     
     func add(all: [AnyPredicate] = [], any: [AnyPredicate] = []) -> Self {
-        .init(all: self.all + all, any: self.any + any)
+        .init(allOf: self.allOf + all, anyOf: self.anyOf + any)
     }
 }
 

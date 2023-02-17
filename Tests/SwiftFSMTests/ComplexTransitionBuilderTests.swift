@@ -382,7 +382,7 @@ final class ComplexTransitionBuilderTests:
         XCTAssertNil(t1.state)
         XCTAssertNil(t2.tap.state)
         XCTAssertTrue(t2.tap.actions.isEmpty)
-        XCTAssertTrue(t2.tap.match.all.isEmpty)
+        XCTAssertTrue(t2.tap.match.allOf.isEmpty)
     }
     
     func testSingleWhenContext() {
@@ -773,42 +773,63 @@ final class ComplexTransitionBuilderTests:
 }
 
 final class MatcherTests: TestingBase {
+    enum P: String, PredicateProtocol { case a, b }
+    enum Q: String, PredicateProtocol { case a, b }
+    enum R: String, PredicateProtocol { case a, b }
+
+    var match: Match!
+    
+    func assertPermutations(_ p: [[any PredicateProtocol]], line: UInt = #line) {
+        XCTAssertEqual(match.uniquePermutations(), p.erasedSets, line: line)
+    }
+    
     func testAllEmpty() {
-        XCTAssertEqual(Match().allPredicateCombinations([]), [])
+        XCTAssertEqual(Match().uniquePermutations([]), [[]])
     }
     
     func testEmptyPredicateMatcher() {
-        let match = Match()
-        let ps = [P.a.erase]
-        XCTAssertEqual(match.allPredicateCombinations(ps), [])
+        match = Match()
+        assertPermutations([[]])
     }
     
     func testAnyOfSinglePredicateMatcher() {
-        let match = Match(any: [P.a])
-        let ps = [P.a.erase]
-        XCTAssertEqual(match.allPredicateCombinations(ps), [ps])
+        match = Match(anyOf: [P.a])
+        assertPermutations([[P.a]])
     }
-    
+
     func testAnyOfMultiPredicateMatcher() {
-        let match = Match(any: [P.a, P.b])
-        let ps = [P.a.erase, P.b.erase]
-        XCTAssertEqual(match.allPredicateCombinations(ps), [ps])
+        match = Match(anyOf: [P.a, P.b])
+        assertPermutations([[P.a], [P.b]])
+    }
+
+    func testAllOfSingleTypeMatcher() {
+        match = Match(allOf: [P.a])
+        assertPermutations([[P.a]])
     }
     
-    func testAllOfSingleTypeMatcher() {
-        let match = Match(all: [P.a])
-        let ps = [P.a.erase]
-        XCTAssertEqual(match.allPredicateCombinations(ps), [ps])
+    func testAllOfMultiTypeMatcher() {
+        match = Match(allOf: [P.a, Q.a])
+        assertPermutations([[P.a, Q.a]])
+    }
+    
+    func testCombinedAnyAndAll() {
+        match = Match(allOf: [P.a, Q.a], anyOf: [R.a, R.b])
+        assertPermutations([[P.a, Q.a, R.a],
+                            [P.a, Q.a, R.b]])
     }
 }
 
 extension Match {
-    func allPredicateCombinations(_ ps: [AnyPredicate]) -> [[AnyPredicate]] {
-        if any.isEmpty && all.isEmpty {
-            return []
-        } else {
-            return [ps]
+    func uniquePermutations(
+        _ ps: [AnyPredicate] = []
+    ) -> Set<Set<AnyPredicate>> {
+        guard !anyOf.isEmpty else {
+            return [allOf].asSets
         }
+        
+        return anyOf.reduce(into: [[AnyPredicate]]()) {
+            $0.append(allOf + [$1])
+        }.asSets
     }
     
     // first we need a list of all types not represented in either any or all
@@ -816,6 +837,13 @@ extension Match {
     // for each of our existing anys, we need to create a new list of permutations:
     // for each permutation, add the single any, and all the alls
     // fsm.handleEvent has to throw if the predicate array count is unexpected
+    // Match itself will have an isValid check that its alls and anys make sense
+}
+
+extension Array where Element: Collection, Element.Element: Hashable {
+    var asSets: Set<Set<Element.Element>> {
+        Set(map(Set.init))
+    }
 }
 
 extension Array where Element == P {
@@ -831,10 +859,6 @@ extension TableRow {
     
     var firstActions: [() -> ()] {
         transitions.first?.actions ?? []
-    }
-    
-    var firstPredicates: [AnyPredicate] {
-        transitions.first?.predicates ?? []
     }
 }
 
@@ -857,21 +881,15 @@ final class CharacterisationTests: XCTestCase {
                         [P1.a, P2.h, P3.x],
                         [P1.b, P2.h, P3.x],
                         [P1.a, P2.h, P3.y],
-                        [P1.b, P2.h, P3.y]].asSetofSets
+                        [P1.b, P2.h, P3.y]].erasedSets
         
         XCTAssertEqual(expected, predicates.uniquePermutationsOfAllCases)
     }
 }
 
 extension Array where Element == [any PredicateProtocol] {
-    var asSetofSets: Set<Set<AnyPredicate>> {
-        map { $0.erased.asSet }.asSet
-    }
-}
-
-extension Array where Element: Hashable {
-    var asSet: Set<Self.Element> {
-        Set(self)
+    var erasedSets: Set<Set<AnyPredicate>> {
+        Set(map { Set($0.erased) })
     }
 }
 
