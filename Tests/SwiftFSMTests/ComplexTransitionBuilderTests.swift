@@ -826,39 +826,73 @@ final class MatcherTests: TestingBase {
                       equals: [[P.a]])
     }
     
-    func testemptyMatcherWithMultiOther() {
+    func testEmptyMatcherWithMultiOther() {
         assertMatches(adding: [[P.a, Q.a]],
                       equals: [[P.a, Q.a]])
     }
     
-    func testemptyMatcherWithMultiMultiOther() {
+    func testEmptyMatcherWithMultiMultiOther() {
         assertMatches(adding: [[P.a, Q.a],
                                [P.a, Q.b]],
                       equals: [[P.a, Q.a],
                                [P.a, Q.b]])
     }
+    
+    func testAnyMatcherWithOther() {
+        assertMatches(anyOf: [P.a, P.b],
+                      adding: [[Q.a, R.a],
+                               [Q.b, R.b]],
+                      equals: [[P.a, Q.a, R.a],
+                               [P.a, Q.b, R.b],
+                               [P.b, Q.a, R.a],
+                               [P.b, Q.b, R.b]])
+    }
+    
+    func testAllMatcherWithOther() {
+        assertMatches(allOf: [P.a, Q.a],
+                      adding: [[R.a],
+                               [R.b]],
+                      equals: [[P.a, Q.a, R.a],
+                               [P.a, Q.a, R.b]])
+    }
 }
 
 extension Match {
     func allMatches(
-        _ ps: Set<Set<AnyPredicate>> = []
+        _ impliedPredicates: Set<Set<AnyPredicate>> = []
     ) -> Set<Set<AnyPredicate>> {
-        guard !anyOf.isEmpty else {
-            return add(ps, to: [allOf])
+        func emptySet() -> Set<Set<AnyPredicate>> {
+            Set(arrayLiteral: Set([AnyPredicate]()))
+        }
+        
+        if anyOf.isEmpty {
+            if impliedPredicates.isEmpty {
+                return [allOf].asSets
+            }
+            
+            return impliedPredicates.reduce(into: emptySet()) {
+                $0.insert(Set($1 + allOf))
+            }.flattenEmpties
         }
         
         let anyAndAll = anyOf.reduce(into: [[AnyPredicate]]()) {
             $0.append(allOf + [$1])
         }
         
-        return add(ps, to: anyAndAll)
+        if impliedPredicates.isEmpty {
+            return anyAndAll.asSets
+        }
+        
+        return anyAndAll.reduce(into: emptySet()) { result, predicate in
+            impliedPredicates.forEach { result.insert(Set(predicate + $0)) }
+        }.flattenEmpties
     }
     
     func add(
         _ allCases: Set<Set<AnyPredicate>>,
         to ps: [[AnyPredicate]]
     ) -> Set<Set<AnyPredicate>> {
-        ps.asSets.union(allCases).filter { !$0.isEmpty }
+        ps.asSets.union(allCases).flattenEmpties
     }
     
     // first we need a list of all types not represented in either any or all
@@ -869,9 +903,14 @@ extension Match {
     // Match itself will have an isValid check that its alls and anys make sense
 }
 
-extension Array where Element: Collection, Element.Element: Hashable {
+extension Collection
+where Element: Collection, Element: Hashable, Element.Element: Hashable {
     var asSets: Set<Set<Element.Element>> {
-        Set(map(Set.init))
+        Set(map(Set.init)).flattenEmpties
+    }
+    
+    var flattenEmpties: Set<Element> {
+        Set(filter { !$0.isEmpty })
     }
 }
 
