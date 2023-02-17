@@ -33,9 +33,7 @@ struct AnyPredicate: Hashable, CustomStringConvertible {
     let base: any PredicateProtocol
     
     var description: String {
-        String(describing: Swift.type(of: base)) +
-        "." +
-        String(describing: base)
+        type + "." + String(describing: base)
     }
     
     func hash(into hasher: inout Hasher) {
@@ -280,16 +278,14 @@ extension Match {
         Set(arrayLiteral: Set([AnyPredicate]()))
     }
     
-    func allMatches(
-        _ impliedPredicates: PredicateSets = []
-    ) -> PredicateSets {
+    func allMatches(_ ps: PredicateSets = []) -> PredicateSets {
         let anyAndAll = anyOf.reduce(into: emptySets()) {
-            $0.insert(Set(allOf + [$1]))
+            $0.insert(Set(allOf).union([$1]))
         }.removeEmpties ??? [allOf].asSets
         
-        return impliedPredicates.reduce(into: emptySets()) { result, predicate in
-            anyAndAll.forEach { result.insert(predicate.union($0)) }
-        }.removeEmpties ??? impliedPredicates.asSets ??? anyAndAll
+        return ps.reduce(into: emptySets()) { result, p in
+            anyAndAll.forEach { result.insert(p.union($0)) }
+        }.removeEmpties ??? ps.asSets ??? anyAndAll
     }
 }
 
