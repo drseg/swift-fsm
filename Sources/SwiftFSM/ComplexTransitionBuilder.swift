@@ -42,15 +42,24 @@ protocol ComplexTransitionBuilder: TransitionBuilder {
 }
 
 extension ComplexTransitionBuilder {
-    func predicate(
-        _ p: Predicate...,
+    func match(
+        _ p: Predicate,
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        predicate(p, rows: rows)
+        match(all: [p], rows: rows)
     }
     
-    func predicate(
-        _ p: [Predicate],
+    
+    func match(
+        all p: Predicate,
+        _ ps: Predicate...,
+        @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
+    ) -> [WTAPRow<S, E>] {
+        match(all: [p] + ps, rows: rows)
+    }
+    
+    func match(
+        all p: [Predicate],
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
         rows().reduce(into: [WTAPRow]()) {
@@ -60,15 +69,23 @@ extension ComplexTransitionBuilder {
         }
     }
     
-    func predicate(
-        _ p: Predicate...,
+    func match(
+        _ p: Predicate,
         @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [TAPRow<S>] {
-        predicate(p, rows: rows)
+        match(all: [p], rows: rows)
     }
     
-    func predicate(
-        _ p: [Predicate],
+    func match(
+        all p: Predicate,
+        _ ps: Predicate...,
+        @TAPBuilder<S> rows: () -> [TAPRow<S>]
+    ) -> [TAPRow<S>] {
+        match(all: [p] + ps, rows: rows)
+    }
+    
+    func match(
+        all p: [Predicate],
         @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [TAPRow<S>] {
         rows().reduce(into: [TAPRow]()) {
@@ -76,15 +93,23 @@ extension ComplexTransitionBuilder {
         }
     }
     
-    func predicate(
-        _ p: Predicate...,
+    func match(
+        _ p: Predicate,
         @WAPBuilder<E> rows: () -> [WAPRow<E>]
     ) -> [WAPRow<E>] {
-        predicate(p, rows: rows)
+        match(all: [p], rows: rows)
     }
     
-    func predicate(
-        _ p: [Predicate],
+    func match(
+        all p: Predicate,
+        _ ps: Predicate...,
+        @WAPBuilder<E> rows: () -> [WAPRow<E>]
+    ) -> [WAPRow<E>] {
+        match(all: [p] + ps, rows: rows)
+    }
+    
+    func match(
+        all p: [Predicate],
         @WAPBuilder<E> rows: () -> [WAPRow<E>]
     ) -> [WAPRow<E>] {
         rows().reduce(into: [WAPRow]()) {

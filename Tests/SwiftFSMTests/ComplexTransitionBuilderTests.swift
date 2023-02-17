@@ -59,9 +59,9 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation { e in
             let tr =
             define(.locked) {
-                predicate(.a) {
-                    predicate(.b, .c) {
-                        predicate([.d, .e]) {
+                match(.a) {
+                    match(all: .b, .c) {
+                        match(all: [.d, .e]) {
                             when(.coin) | then() | e.fulfill
                         }
                     }
@@ -84,7 +84,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate(.a) {
+                match(.a) {
                     action(e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -101,7 +101,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 action(e.fulfill) {
-                    predicate(.a) {
+                    match(.a) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -116,7 +116,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                predicate(.a) {
+                match(.a) {
                     actions(e.fulfill, e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -133,7 +133,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions(e.fulfill, e.fulfill) {
-                    predicate(.a) {
+                    match(.a) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -148,7 +148,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                predicate(.a) {
+                match(.a) {
                     actions([e.fulfill, e.fulfill]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -165,7 +165,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions([e.fulfill, e.fulfill]) {
-                    predicate(.a) {
+                    match(.a) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -187,7 +187,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate(.a, .b) {
+                match(all: .a, .b) {
                     action(e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -204,7 +204,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 action(e.fulfill) {
-                    predicate(.a, .b) {
+                    match(all: .a, .b) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -219,7 +219,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                predicate(.a, .b) {
+                match(all: .a, .b) {
                     actions(e.fulfill, e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -236,7 +236,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions(e.fulfill, e.fulfill) {
-                    predicate(.a, .b) {
+                    match(all: .a, .b) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -251,7 +251,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                predicate(.a, .b) {
+                match(all: .a, .b) {
                     actions([e.fulfill, e.fulfill]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -268,7 +268,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions([e.fulfill, e.fulfill]) {
-                    predicate(.a, .b) {
+                    match(all: .a, .b) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -283,7 +283,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate([.a, .b]) {
+                match(all: [.a, .b]) {
                     actions(e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -300,7 +300,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions(e.fulfill) {
-                    predicate([.a, .b]) {
+                    match(all: [.a, .b]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -315,7 +315,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                predicate([.a, .b]) {
+                match(all: [.a, .b]) {
                     actions(e.fulfill, e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -332,7 +332,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions(e.fulfill, e.fulfill) {
-                    predicate([.a, .b]) {
+                    match(all: [.a, .b]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -347,7 +347,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                predicate([.a, .b]) {
+                match(all: [.a, .b]) {
                     actions([e.fulfill, e.fulfill]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -364,7 +364,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions([e.fulfill, e.fulfill]) {
-                    predicate([.a, .b]) {
+                    match(all: [.a, .b]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -471,7 +471,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 when(.coin) {
-                    predicate(.a) {
+                    match(.a) {
                         then(.alarming)
                         then()
                         then(.alarming) | e.fulfill
@@ -488,7 +488,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate(.a) {
+                match(.a) {
                     when(.coin) {
                         then(.alarming)
                         then()
@@ -517,7 +517,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 when(.coin) {
-                    predicate(.a, .b) {
+                    match(all: .a, .b) {
                         then(.alarming)
                         then()
                         then(.alarming) | e.fulfill
@@ -534,7 +534,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate(.a, .b) {
+                match(all: .a, .b) {
                     when(.coin) {
                         then(.alarming)
                         then()
@@ -553,7 +553,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 when(.coin) {
-                    predicate([.a, .b]) {
+                    match(all: [.a, .b]) {
                         then(.alarming)
                         then()
                         then(.alarming) | e.fulfill
@@ -570,7 +570,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate([.a, .b]) {
+                match(all: [.a, .b]) {
                     when(.coin) {
                         then(.alarming)
                         then()
@@ -654,7 +654,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 then(.alarming) {
-                    predicate(.a) {
+                    match(.a) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
                     }
@@ -669,7 +669,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate(.a) {
+                match(.a) {
                     then(.alarming) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
@@ -694,7 +694,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 then(.alarming) {
-                    predicate(.a, .b) {
+                    match(all: .a, .b) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
                     }
@@ -709,7 +709,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate(.a, .b) {
+                match(all: .a, .b) {
                     then(.alarming) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
@@ -726,7 +726,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 then(.alarming) {
-                    predicate([.a, .b]) {
+                    match(all: [.a, .b]) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
                     }
@@ -741,7 +741,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate([.a, .b]) {
+                match(all: [.a, .b]) {
                     then(.alarming) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
@@ -757,9 +757,9 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                predicate(.a) {
+                match(.a) {
                     then(.alarming) {
-                        predicate(.b) {
+                        match(.b) {
                             when(.reset) | e.fulfill
                             when(.pass)  | e.fulfill
                         }

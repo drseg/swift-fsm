@@ -70,6 +70,24 @@ struct SuperState<S: SP, E: EP>: Hashable {
     }
 }
 
+struct Match: Hashable {
+    let all: [AnyPredicate]
+    let any: [AnyPredicate]
+    
+    init(all: [AnyPredicate] = [], any: [AnyPredicate] = []) {
+        self.all = all
+        self.any = any
+    }
+    
+    static var none: Match {
+        .init()
+    }
+    
+    func add(all: [AnyPredicate] = [], any: [AnyPredicate] = []) -> Self {
+        .init(all: self.all + all, any: self.any + any)
+    }
+}
+
 struct Whens<S: SP, E: EP> {
     static func | (lhs: Self, rhs: @escaping () -> ()) -> WAPRow<E> {
         lhs | [rhs]
