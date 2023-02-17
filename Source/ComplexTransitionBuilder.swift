@@ -10,15 +10,13 @@ import Algorithms
 
 protocol PredicateProtocol: CaseIterable, Hashable { }
 
-typealias PP = PredicateProtocol
-
 extension PredicateProtocol {
     func isEqual(to rhs: any PredicateProtocol) -> Bool {
         guard let rhs = rhs as? Self else { return false }
         return rhs == self
     }
     
-    var erased: AnyPredicate {
+    var erase: AnyPredicate {
         AnyPredicate(base: self)
     }
     
@@ -174,7 +172,7 @@ extension WTAP {
         .init(events: events,
              state: state,
              actions: actions,
-             predicates: predicates + p.map(\.erased),
+             predicates: predicates + p.map(\.erase),
              file: file,
              line: line)
     }
@@ -184,7 +182,7 @@ extension TAP {
     func addPredicates(_ p: [any PredicateProtocol]) -> Self {
         .init(state: state,
               actions: actions,
-              predicates: predicates + p.map(\.erased))
+              predicates: predicates + p.map(\.erase))
     }
 }
 
@@ -192,14 +190,14 @@ extension WAP {
     func addPredicates(_ p: [any PredicateProtocol]) -> Self {
         .init(events: events,
               actions: actions,
-              predicates: predicates + p.map(\.erased),
+              predicates: predicates + p.map(\.erase),
               file: file,
               line: line)
     }
 }
 
 extension Array where Element == any PredicateProtocol {
-    var uniquePermutationsOfElementCases: Set<Set<AnyPredicate>> {
+    var uniquePermutationsOfAllCases: Set<Set<AnyPredicate>> {
         return Set(
             uniqueTypes
                 .allPossibleCases
@@ -220,7 +218,7 @@ extension Array where Element == any PredicateProtocol {
     }
     
     var erased: [AnyPredicate] {
-        map { $0.erased }
+        map { $0.erase }
     }
 }
 

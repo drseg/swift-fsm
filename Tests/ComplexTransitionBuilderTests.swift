@@ -7,23 +7,20 @@ final class ComplexTransitionBuilderTests:
     TestingBase, ComplexTransitionBuilder
 {
     typealias Predicate = P
+    typealias TR = TableRow<State, Event>
     
     func assertContains(
         _ g: State,
         _ w: Event,
         _ t: State,
         _ p: Predicate...,
-        tr: TableRow<State, Event>,
+        tr: TR,
         _ line: UInt = #line
     ) {
         assertContains(g, w, t, p, tr, line)
     }
     
-    func assertCount(
-        _ c: Int,
-        _ tr: TableRow<State, Event>,
-        line: UInt = #line
-    ) {
+    func assertCount(_ c: Int, _ tr: TR, line: UInt = #line) {
         XCTAssertEqual(c, tr.transitions.count, line: line)
     }
     
@@ -32,7 +29,7 @@ final class ComplexTransitionBuilderTests:
         _ w: Event,
         _ t: State,
         _ p: [Predicate] = [],
-        _ tr: TableRow<State, Event>,
+        _ tr: TR,
         _ line: UInt = #line
     ) {
         assertContains(g, w, t, tr, line)
@@ -76,10 +73,7 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func assertSinglePredicateWithAction(
-        _ tr: TableRow<State, Event>,
-        line: UInt = #line
-    ) {
+    func assertSinglePredicateWithAction(_ tr: TR, line: UInt = #line) {
         assertContains(.locked, .coin, .unlocked, .a, tr: tr, line)
         assertContains(.locked, .pass, .locked, .a, tr: tr, line)
         
@@ -182,10 +176,7 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func assertMultiPredicateWithAction(
-        _ tr: TableRow<State, Event>,
-        line: UInt = #line
-    ) {
+    func assertMultiPredicateWithAction(_ tr: TR, line: UInt = #line) {
         assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr, line)
         assertContains(.locked, .pass, .locked, .a, .b, tr: tr, line)
         
@@ -419,7 +410,7 @@ final class ComplexTransitionBuilderTests:
     }
     
     func assertMultiWhenContext(
-        _ tr: TableRow<State, Event>,
+        _ tr: TR,
         line: UInt = #line
     ) {
         assertContains(.locked, .coin, .unlocked, tr, line)
@@ -468,10 +459,7 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func assertWhenPlusSinglePredicate(
-        _ tr: TableRow<State, Event>,
-        line: UInt = #line
-    ) {
+    func assertWhenPlusSinglePredicate(_ tr: TR, line: UInt = #line) {
         assertContains(.locked, .coin, .alarming, .a, tr: tr, line)
         assertCount(4, tr, line: line)
 
@@ -517,10 +505,7 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func assertWhenPlusMultiPredicate(
-        _ tr: TableRow<State, Event>,
-        line: UInt = #line
-    ) {
+    func assertWhenPlusMultiPredicate(_ tr: TR, line: UInt = #line) {
         assertContains(.locked, .coin, .alarming, .a, .b, tr: tr, line)
         assertCount(4, tr, line: line)
 
@@ -636,7 +621,7 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func callActions(_ tr: TableRow<State, Event>) {
+    func callActions(_ tr: TR) {
         tr.transitions[0].actions[0]()
         tr.transitions[1].actions[0]()
     }
@@ -659,10 +644,7 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func assertThenPlusSinglePredicate(
-        _ tr: TableRow<State, Event>,
-        line: UInt = #line
-    ) {
+    func assertThenPlusSinglePredicate(_ tr: TR, line: UInt = #line) {
         assertContains(.locked, .reset, .alarming, .a, tr: tr, line)
         assertContains(.locked, .pass, .alarming, .a, tr: tr, line)
         assertCount(2, tr, line: line)
@@ -702,10 +684,7 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func assertThenPlusMultiplePredicates(
-        _ tr: TableRow<State, Event>,
-        line: UInt = #line
-    ) {
+    func assertThenPlusMultiplePredicates(_ tr: TR, line: UInt = #line) {
         assertContains(.locked, .reset, .alarming, .a, .b, tr: tr)
         assertContains(.locked, .pass, .alarming, .a, .b, tr: tr)
         assertCount(2, tr)
@@ -798,7 +777,7 @@ final class ComplexTransitionBuilderTests:
 
 extension Array where Element == P {
     var erased: [AnyPredicate] {
-        map(\.erased)
+        map(\.erase)
     }
 }
 
@@ -822,11 +801,11 @@ final class CharacterisationTests: XCTestCase {
     enum P3: PredicateProtocol { case x, y }
     
     func testPermutations() {
-        let states: [any PredicateProtocol] = [P2.g,
-                                               P2.h,
-                                               P1.a,
-                                               P1.b,
-                                               P3.y]
+        let predicates: [any PredicateProtocol] = [P2.g,
+                                                   P2.h,
+                                                   P1.a,
+                                                   P1.b,
+                                                   P3.y]
         
         let expected = [[P1.a, P2.g, P3.x],
                         [P1.b, P2.g, P3.x],
@@ -837,7 +816,7 @@ final class CharacterisationTests: XCTestCase {
                         [P1.a, P2.h, P3.y],
                         [P1.b, P2.h, P3.y]].asSetofSets
         
-        XCTAssertEqual(expected, states.uniquePermutationsOfElementCases)
+        XCTAssertEqual(expected, predicates.uniquePermutationsOfAllCases)
     }
 }
 
