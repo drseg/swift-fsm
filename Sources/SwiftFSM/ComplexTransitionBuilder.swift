@@ -280,12 +280,12 @@ extension Match {
     
     func allMatches(_ ps: PredicateSets = []) -> PredicateSets {
         let anyAndAll = anyOf.reduce(into: emptySets()) {
-            $0.insert(Set(allOf).union([$1]))
+            $0.insert(Set(allOf) + [$1])
         }.removeEmpties ??? [allOf].asSets
         
         return ps.reduce(into: emptySets()) { result, p in
-            anyAndAll.forEach { result.insert(p.union($0)) }
-        }.removeEmpties ??? ps.asSets ??? anyAndAll
+            anyAndAll.forEach { result.insert(p + $0) }
+        }.removeEmpties ??? ps ??? anyAndAll
     }
 }
 
@@ -296,4 +296,10 @@ func ??? (
     rhs: Match.PredicateSets
 ) -> Match.PredicateSets {
     lhs.isEmpty ? rhs : lhs
+}
+
+extension Set {
+    static func + (lhs: Self, rhs: Self) -> Self {
+        lhs.union(rhs)
+    }
 }

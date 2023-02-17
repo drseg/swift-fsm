@@ -73,17 +73,34 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func assertSinglePredicateWithAction(_ tr: TR, line: UInt = #line) {
-        assertContains(.locked, .coin, .unlocked, .a, tr: tr, line)
-        assertContains(.locked, .pass, .locked, .a, tr: tr, line)
+    func tableRow(_ block: () -> [WTAPRow<State, Event>]) -> TR {
+        define(.locked) { block() }
+    }
+    
+    func assertWithAction(
+        _ p: [P],
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt
+    ) {
+        let tr = tableRow(block)
+        
+        assertContains(.locked, .coin, .unlocked, p, tr, line)
+        assertContains(.locked, .pass, .locked, p, tr, line)
+        assertCount(2, tr, line: line)
         
         tr.transitions.map(\.actions).flatten.executeAll()
     }
     
+    func assertSinglePredicateWithAction(
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt = #line
+    ) {
+        assertWithAction([.a], block, line: line)
+    }
+    
     func testSinglePredicateWithActionInside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertSinglePredicateWithAction {
                 match(.a) {
                     action(e.fulfill) {
                         when(.coin) | then(.unlocked)
@@ -91,15 +108,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertSinglePredicateWithAction(tr)
         }
     }
     
     func testSinglePredicateWithActionOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertSinglePredicateWithAction {
                 action(e.fulfill) {
                     match(.a) {
                         when(.coin) | then(.unlocked)
@@ -107,15 +121,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertSinglePredicateWithAction(tr)
         }
     }
     
     func testSinglePredicateWithActionsInside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertSinglePredicateWithAction {
                 match(.a) {
                     actions(e.fulfill, e.fulfill) {
                         when(.coin) | then(.unlocked)
@@ -123,15 +134,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertSinglePredicateWithAction(tr)
         }
     }
     
     func testSinglePredicateWithActionsOutside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertSinglePredicateWithAction {
                 actions(e.fulfill, e.fulfill) {
                     match(.a) {
                         when(.coin) | then(.unlocked)
@@ -139,15 +147,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertSinglePredicateWithAction(tr)
         }
     }
     
     func testSinglePredicateWithArrayActionsInside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertSinglePredicateWithAction {
                 match(.a) {
                     actions([e.fulfill, e.fulfill]) {
                         when(.coin) | then(.unlocked)
@@ -155,15 +160,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertSinglePredicateWithAction(tr)
         }
     }
     
     func testSinglePredicateWithArrayActionsOutside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertSinglePredicateWithAction {
                 actions([e.fulfill, e.fulfill]) {
                     match(.a) {
                         when(.coin) | then(.unlocked)
@@ -171,22 +173,19 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertSinglePredicateWithAction(tr)
         }
     }
     
-    func assertMultiPredicateWithAction(_ tr: TR, line: UInt = #line) {
-        assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr, line)
-        assertContains(.locked, .pass, .locked, .a, .b, tr: tr, line)
-        
-        tr.transitions.map(\.actions).flatten.executeAll()
+    func assertMultiPredicateWithAction(
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt = #line
+    ) {
+        assertWithAction([.a, .b], block, line: line)
     }
     
     func testMultiPredicateWithActionInside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 match(any: .a, .b) {
                     action(e.fulfill) {
                         when(.coin) | then(.unlocked)
@@ -194,15 +193,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testMultiPredicateWithActionOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 action(e.fulfill) {
                     match(any: .a, .b) {
                         when(.coin) | then(.unlocked)
@@ -210,15 +206,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testMultiPredicateWithActionsInside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 match(any: .a, .b) {
                     actions(e.fulfill, e.fulfill) {
                         when(.coin) | then(.unlocked)
@@ -226,15 +219,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testMultiPredicateWithActionsOutside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 actions(e.fulfill, e.fulfill) {
                     match(any: .a, .b) {
                         when(.coin) | then(.unlocked)
@@ -242,15 +232,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testMultiPredicateWithArrayActionsInside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 match(any: .a, .b) {
                     actions([e.fulfill, e.fulfill]) {
                         when(.coin) | then(.unlocked)
@@ -258,15 +245,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testMultiPredicateWithArrayActionsOutside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 actions([e.fulfill, e.fulfill]) {
                     match(any: .a, .b) {
                         when(.coin) | then(.unlocked)
@@ -274,15 +258,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
         
     func testArrayPredicateWithActionInside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 match(any: [.a, .b]) {
                     actions(e.fulfill) {
                         when(.coin) | then(.unlocked)
@@ -290,15 +271,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testArrayPredicateWithActionOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 actions(e.fulfill) {
                     match(any: [.a, .b]) {
                         when(.coin) | then(.unlocked)
@@ -306,15 +284,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testArrayPredicateWithActionsInside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 match(any: [.a, .b]) {
                     actions(e.fulfill, e.fulfill) {
                         when(.coin) | then(.unlocked)
@@ -322,15 +297,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testArrayPredicateWithActionsOutside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 actions(e.fulfill, e.fulfill) {
                     match(any: [.a, .b]) {
                         when(.coin) | then(.unlocked)
@@ -338,15 +310,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testArrayPredicateWithArrayActionsInside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 match(any: [.a, .b]) {
                     actions([e.fulfill, e.fulfill]) {
                         when(.coin) | then(.unlocked)
@@ -354,15 +323,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
     func testArrayPredicateWithArrayActionsOutside() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiPredicateWithAction {
                 actions([e.fulfill, e.fulfill]) {
                     match(any: [.a, .b]) {
                         when(.coin) | then(.unlocked)
@@ -370,8 +336,6 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -409,7 +373,12 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func assertMultiWhenContext(_ tr: TR, line: UInt = #line) {
+    func assertMultiWhenContext(
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt = #line
+    ) {
+        let tr = tableRow(block)
+        
         assertContains(.locked, .coin, .unlocked, tr, line)
         assertCount(8, tr, line: line)
         
@@ -426,8 +395,7 @@ final class ComplexTransitionBuilderTests:
     
     func testMultiWhenContext() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiWhenContext {
                 when(.coin, .pass) {
                     then(.unlocked)
                     then()
@@ -435,15 +403,12 @@ final class ComplexTransitionBuilderTests:
                     then()          | e.fulfill
                 }
             }
-            
-            assertMultiWhenContext(tr)
         }
     }
     
     func testArrayWhenContext() {
         testWithExpectation(count: 4) { e in
-            let tr =
-            define(.locked) {
+            assertMultiWhenContext {
                 when([.coin, .pass]) {
                     then(.unlocked)
                     then()
@@ -451,13 +416,17 @@ final class ComplexTransitionBuilderTests:
                     then()          | e.fulfill
                 }
             }
-            
-            assertMultiWhenContext(tr)
         }
     }
     
-    func assertWhenPlusSinglePredicate(_ tr: TR, line: UInt = #line) {
-        assertContains(.locked, .coin, .alarming, .a, tr: tr, line)
+    func assertWhen(
+        _ p: [P] = [],
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt = #line
+    ) {
+        let tr = tableRow(block)
+        
+        assertContains(.locked, .coin, .alarming, p, tr, line)
         assertCount(4, tr, line: line)
 
         tr[0].actions.first?()
@@ -466,10 +435,16 @@ final class ComplexTransitionBuilderTests:
         tr[3].actions[0]()
     }
     
+    func assertWhenPlusSinglePredicate(
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt = #line
+    ) {
+        assertWhen([.a], block, line: line)
+    }
+    
     func testWhenPlusSinglePredicateInside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertWhenPlusSinglePredicate {
                 when(.coin) {
                     match(.a) {
                         then(.alarming)
@@ -479,15 +454,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertWhenPlusSinglePredicate(tr)
         }
     }
     
     func testWhenPlusSinglePredicateOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertWhenPlusSinglePredicate {
                 match(.a) {
                     when(.coin) {
                         then(.alarming)
@@ -497,25 +469,19 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertWhenPlusSinglePredicate(tr)
         }
     }
     
-    func assertWhenPlusMultiPredicate(_ tr: TR, line: UInt = #line) {
-        assertContains(.locked, .coin, .alarming, .a, .b, tr: tr, line)
-        assertCount(4, tr, line: line)
-
-        tr[0].actions.first?()
-        tr[1].actions.first?()
-        tr[2].actions[0]()
-        tr[3].actions[0]()
+    func assertWhenPlusMultiPredicate(
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt = #line
+    ) {
+        assertWhen([.a, .b], block, line: line)
     }
     
     func testWhenPlusMultiplePredicatesInside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertWhenPlusMultiPredicate {
                 when(.coin) {
                     match(any: .a, .b) {
                         then(.alarming)
@@ -525,15 +491,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertWhenPlusMultiPredicate(tr)
         }
     }
     
     func testWhenPlusMultiplePredicatesOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertWhenPlusMultiPredicate {
                 match(any: .a, .b) {
                     when(.coin) {
                         then(.alarming)
@@ -543,15 +506,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertWhenPlusMultiPredicate(tr)
         }
     }
     
     func testWhenPlusArrayPredicatesInside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertWhenPlusMultiPredicate {
                 when(.coin) {
                     match(any: [.a, .b]) {
                         then(.alarming)
@@ -561,15 +521,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertWhenPlusMultiPredicate(tr)
         }
     }
     
     func testWhenPlusArrayPredicatesOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertWhenPlusMultiPredicate {
                 match(any: [.a, .b]) {
                     when(.coin) {
                         then(.alarming)
@@ -579,8 +536,6 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertWhenPlusMultiPredicate(tr)
         }
     }
     
@@ -623,36 +578,41 @@ final class ComplexTransitionBuilderTests:
         tr.transitions[1].actions[0]()
     }
     
+    func assertThen(
+        _ p: [P] = [],
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt = #line
+    ) {
+        let tr = tableRow(block)
+        
+        assertContains(.locked, .reset, .alarming, p, tr, line)
+        assertContains(.locked, .pass, .alarming, p, tr, line)
+        assertCount(2, tr, line: line)
+        
+        callActions(tr)
+    }
+    
     func testThenContext() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertThen {
                 then(.alarming) {
                     when(.reset) | e.fulfill
                     when(.pass)  | e.fulfill
                 }
             }
-            
-            assertContains(.locked, .reset, .alarming, tr)
-            assertContains(.locked, .pass, .alarming, tr)
-            assertCount(2, tr)
-
-            callActions(tr)
         }
     }
     
-    func assertThenPlusSinglePredicate(_ tr: TR, line: UInt = #line) {
-        assertContains(.locked, .reset, .alarming, .a, tr: tr, line)
-        assertContains(.locked, .pass, .alarming, .a, tr: tr, line)
-        assertCount(2, tr, line: line)
-
-        callActions(tr)
+    func assertThenPlusSinglePredicate(
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt = #line
+    ) {
+        assertThen([.a], block, line: line)
     }
     
     func testThenPlusSinglePredicateInside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertThenPlusSinglePredicate {
                 then(.alarming) {
                     match(.a) {
                         when(.reset) | e.fulfill
@@ -660,15 +620,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertThenPlusSinglePredicate(tr)
         }
     }
     
     func testThenPlusSinglePredicateOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertThenPlusSinglePredicate {
                 match(.a) {
                     then(.alarming) {
                         when(.reset) | e.fulfill
@@ -676,23 +633,19 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertThenPlusSinglePredicate(tr)
         }
     }
     
-    func assertThenPlusMultiplePredicates(_ tr: TR, line: UInt = #line) {
-        assertContains(.locked, .reset, .alarming, .a, .b, tr: tr)
-        assertContains(.locked, .pass, .alarming, .a, .b, tr: tr)
-        assertCount(2, tr)
-
-        callActions(tr)
+    func assertThenPlusMultiplePredicates(
+        _ block: () -> [WTAPRow<State, Event>],
+        line: UInt = #line
+    ) {
+        assertThen([.a, .b], block, line: line)
     }
     
     func testThenPlusMultiplePredicatesInside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertThenPlusMultiplePredicates {
                 then(.alarming) {
                     match(any: .a, .b) {
                         when(.reset) | e.fulfill
@@ -700,15 +653,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertThenPlusMultiplePredicates(tr)
         }
     }
     
     func testThenPlusMultiplePredicatesOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertThenPlusMultiplePredicates {
                 match(any: .a, .b) {
                     then(.alarming) {
                         when(.reset) | e.fulfill
@@ -716,15 +666,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertThenPlusMultiplePredicates(tr)
         }
     }
     
     func testThenPlusArrayPredicatesInside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertThenPlusMultiplePredicates {
                 then(.alarming) {
                     match(any: [.a, .b]) {
                         when(.reset) | e.fulfill
@@ -732,15 +679,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertThenPlusMultiplePredicates(tr)
         }
     }
     
     func testThenPlusArrayPredicatesOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertThenPlusMultiplePredicates {
                 match(any: [.a, .b]) {
                     then(.alarming) {
                         when(.reset) | e.fulfill
@@ -748,15 +692,12 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertThenPlusMultiplePredicates(tr)
         }
     }
     
     func testThenPlusSinglePredicateInsideAndOutside() {
         testWithExpectation(count: 2) { e in
-            let tr =
-            define(.locked) {
+            assertThenPlusMultiplePredicates {
                 match(.a) {
                     then(.alarming) {
                         match(.b) {
@@ -766,23 +707,23 @@ final class ComplexTransitionBuilderTests:
                     }
                 }
             }
-            
-            assertThenPlusMultiplePredicates(tr)
         }
     }
 }
 
-final class MatcherTests: TestingBase {
+class PredicateTests: TestingBase {
+    enum P: PredicateProtocol { case a, b }
+    enum Q: PredicateProtocol { case a, b }
+    enum R: PredicateProtocol { case a, b }
+}
+
+final class MatcherTests: PredicateTests {
     // first we need a list of all types not represented in either any or all
     // then we need the complete list of their permutations
     // for each of our existing anys, we need to create a new list of permutations:
     // for each permutation, add the single any, and all the alls
     // fsm.handleEvent has to throw if the predicate array count is unexpected
     // Match itself will have an isValid check that its alls and anys make sense
-    
-    enum P: String, PredicateProtocol { case a, b }
-    enum Q: String, PredicateProtocol { case a, b }
-    enum R: String, PredicateProtocol { case a, b }
     
     func assertMatches(
         allOf: [any PredicateProtocol] = [],
@@ -891,26 +832,18 @@ extension TableRow {
     }
 }
 
-final class CharacterisationTests: XCTestCase {
-    enum P1: PredicateProtocol { case a, b }
-    enum P2: PredicateProtocol { case g, h }
-    enum P3: PredicateProtocol { case x, y }
-    
+final class CharacterisationTests: PredicateTests {
     func testPermutations() {
-        let predicates: [any PredicateProtocol] = [P2.g,
-                                                   P2.h,
-                                                   P1.a,
-                                                   P1.b,
-                                                   P3.y]
+        let predicates: [any PredicateProtocol] = [Q.a, Q.b, P.a, P.b, R.b]
         
-        let expected = [[P1.a, P2.g, P3.x],
-                        [P1.b, P2.g, P3.x],
-                        [P1.a, P2.g, P3.y],
-                        [P1.b, P2.g, P3.y],
-                        [P1.a, P2.h, P3.x],
-                        [P1.b, P2.h, P3.x],
-                        [P1.a, P2.h, P3.y],
-                        [P1.b, P2.h, P3.y]].erasedSets
+        let expected = [[P.a, Q.a, R.a],
+                        [P.b, Q.a, R.a],
+                        [P.a, Q.a, R.b],
+                        [P.b, Q.a, R.b],
+                        [P.a, Q.b, R.a],
+                        [P.b, Q.b, R.a],
+                        [P.a, Q.b, R.b],
+                        [P.b, Q.b, R.b]].erasedSets
         
         XCTAssertEqual(expected, predicates.uniquePermutationsOfAllCases)
     }
