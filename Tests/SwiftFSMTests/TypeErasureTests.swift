@@ -5,7 +5,7 @@
 //
 
 import XCTest
-@testable import FiniteStateMachine
+@testable import SwiftFSM
 
 private protocol NeverEqual { }; extension NeverEqual {
     static func == (lhs: Self, rhs: Self) -> Bool { false }

@@ -1,5 +1,5 @@
 import XCTest
-@testable import FiniteStateMachine
+@testable import SwiftFSM
 
 enum P: PredicateProtocol { case a, b, c, d, e }
 

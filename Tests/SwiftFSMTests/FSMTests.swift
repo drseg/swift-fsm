@@ -1,5 +1,5 @@
 import XCTest
-@testable import FiniteStateMachine
+@testable import SwiftFSM
 
 class FSMTests: TestingBase {
     let fsm = FSM<State, Event>(initialState: .unlocked)

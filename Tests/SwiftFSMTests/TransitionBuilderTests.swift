@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import FiniteStateMachine
+@testable import SwiftFSM
 
 enum TurnstileState: String, SP {
     case locked, unlocked, alarming
