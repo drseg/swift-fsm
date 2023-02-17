@@ -72,8 +72,12 @@ struct SuperState<S: SP, E: EP>: Hashable {
 
 struct Whens<S: SP, E: EP> {
     static func | (lhs: Self, rhs: @escaping () -> ()) -> WAPRow<E> {
+        lhs | [rhs]
+    }
+    
+    static func | (lhs: Self, rhs: [() -> ()]) -> WAPRow<E> {
         let wap = WAP(events: lhs.events,
-                      actions: [rhs],
+                      actions: rhs,
                       predicates: [],
                       file: lhs.file,
                       line: lhs.line)

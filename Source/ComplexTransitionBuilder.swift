@@ -78,6 +78,22 @@ extension ComplexTransitionBuilder {
         }
     }
     
+    func predicate(
+        _ p: Predicate...,
+        @WAPBuilder<E> rows: () -> [WAPRow<E>]
+    ) -> [WAPRow<E>] {
+        predicate(p, rows: rows)
+    }
+    
+    func predicate(
+        _ p: [Predicate],
+        @WAPBuilder<E> rows: () -> [WAPRow<E>]
+    ) -> [WAPRow<E>] {
+        rows().reduce(into: [WAPRow]()) {
+            $0.append(WAPRow(wap: $1.wap.addPredicates(p)))
+        }
+    }
+    
     func when(
         _ e: Event...,
         file: String = #file,
@@ -169,6 +185,16 @@ extension TAP {
         .init(state: state,
               actions: actions,
               predicates: predicates + p.map(\.erased))
+    }
+}
+
+extension WAP {
+    func addPredicates(_ p: [any PredicateProtocol]) -> Self {
+        .init(events: events,
+              actions: actions,
+              predicates: predicates + p.map(\.erased),
+              file: file,
+              line: line)
     }
 }
 
