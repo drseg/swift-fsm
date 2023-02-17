@@ -409,10 +409,7 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func assertMultiWhenContext(
-        _ tr: TR,
-        line: UInt = #line
-    ) {
+    func assertMultiWhenContext(_ tr: TR, line: UInt = #line) {
         assertContains(.locked, .coin, .unlocked, tr, line)
         assertCount(8, tr, line: line)
         
