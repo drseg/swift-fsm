@@ -418,6 +418,24 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
+    func assertMultiWhenContext(
+        _ tr: TableRow<State, Event>,
+        line: UInt = #line
+    ) {
+        assertContains(.locked, .coin, .unlocked, tr, line)
+        assertCount(8, tr, line: line)
+        
+        tr[0].actions.first?()
+        tr[1].actions.first?()
+        tr[2].actions.first?()
+        tr[3].actions.first?()
+        
+        tr[4].actions[0]()
+        tr[5].actions[0]()
+        tr[6].actions[0]()
+        tr[7].actions[0]()
+    }
+    
     func testMultiWhenContext() {
         testWithExpectation(count: 4) { e in
             let tr =
@@ -430,18 +448,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, tr)
-            assertCount(8, tr)
-            
-            tr[0].actions.first?()
-            tr[1].actions.first?()
-            tr[2].actions.first?()
-            tr[3].actions.first?()
-            
-            tr[4].actions[0]()
-            tr[5].actions[0]()
-            tr[6].actions[0]()
-            tr[7].actions[0]()
+            assertMultiWhenContext(tr)
         }
     }
     
@@ -457,19 +464,21 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, tr)
-            assertCount(8, tr)
-
-            tr[0].actions.first?()
-            tr[1].actions.first?()
-            tr[2].actions.first?()
-            tr[3].actions.first?()
-            
-            tr[4].actions[0]()
-            tr[5].actions[0]()
-            tr[6].actions[0]()
-            tr[7].actions[0]()
+            assertMultiWhenContext(tr)
         }
+    }
+    
+    func assertWhenPlusSinglePredicate(
+        _ tr: TableRow<State, Event>,
+        line: UInt = #line
+    ) {
+        assertContains(.locked, .coin, .alarming, .a, tr: tr, line)
+        assertCount(4, tr, line: line)
+
+        tr[0].actions.first?()
+        tr[1].actions.first?()
+        tr[2].actions[0]()
+        tr[3].actions[0]()
     }
     
     func testWhenPlusSinglePredicateInside() {
@@ -486,13 +495,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .alarming, .a, tr: tr)
-            assertCount(4, tr)
-
-            tr[0].actions.first?()
-            tr[1].actions.first?()
-            tr[2].actions[0]()
-            tr[3].actions[0]()
+            assertWhenPlusSinglePredicate(tr)
         }
     }
     
@@ -510,14 +513,21 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .alarming, .a, tr: tr)
-            assertCount(4, tr)
-
-            tr[0].actions.first?()
-            tr[1].actions.first?()
-            tr[2].actions[0]()
-            tr[3].actions[0]()
+            assertWhenPlusSinglePredicate(tr)
         }
+    }
+    
+    func assertWhenPlusMultiPredicate(
+        _ tr: TableRow<State, Event>,
+        line: UInt = #line
+    ) {
+        assertContains(.locked, .coin, .alarming, .a, .b, tr: tr, line)
+        assertCount(4, tr, line: line)
+
+        tr[0].actions.first?()
+        tr[1].actions.first?()
+        tr[2].actions[0]()
+        tr[3].actions[0]()
     }
     
     func testWhenPlusMultiplePredicatesInside() {
@@ -534,13 +544,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .alarming, .a, .b, tr: tr)
-            assertCount(4, tr)
-
-            tr[0].actions.first?()
-            tr[1].actions.first?()
-            tr[2].actions[0]()
-            tr[3].actions[0]()
+            assertWhenPlusMultiPredicate(tr)
         }
     }
     
@@ -558,13 +562,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .alarming, .a, .b, tr: tr)
-            assertCount(4, tr)
-
-            tr[0].actions.first?()
-            tr[1].actions.first?()
-            tr[2].actions[0]()
-            tr[3].actions[0]()
+            assertWhenPlusMultiPredicate(tr)
         }
     }
     
@@ -582,13 +580,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .alarming, .a, .b, tr: tr)
-            assertCount(4, tr)
-
-            tr[0].actions.first?()
-            tr[1].actions.first?()
-            tr[2].actions[0]()
-            tr[3].actions[0]()
+            assertWhenPlusMultiPredicate(tr)
         }
     }
     
@@ -606,13 +598,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .alarming, .a, .b, tr: tr)
-            assertCount(4, tr)
-
-            tr[0].actions.first?()
-            tr[1].actions.first?()
-            tr[2].actions[0]()
-            tr[3].actions[0]()
+            assertWhenPlusMultiPredicate(tr)
         }
     }
     
