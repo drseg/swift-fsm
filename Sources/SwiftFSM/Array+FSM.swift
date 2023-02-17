@@ -34,3 +34,14 @@ extension Array where Element == () -> () {
         forEach { $0() }
     }
 }
+
+extension Collection
+where Element: Collection, Element: Hashable, Element.Element: Hashable {
+    var asSets: Set<Set<Element.Element>> {
+        Set(map(Set.init)).flattenEmpties
+    }
+    
+    var flattenEmpties: Set<Element> {
+        Set(filter { !$0.isEmpty })
+    }
+}

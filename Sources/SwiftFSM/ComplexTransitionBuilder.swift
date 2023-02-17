@@ -272,3 +272,45 @@ extension AnyPredicate {
     }
 }
 
+extension Match {
+    typealias PredicateSets = Set<Set<AnyPredicate>>
+    typealias PredicateArrays = [[AnyPredicate]]
+    
+    func emptySets() -> PredicateSets {
+        Set(arrayLiteral: Set([AnyPredicate]()))
+    }
+    
+    func allMatches(
+        _ impliedPredicates: PredicateSets = []
+    ) -> PredicateSets {
+        if anyOf.isEmpty {
+            if impliedPredicates.isEmpty {
+                return [allOf].asSets
+            }
+            
+            return impliedPredicates.reduce(into: emptySets()) {
+                $0.insert(Set(allOf + $1))
+            }.flattenEmpties
+        }
+        
+        let anyAndAll = anyOf.reduce(into: emptySets()) {
+            $0.insert(Set(allOf + [$1]))
+        }.flattenEmpties
+        
+        if impliedPredicates.isEmpty {
+            return anyAndAll.asSets
+        }
+        
+        return anyAndAll.reduce(into: emptySets()) { result, predicate in
+            impliedPredicates.forEach { result.insert(predicate.union($0)) }
+        }.flattenEmpties
+    }
+    
+    func add(
+        _ allCases: PredicateSets,
+        to ps: PredicateArrays
+    ) -> PredicateSets {
+        ps.asSets.union(allCases).flattenEmpties
+    }
+}
+

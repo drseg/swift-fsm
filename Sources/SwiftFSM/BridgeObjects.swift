@@ -92,7 +92,6 @@ struct Match: Hashable {
         self.anyOf = []
     }
     
-    
     static var none: Match {
         .init()
     }

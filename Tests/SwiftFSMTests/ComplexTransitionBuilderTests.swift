@@ -773,6 +773,13 @@ final class ComplexTransitionBuilderTests:
 }
 
 final class MatcherTests: TestingBase {
+    // first we need a list of all types not represented in either any or all
+    // then we need the complete list of their permutations
+    // for each of our existing anys, we need to create a new list of permutations:
+    // for each permutation, add the single any, and all the alls
+    // fsm.handleEvent has to throw if the predicate array count is unexpected
+    // Match itself will have an isValid check that its alls and anys make sense
+    
     enum P: String, PredicateProtocol { case a, b }
     enum Q: String, PredicateProtocol { case a, b }
     enum R: String, PredicateProtocol { case a, b }
@@ -855,66 +862,20 @@ final class MatcherTests: TestingBase {
                       equals: [[P.a, Q.a, R.a],
                                [P.a, Q.a, R.b]])
     }
-}
-
-extension Match {
-    func allMatches(
-        _ impliedPredicates: Set<Set<AnyPredicate>> = []
-    ) -> Set<Set<AnyPredicate>> {
-        func emptySet() -> Set<Set<AnyPredicate>> {
-            Set(arrayLiteral: Set([AnyPredicate]()))
-        }
-        
-        if anyOf.isEmpty {
-            if impliedPredicates.isEmpty {
-                return [allOf].asSets
-            }
-            
-            return impliedPredicates.reduce(into: emptySet()) {
-                $0.insert(Set($1 + allOf))
-            }.flattenEmpties
-        }
-        
-        let anyAndAll = anyOf.reduce(into: [[AnyPredicate]]()) {
-            $0.append(allOf + [$1])
-        }
-        
-        if impliedPredicates.isEmpty {
-            return anyAndAll.asSets
-        }
-        
-        return anyAndAll.reduce(into: emptySet()) { result, predicate in
-            impliedPredicates.forEach { result.insert(Set(predicate + $0)) }
-        }.flattenEmpties
-    }
     
-    func add(
-        _ allCases: Set<Set<AnyPredicate>>,
-        to ps: [[AnyPredicate]]
-    ) -> Set<Set<AnyPredicate>> {
-        ps.asSets.union(allCases).flattenEmpties
-    }
-    
-    // first we need a list of all types not represented in either any or all
-    // then we need the complete list of their permutations
-    // for each of our existing anys, we need to create a new list of permutations:
-    // for each permutation, add the single any, and all the alls
-    // fsm.handleEvent has to throw if the predicate array count is unexpected
-    // Match itself will have an isValid check that its alls and anys make sense
-}
-
-extension Collection
-where Element: Collection, Element: Hashable, Element.Element: Hashable {
-    var asSets: Set<Set<Element.Element>> {
-        Set(map(Set.init)).flattenEmpties
-    }
-    
-    var flattenEmpties: Set<Element> {
-        Set(filter { !$0.isEmpty })
+    func testAnyAndAllMatcherWithOther() {
+        assertMatches(allOf: [P.a],
+                      anyOf: [Q.a, Q.b],
+                      adding: [[R.a],
+                               [R.b]],
+                      equals: [[P.a, Q.a, R.a],
+                               [P.a, Q.a, R.b],
+                               [P.a, Q.b, R.a],
+                               [P.a, Q.b, R.b]])
     }
 }
 
-extension Array where Element == P {
+extension Collection where Element == P {
     var erased: [AnyPredicate] {
         map(\.erase)
     }
@@ -955,7 +916,7 @@ final class CharacterisationTests: XCTestCase {
     }
 }
 
-extension Array where Element == [any PredicateProtocol] {
+extension Collection where Element == [any PredicateProtocol] {
     var erasedSets: Set<Set<AnyPredicate>> {
         Set(map { Set($0.erased) })
     }
