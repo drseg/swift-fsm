@@ -60,8 +60,8 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 match(.a) {
-                    match(all: .b, .c) {
-                        match(all: [.d, .e]) {
+                    match(any: .b, .c) {
+                        match(any: [.d, .e]) {
                             when(.coin) | then() | e.fulfill
                         }
                     }
@@ -187,7 +187,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                match(all: .a, .b) {
+                match(any: .a, .b) {
                     action(e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -204,7 +204,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 action(e.fulfill) {
-                    match(all: .a, .b) {
+                    match(any: .a, .b) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -219,7 +219,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                match(all: .a, .b) {
+                match(any: .a, .b) {
                     actions(e.fulfill, e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -236,7 +236,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions(e.fulfill, e.fulfill) {
-                    match(all: .a, .b) {
+                    match(any: .a, .b) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -251,7 +251,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                match(all: .a, .b) {
+                match(any: .a, .b) {
                     actions([e.fulfill, e.fulfill]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -268,7 +268,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions([e.fulfill, e.fulfill]) {
-                    match(all: .a, .b) {
+                    match(any: .a, .b) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -283,7 +283,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                match(all: [.a, .b]) {
+                match(any: [.a, .b]) {
                     actions(e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -300,7 +300,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions(e.fulfill) {
-                    match(all: [.a, .b]) {
+                    match(any: [.a, .b]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -315,7 +315,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                match(all: [.a, .b]) {
+                match(any: [.a, .b]) {
                     actions(e.fulfill, e.fulfill) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -332,7 +332,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions(e.fulfill, e.fulfill) {
-                    match(all: [.a, .b]) {
+                    match(any: [.a, .b]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -347,7 +347,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             let tr =
             define(.locked) {
-                match(all: [.a, .b]) {
+                match(any: [.a, .b]) {
                     actions([e.fulfill, e.fulfill]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
@@ -364,7 +364,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 actions([e.fulfill, e.fulfill]) {
-                    match(all: [.a, .b]) {
+                    match(any: [.a, .b]) {
                         when(.coin) | then(.unlocked)
                         when(.pass) | then()
                     }
@@ -382,7 +382,7 @@ final class ComplexTransitionBuilderTests:
         XCTAssertNil(t1.state)
         XCTAssertNil(t2.tap.state)
         XCTAssertTrue(t2.tap.actions.isEmpty)
-        XCTAssertTrue(t2.tap.predicates.isEmpty)
+        XCTAssertTrue(t2.tap.match.all.isEmpty)
     }
     
     func testSingleWhenContext() {
@@ -517,7 +517,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 when(.coin) {
-                    match(all: .a, .b) {
+                    match(any: .a, .b) {
                         then(.alarming)
                         then()
                         then(.alarming) | e.fulfill
@@ -534,7 +534,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                match(all: .a, .b) {
+                match(any: .a, .b) {
                     when(.coin) {
                         then(.alarming)
                         then()
@@ -553,7 +553,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 when(.coin) {
-                    match(all: [.a, .b]) {
+                    match(any: [.a, .b]) {
                         then(.alarming)
                         then()
                         then(.alarming) | e.fulfill
@@ -570,7 +570,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                match(all: [.a, .b]) {
+                match(any: [.a, .b]) {
                     when(.coin) {
                         then(.alarming)
                         then()
@@ -694,7 +694,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 then(.alarming) {
-                    match(all: .a, .b) {
+                    match(any: .a, .b) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
                     }
@@ -709,7 +709,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                match(all: .a, .b) {
+                match(any: .a, .b) {
                     then(.alarming) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
@@ -726,7 +726,7 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 then(.alarming) {
-                    match(all: [.a, .b]) {
+                    match(any: [.a, .b]) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
                     }
@@ -741,7 +741,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             let tr =
             define(.locked) {
-                match(all: [.a, .b]) {
+                match(any: [.a, .b]) {
                     then(.alarming) {
                         when(.reset) | e.fulfill
                         when(.pass)  | e.fulfill
@@ -770,6 +770,52 @@ final class ComplexTransitionBuilderTests:
             assertThenPlusMultiplePredicates(tr)
         }
     }
+}
+
+final class MatcherTests: TestingBase {
+    func testAllEmpty() {
+        XCTAssertEqual(Match().allPredicateCombinations([]), [])
+    }
+    
+    func testEmptyPredicateMatcher() {
+        let match = Match()
+        let ps = [P.a.erase]
+        XCTAssertEqual(match.allPredicateCombinations(ps), [])
+    }
+    
+    func testAnyOfSinglePredicateMatcher() {
+        let match = Match(any: [P.a])
+        let ps = [P.a.erase]
+        XCTAssertEqual(match.allPredicateCombinations(ps), [ps])
+    }
+    
+    func testAnyOfMultiPredicateMatcher() {
+        let match = Match(any: [P.a, P.b])
+        let ps = [P.a.erase, P.b.erase]
+        XCTAssertEqual(match.allPredicateCombinations(ps), [ps])
+    }
+    
+    func testAllOfSingleTypeMatcher() {
+        let match = Match(all: [P.a])
+        let ps = [P.a.erase]
+        XCTAssertEqual(match.allPredicateCombinations(ps), [ps])
+    }
+}
+
+extension Match {
+    func allPredicateCombinations(_ ps: [AnyPredicate]) -> [[AnyPredicate]] {
+        if any.isEmpty && all.isEmpty {
+            return []
+        } else {
+            return [ps]
+        }
+    }
+    
+    // first we need a list of all types not represented in either any or all
+    // then we need the complete list of their permutations
+    // for each of our existing anys, we need to create a new list of permutations:
+    // for each permutation, add the single any, and all the alls
+    // fsm.handleEvent has to throw if the predicate array count is unexpected
 }
 
 extension Array where Element == P {

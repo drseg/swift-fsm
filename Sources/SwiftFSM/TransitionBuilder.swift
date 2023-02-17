@@ -143,7 +143,7 @@ extension WTAP {
         WTAP(events: events,
              state: state,
              actions: actions + a,
-             predicates: predicates,
+             match: match,
              file: file,
              line: line)
     }

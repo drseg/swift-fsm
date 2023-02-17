@@ -173,7 +173,7 @@ extension WTAP {
                                  w: $1,
                                  t: self.state ?? state,
                                  a: actions,
-                                 p: predicates,
+                                 p: match.any,
                                  f: file,
                                  l: line))
         }

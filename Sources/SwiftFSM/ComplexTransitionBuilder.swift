@@ -46,25 +46,25 @@ extension ComplexTransitionBuilder {
         _ p: Predicate,
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        match(all: [p], rows: rows)
+        match(any: [p], rows: rows)
     }
     
     
     func match(
-        all p: Predicate,
+        any p: Predicate,
         _ ps: Predicate...,
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        match(all: [p] + ps, rows: rows)
+        match(any: [p] + ps, rows: rows)
     }
     
     func match(
-        all p: [Predicate],
+        any p: [Predicate],
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
         rows().reduce(into: [WTAPRow]()) {
             if let wtap = $1.wtap {
-                $0.append(WTAPRow(wtap: wtap.addPredicates(p)))
+                $0.append(WTAPRow(wtap: wtap.addMatch(Match(any: p))))
             }
         }
     }
@@ -73,23 +73,23 @@ extension ComplexTransitionBuilder {
         _ p: Predicate,
         @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [TAPRow<S>] {
-        match(all: [p], rows: rows)
+        match(any: [p], rows: rows)
     }
     
     func match(
-        all p: Predicate,
+        any p: Predicate,
         _ ps: Predicate...,
         @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [TAPRow<S>] {
-        match(all: [p] + ps, rows: rows)
+        match(any: [p] + ps, rows: rows)
     }
     
     func match(
-        all p: [Predicate],
+        any p: [Predicate],
         @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [TAPRow<S>] {
         rows().reduce(into: [TAPRow]()) {
-            $0.append(TAPRow(tap: $1.tap.addPredicates(p)))
+            $0.append(TAPRow(tap: $1.tap.addMatch(Match(any: p))))
         }
     }
     
@@ -97,23 +97,23 @@ extension ComplexTransitionBuilder {
         _ p: Predicate,
         @WAPBuilder<E> rows: () -> [WAPRow<E>]
     ) -> [WAPRow<E>] {
-        match(all: [p], rows: rows)
+        match(any: [p], rows: rows)
     }
     
     func match(
-        all p: Predicate,
+        any p: Predicate,
         _ ps: Predicate...,
         @WAPBuilder<E> rows: () -> [WAPRow<E>]
     ) -> [WAPRow<E>] {
-        match(all: [p] + ps, rows: rows)
+        match(any: [p] + ps, rows: rows)
     }
     
     func match(
-        all p: [Predicate],
+        any p: [Predicate],
         @WAPBuilder<E> rows: () -> [WAPRow<E>]
     ) -> [WAPRow<E>] {
         rows().reduce(into: [WAPRow]()) {
-            $0.append(WAPRow(wap: $1.wap.addPredicates(p)))
+            $0.append(WAPRow(wap: $1.wap.addMatch(Match(any: p))))
         }
     }
     
@@ -132,7 +132,7 @@ extension ComplexTransitionBuilder {
     ) -> WAPRow<E> {
         WAPRow(wap: WAP<E>(events: e,
                            actions: [],
-                           predicates: [],
+                           match: .none,
                            file: file,
                            line: line))
     }
@@ -179,7 +179,7 @@ extension WTAP {
         self.init(events: wap.events,
                   state: state,
                   actions: wap.actions,
-                  predicates: wap.predicates,
+                  match: wap.match,
                   file: wap.file,
                   line: wap.line)
     }
@@ -188,34 +188,34 @@ extension WTAP {
         self.init(events: events,
                   state: tap.state,
                   actions: tap.actions,
-                  predicates: tap.predicates,
+                  match: tap.match,
                   file: file,
                   line: line)
     }
     
-    func addPredicates(_ p: [any PredicateProtocol]) -> Self {
+    func addMatch(_ m: Match) -> Self {
         .init(events: events,
              state: state,
              actions: actions,
-             predicates: predicates + p.map(\.erase),
+             match: match + m,
              file: file,
              line: line)
     }
 }
 
 extension TAP {
-    func addPredicates(_ p: [any PredicateProtocol]) -> Self {
+    func addMatch(_ m: Match) -> Self {
         .init(state: state,
               actions: actions,
-              predicates: predicates + p.map(\.erase))
+              match: match + m)
     }
 }
 
 extension WAP {
-    func addPredicates(_ p: [any PredicateProtocol]) -> Self {
+    func addMatch(_ m: Match) -> Self {
         .init(events: events,
               actions: actions,
-              predicates: predicates + p.map(\.erase),
+              match: match + m,
               file: file,
               line: line)
     }

@@ -79,8 +79,23 @@ struct Match: Hashable {
         self.any = any
     }
     
+    init(all: [any PredicateProtocol] = [], any: [any PredicateProtocol] = []) {
+        self.all = all.erased
+        self.any = any.erased
+    }
+    
+    init() {
+        self.all = []
+        self.any = []
+    }
+    
+    
     static var none: Match {
         .init()
+    }
+    
+    static func + (lhs: Self, rhs: Self) -> Self {
+        lhs.add(all: rhs.all, any: rhs.any)
     }
     
     func add(all: [AnyPredicate] = [], any: [AnyPredicate] = []) -> Self {
@@ -96,7 +111,7 @@ struct Whens<S: SP, E: EP> {
     static func | (lhs: Self, rhs: [() -> ()]) -> WAPRow<E> {
         let wap = WAP(events: lhs.events,
                       actions: rhs,
-                      predicates: [],
+                      match: .none,
                       file: lhs.file,
                       line: lhs.line)
         return WAPRow(wap: wap)
@@ -129,7 +144,7 @@ struct Then<S: StateProtocol> {
     }
     
     static func | (lhs: Self, rhs: [() -> ()]) -> TAPRow<S> {
-        TAPRow(tap: TAP(state: lhs.state, actions: rhs, predicates: []))
+        TAPRow(tap: TAP(state: lhs.state, actions: rhs, match: .none))
     }
 }
 
@@ -142,7 +157,7 @@ struct WhensThen<S: SP, E: EP> {
         let wtap = WTAP(events: lhs.events,
                         state: lhs.state,
                         actions: rhs,
-                        predicates: [],
+                        match: .none,
                         file: lhs.file,
                         line: lhs.line)
         return WTAPRow(wtap: wtap, modifiers: .none)
@@ -157,23 +172,23 @@ struct WhensThen<S: SP, E: EP> {
 struct TAP<S: SP> {
     let state: S?
     let actions: [() -> ()]
-    let predicates: [AnyPredicate]
+    let match: Match
     
     init(
         state: S? = nil,
         actions: [() -> ()] = [],
-        predicates: [AnyPredicate] = []
+        match: Match = .none
     ) {
         self.state = state
         self.actions = actions
-        self.predicates = predicates
+        self.match = match
     }
 }
 
 struct WAP<E: EP> {
     let events: [E]
     let actions: [() -> ()]
-    let predicates: [AnyPredicate]
+    let match: Match
     let file: String
     let line: Int
 }
@@ -182,19 +197,19 @@ struct WTAP<S: SP, E: EP>: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.events == rhs.events &&
         lhs.state == rhs.state &&
-        lhs.predicates == rhs.predicates
+        lhs.match == rhs.match
     }
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(events)
         hasher.combine(state)
-        hasher.combine(predicates)
+        hasher.combine(match)
     }
     
     let events: [E]
     let state: S?
     let actions: [() -> ()]
-    let predicates: [AnyPredicate]
+    let match: Match
     let file: String
     let line: Int
 }
