@@ -76,6 +76,16 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
+    func assertSinglePredicateWithAction(
+        _ tr: TableRow<State, Event>,
+        line: UInt = #line
+    ) {
+        assertContains(.locked, .coin, .unlocked, .a, tr: tr, line)
+        assertContains(.locked, .pass, .locked, .a, tr: tr, line)
+        
+        tr.transitions.map(\.actions).flatten.executeAll()
+    }
+    
     func testSinglePredicateWithActionInside() {
         testWithExpectation(count: 2) { e in
             let tr =
@@ -88,10 +98,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertSinglePredicateWithAction(tr)
         }
     }
     
@@ -107,10 +114,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertSinglePredicateWithAction(tr)
         }
     }
     
@@ -126,10 +130,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertSinglePredicateWithAction(tr)
         }
     }
     
@@ -145,10 +146,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertSinglePredicateWithAction(tr)
         }
     }
     
@@ -164,10 +162,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertSinglePredicateWithAction(tr)
         }
     }
     
@@ -183,11 +178,18 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertSinglePredicateWithAction(tr)
         }
+    }
+    
+    func assertMultiPredicateWithAction(
+        _ tr: TableRow<State, Event>,
+        line: UInt = #line
+    ) {
+        assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr, line)
+        assertContains(.locked, .pass, .locked, .a, .b, tr: tr, line)
+        
+        tr.transitions.map(\.actions).flatten.executeAll()
     }
     
     func testMultiPredicateWithActionInside() {
@@ -202,10 +204,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -221,10 +220,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -240,10 +236,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -259,10 +252,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -278,10 +268,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -297,10 +284,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
         
@@ -316,10 +300,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -335,10 +316,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -354,10 +332,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -373,10 +348,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -392,10 +364,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -411,10 +380,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .coin, .unlocked, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .locked, .a, .b, tr: tr)
-            
-            tr.transitions.map(\.actions).flatten.executeAll()
+            assertMultiPredicateWithAction(tr)
         }
     }
     
@@ -684,6 +650,11 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
+    func callActions(_ tr: TableRow<State, Event>) {
+        tr.transitions[0].actions[0]()
+        tr.transitions[1].actions[0]()
+    }
+    
     func testThenContext() {
         testWithExpectation(count: 2) { e in
             let tr =
@@ -698,9 +669,19 @@ final class ComplexTransitionBuilderTests:
             assertContains(.locked, .pass, .alarming, tr)
             assertCount(2, tr)
 
-            tr.transitions[0].actions[0]()
-            tr.transitions[1].actions[0]()
+            callActions(tr)
         }
+    }
+    
+    func assertThenPlusSinglePredicate(
+        _ tr: TableRow<State, Event>,
+        line: UInt = #line
+    ) {
+        assertContains(.locked, .reset, .alarming, .a, tr: tr, line)
+        assertContains(.locked, .pass, .alarming, .a, tr: tr, line)
+        assertCount(2, tr, line: line)
+
+        callActions(tr)
     }
     
     func testThenPlusSinglePredicateInside() {
@@ -715,12 +696,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .reset, .alarming, .a, tr: tr)
-            assertContains(.locked, .pass, .alarming, .a, tr: tr)
-            assertCount(2, tr)
-
-            tr.transitions[0].actions[0]()
-            tr.transitions[1].actions[0]()
+            assertThenPlusSinglePredicate(tr)
         }
     }
     
@@ -736,13 +712,19 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .reset, .alarming, .a, tr: tr)
-            assertContains(.locked, .pass, .alarming, .a, tr: tr)
-            assertCount(2, tr)
-
-            tr.transitions[0].actions[0]()
-            tr.transitions[1].actions[0]()
+            assertThenPlusSinglePredicate(tr)
         }
+    }
+    
+    func assertThenPlusMultiplePredicates(
+        _ tr: TableRow<State, Event>,
+        line: UInt = #line
+    ) {
+        assertContains(.locked, .reset, .alarming, .a, .b, tr: tr)
+        assertContains(.locked, .pass, .alarming, .a, .b, tr: tr)
+        assertCount(2, tr)
+
+        callActions(tr)
     }
     
     func testThenPlusMultiplePredicatesInside() {
@@ -757,12 +739,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .reset, .alarming, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .alarming, .a, .b, tr: tr)
-            assertCount(2, tr)
-
-            tr.transitions[0].actions[0]()
-            tr.transitions[1].actions[0]()
+            assertThenPlusMultiplePredicates(tr)
         }
     }
     
@@ -778,12 +755,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .reset, .alarming, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .alarming, .a, .b, tr: tr)
-            assertCount(2, tr)
-
-            tr.transitions[0].actions[0]()
-            tr.transitions[1].actions[0]()
+            assertThenPlusMultiplePredicates(tr)
         }
     }
     
@@ -799,12 +771,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .reset, .alarming, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .alarming, .a, .b, tr: tr)
-            assertCount(2, tr)
-
-            tr.transitions[0].actions[0]()
-            tr.transitions[1].actions[0]()
+            assertThenPlusMultiplePredicates(tr)
         }
     }
     
@@ -820,12 +787,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .reset, .alarming, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .alarming, .a, .b, tr: tr)
-            assertCount(2, tr)
-
-            tr.transitions[0].actions[0]()
-            tr.transitions[1].actions[0]()
+            assertThenPlusMultiplePredicates(tr)
         }
     }
     
@@ -843,12 +805,7 @@ final class ComplexTransitionBuilderTests:
                 }
             }
             
-            assertContains(.locked, .reset, .alarming, .a, .b, tr: tr)
-            assertContains(.locked, .pass, .alarming, .a, .b, tr: tr)
-            assertCount(2, tr)
-
-            tr.transitions[0].actions[0]()
-            tr.transitions[1].actions[0]()
+            assertThenPlusMultiplePredicates(tr)
         }
     }
 }
