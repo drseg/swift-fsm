@@ -143,8 +143,10 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
             }
         }) {
             let e = $0 as! DuplicateTransitions<State, Event>
-            XCTAssertEqual(e.description.split(separator: ":\n",
-                                               maxSplits: 1).last!,
+            XCTAssertEqual(e.description
+                .split(separator: "\n")
+                .suffix(4)
+                .joined(separator: "\n"),
 """
 alarming | coin | *locked* (\(file): \(l1))
 alarming | coin | *locked* (\(file): \(l2))
