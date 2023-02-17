@@ -8,9 +8,18 @@
 import Foundation
 
 struct TableRow<S: SP, E: EP> {
-    let transitions: [Transition<S, E>]
+    let wtaps: [WTAP<S, E>]
     let modifiers: RowModifiers<S, E>
     let givenStates: any Collection<S>
+    
+#warning("temporary use only for refactoring, to be discarded")
+    var transitions: [Transition<S, E>] {
+        givenStates.reduce(into: [Transition]()) { ts, given in
+            wtaps.forEach {
+                ts.append(contentsOf: $0.makeTransitions(given: given))
+            }
+        }
+    }
 }
 
 struct WTAPRow<S: SP, E: EP> {
@@ -66,7 +75,7 @@ struct SuperState<S: SP, E: EP>: Hashable {
     }
     
     init(@WTAPBuilder<S, E> _ content: () -> [WTAPRow<S, E>]) {
-        wtas = content().wtas()
+        wtas = content().wtaps()
     }
 }
 

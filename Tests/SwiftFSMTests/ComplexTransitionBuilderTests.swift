@@ -345,6 +345,7 @@ final class ComplexTransitionBuilderTests:
         
         XCTAssertNil(t1.state)
         XCTAssertNil(t2.tap.state)
+        
         XCTAssertTrue(t2.tap.actions.isEmpty)
         XCTAssertTrue(t2.tap.match.allOf.isEmpty)
     }

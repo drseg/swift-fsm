@@ -40,24 +40,9 @@ extension TransitionBuilder {
                                      entryActions: entryActions,
                                      exitActions: exitActions)
         
-        let transitions = formTransitions(states: states, rows: rows)
-        
-        return TableRow(transitions: transitions,
+        return TableRow(wtaps: rows.wtaps(),
                         modifiers: modifiers,
                         givenStates: states)
-    }
-    
-    private func formTransitions(
-        states: [S],
-        rows: [WTAPRow<S, E>]
-    ) -> [Transition<S, E>] {
-        states.reduce(into: [Transition]()) { ts, given in
-            rows.forEach { row in
-                if let wtap = row.wtap {
-                    ts.append(contentsOf: wtap.makeTransitions(given: given))
-                }
-            }
-        }
     }
     
     func onEnter(_ actions: () -> ()...) -> WTAPRow<S, E> {
