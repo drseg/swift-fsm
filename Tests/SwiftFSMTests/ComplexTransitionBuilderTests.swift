@@ -776,60 +776,89 @@ final class MatcherTests: TestingBase {
     enum P: String, PredicateProtocol { case a, b }
     enum Q: String, PredicateProtocol { case a, b }
     enum R: String, PredicateProtocol { case a, b }
-
-    var match: Match!
     
-    func assertPermutations(_ p: [[any PredicateProtocol]], line: UInt = #line) {
-        XCTAssertEqual(match.uniquePermutations(), p.erasedSets, line: line)
+    func assertMatches(
+        allOf: [any PredicateProtocol] = [],
+        anyOf: [any PredicateProtocol] = [],
+        adding a: [[any PredicateProtocol]] = [],
+        equals expected: [[any PredicateProtocol]],
+        line: UInt = #line
+    ) {
+        let match = Match(allOf: allOf, anyOf: anyOf)
+        XCTAssertEqual(match.allMatches(a.map(\.erased).asSets),
+                       expected.erasedSets,
+                       line: line)
     }
     
     func testAllEmpty() {
-        XCTAssertEqual(Match().uniquePermutations([]), [[]])
+        XCTAssertEqual(Match().allMatches([]), [])
     }
     
-    func testEmptyPredicateMatcher() {
-        match = Match()
-        assertPermutations([[]])
+    func testEmptyMatcher() {
+        assertMatches(equals: [])
     }
     
-    func testAnyOfSinglePredicateMatcher() {
-        match = Match(anyOf: [P.a])
-        assertPermutations([[P.a]])
+    func testAnyOfSinglePredicate() {
+        assertMatches(anyOf: [P.a], equals: [[P.a]])
     }
 
-    func testAnyOfMultiPredicateMatcher() {
-        match = Match(anyOf: [P.a, P.b])
-        assertPermutations([[P.a], [P.b]])
+    func testAnyOfMultiPredicate() {
+        assertMatches(anyOf: [P.a, P.b], equals: [[P.a], [P.b]])
     }
 
-    func testAllOfSingleTypeMatcher() {
-        match = Match(allOf: [P.a])
-        assertPermutations([[P.a]])
+    func testAllOfSingleType() {
+        assertMatches(allOf: [P.a], equals: [[P.a]])
     }
     
-    func testAllOfMultiTypeMatcher() {
-        match = Match(allOf: [P.a, Q.a])
-        assertPermutations([[P.a, Q.a]])
+    func testAllOfMultiTypeM() {
+        assertMatches(allOf: [P.a, Q.a], equals: [[P.a, Q.a]])
     }
     
     func testCombinedAnyAndAll() {
-        match = Match(allOf: [P.a, Q.a], anyOf: [R.a, R.b])
-        assertPermutations([[P.a, Q.a, R.a],
-                            [P.a, Q.a, R.b]])
+        assertMatches(allOf: [P.a, Q.a],
+                      anyOf: [R.a, R.b],
+                      equals: [[P.a, Q.a, R.a],
+                               [P.a, Q.a, R.b]])
+    }
+    
+    func testEmptyMatcherWithSingleOther() {
+        assertMatches(adding: [[P.a]],
+                      equals: [[P.a]])
+    }
+    
+    func testemptyMatcherWithMultiOther() {
+        assertMatches(adding: [[P.a, Q.a]],
+                      equals: [[P.a, Q.a]])
+    }
+    
+    func testemptyMatcherWithMultiMultiOther() {
+        assertMatches(adding: [[P.a, Q.a],
+                               [P.a, Q.b]],
+                      equals: [[P.a, Q.a],
+                               [P.a, Q.b]])
     }
 }
 
 extension Match {
-    func uniquePermutations(
-        _ ps: [AnyPredicate] = []
+    func allMatches(
+        _ ps: Set<Set<AnyPredicate>> = []
     ) -> Set<Set<AnyPredicate>> {
         guard !anyOf.isEmpty else {
-            return [allOf].asSets
+            return add(ps, to: [allOf])
         }
         
-        return anyOf.reduce(into: [[AnyPredicate]]()) {
+        let anyAndAll = anyOf.reduce(into: [[AnyPredicate]]()) {
             $0.append(allOf + [$1])
-        }.asSets
+        }
+        
+        return add(ps, to: anyAndAll)
+    }
+    
+    func add(
+        _ allCases: Set<Set<AnyPredicate>>,
+        to ps: [[AnyPredicate]]
+    ) -> Set<Set<AnyPredicate>> {
+        ps.asSets.union(allCases).filter { !$0.isEmpty }
     }
     
     // first we need a list of all types not represented in either any or all

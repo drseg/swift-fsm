@@ -53,8 +53,8 @@ extension TransitionBuilder {
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, given in
             rows.forEach { row in
-                if let wta = row.wtap {
-                    ts.append(contentsOf: wta.makeTransitions(given: given))
+                if let wtap = row.wtap {
+                    ts.append(contentsOf: wtap.makeTransitions(given: given))
                 }
             }
         }

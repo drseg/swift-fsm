@@ -79,7 +79,10 @@ struct Match: Hashable {
         self.anyOf = anyOf
     }
     
-    init(allOf: [any PredicateProtocol] = [], anyOf: [any PredicateProtocol] = []) {
+    init(
+        allOf: [any PredicateProtocol] = [],
+        anyOf: [any PredicateProtocol] = []
+    ) {
         self.allOf = allOf.erased
         self.anyOf = anyOf.erased
     }
