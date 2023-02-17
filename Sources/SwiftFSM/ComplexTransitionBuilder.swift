@@ -283,34 +283,21 @@ extension Match {
     func allMatches(
         _ impliedPredicates: PredicateSets = []
     ) -> PredicateSets {
-        if anyOf.isEmpty {
-            if impliedPredicates.isEmpty {
-                return [allOf].asSets
-            }
-            
-            return impliedPredicates.reduce(into: emptySets()) {
-                $0.insert(Set(allOf + $1))
-            }.flattenEmpties
-        }
-        
         let anyAndAll = anyOf.reduce(into: emptySets()) {
             $0.insert(Set(allOf + [$1]))
-        }.flattenEmpties
+        }.removeEmpties ??? [allOf].asSets
         
-        if impliedPredicates.isEmpty {
-            return anyAndAll.asSets
-        }
-        
-        return anyAndAll.reduce(into: emptySets()) { result, predicate in
-            impliedPredicates.forEach { result.insert(predicate.union($0)) }
-        }.flattenEmpties
-    }
-    
-    func add(
-        _ allCases: PredicateSets,
-        to ps: PredicateArrays
-    ) -> PredicateSets {
-        ps.asSets.union(allCases).flattenEmpties
+        return impliedPredicates.reduce(into: emptySets()) { result, predicate in
+            anyAndAll.forEach { result.insert(predicate.union($0)) }
+        }.removeEmpties ??? impliedPredicates.asSets ??? anyAndAll
     }
 }
 
+infix operator ???: AdditionPrecedence
+
+func ??? (
+    lhs: Match.PredicateSets,
+    rhs: Match.PredicateSets
+) -> Match.PredicateSets {
+    lhs.isEmpty ? rhs : lhs
+}

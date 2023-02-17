@@ -38,10 +38,10 @@ extension Array where Element == () -> () {
 extension Collection
 where Element: Collection, Element: Hashable, Element.Element: Hashable {
     var asSets: Set<Set<Element.Element>> {
-        Set(map(Set.init)).flattenEmpties
+        Set(map(Set.init)).removeEmpties
     }
     
-    var flattenEmpties: Set<Element> {
+    var removeEmpties: Set<Element> {
         Set(filter { !$0.isEmpty })
     }
 }
