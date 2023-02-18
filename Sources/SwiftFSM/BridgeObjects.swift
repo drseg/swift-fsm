@@ -8,29 +8,29 @@
 import Foundation
 
 struct TableRow<S: SP, E: EP> {
-    let wtaps: [WTAP<S, E>]
+    let wtams: [WTAM<S, E>]
     let modifiers: RowModifiers<S, E>
     let givenStates: [S]
     
 #warning("temporary use only for refactoring, to be discarded")
     var transitions: [Transition<S, E>] {
         givenStates.reduce(into: [Transition]()) { ts, given in
-            wtaps.forEach {
+            wtams.forEach {
                 ts.append(contentsOf: $0.makeTransitions(given: given))
             }
         }
     }
 }
 
-struct WTAPRow<S: SP, E: EP> {
-    let wtap: WTAP<S, E>?
+struct WTAMRow<S: SP, E: EP> {
+    let wtam: WTAM<S, E>?
     let modifiers: RowModifiers<S, E>
     
     init(
-        wtap: WTAP<S, E>? = nil,
+        wtam: WTAM<S, E>? = nil,
         modifiers: RowModifiers<S, E> = .none
     ) {
-        self.wtap = wtap
+        self.wtam = wtam
         self.modifiers = modifiers
     }
 }
@@ -56,14 +56,14 @@ struct RowModifiers<S: SP, E: EP> {
 }
 
 struct SuperState<S: SP, E: EP>: Hashable {
-    let wtaps: [WTAP<S, E>]
+    let wtams: [WTAM<S, E>]
     
     func hash(into hasher: inout Hasher) {
-        hasher.combine(wtaps)
+        hasher.combine(wtams)
     }
     
-    init(@WTAPBuilder<S, E> _ content: () -> [WTAPRow<S, E>]) {
-        wtaps = content().wtaps()
+    init(@WTAMBuilder<S, E> _ content: () -> [WTAMRow<S, E>]) {
+        wtams = content().wtams()
     }
 }
 
@@ -107,12 +107,12 @@ struct Match: Hashable {
 }
 
 struct Whens<S: SP, E: EP> {
-    static func | (lhs: Self, rhs: @escaping () -> ()) -> WAP<E> {
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> WAM<E> {
         lhs | [rhs]
     }
     
-    static func | (lhs: Self, rhs: [() -> ()]) -> WAP<E> {
-        WAP(events: lhs.events,
+    static func | (lhs: Self, rhs: [() -> ()]) -> WAM<E> {
+        WAM(events: lhs.events,
             actions: rhs,
             match: .none,
             file: lhs.file,
@@ -120,7 +120,7 @@ struct Whens<S: SP, E: EP> {
         
     }
     
-    static func | (lhs: Self, rhs: Then<S>) -> WTAPRow<S, E> {
+    static func | (lhs: Self, rhs: Then<S>) -> WTAMRow<S, E> {
         WhensThen(events: lhs.events,
                   state: rhs.state,
                   file: lhs.file,
@@ -142,28 +142,28 @@ struct Whens<S: SP, E: EP> {
 struct Then<S: StateProtocol> {
     let state: S?
     
-    static func | (lhs: Self, rhs: @escaping () -> ()) -> TAP<S> {
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> TAM<S> {
         lhs | [rhs]
     }
     
-    static func | (lhs: Self, rhs: [() -> ()]) -> TAP<S> {
-        TAP(state: lhs.state, actions: rhs, match: .none)
+    static func | (lhs: Self, rhs: [() -> ()]) -> TAM<S> {
+        TAM(state: lhs.state, actions: rhs, match: .none)
     }
 }
 
 struct WhensThen<S: SP, E: EP> {
-    static func | (lhs: Self, rhs: @escaping () -> ()) -> WTAPRow<S, E> {
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> WTAMRow<S, E> {
         lhs | [rhs]
     }
     
-    static func | (lhs: Self, rhs: [() -> ()]) -> WTAPRow<S, E> {
-        let wtap = WTAP(events: lhs.events,
+    static func | (lhs: Self, rhs: [() -> ()]) -> WTAMRow<S, E> {
+        let wtam = WTAM(events: lhs.events,
                         state: lhs.state,
                         actions: rhs,
                         match: .none,
                         file: lhs.file,
                         line: lhs.line)
-        return WTAPRow(wtap: wtap, modifiers: .none)
+        return WTAMRow(wtam: wtam, modifiers: .none)
     }
     
     let events: [E]
@@ -172,7 +172,7 @@ struct WhensThen<S: SP, E: EP> {
     let line: Int
 }
 
-struct TAP<S: SP> {
+struct TAM<S: SP> {
     let state: S?
     let actions: [() -> ()]
     let match: Match
@@ -188,7 +188,7 @@ struct TAP<S: SP> {
     }
 }
 
-struct WAP<E: EP> {
+struct WAM<E: EP> {
     let events: [E]
     let actions: [() -> ()]
     let match: Match
@@ -196,7 +196,7 @@ struct WAP<E: EP> {
     let line: Int
 }
 
-struct WTAP<S: SP, E: EP>: Hashable {
+struct WTAM<S: SP, E: EP>: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.events == rhs.events &&
         lhs.state == rhs.state &&
@@ -217,7 +217,7 @@ struct WTAP<S: SP, E: EP>: Hashable {
     let line: Int
     
     func addActions(_ a: [() -> ()]) -> Self {
-        WTAP(events: events,
+        WTAM(events: events,
              state: state,
              actions: actions + a,
              match: match,
@@ -226,7 +226,7 @@ struct WTAP<S: SP, E: EP>: Hashable {
     }
     
     func replaceDefaultState(with s: S) -> Self {
-        WTAP(events: events,
+        WTAM(events: events,
              state: state ?? s,
              actions: actions,
              match: match,

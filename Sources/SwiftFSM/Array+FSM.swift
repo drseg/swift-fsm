@@ -25,9 +25,9 @@ extension Array {
         map(\.transitions).flatten
     }
     
-    func wtaps<S: SP, E: EP>() -> [WTAP<S, E>]
-    where Element == WTAPRow<S, E> {
-        map(\.wtap).compactMap { $0 }
+    func wtams<S: SP, E: EP>() -> [WTAM<S, E>]
+    where Element == WTAMRow<S, E> {
+        map(\.wtam).compactMap { $0 }
     }
     
     func executeAll() where Element == () -> () {

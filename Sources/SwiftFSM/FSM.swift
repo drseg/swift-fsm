@@ -159,14 +159,14 @@ extension SuperState {
         given states: any Collection<S>
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, state in
-            wtaps.forEach {
+            wtams.forEach {
                 ts.append(contentsOf: $0.makeTransitions(given: state))
             }
         }
     }
 }
 
-extension WTAP {
+extension WTAM {
     func makeTransitions(given state: S) -> [Transition<S, E>] {
         events.reduce(into: [Transition]()) {
             $0.append(Transition(g: state,

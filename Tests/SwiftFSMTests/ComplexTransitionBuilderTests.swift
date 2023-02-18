@@ -25,7 +25,7 @@ final class ComplexTransitionBuilderTests:
         _ tr: TR,
         line: UInt = #line
     ) {
-        XCTAssertEqual(c, tr.wtaps.count, line: line)
+        XCTAssertEqual(c, tr.wtams.count, line: line)
     }
     
     func assertContains(
@@ -68,8 +68,8 @@ final class ComplexTransitionBuilderTests:
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
-            tr.wtaps.contains(
-                WTAP(events: w,
+            tr.wtams.contains(
+                WTAM(events: w,
                      state: t,
                      actions: [],
                      match: m,
@@ -124,13 +124,13 @@ final class ComplexTransitionBuilderTests:
         }
     }
     
-    func tableRow(_ block: () -> [WTAPRow<State, Event>]) -> TR {
+    func tableRow(_ block: () -> [WTAMRow<State, Event>]) -> TR {
         define(.locked) { block() }
     }
 
     func assertWithAction(
         _ m: Match,
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt
     ) {
         let tr = tableRow(block)
@@ -141,17 +141,17 @@ final class ComplexTransitionBuilderTests:
 
         assertFileAndLine(10, forEvent: .coin, in: tr, errorLine: line)
 
-        tr.wtaps.map(\.actions).flatten.executeAll()
+        tr.wtams.map(\.actions).flatten.executeAll()
     }
 
     func assertSinglePredicateWithAction(
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt = #line
     ) {
         assertWithAction(matchAny(P.a), block, line: line)
     }
     
-    @WTAPBuilder<S, E> var coinUnlockedPassLocked: [WTAPRow<S, E>] {
+    @WTAMBuilder<S, E> var coinUnlockedPassLocked: [WTAMRow<S, E>] {
         when(.coin, line: 10) | then(.unlocked)
         when(.pass)           | then()
     }
@@ -229,7 +229,7 @@ final class ComplexTransitionBuilderTests:
     }
 
     func assertMultiPredicateWithAction(
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt = #line
     ) {
         assertWithAction(matchAny(.a, .b), block, line: line)
@@ -381,7 +381,7 @@ final class ComplexTransitionBuilderTests:
 
     func testThenWithNoArgument() {
         let t1: Then = then()
-        let t2: TAP = then()
+        let t2: TAM = then()
 
         XCTAssertNil(t1.state)
         XCTAssertNil(t2.state)
@@ -418,7 +418,7 @@ final class ComplexTransitionBuilderTests:
     }
 
     func assertMultiWhenContext(
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt = #line
     ) {
         let tr = tableRow(block)
@@ -435,7 +435,7 @@ final class ComplexTransitionBuilderTests:
         tr[3].actions[0]()
     }
     
-    @TAPBuilder<S> func allThenOverloads(_ e: XCTestExpectation) -> [TAP<S>] {
+    @TAMBuilder<S> func allThenOverloads(_ e: XCTestExpectation) -> [TAM<S>] {
         then(.alarming)
         then()
         then(.alarming) | e.fulfill
@@ -464,7 +464,7 @@ final class ComplexTransitionBuilderTests:
 
     func assertWhen(
         _ m: Match = .none,
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt = #line
     ) {
         let tr = tableRow(block)
@@ -480,7 +480,7 @@ final class ComplexTransitionBuilderTests:
     }
 
     func assertWhenPlusSinglePredicate(
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt = #line
     ) {
         assertWhen(matchAny(P.a), block, line: line)
@@ -511,7 +511,7 @@ final class ComplexTransitionBuilderTests:
     }
 
     func assertWhenPlusMultiPredicate(
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt = #line
     ) {
         assertWhen(Match(anyOf: [P.a, P.b]), block, line: line)
@@ -566,15 +566,15 @@ final class ComplexTransitionBuilderTests:
     }
 
     func testWhenActionCombinations() {
-        let l1 = #line; let wap1 = when(.reset)          | { }
-        let l2 = #line; let wap2 = when(.reset, .pass)   | { }
-        let l3 = #line; let wap3 = when([.reset, .pass]) | [{ }]
+        let l1 = #line; let wam1 = when(.reset)          | { }
+        let l2 = #line; let wam2 = when(.reset, .pass)   | { }
+        let l3 = #line; let wam3 = when([.reset, .pass]) | [{ }]
 
-        let l4 = #line; let wap4 = when(.reset)
-        let l5 = #line; let wap5 = when(.reset, .pass)
-        let l6 = #line; let wap6 = when([.reset, .pass])
+        let l4 = #line; let wam4 = when(.reset)
+        let l5 = #line; let wam5 = when(.reset, .pass)
+        let l6 = #line; let wam6 = when([.reset, .pass])
 
-        let all = [wap1, wap2, wap3, wap4, wap5, wap6]
+        let all = [wam1, wam2, wam3, wam4, wam5, wam6]
         let allLines = [l1, l2, l3, l4, l5, l6]
 
         all.prefix(3).forEach {
@@ -590,11 +590,11 @@ final class ComplexTransitionBuilderTests:
             XCTAssertEqual($0.0.line, $0.1)
         }
 
-        [wap1, wap4].map(\.events).forEach {
+        [wam1, wam4].map(\.events).forEach {
             XCTAssertEqual($0, [.reset])
         }
 
-        [wap2, wap3, wap5, wap6].map(\.events).forEach {
+        [wam2, wam3, wam5, wam6].map(\.events).forEach {
             XCTAssertEqual($0, [.reset, .pass])
         }
     }
@@ -606,7 +606,7 @@ final class ComplexTransitionBuilderTests:
 
     func assertThen(
         _ m: Match = .none,
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt = #line
     ) {
         let tr = tableRow(block)
@@ -619,7 +619,7 @@ final class ComplexTransitionBuilderTests:
         callActions(tr)
     }
 
-    @WAPBuilder<E> func resetFulfillPassFulfill(_ e: XCTestExpectation) -> [WAP<E>] {
+    @WAMBuilder<E> func resetFulfillPassFulfill(_ e: XCTestExpectation) -> [WAM<E>] {
         when(.reset, line: 10) | e.fulfill
         when(.pass)            | e.fulfill
     }
@@ -635,7 +635,7 @@ final class ComplexTransitionBuilderTests:
     }
 
     func assertThenPlusSinglePredicate(
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt = #line
     ) {
         assertThen(matchAny(P.a), block, line: line)
@@ -667,7 +667,7 @@ final class ComplexTransitionBuilderTests:
     }
 
     func assertThenPlusMultiplePredicates(
-        _ block: () -> [WTAPRow<State, Event>],
+        _ block: () -> [WTAMRow<State, Event>],
         line: UInt = #line
     ) {
         assertThen(matchAny(P.a, P.b), block, line: line)
@@ -842,12 +842,12 @@ final class MatcherTests: PredicateTests {
 }
 
 extension TableRow {
-    subscript(index: Int) -> WTAP<S, E> {
-        wtaps[index]
+    subscript(index: Int) -> WTAM<S, E> {
+        wtams[index]
     }
     
     var firstActions: [() -> ()] {
-        wtaps.first?.actions ?? []
+        wtams.first?.actions ?? []
     }
 }
 

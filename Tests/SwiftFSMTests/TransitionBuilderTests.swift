@@ -34,7 +34,7 @@ class TestingBase: XCTestCase {
         errorFile ef: StaticString = #file,
         errorLine el: UInt = #line
     ) {
-        assertFileAndLine(f, l, [e], ss.wtaps, errorFile: ef, errorLine: el)
+        assertFileAndLine(f, l, [e], ss.wtams, errorFile: ef, errorLine: el)
     }
     
     func assertFileAndLine(
@@ -45,7 +45,7 @@ class TestingBase: XCTestCase {
         errorFile ef: StaticString = #file,
         errorLine el: UInt = #line
     ) {
-        assertFileAndLine(f, l, [e], tr.wtaps, errorFile: ef, errorLine: el)
+        assertFileAndLine(f, l, [e], tr.wtams, errorFile: ef, errorLine: el)
     }
     
     func assertFileAndLine(
@@ -56,25 +56,25 @@ class TestingBase: XCTestCase {
         errorFile ef: StaticString = #file,
         errorLine el: UInt = #line
     ) {
-        assertFileAndLine(f, l, e, tr.wtaps, errorFile: ef, errorLine: el)
+        assertFileAndLine(f, l, e, tr.wtams, errorFile: ef, errorLine: el)
     }
     
     func assertFileAndLine(
         _ expectedFile: String = #file,
         _ expectedLine: Int,
         _ events: [Event],
-        _ wtaps: [WTAP<State, Event>],
+        _ wtams: [WTAM<State, Event>],
         errorFile: StaticString = #file,
         errorLine: UInt = #line
     ) {
         XCTAssertEqual(
-            wtaps.first { $0.events == events }?.line ?? -1, expectedLine,
+            wtams.first { $0.events == events }?.line ?? -1, expectedLine,
             file: errorFile,
             line: errorLine
         )
         
         XCTAssertEqual(
-            wtaps.first { $0.events == events }?.file ?? "nil", expectedFile,
+            wtams.first { $0.events == events }?.file ?? "nil", expectedFile,
             file: errorFile,
             line: errorLine
         )
@@ -98,7 +98,7 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
-            ss.wtaps.contains(where: {
+            ss.wtams.contains(where: {
                 $0.state == s && $0.events == e
             })
             , "\n(\(e), \(s)) \nnot found in: \n\(ss.description)",
@@ -123,8 +123,8 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
-            tr.wtaps.contains(
-                WTAP(events: w,
+            tr.wtams.contains(
+                WTAM(events: w,
                      state: t,
                      actions: [],
                      match: .none,
@@ -251,10 +251,10 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         
         assertFileAndLine(10, forEvent: .coin, in: tr)
 
-        tr.wtaps.first?.actions.first?()
-        tr.wtaps.first?.actions.last?()
-        tr.wtaps.last?.actions.first?()
-        tr.wtaps.last?.actions.last?()
+        tr.wtams.first?.actions.first?()
+        tr.wtams.first?.actions.last?()
+        tr.wtams.last?.actions.first?()
+        tr.wtams.last?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
         
@@ -291,21 +291,21 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
 
 extension TableRow<TurnstileState, TurnstileEvent> {
     var description: String {
-        wtaps.map(\.description).reduce("", +)
+        wtams.map(\.description).reduce("", +)
     }
     
     var matchlessDescription: String {
-        wtaps.map(\.matchlessDescription).reduce("", +)
+        wtams.map(\.matchlessDescription).reduce("", +)
     }
 }
 
 extension SuperState<TurnstileState, TurnstileEvent> {
     var description: String {
-        wtaps.map(\.description).reduce("", +)
+        wtams.map(\.description).reduce("", +)
     }
 }
 
-extension WTAP<TurnstileState, TurnstileEvent> {
+extension WTAM<TurnstileState, TurnstileEvent> {
     var description: String {
         "(\(events), \(state?.description ?? "nil"), \(match))\n"
     }

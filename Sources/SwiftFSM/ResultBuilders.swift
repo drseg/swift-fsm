@@ -31,16 +31,16 @@ struct TableBuilder<S: SP, E: EP>: ResultBuilder {
 }
 
 @resultBuilder
-struct WTAPBuilder<S: SP, E: EP>: ResultBuilder {
-    typealias T = WTAPRow<S, E>
+struct WTAMBuilder<S: SP, E: EP>: ResultBuilder {
+    typealias T = WTAMRow<S, E>
 }
 
 @resultBuilder
-struct TAPBuilder<S: SP>: ResultBuilder {
-    typealias T = TAP<S>
+struct TAMBuilder<S: SP>: ResultBuilder {
+    typealias T = TAM<S>
 }
 
 @resultBuilder
-struct WAPBuilder<E: EP>: ResultBuilder {
-    typealias T = WAP<E>
+struct WAMBuilder<E: EP>: ResultBuilder {
+    typealias T = WAM<E>
 }

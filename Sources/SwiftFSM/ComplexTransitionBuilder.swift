@@ -48,74 +48,74 @@ protocol ComplexTransitionBuilder: TransitionBuilder {
 extension ComplexTransitionBuilder {
     func match(
         _ p: Predicate,
-        @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
-    ) -> [WTAPRow<S, E>] {
+        @WTAMBuilder<S, E> rows: () -> [WTAMRow<S, E>]
+    ) -> [WTAMRow<S, E>] {
         match(anyOf: [p], rows: rows)
     }
     
     func match(
         anyOf p: Predicate,
         _ ps: Predicate...,
-        @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
-    ) -> [WTAPRow<S, E>] {
+        @WTAMBuilder<S, E> rows: () -> [WTAMRow<S, E>]
+    ) -> [WTAMRow<S, E>] {
         match(anyOf: [p] + ps, rows: rows)
     }
     
     func match(
         anyOf p: [Predicate],
-        @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
-    ) -> [WTAPRow<S, E>] {
-        rows().reduce(into: [WTAPRow]()) {
-            if let wtap = $1.wtap {
-                $0.append(WTAPRow(wtap: wtap.addMatch(Match(anyOf: p))))
+        @WTAMBuilder<S, E> rows: () -> [WTAMRow<S, E>]
+    ) -> [WTAMRow<S, E>] {
+        rows().reduce(into: [WTAMRow]()) {
+            if let wtam = $1.wtam {
+                $0.append(WTAMRow(wtam: wtam.addMatch(Match(anyOf: p))))
             }
         }
     }
     
     func match(
         _ p: Predicate,
-        @TAPBuilder<S> rows: () -> [TAP<S>]
-    ) -> [TAP<S>] {
+        @TAMBuilder<S> rows: () -> [TAM<S>]
+    ) -> [TAM<S>] {
         match(anyOf: [p], rows: rows)
     }
     
     func match(
         anyOf p: Predicate,
         _ ps: Predicate...,
-        @TAPBuilder<S> rows: () -> [TAP<S>]
-    ) -> [TAP<S>] {
+        @TAMBuilder<S> rows: () -> [TAM<S>]
+    ) -> [TAM<S>] {
         match(anyOf: [p] + ps, rows: rows)
     }
     
     func match(
         anyOf p: [Predicate],
-        @TAPBuilder<S> rows: () -> [TAP<S>]
-    ) -> [TAP<S>] {
-        rows().reduce(into: [TAP]()) {
+        @TAMBuilder<S> rows: () -> [TAM<S>]
+    ) -> [TAM<S>] {
+        rows().reduce(into: [TAM]()) {
             $0.append($1.addMatch(Match(anyOf: p)))
         }
     }
     
     func match(
         _ p: Predicate,
-        @WAPBuilder<E> rows: () -> [WAP<E>]
-    ) -> [WAP<E>] {
+        @WAMBuilder<E> rows: () -> [WAM<E>]
+    ) -> [WAM<E>] {
         match(anyOf: [p], rows: rows)
     }
     
     func match(
         anyOf p: Predicate,
         _ ps: Predicate...,
-        @WAPBuilder<E> rows: () -> [WAP<E>]
-    ) -> [WAP<E>] {
+        @WAMBuilder<E> rows: () -> [WAM<E>]
+    ) -> [WAM<E>] {
         match(anyOf: [p] + ps, rows: rows)
     }
     
     func match(
         anyOf p: [Predicate],
-        @WAPBuilder<E> rows: () -> [WAP<E>]
-    ) -> [WAP<E>] {
-        rows().reduce(into: [WAP]()) {
+        @WAMBuilder<E> rows: () -> [WAM<E>]
+    ) -> [WAM<E>] {
+        rows().reduce(into: [WAM]()) {
             $0.append($1.addMatch(Match(anyOf: p)))
         }
     }
@@ -124,7 +124,7 @@ extension ComplexTransitionBuilder {
         _ e: Event...,
         file: String = #file,
         line: Int = #line
-    ) -> WAP<E> {
+    ) -> WAM<E> {
         when(e, file: file, line: line)
     }
     
@@ -132,8 +132,8 @@ extension ComplexTransitionBuilder {
         _ e: [Event],
         file: String = #file,
         line: Int = #line
-    ) -> WAP<E> {
-        WAP(events: e,
+    ) -> WAM<E> {
+        WAM(events: e,
             actions: [],
             match: .none,
             file: file,
@@ -144,8 +144,8 @@ extension ComplexTransitionBuilder {
         _ e: Event...,
         file: String = #file,
         line: Int = #line,
-        @TAPBuilder<S> rows: () -> [TAP<S>]
-    ) -> [WTAPRow<S, E>] {
+        @TAMBuilder<S> rows: () -> [TAM<S>]
+    ) -> [WTAMRow<S, E>] {
         when(e, file: file, line: line, rows: rows)
     }
     
@@ -153,45 +153,45 @@ extension ComplexTransitionBuilder {
         _ e: [Event],
         file: String = #file,
         line: Int = #line,
-        @TAPBuilder<S> rows: () -> [TAP<S>]
-    ) -> [WTAPRow<S, E>] {
-        rows().reduce(into: [WTAPRow]()) {
-            $0.append(WTAPRow(wtap: WTAP(events: e,
-                                         tap: $1,
+        @TAMBuilder<S> rows: () -> [TAM<S>]
+    ) -> [WTAMRow<S, E>] {
+        rows().reduce(into: [WTAMRow]()) {
+            $0.append(WTAMRow(wtam: WTAM(events: e,
+                                         tam: $1,
                                          file: file,
                                          line: line)))
         }
     }
     
-    func then(_ state: S) -> TAP<S> {
-        TAP(state: state)
+    func then(_ state: S) -> TAM<S> {
+        TAM(state: state)
     }
     
     func then(
         _ s: State,
-        @WAPBuilder<E> rows: () -> [WAP<E>]
-    ) -> [WTAPRow<S, E>] {
-        rows().reduce(into: [WTAPRow]()) {
-            $0.append(WTAPRow(wtap: WTAP(state: s, wap: $1)))
+        @WAMBuilder<E> rows: () -> [WAM<E>]
+    ) -> [WTAMRow<S, E>] {
+        rows().reduce(into: [WTAMRow]()) {
+            $0.append(WTAMRow(wtam: WTAM(state: s, wam: $1)))
         }
     }
 }
 
-extension WTAP {
-    init(state: S, wap: WAP<E>) {
-        self.init(events: wap.events,
+extension WTAM {
+    init(state: S, wam: WAM<E>) {
+        self.init(events: wam.events,
                   state: state,
-                  actions: wap.actions,
-                  match: wap.match,
-                  file: wap.file,
-                  line: wap.line)
+                  actions: wam.actions,
+                  match: wam.match,
+                  file: wam.file,
+                  line: wam.line)
     }
     
-    init(events: [E], tap: TAP<S>, file: String, line: Int) {
+    init(events: [E], tam: TAM<S>, file: String, line: Int) {
         self.init(events: events,
-                  state: tap.state,
-                  actions: tap.actions,
-                  match: tap.match,
+                  state: tam.state,
+                  actions: tam.actions,
+                  match: tam.match,
                   file: file,
                   line: line)
     }
@@ -206,7 +206,7 @@ extension WTAP {
     }
 }
 
-extension TAP {
+extension TAM {
     func addMatch(_ m: Match) -> Self {
         .init(state: state,
               actions: actions,
@@ -214,7 +214,7 @@ extension TAP {
     }
 }
 
-extension WAP {
+extension WAM {
     func addMatch(_ m: Match) -> Self {
         .init(events: events,
               actions: actions,
