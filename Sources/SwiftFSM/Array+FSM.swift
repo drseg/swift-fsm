@@ -20,17 +20,17 @@ extension Array where Element: Hashable {
 }
 
 extension Array {
-    func transitions<S: SP, E: EP>() -> [Transition<S, E>] {
-        map { ($0 as! (TableRow<S, E>)).transitions }.flatten
+    func transitions<S: SP, E: EP>() -> [Transition<S, E>]
+    where Element == TableRow<S, E> {
+        map(\.transitions).flatten
     }
     
-    func wtaps<S: SP, E: EP>() -> [WTAP<S, E>] {
-        map { ($0 as! (WTAPRow<S, E>)).wtap }.compactMap { $0 }
+    func wtaps<S: SP, E: EP>() -> [WTAP<S, E>]
+    where Element == WTAPRow<S, E> {
+        map(\.wtap).compactMap { $0 }
     }
-}
-
-extension Array where Element == () -> () {
-    func executeAll() {
+    
+    func executeAll() where Element == () -> () {
         forEach { $0() }
     }
 }
