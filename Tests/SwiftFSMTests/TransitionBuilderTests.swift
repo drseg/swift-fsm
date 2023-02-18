@@ -2,12 +2,20 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-enum TurnstileState: String, SP {
+enum TurnstileState: String, SP, CustomStringConvertible {
     case locked, unlocked, alarming
+    
+    var description: String {
+        rawValue
+    }
 }
 
-enum TurnstileEvent: String, EP {
+enum TurnstileEvent: String, EP, CustomStringConvertible {
     case reset, coin, pass
+    
+    var description: String {
+        rawValue
+    }
 }
 
 class TestingBase: XCTestCase {
@@ -15,6 +23,61 @@ class TestingBase: XCTestCase {
     typealias Event = TurnstileEvent
         
     var s: SuperState<State, Event>!
+    
+    typealias TR = TableRow<State, Event>
+    
+    func assertFileAndLine(
+        _ l: Int,
+        forEvent e: Event,
+        in ss: SuperState<State, Event>,
+        file: String = #file,
+        errorFile: StaticString = #file,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(
+            ss.wtaps.first { $0.events == [e] }?.line ?? -1, l,
+            file: errorFile,
+            line: line
+        )
+        
+        XCTAssertEqual(
+            ss.wtaps.first { $0.events == [e] }?.file ?? "nil", file,
+            file: errorFile,
+            line: line
+        )
+    }
+    
+    func assertFileAndLine(
+        _ l: Int,
+        forEvent e: Event,
+        in tr: TR,
+        file: String = #file,
+        errorFile: StaticString = #file,
+        line: UInt = #line
+    ) {
+        assertFileAndLine(l, forEvents: [e], in: tr, file: file, errorFile: errorFile, line: line)
+    }
+    
+    func assertFileAndLine(
+        _ l: Int,
+        forEvents e: [Event],
+        in tr: TR,
+        file: String = #file,
+        errorFile: StaticString = #file,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(
+            tr.wtaps.first { $0.events == e }?.line ?? -1, l,
+            file: errorFile,
+            line: line
+        )
+        
+        XCTAssertEqual(
+            tr.wtaps.first { $0.events == e }?.file ?? "nil", file,
+            file: errorFile,
+            line: line
+        )
+    }
 }
 
 class TransitionBuilderTests: TestingBase, TransitionBuilder {
@@ -22,15 +85,22 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         _ e: Event,
         _ s: State,
         _ ss: SuperState<State, Event>,
-        _ file: StaticString = #file,
+        _ line: UInt = #line
+    ) {
+        assertContains([e], s, ss, line)
+    }
+    
+    func assertContains(
+        _ e: [Event],
+        _ s: State,
+        _ ss: SuperState<State, Event>,
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
-            ss.wtas.contains(where: {
-                $0.state == s && $0.events.contains(e)
+            ss.wtaps.contains(where: {
+                $0.state == s && $0.events == e
             })
-            , "\n(\(e), \(s)) not found in: \n\(ss.description)",
-            file: file,
+            , "\n(\(e), \(s)) \nnot found in: \n\(ss.description)",
             line: line)
     }
     
@@ -38,31 +108,17 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         _ g: State,
         _ w: Event,
         _ t: State,
-        _ tr: TableRow<State, Event>,
-        _ file: StaticString = #file,
+        _ tr: TR,
         _ line: UInt = #line
     ) {
-        XCTAssertTrue(
-            tr.wtaps.contains(
-                WTAP(events: [w],
-                     state: t,
-                     actions: [],
-                     match: .none,
-                     file: #file,
-                     line: #line)
-            ) && tr.givenStates.contains(g)
-            , "\n(\(w), \(t)) not found in: \n\(tr.description)",
-            file: file,
-            line: line)
+        assertContains(g, [w], t, tr, line)
     }
-#warning("poor failure output and && is hopeless")
     
     func assertContains(
         _ g: State,
         _ w: [Event],
         _ t: State,
-        _ tr: TableRow<State, Event>,
-        _ file: StaticString = #file,
+        _ tr: TR,
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
@@ -73,18 +129,20 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
                      match: .none,
                      file: #file,
                      line: #line)
-            ) && tr.givenStates.contains(g)
-            , "\n(\(g), \(w), \(t)) not found in: \n\(tr.description)",
-            file: file,
+            ),
+            "\n(\(w), \(t)), \nnot found in: \n\(tr.matchlessDescription)",
             line: line)
+        
+        XCTAssertTrue(tr.givenStates.contains(g),
+                      "\n'\(g)' not found in: \(tr.givenStates)",
+                      line: line)
     }
-#warning("poor failure output and && is hopeless")
     
     override func setUp() {
         s = SuperState {
-            when(.reset) | then(.unlocked) | []
-            when(.coin)  | then(.unlocked) | {}
-            when(.pass)  | then(.locked)
+            when(.reset, line: 10) | then(.unlocked) | []
+            when(.coin)            | then(.unlocked) | {}
+            when(.pass)            | then(.locked)
         }
     }
         
@@ -92,6 +150,8 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertContains(.reset, .unlocked, s)
         assertContains(.coin, .unlocked, s)
         assertContains(.pass, .locked, s)
+        
+        assertFileAndLine(10, forEvent: .reset, in: s)
     }
     
     func testImplements() {
@@ -116,9 +176,9 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     
     func testSimpleTransitionsWithOperators() {
         let tr = define(.locked, .unlocked) {
-            when(.reset) | then(.unlocked) | []
-            when(.coin)  | then(.unlocked) | { }
-            when(.pass)  | then(.locked)
+            when(.reset, line: 10) | then(.unlocked) | []
+            when(.coin)            | then(.unlocked) | { }
+            when(.pass)            | then(.locked)
         }
         
         assertContains(.locked, .reset, .unlocked, tr)
@@ -128,38 +188,45 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertContains(.unlocked, .reset, .unlocked, tr)
         assertContains(.unlocked, .coin, .unlocked, tr)
         assertContains(.unlocked, .pass, .locked, tr)
+        
+        assertFileAndLine(10, forEvent: .reset, in: tr)
     }
     
     func testMultipleWhens() {
         let tr = define(.locked) {
-            when(.reset, .coin) | then(.unlocked) | []
+            when(.reset, .coin, line: 10) | then(.unlocked) | []
         }
         
         assertContains(.locked, [.reset, .coin], .unlocked, tr)
+        assertFileAndLine(10, forEvents: [.reset, .coin], in: tr)
     }
     
     func testDefaultThen() {
         let tr = define(.locked) {
-            when(.reset) | then()
-            when(.pass)  | then() | {}
+            when(.reset, line: 10) | then()
+            when(.pass)            | then() | {}
         }
                 
         assertContains(.locked, .reset, .locked, tr)
         assertContains(.locked, .pass, .locked, tr)
+        
+        assertFileAndLine(10, forEvent: .reset, in: tr)
     }
     
     func testActions() {
         let e = expectation(description: "action")
         e.expectedFulfillmentCount = 3
         let tr = define(.locked) {
-            when(.reset) | then(.unlocked) | e.fulfill
-            when(.reset) | then(.unlocked) | [e.fulfill]
-            when(.reset) | then(.unlocked) | [{ }, e.fulfill]
+            when(.reset, line: 10) | then(.unlocked) | e.fulfill
+            when(.reset)           | then(.unlocked) | [e.fulfill]
+            when(.reset)           | then(.unlocked) | [{ }, e.fulfill]
         }
         
         tr[0].actions[0]()
         tr[1].actions[0]()
         tr[2].actions[1]()
+        
+        assertFileAndLine(10, forEvent: .reset, in: tr)
         
         waitForExpectations(timeout: 0.1)
     }
@@ -170,16 +237,18 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         
         let tr = define(.locked) {
             actions(e.fulfill, e.fulfill) {
-                when(.coin)  | then(.unlocked)
+                when(.coin, line: 10)  | then(.unlocked)
             }
 
             action(e.fulfill) {
-                when(.pass)  | then(.locked) | e.fulfill
+                when(.pass)            | then(.locked) | e.fulfill
             }
         }
 
         assertContains(.locked, .coin, .unlocked, tr)
         assertContains(.locked, .pass, .locked, tr)
+        
+        assertFileAndLine(10, forEvent: .coin, in: tr)
 
         tr.wtaps.first?.actions.first?()
         tr.wtaps.first?.actions.last?()
@@ -223,19 +292,25 @@ extension TableRow<TurnstileState, TurnstileEvent> {
     var description: String {
         wtaps.map(\.description).reduce("", +)
     }
+    
+    var matchlessDescription: String {
+        wtaps.map(\.matchlessDescription).reduce("", +)
+    }
 }
 
 extension SuperState<TurnstileState, TurnstileEvent> {
     var description: String {
-        wtas.map(\.description).reduce("", +)
+        wtaps.map(\.description).reduce("", +)
     }
 }
 
 extension WTAP<TurnstileState, TurnstileEvent> {
     var description: String {
-        events.reduce("") {
-            $0 + String("(\($1.rawValue), \(state?.rawValue))\n")
-        }
+        "(\(events), \(state?.description ?? "nil"), \(match))\n"
+    }
+    
+    var matchlessDescription: String {
+        "(\(events), \(state?.description ?? "nil"))\n"
     }
 }
 

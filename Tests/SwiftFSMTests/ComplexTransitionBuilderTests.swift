@@ -7,7 +7,6 @@ final class ComplexTransitionBuilderTests:
     TestingBase, ComplexTransitionBuilder
 {
     typealias Predicate = P
-    typealias TR = TableRow<State, Event>
     
     func assertContains(
         _ g: State,
@@ -77,18 +76,13 @@ final class ComplexTransitionBuilderTests:
                      file: #file,
                      line: #line)
             ),
-            "\n(\(w), \(t)) not found in: \n\(tr.description)",
+            "\n(\(w), \(t), \(m)) \nnot found in: \n\(tr.description)",
             line: line)
         
         XCTAssertTrue(tr.givenStates.contains(g),
-                      "\n\(g) not found in: \(tr.givenStates)",
-                      line: line)
-        
-        XCTAssertTrue(tr.wtaps.map(\.match).contains(m),
-                      "\n\(m) not found in: \(tr.wtaps.map(\.match))",
+                      "\n'\(g)' not found in: \(tr.givenStates)",
                       line: line)
     }
-#warning("poor failure output")
     
     func testWithExpectation(
         count: Int = 1,
@@ -100,12 +94,11 @@ final class ComplexTransitionBuilderTests:
         e.expectedFulfillmentCount = count
         block(e)
         waitForExpectations(timeout: 0.1) { e in
-            if let e {
-                XCTFail(e.localizedDescription, file: file, line: line)
+            if e != nil {
+                XCTFail("Unfulfilled expectations", file: file, line: line)
             }
         }
     }
-#warning("unreadable failure output")
     
     func testPredicateContext() {
         testWithExpectation { e in

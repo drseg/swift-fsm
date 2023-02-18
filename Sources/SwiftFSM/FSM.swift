@@ -159,7 +159,7 @@ extension SuperState {
         given states: any Collection<S>
     ) -> [Transition<S, E>] {
         states.reduce(into: [Transition]()) { ts, state in
-            wtas.forEach {
+            wtaps.forEach {
                 ts.append(contentsOf: $0.makeTransitions(given: state))
             }
         }

@@ -68,14 +68,14 @@ struct RowModifiers<S: SP, E: EP> {
 }
 
 struct SuperState<S: SP, E: EP>: Hashable {
-    let wtas: [WTAP<S, E>]
+    let wtaps: [WTAP<S, E>]
     
     func hash(into hasher: inout Hasher) {
-        hasher.combine(wtas)
+        hasher.combine(wtaps)
     }
     
     init(@WTAPBuilder<S, E> _ content: () -> [WTAPRow<S, E>]) {
-        wtas = content().wtaps()
+        wtaps = content().wtaps()
     }
 }
 
