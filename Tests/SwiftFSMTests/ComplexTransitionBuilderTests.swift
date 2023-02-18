@@ -137,8 +137,9 @@ final class ComplexTransitionBuilderTests:
 
         assertContains(.locked, .coin, .unlocked, m, tr, line)
         assertContains(.locked, .pass, .locked, m, tr, line)
-        assertFileAndLine(10, forEvent: .coin, in: tr, errorLine: line)
         assertCount(2, tr, line: line)
+
+        assertFileAndLine(10, forEvent: .coin, in: tr, errorLine: line)
 
         tr.wtaps.map(\.actions).flatten.executeAll()
     }
@@ -149,14 +150,18 @@ final class ComplexTransitionBuilderTests:
     ) {
         assertWithAction(matchAny(P.a), block, line: line)
     }
+    
+    @WTAPBuilder<S, E> var coinUnlockedPassLocked: [WTAPRow<S, E>] {
+        when(.coin, line: 10) | then(.unlocked)
+        when(.pass)           | then()
+    }
 
     func testSinglePredicateWithActionInside() {
         testWithExpectation(count: 2) { e in
             assertSinglePredicateWithAction {
                 match(.a) {
                     action(e.fulfill) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -168,8 +173,7 @@ final class ComplexTransitionBuilderTests:
             assertSinglePredicateWithAction {
                 action(e.fulfill) {
                     match(.a) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -181,8 +185,7 @@ final class ComplexTransitionBuilderTests:
             assertSinglePredicateWithAction {
                 match(.a) {
                     actions(e.fulfill, e.fulfill) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -194,8 +197,7 @@ final class ComplexTransitionBuilderTests:
             assertSinglePredicateWithAction {
                 actions(e.fulfill, e.fulfill) {
                     match(.a) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -207,8 +209,7 @@ final class ComplexTransitionBuilderTests:
             assertSinglePredicateWithAction {
                 match(.a) {
                     actions([e.fulfill, e.fulfill]) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -220,8 +221,7 @@ final class ComplexTransitionBuilderTests:
             assertSinglePredicateWithAction {
                 actions([e.fulfill, e.fulfill]) {
                     match(.a) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -240,8 +240,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 match(any: .a, .b) {
                     action(e.fulfill) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -253,8 +252,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 action(e.fulfill) {
                     match(any: .a, .b) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -266,8 +264,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 match(any: .a, .b) {
                     actions(e.fulfill, e.fulfill) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -279,8 +276,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 actions(e.fulfill, e.fulfill) {
                     match(any: .a, .b) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -292,8 +288,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 match(any: .a, .b) {
                     actions([e.fulfill, e.fulfill]) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -305,8 +300,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 actions([e.fulfill, e.fulfill]) {
                     match(any: .a, .b) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -318,8 +312,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 match(any: [.a, .b]) {
                     actions(e.fulfill) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -331,8 +324,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 actions(e.fulfill) {
                     match(any: [.a, .b]) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -344,8 +336,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 match(any: [.a, .b]) {
                     actions(e.fulfill, e.fulfill) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -357,8 +348,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 actions(e.fulfill, e.fulfill) {
                     match(any: [.a, .b]) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -370,8 +360,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 match(any: [.a, .b]) {
                     actions([e.fulfill, e.fulfill]) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -383,8 +372,7 @@ final class ComplexTransitionBuilderTests:
             assertMultiPredicateWithAction {
                 actions([e.fulfill, e.fulfill]) {
                     match(any: [.a, .b]) {
-                        when(.coin, line: 10) | then(.unlocked)
-                        when(.pass)           | then()
+                        coinUnlockedPassLocked
                     }
                 }
             }
@@ -435,7 +423,7 @@ final class ComplexTransitionBuilderTests:
     ) {
         let tr = tableRow(block)
 
-        assertContains(.locked, [.coin, .pass], .unlocked, tr, line)
+        assertContains(.locked, [.coin, .pass], .alarming, tr, line)
         assertCount(4, tr, line: line)
         
         assertFileAndLine(10, forEvents: [.coin, .pass], in: tr, errorLine: line)
@@ -446,15 +434,19 @@ final class ComplexTransitionBuilderTests:
         tr[2].actions[0]()
         tr[3].actions[0]()
     }
+    
+    @TAPBuilder<S> func allThenOverloads(_ e: XCTestExpectation) -> [TAPRow<S>] {
+        then(.alarming)
+        then()
+        then(.alarming) | e.fulfill
+        then()          | e.fulfill
+    }
 
     func testMultiWhenContext() {
         testWithExpectation(count: 2) { e in
             assertMultiWhenContext {
                 when(.coin, .pass, line: 10) {
-                    then(.unlocked)
-                    then()
-                    then(.unlocked) | e.fulfill
-                    then()          | e.fulfill
+                    allThenOverloads(e)
                 }
             }
         }
@@ -464,10 +456,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             assertMultiWhenContext {
                 when([.coin, .pass], line: 10) {
-                    then(.unlocked)
-                    then()
-                    then(.unlocked) | e.fulfill
-                    then()          | e.fulfill
+                    allThenOverloads(e)
                 }
             }
         }
@@ -502,10 +491,7 @@ final class ComplexTransitionBuilderTests:
             assertWhenPlusSinglePredicate {
                 when(.coin, line: 10) {
                     match(.a) {
-                        then(.alarming)
-                        then()
-                        then(.alarming) | e.fulfill
-                        then()          | e.fulfill
+                        allThenOverloads(e)
                     }
                 }
             }
@@ -517,10 +503,7 @@ final class ComplexTransitionBuilderTests:
             assertWhenPlusSinglePredicate {
                 match(.a) {
                     when(.coin, line: 10) {
-                        then(.alarming)
-                        then()
-                        then(.alarming) | e.fulfill
-                        then()          | e.fulfill
+                        allThenOverloads(e)
                     }
                 }
             }
@@ -539,10 +522,7 @@ final class ComplexTransitionBuilderTests:
             assertWhenPlusMultiPredicate {
                 when(.coin, line: 10) {
                     match(any: .a, .b) {
-                        then(.alarming)
-                        then()
-                        then(.alarming) | e.fulfill
-                        then()          | e.fulfill
+                        allThenOverloads(e)
                     }
                 }
             }
@@ -554,10 +534,7 @@ final class ComplexTransitionBuilderTests:
             assertWhenPlusMultiPredicate {
                 match(any: .a, .b) {
                     when(.coin, line: 10) {
-                        then(.alarming)
-                        then()
-                        then(.alarming) | e.fulfill
-                        then()          | e.fulfill
+                        allThenOverloads(e)
                     }
                 }
             }
@@ -569,10 +546,7 @@ final class ComplexTransitionBuilderTests:
             assertWhenPlusMultiPredicate {
                 when(.coin, line: 10) {
                     match(any: [.a, .b]) {
-                        then(.alarming)
-                        then()
-                        then(.alarming) | e.fulfill
-                        then()          | e.fulfill
+                        allThenOverloads(e)
                     }
                 }
             }
@@ -584,10 +558,7 @@ final class ComplexTransitionBuilderTests:
             assertWhenPlusMultiPredicate {
                 match(any: [.a, .b]) {
                     when(.coin, line: 10) {
-                        then(.alarming)
-                        then()
-                        then(.alarming) | e.fulfill
-                        then()          | e.fulfill
+                        allThenOverloads(e)
                     }
                 }
             }
@@ -648,12 +619,16 @@ final class ComplexTransitionBuilderTests:
         callActions(tr)
     }
 
+    @WAPBuilder<E> func resetFulfilPassFulfil(_ e: XCTestExpectation) -> [WAPRow<E>] {
+        when(.reset, line: 10) | e.fulfill
+        when(.pass)            | e.fulfill
+    }
+    
     func testThenContext() {
         testWithExpectation(count: 2) { e in
             assertThen {
                 then(.alarming) {
-                    when(.reset, line: 10) | e.fulfill
-                    when(.pass)            | e.fulfill
+                    resetFulfilPassFulfil(e)
                 }
             }
         }
@@ -665,14 +640,14 @@ final class ComplexTransitionBuilderTests:
     ) {
         assertThen(matchAny(P.a), block, line: line)
     }
+    
 
     func testThenPlusSinglePredicateInside() {
         testWithExpectation(count: 2) { e in
             assertThenPlusSinglePredicate {
                 then(.alarming) {
                     match(.a) {
-                        when(.reset, line: 10) | e.fulfill
-                        when(.pass)            | e.fulfill
+                        resetFulfilPassFulfil(e)
                     }
                 }
             }
@@ -684,8 +659,7 @@ final class ComplexTransitionBuilderTests:
             assertThenPlusSinglePredicate {
                 match(.a) {
                     then(.alarming) {
-                        when(.reset, line: 10) | e.fulfill
-                        when(.pass)            | e.fulfill
+                        resetFulfilPassFulfil(e)
                     }
                 }
             }
@@ -704,8 +678,7 @@ final class ComplexTransitionBuilderTests:
             assertThenPlusMultiplePredicates {
                 then(.alarming) {
                     match(any: .a, .b) {
-                        when(.reset, line: 10) | e.fulfill
-                        when(.pass)            | e.fulfill
+                        resetFulfilPassFulfil(e)
                     }
                 }
             }
@@ -717,8 +690,7 @@ final class ComplexTransitionBuilderTests:
             assertThenPlusMultiplePredicates {
                 match(any: .a, .b) {
                     then(.alarming) {
-                        when(.reset, line: 10) | e.fulfill
-                        when(.pass)            | e.fulfill
+                        resetFulfilPassFulfil(e)
                     }
                 }
             }
@@ -730,8 +702,7 @@ final class ComplexTransitionBuilderTests:
             assertThenPlusMultiplePredicates {
                 then(.alarming) {
                     match(any: [.a, .b]) {
-                        when(.reset, line: 10) | e.fulfill
-                        when(.pass)            | e.fulfill
+                        resetFulfilPassFulfil(e)
                     }
                 }
             }
@@ -743,8 +714,7 @@ final class ComplexTransitionBuilderTests:
             assertThenPlusMultiplePredicates {
                 match(any: [.a, .b]) {
                     then(.alarming) {
-                        when(.reset, line: 10) | e.fulfill
-                        when(.pass)            | e.fulfill
+                        resetFulfilPassFulfil(e)
                     }
                 }
             }
@@ -757,8 +727,7 @@ final class ComplexTransitionBuilderTests:
                 match(.a) {
                     then(.alarming) {
                         match(.b) {
-                            when(.reset, line: 10) | e.fulfill
-                            when(.pass)            | e.fulfill
+                            resetFulfilPassFulfil(e)
                         }
                     }
                 }
