@@ -48,83 +48,109 @@ protocol ComplexTransitionBuilder: TransitionBuilder {
 extension ComplexTransitionBuilder {
     func match(
         _ p: Predicate,
+        file: String = #file,
+        line: Int = #line,
         @WTAMBuilder<S, E> rows: () -> [WTAMRow<S, E>]
     ) -> [WTAMRow<S, E>] {
-        match(anyOf: [p], rows: rows)
+        match(anyOf: [p], file: file, line: line, rows: rows)
     }
     
     func match(
         anyOf p: Predicate,
         _ ps: Predicate...,
+        file: String = #file,
+        line: Int = #line,
         @WTAMBuilder<S, E> rows: () -> [WTAMRow<S, E>]
     ) -> [WTAMRow<S, E>] {
-        match(anyOf: [p] + ps, rows: rows)
+        match(anyOf: [p] + ps, file: file, line: line, rows: rows)
     }
     
     func match(
         anyOf p: [Predicate],
+        file: String = #file,
+        line: Int = #line,
         @WTAMBuilder<S, E> rows: () -> [WTAMRow<S, E>]
     ) -> [WTAMRow<S, E>] {
-        rows().reduce(into: [WTAMRow]()) {
+        rows().reduce(into: [WTAMRow<S, E>]()) {
             if let wtam = $1.wtam {
                 $0.append(WTAMRow(wtam: wtam.addMatch(Match(anyOf: p))))
             }
-        }
+        } ??? [.error(file: file, line: line)]
     }
     
     func match(
         _ p: Predicate,
-        @TAMBuilder<S> rows: () -> [TAM<S>]
-    ) -> [TAM<S>] {
-        match(anyOf: [p], rows: rows)
+        file: String = #file,
+        line: Int = #line,
+        @TAMBuilder<S> rows: () -> [TAMRow<S>]
+    ) -> [TAMRow<S>] {
+        match(anyOf: [p], file: file, line: line, rows: rows)
     }
     
     func match(
         anyOf p: Predicate,
         _ ps: Predicate...,
-        @TAMBuilder<S> rows: () -> [TAM<S>]
-    ) -> [TAM<S>] {
-        match(anyOf: [p] + ps, rows: rows)
+        file: String = #file,
+        line: Int = #line,
+        @TAMBuilder<S> rows: () -> [TAMRow<S>]
+    ) -> [TAMRow<S>] {
+        match(anyOf: [p] + ps, file: file, line: line, rows: rows)
     }
     
     func match(
         anyOf p: [Predicate],
-        @TAMBuilder<S> rows: () -> [TAM<S>]
-    ) -> [TAM<S>] {
-        rows().reduce(into: [TAM]()) {
-            $0.append($1.addMatch(Match(anyOf: p)))
-        }
+        file: String = #file,
+        line: Int = #line,
+        @TAMBuilder<S> rows: () -> [TAMRow<S>]
+    ) -> [TAMRow<S>] {
+        rows().reduce(into: [TAMRow]()) {
+            if let tam = $1.tam {
+                $0.append(
+                    TAMRow(tam: tam.addMatch(Match(anyOf: p)))
+                )
+            }
+        } ??? [.error(file: file, line: line)]
     }
     
     func match(
         _ p: Predicate,
-        @WAMBuilder<E> rows: () -> [WAM<E>]
-    ) -> [WAM<E>] {
-        match(anyOf: [p], rows: rows)
+        file: String = #file,
+        line: Int = #line,
+        @WAMBuilder<E> rows: () -> [WAMRow<E>]
+    ) -> [WAMRow<E>] {
+        match(anyOf: [p], file: file, line: line, rows: rows)
     }
     
     func match(
         anyOf p: Predicate,
         _ ps: Predicate...,
-        @WAMBuilder<E> rows: () -> [WAM<E>]
-    ) -> [WAM<E>] {
-        match(anyOf: [p] + ps, rows: rows)
+        file: String = #file,
+        line: Int = #line,
+        @WAMBuilder<E> rows: () -> [WAMRow<E>]
+    ) -> [WAMRow<E>] {
+        match(anyOf: [p] + ps, file: file, line: line, rows: rows)
     }
     
     func match(
         anyOf p: [Predicate],
-        @WAMBuilder<E> rows: () -> [WAM<E>]
-    ) -> [WAM<E>] {
-        rows().reduce(into: [WAM]()) {
-            $0.append($1.addMatch(Match(anyOf: p)))
-        }
+        file: String = #file,
+        line: Int = #line,
+        @WAMBuilder<E> rows: () -> [WAMRow<E>]
+    ) -> [WAMRow<E>] {
+        rows().reduce(into: [WAMRow]()) {
+            if let wam = $1.wam {
+                $0.append(
+                    WAMRow(wam: wam.addMatch(Match(anyOf: p)))
+                )
+            }
+        } ??? [.error(file: file, line: line)]
     }
     
     func when(
         _ e: Event...,
         file: String = #file,
         line: Int = #line
-    ) -> WAM<E> {
+    ) -> WAMRow<E> {
         when(e, file: file, line: line)
     }
     
@@ -132,19 +158,19 @@ extension ComplexTransitionBuilder {
         _ e: [Event],
         file: String = #file,
         line: Int = #line
-    ) -> WAM<E> {
-        WAM(events: e,
-            actions: [],
-            match: .none,
-            file: file,
-            line: line)
+    ) -> WAMRow<E> {
+        WAMRow(wam: WAM(events: e,
+                        actions: [],
+                        match: .none,
+                        file: file,
+                        line: line))
     }
     
     func when(
         _ e: Event...,
         file: String = #file,
         line: Int = #line,
-        @TAMBuilder<S> rows: () -> [TAM<S>]
+        @TAMBuilder<S> rows: () -> [TAMRow<S>]
     ) -> [WTAMRow<S, E>] {
         when(e, file: file, line: line, rows: rows)
     }
@@ -153,26 +179,30 @@ extension ComplexTransitionBuilder {
         _ e: [Event],
         file: String = #file,
         line: Int = #line,
-        @TAMBuilder<S> rows: () -> [TAM<S>]
+        @TAMBuilder<S> rows: () -> [TAMRow<S>]
     ) -> [WTAMRow<S, E>] {
         rows().reduce(into: [WTAMRow]()) {
-            $0.append(WTAMRow(wtam: WTAM(events: e,
-                                         tam: $1,
-                                         file: file,
-                                         line: line)))
+            if let tam = $1.tam {
+                $0.append(WTAMRow(wtam: WTAM(events: e,
+                                             tam: tam,
+                                             file: file,
+                                             line: line)))
+            }
         }
     }
     
-    func then(_ state: S) -> TAM<S> {
-        TAM(state: state)
+    func then(_ state: S) -> TAMRow<S> {
+        TAMRow(tam: TAM(state: state))
     }
     
     func then(
         _ s: State,
-        @WAMBuilder<E> rows: () -> [WAM<E>]
+        @WAMBuilder<E> rows: () -> [WAMRow<E>]
     ) -> [WTAMRow<S, E>] {
         rows().reduce(into: [WTAMRow]()) {
-            $0.append(WTAMRow(wtam: WTAM(state: s, wam: $1)))
+            if let wam = $1.wam {
+                $0.append(WTAMRow(wtam: WTAM(state: s, wam: wam)))
+            }
         }
     }
 }

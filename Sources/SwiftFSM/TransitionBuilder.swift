@@ -45,7 +45,7 @@ extension TransitionBuilder {
                                      entryActions: entryActions,
                                      exitActions: exitActions)
         
-        return modifiers == .none && wtams.isEmpty
+        return modifiers.isEmpty && wtams.isEmpty
         ? .error(file: file, line: line)
         : .init(wtams: wtams, modifiers: modifiers, givenStates: states)
     }
@@ -97,8 +97,8 @@ extension TransitionBuilder {
         Then(state: state)
     }
     
-    func then() -> TAM<S> {
-        .init()
+    func then() -> TAMRow<S> {
+        TAMRow(tam: .init())
     }
     
     func action(

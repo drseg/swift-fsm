@@ -37,10 +37,10 @@ struct WTAMBuilder<S: SP, E: EP>: ResultBuilder {
 
 @resultBuilder
 struct TAMBuilder<S: SP>: ResultBuilder {
-    typealias T = TAM<S>
+    typealias T = TAMRow<S>
 }
 
 @resultBuilder
 struct WAMBuilder<E: EP>: ResultBuilder {
-    typealias T = WAM<E>
+    typealias T = WAMRow<E>
 }

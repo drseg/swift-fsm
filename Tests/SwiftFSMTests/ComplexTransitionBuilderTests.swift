@@ -104,6 +104,20 @@ final class ComplexTransitionBuilderTests:
         Match(anyOf: ps)
     }
     
+    func testEmptyMatch() {
+        assertEmpty { (match(.a) { }) as [WTAMRow<S, E>] }
+        assertEmpty { (match(anyOf: .a) { }) as [WTAMRow<S, E>] }
+        assertEmpty { (match(anyOf: [.a]) { }) as [WTAMRow<S, E>] }
+        
+        assertEmpty { (match(.a) { }) as [WAMRow<E>] }
+        assertEmpty { (match(anyOf: .a) { }) as [WAMRow<E>] }
+        assertEmpty { (match(anyOf: [.a]) { }) as [WAMRow<E>] }
+        
+        assertEmpty { (match(.a) { }) as [TAMRow<S>] }
+        assertEmpty { (match(anyOf: .a) { }) as [TAMRow<S>] }
+        assertEmpty { (match(anyOf: [.a]) { }) as [TAMRow<S>] }
+    }
+    
     func testPredicateContext() {
         testWithExpectation { e in
             let tr =
@@ -381,29 +395,30 @@ final class ComplexTransitionBuilderTests:
 
     func testThenWithNoArgument() {
         let t1: Then = then()
-        let t2: TAM = then()
+        let t2: TAMRow = then()
 
         XCTAssertNil(t1.state)
-        XCTAssertNil(t2.state)
+        XCTAssertNil(t2.tam?.state)
 
-        XCTAssertTrue(t2.actions.isEmpty)
-        XCTAssertTrue(t2.match.allOf.isEmpty)
+        XCTAssertTrue(t2.tam?.actions.isEmpty ?? false)
+        XCTAssertTrue(t2.tam?.match.allOf.isEmpty ?? false)
     }
     
     func testWhenDefaultFileAndLine() {
-        let l1 = #line; let w1: WAM<E> = when(.coin)
-        let l2 = #line; let w2: WAM<E> = when([.coin])
+        let l1 = #line; let w1: WAMRow<E> = when(.coin)
+        let l2 = #line; let w2: WAMRow<E> = when([.coin])
+#warning("will crash without 'then()'")
         let l3 = #line; let w3 = when(.coin)   { then() }
         let l4 = #line; let w4 = when([.coin]) { then() }
         
-        XCTAssertEqual(w1.file, #file)
-        XCTAssertEqual(w2.file, #file)
+        XCTAssertEqual(w1.wam?.file, #file)
+        XCTAssertEqual(w2.wam?.file, #file)
         
         XCTAssertEqual(w3[0].wtam?.file, #file)
         XCTAssertEqual(w4[0].wtam?.file, #file)
         
-        XCTAssertEqual(w1.line, l1)
-        XCTAssertEqual(w2.line, l2)
+        XCTAssertEqual(w1.wam?.line, l1)
+        XCTAssertEqual(w2.wam?.line, l2)
         
         XCTAssertEqual(w3[0].wtam?.line, l3)
         XCTAssertEqual(w4[0].wtam?.line, l4)
@@ -454,7 +469,7 @@ final class ComplexTransitionBuilderTests:
         tr[3].actions[0]()
     }
     
-    @TAMBuilder<S> func allThenOverloads(_ e: XCTestExpectation) -> [TAM<S>] {
+    @TAMBuilder<S> func allThenOverloads(_ e: XCTestExpectation) -> [TAMRow<S>] {
         then(.alarming)
         then()
         then(.alarming) | e.fulfill
@@ -597,23 +612,23 @@ final class ComplexTransitionBuilderTests:
         let allLines = [l1, l2, l3, l4, l5, l6]
 
         all.prefix(3).forEach {
-            XCTAssertEqual($0.actions.count, 1)
+            XCTAssertEqual($0.wam?.actions.count, 1)
         }
 
         all.suffix(3).forEach {
-            XCTAssertEqual($0.actions.count, 0)
+            XCTAssertEqual($0.wam?.actions.count, 0)
         }
 
         zip(all, allLines).forEach {
-            XCTAssertEqual($0.0.file, #file)
-            XCTAssertEqual($0.0.line, $0.1)
+            XCTAssertEqual($0.0.wam?.file, #file)
+            XCTAssertEqual($0.0.wam?.line, $0.1)
         }
 
-        [wam1, wam4].map(\.events).forEach {
+        [wam1, wam4].map(\.wam).map(\.?.events).forEach {
             XCTAssertEqual($0, [.reset])
         }
 
-        [wam2, wam3, wam5, wam6].map(\.events).forEach {
+        [wam2, wam3, wam5, wam6].map(\.wam).map(\.?.events).forEach {
             XCTAssertEqual($0, [.reset, .pass])
         }
     }
@@ -638,7 +653,7 @@ final class ComplexTransitionBuilderTests:
         callActions(tr)
     }
 
-    @WAMBuilder<E> func resetFulfillPassFulfill(_ e: XCTestExpectation) -> [WAM<E>] {
+    @WAMBuilder<E> func resetFulfillPassFulfill(_ e: XCTestExpectation) -> [WAMRow<E>] {
         when(.reset, line: 10) | e.fulfill
         when(.pass)            | e.fulfill
     }

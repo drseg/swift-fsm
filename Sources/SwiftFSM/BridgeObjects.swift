@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct EmptyRow: Error {
+struct EmptyBlock: Error {
     var description: String { "TILT" }
     let file: String
     let line: Int
@@ -15,13 +15,13 @@ struct EmptyRow: Error {
 
 protocol ErrorRow {
     static func error(file: String, line: Int) -> Self
-    init(error: EmptyRow)
-    var error: EmptyRow? { get }
+    init(error: EmptyBlock)
+    var error: EmptyBlock? { get }
 }
 
 extension ErrorRow {
     static func error(file: String, line: Int) -> Self {
-        .init(error: EmptyRow(file: file, line: line))
+        .init(error: EmptyBlock(file: file, line: line))
     }
 }
 
@@ -29,9 +29,9 @@ struct TableRow<S: SP, E: EP>: ErrorRow {
     let wtams: [WTAM<S, E>]
     let modifiers: RowModifiers<S, E>
     let givenStates: [S]
-    let error: EmptyRow?
+    let error: EmptyBlock?
     
-    init(error: EmptyRow) {
+    init(error: EmptyBlock) {
         self.init(wtams: [], modifiers: .none, givenStates: [], error: error)
     }
     
@@ -39,7 +39,7 @@ struct TableRow<S: SP, E: EP>: ErrorRow {
         wtams: [WTAM<S, E>],
         modifiers: RowModifiers<S, E>,
         givenStates: [S],
-        error: EmptyRow? = nil
+        error: EmptyBlock? = nil
     ) {
         self.wtams = wtams
         self.modifiers = modifiers
@@ -60,16 +60,16 @@ struct TableRow<S: SP, E: EP>: ErrorRow {
 struct WTAMRow<S: SP, E: EP>: ErrorRow {
     let wtam: WTAM<S, E>?
     let modifiers: RowModifiers<S, E>
-    let error: EmptyRow?
+    let error: EmptyBlock?
     
-    init(error: EmptyRow) {
+    init(error: EmptyBlock) {
         self.init(wtam: nil, modifiers: .none, error: error)
     }
     
     init(
         wtam: WTAM<S, E>? = nil,
         modifiers: RowModifiers<S, E> = .none,
-        error: EmptyRow? = nil
+        error: EmptyBlock? = nil
     ) {
         self.wtam = wtam
         self.modifiers = modifiers
@@ -77,13 +77,7 @@ struct WTAMRow<S: SP, E: EP>: ErrorRow {
     }
 }
 
-struct RowModifiers<S: SP, E: EP>: Equatable {
-    static func == (lhs: RowModifiers<S, E>, rhs: RowModifiers<S, E>) -> Bool {
-        lhs.superStates == rhs.superStates &&
-        lhs.entryActions.count == rhs.entryActions.count &&
-        lhs.exitActions.count == rhs.exitActions.count
-    }
-    
+struct RowModifiers<S: SP, E: EP> {
     static var none: Self {
         .init()
     }
@@ -100,6 +94,12 @@ struct RowModifiers<S: SP, E: EP>: Equatable {
         self.superStates = superStates
         self.entryActions = entryActions
         self.exitActions = exitActions
+    }
+    
+    var isEmpty: Bool {
+        superStates.isEmpty &&
+        entryActions.isEmpty &&
+        exitActions.isEmpty
     }
 }
 
@@ -155,16 +155,16 @@ struct Match: Hashable {
 }
 
 struct Whens<S: SP, E: EP> {
-    static func | (lhs: Self, rhs: @escaping () -> ()) -> WAM<E> {
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> WAMRow<E> {
         lhs | [rhs]
     }
     
-    static func | (lhs: Self, rhs: [() -> ()]) -> WAM<E> {
-        WAM(events: lhs.events,
-            actions: rhs,
-            match: .none,
-            file: lhs.file,
-            line: lhs.line)
+    static func | (lhs: Self, rhs: [() -> ()]) -> WAMRow<E> {
+        WAMRow(wam: WAM(events: lhs.events,
+                        actions: rhs,
+                        match: .none,
+                        file: lhs.file,
+                        line: lhs.line))
         
     }
     
@@ -190,12 +190,12 @@ struct Whens<S: SP, E: EP> {
 struct Then<S: StateProtocol> {
     let state: S?
     
-    static func | (lhs: Self, rhs: @escaping () -> ()) -> TAM<S> {
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> TAMRow<S> {
         lhs | [rhs]
     }
     
-    static func | (lhs: Self, rhs: [() -> ()]) -> TAM<S> {
-        TAM(state: lhs.state, actions: rhs, match: .none)
+    static func | (lhs: Self, rhs: [() -> ()]) -> TAMRow<S> {
+        TAMRow(tam: TAM(state: lhs.state, actions: rhs, match: .none))
     }
 }
 
@@ -220,6 +220,21 @@ struct WhensThen<S: SP, E: EP> {
     let line: Int
 }
 
+struct TAMRow<S: SP>: ErrorRow {
+    let tam: TAM<S>?
+    let error: EmptyBlock?
+    
+    init(error: EmptyBlock) {
+        self.error = error
+        self.tam = nil
+    }
+    
+    init(tam: TAM<S>) {
+        self.tam = tam
+        self.error = nil
+    }
+}
+
 struct TAM<S: SP> {
     let state: S?
     let actions: [() -> ()]
@@ -233,6 +248,21 @@ struct TAM<S: SP> {
         self.state = state
         self.actions = actions
         self.match = match
+    }
+}
+
+struct WAMRow<E: EP>: ErrorRow {
+    let wam: WAM<E>?
+    let error: EmptyBlock?
+    
+    init(error: EmptyBlock) {
+        self.error = error
+        self.wam = nil
+    }
+    
+    init(wam: WAM<E>) {
+        self.wam = wam
+        self.error = nil
     }
 }
 

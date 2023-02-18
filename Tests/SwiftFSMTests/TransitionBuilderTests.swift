@@ -26,15 +26,15 @@ class TestingBase: XCTestCase {
     
     typealias TR = TableRow<State, Event>
     
-    func testEmpty(
+    func assertEmpty(
         file: StaticString = #file,
         line: UInt = #line,
         _ er: () -> any ErrorRow
     ) {
-        testEmpty(file: file, line: line) { [er()] }
+        assertEmpty(file: file, line: line) { [er()] }
     }
     
-    func testEmpty(
+    func assertEmpty(
         file: StaticString = #file,
         line: UInt = #line,
         _ er: () -> [any ErrorRow]
@@ -184,7 +184,7 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     }
     
     func testEmptyDefine() {
-        testEmpty { define(.unlocked) { } }
+        assertEmpty { define(.unlocked) { } }
     }
     
     func testImplements() {
@@ -258,9 +258,9 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     }
     
     func testEmptyActions() {
-        testEmpty{ action({ }) { }    }
-        testEmpty{ actions({ }) { }   }
-        testEmpty{ actions([{ }]) { } }
+        assertEmpty{ action({ }) { }    }
+        assertEmpty{ actions({ }) { }   }
+        assertEmpty{ actions([{ }]) { } }
     }
     
     func testActions() {
