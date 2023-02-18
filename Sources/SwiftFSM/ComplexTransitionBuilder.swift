@@ -188,7 +188,7 @@ extension ComplexTransitionBuilder {
                                              file: file,
                                              line: line)))
             }
-        }
+        } ??? [.error(file: file, line: line)]
     }
     
     func then(_ state: S) -> TAMRow<S> {
@@ -197,13 +197,15 @@ extension ComplexTransitionBuilder {
     
     func then(
         _ s: State,
+        file: String = #file,
+        line: Int = #line,
         @WAMBuilder<E> rows: () -> [WAMRow<E>]
     ) -> [WTAMRow<S, E>] {
         rows().reduce(into: [WTAMRow]()) {
             if let wam = $1.wam {
                 $0.append(WTAMRow(wtam: WTAM(state: s, wam: wam)))
             }
-        }
+        } ??? [.error(file: file, line: line)]
     }
 }
 

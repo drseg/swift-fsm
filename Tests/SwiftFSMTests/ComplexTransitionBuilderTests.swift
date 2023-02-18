@@ -118,7 +118,7 @@ final class ComplexTransitionBuilderTests:
         assertEmpty { (match(anyOf: [.a]) { }) as [TAMRow<S>] }
     }
     
-    func testPredicateContext() {
+    func testMatcherContext() {
         testWithExpectation { e in
             let tr =
             define(.locked) {
@@ -405,9 +405,8 @@ final class ComplexTransitionBuilderTests:
     }
     
     func testWhenDefaultFileAndLine() {
-        let l1 = #line; let w1: WAMRow<E> = when(.coin)
-        let l2 = #line; let w2: WAMRow<E> = when([.coin])
-#warning("will crash without 'then()'")
+        let l1 = #line; let w1 = when(.coin)
+        let l2 = #line; let w2 = when([.coin])
         let l3 = #line; let w3 = when(.coin)   { then() }
         let l4 = #line; let w4 = when([.coin]) { then() }
         
@@ -422,6 +421,11 @@ final class ComplexTransitionBuilderTests:
         
         XCTAssertEqual(w3[0].wtam?.line, l3)
         XCTAssertEqual(w4[0].wtam?.line, l4)
+    }
+    
+    func testEmptyWhenBlock() {
+        assertEmpty { when(.coin) { } }
+        assertEmpty { when([.coin]) { } }
     }
 
     func testSingleWhenContext() {
@@ -474,6 +478,10 @@ final class ComplexTransitionBuilderTests:
         then()
         then(.alarming) | e.fulfill
         then()          | e.fulfill
+    }
+    
+    func testEmptyThenBlock() {
+        assertEmpty { then(.unlocked) { } }
     }
 
     func testMultiWhenContext() {
