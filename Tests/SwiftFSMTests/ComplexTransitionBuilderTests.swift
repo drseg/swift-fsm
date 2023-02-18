@@ -109,8 +109,8 @@ final class ComplexTransitionBuilderTests:
             let tr =
             define(.locked) {
                 match(.a) {
-                    match(any: .b, .c) {
-                        match(any: [.d, .e]) {
+                    match(anyOf: .b, .c) {
+                        match(anyOf: [.d, .e]) {
                             when(.coin, line: 10) | then() | e.fulfill
                         }
                     }
@@ -238,7 +238,7 @@ final class ComplexTransitionBuilderTests:
     func testMultiPredicateWithActionInside() {
         testWithExpectation(count: 2) { e in
             assertMultiPredicateWithAction {
-                match(any: .a, .b) {
+                match(anyOf: .a, .b) {
                     action(e.fulfill) {
                         coinUnlockedPassLocked
                     }
@@ -251,7 +251,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             assertMultiPredicateWithAction {
                 action(e.fulfill) {
-                    match(any: .a, .b) {
+                    match(anyOf: .a, .b) {
                         coinUnlockedPassLocked
                     }
                 }
@@ -262,7 +262,7 @@ final class ComplexTransitionBuilderTests:
     func testMultiPredicateWithActionsInside() {
         testWithExpectation(count: 4) { e in
             assertMultiPredicateWithAction {
-                match(any: .a, .b) {
+                match(anyOf: .a, .b) {
                     actions(e.fulfill, e.fulfill) {
                         coinUnlockedPassLocked
                     }
@@ -275,7 +275,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             assertMultiPredicateWithAction {
                 actions(e.fulfill, e.fulfill) {
-                    match(any: .a, .b) {
+                    match(anyOf: .a, .b) {
                         coinUnlockedPassLocked
                     }
                 }
@@ -286,7 +286,7 @@ final class ComplexTransitionBuilderTests:
     func testMultiPredicateWithArrayActionsInside() {
         testWithExpectation(count: 4) { e in
             assertMultiPredicateWithAction {
-                match(any: .a, .b) {
+                match(anyOf: .a, .b) {
                     actions([e.fulfill, e.fulfill]) {
                         coinUnlockedPassLocked
                     }
@@ -299,7 +299,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             assertMultiPredicateWithAction {
                 actions([e.fulfill, e.fulfill]) {
-                    match(any: .a, .b) {
+                    match(anyOf: .a, .b) {
                         coinUnlockedPassLocked
                     }
                 }
@@ -310,7 +310,7 @@ final class ComplexTransitionBuilderTests:
     func testArrayPredicateWithActionInside() {
         testWithExpectation(count: 2) { e in
             assertMultiPredicateWithAction {
-                match(any: [.a, .b]) {
+                match(anyOf: [.a, .b]) {
                     actions(e.fulfill) {
                         coinUnlockedPassLocked
                     }
@@ -323,7 +323,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             assertMultiPredicateWithAction {
                 actions(e.fulfill) {
-                    match(any: [.a, .b]) {
+                    match(anyOf: [.a, .b]) {
                         coinUnlockedPassLocked
                     }
                 }
@@ -334,7 +334,7 @@ final class ComplexTransitionBuilderTests:
     func testArrayPredicateWithActionsInside() {
         testWithExpectation(count: 4) { e in
             assertMultiPredicateWithAction {
-                match(any: [.a, .b]) {
+                match(anyOf: [.a, .b]) {
                     actions(e.fulfill, e.fulfill) {
                         coinUnlockedPassLocked
                     }
@@ -347,7 +347,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             assertMultiPredicateWithAction {
                 actions(e.fulfill, e.fulfill) {
-                    match(any: [.a, .b]) {
+                    match(anyOf: [.a, .b]) {
                         coinUnlockedPassLocked
                     }
                 }
@@ -358,7 +358,7 @@ final class ComplexTransitionBuilderTests:
     func testArrayPredicateWithArrayActionsInside() {
         testWithExpectation(count: 4) { e in
             assertMultiPredicateWithAction {
-                match(any: [.a, .b]) {
+                match(anyOf: [.a, .b]) {
                     actions([e.fulfill, e.fulfill]) {
                         coinUnlockedPassLocked
                     }
@@ -371,7 +371,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 4) { e in
             assertMultiPredicateWithAction {
                 actions([e.fulfill, e.fulfill]) {
-                    match(any: [.a, .b]) {
+                    match(anyOf: [.a, .b]) {
                         coinUnlockedPassLocked
                     }
                 }
@@ -521,7 +521,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             assertWhenPlusMultiPredicate {
                 when(.coin, line: 10) {
-                    match(any: .a, .b) {
+                    match(anyOf: .a, .b) {
                         allThenOverloads(e)
                     }
                 }
@@ -532,7 +532,7 @@ final class ComplexTransitionBuilderTests:
     func testWhenPlusMultiplePredicatesOutside() {
         testWithExpectation(count: 2) { e in
             assertWhenPlusMultiPredicate {
-                match(any: .a, .b) {
+                match(anyOf: .a, .b) {
                     when(.coin, line: 10) {
                         allThenOverloads(e)
                     }
@@ -545,7 +545,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             assertWhenPlusMultiPredicate {
                 when(.coin, line: 10) {
-                    match(any: [.a, .b]) {
+                    match(anyOf: [.a, .b]) {
                         allThenOverloads(e)
                     }
                 }
@@ -556,7 +556,7 @@ final class ComplexTransitionBuilderTests:
     func testWhenPlusArrayPredicatesOutside() {
         testWithExpectation(count: 2) { e in
             assertWhenPlusMultiPredicate {
-                match(any: [.a, .b]) {
+                match(anyOf: [.a, .b]) {
                     when(.coin, line: 10) {
                         allThenOverloads(e)
                     }
@@ -619,7 +619,7 @@ final class ComplexTransitionBuilderTests:
         callActions(tr)
     }
 
-    @WAPBuilder<E> func resetFulfilPassFulfil(_ e: XCTestExpectation) -> [WAPRow<E>] {
+    @WAPBuilder<E> func resetFulfillPassFulfill(_ e: XCTestExpectation) -> [WAPRow<E>] {
         when(.reset, line: 10) | e.fulfill
         when(.pass)            | e.fulfill
     }
@@ -628,7 +628,7 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             assertThen {
                 then(.alarming) {
-                    resetFulfilPassFulfil(e)
+                    resetFulfillPassFulfill(e)
                 }
             }
         }
@@ -647,7 +647,7 @@ final class ComplexTransitionBuilderTests:
             assertThenPlusSinglePredicate {
                 then(.alarming) {
                     match(.a) {
-                        resetFulfilPassFulfil(e)
+                        resetFulfillPassFulfill(e)
                     }
                 }
             }
@@ -659,7 +659,7 @@ final class ComplexTransitionBuilderTests:
             assertThenPlusSinglePredicate {
                 match(.a) {
                     then(.alarming) {
-                        resetFulfilPassFulfil(e)
+                        resetFulfillPassFulfill(e)
                     }
                 }
             }
@@ -677,8 +677,8 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             assertThenPlusMultiplePredicates {
                 then(.alarming) {
-                    match(any: .a, .b) {
-                        resetFulfilPassFulfil(e)
+                    match(anyOf: .a, .b) {
+                        resetFulfillPassFulfill(e)
                     }
                 }
             }
@@ -688,9 +688,9 @@ final class ComplexTransitionBuilderTests:
     func testThenPlusMultiplePredicatesOutside() {
         testWithExpectation(count: 2) { e in
             assertThenPlusMultiplePredicates {
-                match(any: .a, .b) {
+                match(anyOf: .a, .b) {
                     then(.alarming) {
-                        resetFulfilPassFulfil(e)
+                        resetFulfillPassFulfill(e)
                     }
                 }
             }
@@ -701,8 +701,8 @@ final class ComplexTransitionBuilderTests:
         testWithExpectation(count: 2) { e in
             assertThenPlusMultiplePredicates {
                 then(.alarming) {
-                    match(any: [.a, .b]) {
-                        resetFulfilPassFulfil(e)
+                    match(anyOf: [.a, .b]) {
+                        resetFulfillPassFulfill(e)
                     }
                 }
             }
@@ -712,9 +712,9 @@ final class ComplexTransitionBuilderTests:
     func testThenPlusArrayPredicatesOutside() {
         testWithExpectation(count: 2) { e in
             assertThenPlusMultiplePredicates {
-                match(any: [.a, .b]) {
+                match(anyOf: [.a, .b]) {
                     then(.alarming) {
-                        resetFulfilPassFulfil(e)
+                        resetFulfillPassFulfill(e)
                     }
                 }
             }
@@ -727,7 +727,7 @@ final class ComplexTransitionBuilderTests:
                 match(.a) {
                     then(.alarming) {
                         match(.b) {
-                            resetFulfilPassFulfil(e)
+                            resetFulfillPassFulfill(e)
                         }
                     }
                 }

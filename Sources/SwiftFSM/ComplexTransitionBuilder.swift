@@ -50,19 +50,19 @@ extension ComplexTransitionBuilder {
         _ p: Predicate,
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        match(any: [p], rows: rows)
+        match(anyOf: [p], rows: rows)
     }
     
     func match(
-        any p: Predicate,
+        anyOf p: Predicate,
         _ ps: Predicate...,
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
-        match(any: [p] + ps, rows: rows)
+        match(anyOf: [p] + ps, rows: rows)
     }
     
     func match(
-        any p: [Predicate],
+        anyOf p: [Predicate],
         @WTAPBuilder<S, E> rows: () -> [WTAPRow<S, E>]
     ) -> [WTAPRow<S, E>] {
         rows().reduce(into: [WTAPRow]()) {
@@ -76,19 +76,19 @@ extension ComplexTransitionBuilder {
         _ p: Predicate,
         @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [TAPRow<S>] {
-        match(any: [p], rows: rows)
+        match(anyOf: [p], rows: rows)
     }
     
     func match(
-        any p: Predicate,
+        anyOf p: Predicate,
         _ ps: Predicate...,
         @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [TAPRow<S>] {
-        match(any: [p] + ps, rows: rows)
+        match(anyOf: [p] + ps, rows: rows)
     }
     
     func match(
-        any p: [Predicate],
+        anyOf p: [Predicate],
         @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [TAPRow<S>] {
         rows().reduce(into: [TAPRow]()) {
@@ -100,19 +100,19 @@ extension ComplexTransitionBuilder {
         _ p: Predicate,
         @WAPBuilder<E> rows: () -> [WAPRow<E>]
     ) -> [WAPRow<E>] {
-        match(any: [p], rows: rows)
+        match(anyOf: [p], rows: rows)
     }
     
     func match(
-        any p: Predicate,
+        anyOf p: Predicate,
         _ ps: Predicate...,
         @WAPBuilder<E> rows: () -> [WAPRow<E>]
     ) -> [WAPRow<E>] {
-        match(any: [p] + ps, rows: rows)
+        match(anyOf: [p] + ps, rows: rows)
     }
     
     func match(
-        any p: [Predicate],
+        anyOf p: [Predicate],
         @WAPBuilder<E> rows: () -> [WAPRow<E>]
     ) -> [WAPRow<E>] {
         rows().reduce(into: [WAPRow]()) {
