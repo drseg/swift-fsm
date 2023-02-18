@@ -40,9 +40,22 @@ extension TransitionBuilder {
                                      entryActions: entryActions,
                                      exitActions: exitActions)
         
-        return TableRow(wtaps: rows.wtaps(),
+        return TableRow(wtaps: completeWTAPS(rows.wtaps(), givenStates: states),
                         modifiers: modifiers,
                         givenStates: states)
+    }
+    
+    func completeWTAPS(_ wtaps: [WTAP<S, E>], givenStates: [S]) -> [WTAP<S, E>] {
+        wtaps.reduce(into: [WTAP]()) { wtaps, wtap in
+            givenStates.forEach {
+                wtaps.append(WTAP(events: wtap.events,
+                                  state: wtap.state ?? $0,
+                                  actions: wtap.actions,
+                                  match: wtap.match,
+                                  file: wtap.file,
+                                  line: wtap.line))
+            }
+        }
     }
     
     func onEnter(_ actions: () -> ()...) -> WTAPRow<S, E> {

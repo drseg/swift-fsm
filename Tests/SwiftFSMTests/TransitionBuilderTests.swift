@@ -13,11 +13,16 @@ enum TurnstileEvent: String, EP {
 class TestingBase: XCTestCase {
     typealias State = TurnstileState
     typealias Event = TurnstileEvent
-    
+        
+    var s: SuperState<State, Event>!
+}
+
+class TransitionBuilderTests: TestingBase, TransitionBuilder {
     func assertContains(
         _ e: Event,
         _ s: State,
         _ ss: SuperState<State, Event>,
+        _ file: StaticString = #file,
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
@@ -25,6 +30,7 @@ class TestingBase: XCTestCase {
                 $0.state == s && $0.events.contains(e)
             })
             , "\n(\(e), \(s)) not found in: \n\(ss.description)",
+            file: file,
             line: line)
     }
     
@@ -33,31 +39,52 @@ class TestingBase: XCTestCase {
         _ w: Event,
         _ t: State,
         _ tr: TableRow<State, Event>,
+        _ file: StaticString = #file,
         _ line: UInt = #line
     ) {
         XCTAssertTrue(
-            tr.transitions.contains(
-                Transition(g: g,
-                           w: w,
-                           t: t,
-                           a: [],
-                           p: [],
-                           f: "",
-                           l: 0)
-            )
-            , "\n(\(g), \(w), \(t)) not found in: \n\(tr.description)",
+            tr.wtaps.contains(
+                WTAP(events: [w],
+                     state: t,
+                     actions: [],
+                     match: .none,
+                     file: #file,
+                     line: #line)
+            ) && tr.givenStates.contains(g)
+            , "\n(\(w), \(t)) not found in: \n\(tr.description)",
+            file: file,
             line: line)
     }
+#warning("poor failure output and && is hopeless")
     
-    var s: SuperState<State, Event>!
-}
-
-class TransitionBuilderTests: TestingBase, TransitionBuilder {
+    func assertContains(
+        _ g: State,
+        _ w: [Event],
+        _ t: State,
+        _ tr: TableRow<State, Event>,
+        _ file: StaticString = #file,
+        _ line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            tr.wtaps.contains(
+                WTAP(events: w,
+                     state: t,
+                     actions: [],
+                     match: .none,
+                     file: #file,
+                     line: #line)
+            ) && tr.givenStates.contains(g)
+            , "\n(\(g), \(w), \(t)) not found in: \n\(tr.description)",
+            file: file,
+            line: line)
+    }
+#warning("poor failure output and && is hopeless")
+    
     override func setUp() {
         s = SuperState {
             when(.reset) | then(.unlocked) | []
-            when(.coin) | then(.unlocked) | {}
-            when(.pass) | then(.locked)
+            when(.coin)  | then(.unlocked) | {}
+            when(.pass)  | then(.locked)
         }
     }
         
@@ -108,8 +135,7 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
             when(.reset, .coin) | then(.unlocked) | []
         }
         
-        assertContains(.locked, .reset, .unlocked, tr)
-        assertContains(.locked, .coin, .unlocked, tr)
+        assertContains(.locked, [.reset, .coin], .unlocked, tr)
     }
     
     func testDefaultThen() {
@@ -117,7 +143,7 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
             when(.reset) | then()
             when(.pass)  | then() | {}
         }
-        
+                
         assertContains(.locked, .reset, .locked, tr)
         assertContains(.locked, .pass, .locked, tr)
     }
@@ -131,9 +157,9 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
             when(.reset) | then(.unlocked) | [{ }, e.fulfill]
         }
         
-        tr.transitions[0].actions[0]()
-        tr.transitions[1].actions[0]()
-        tr.transitions[2].actions[1]()
+        tr[0].actions[0]()
+        tr[1].actions[0]()
+        tr[2].actions[1]()
         
         waitForExpectations(timeout: 0.1)
     }
@@ -155,10 +181,10 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertContains(.locked, .coin, .unlocked, tr)
         assertContains(.locked, .pass, .locked, tr)
 
-        tr.transitions.first?.actions.first?()
-        tr.transitions.first?.actions.last?()
-        tr.transitions.last?.actions.first?()
-        tr.transitions.last?.actions.last?()
+        tr.wtaps.first?.actions.first?()
+        tr.wtaps.first?.actions.last?()
+        tr.wtaps.last?.actions.first?()
+        tr.wtaps.last?.actions.last?()
         waitForExpectations(timeout: 0.1)
     }
         
@@ -195,7 +221,7 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
 
 extension TableRow<TurnstileState, TurnstileEvent> {
     var description: String {
-        transitions.map(\.description).reduce("", +)
+        wtaps.map(\.description).reduce("", +)
     }
 }
 

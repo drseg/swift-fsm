@@ -10,7 +10,7 @@ import Foundation
 struct TableRow<S: SP, E: EP> {
     let wtaps: [WTAP<S, E>]
     let modifiers: RowModifiers<S, E>
-    let givenStates: any Collection<S>
+    let givenStates: [S]
     
 #warning("temporary use only for refactoring, to be discarded")
     var transitions: [Transition<S, E>] {
@@ -103,6 +103,10 @@ struct Match: Hashable {
     
     static var none: Match {
         .init()
+    }
+    
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        Set(lhs.anyOf) == Set(rhs.anyOf) && Set(lhs.allOf) == Set(rhs.allOf)
     }
     
     static func + (lhs: Self, rhs: Self) -> Self {
