@@ -381,13 +381,13 @@ final class ComplexTransitionBuilderTests:
 
     func testThenWithNoArgument() {
         let t1: Then = then()
-        let t2: TAPRow = then()
+        let t2: TAP = then()
 
         XCTAssertNil(t1.state)
-        XCTAssertNil(t2.tap.state)
+        XCTAssertNil(t2.state)
 
-        XCTAssertTrue(t2.tap.actions.isEmpty)
-        XCTAssertTrue(t2.tap.match.allOf.isEmpty)
+        XCTAssertTrue(t2.actions.isEmpty)
+        XCTAssertTrue(t2.match.allOf.isEmpty)
     }
 
     func testSingleWhenContext() {
@@ -435,7 +435,7 @@ final class ComplexTransitionBuilderTests:
         tr[3].actions[0]()
     }
     
-    @TAPBuilder<S> func allThenOverloads(_ e: XCTestExpectation) -> [TAPRow<S>] {
+    @TAPBuilder<S> func allThenOverloads(_ e: XCTestExpectation) -> [TAP<S>] {
         then(.alarming)
         then()
         then(.alarming) | e.fulfill
@@ -578,23 +578,23 @@ final class ComplexTransitionBuilderTests:
         let allLines = [l1, l2, l3, l4, l5, l6]
 
         all.prefix(3).forEach {
-            XCTAssertEqual($0.wap.actions.count, 1)
+            XCTAssertEqual($0.actions.count, 1)
         }
 
         all.suffix(3).forEach {
-            XCTAssertEqual($0.wap.actions.count, 0)
+            XCTAssertEqual($0.actions.count, 0)
         }
 
         zip(all, allLines).forEach {
-            XCTAssertEqual($0.0.wap.file, #file)
-            XCTAssertEqual($0.0.wap.line, $0.1)
+            XCTAssertEqual($0.0.file, #file)
+            XCTAssertEqual($0.0.line, $0.1)
         }
 
-        [wap1, wap4].map(\.wap).map(\.events).forEach {
+        [wap1, wap4].map(\.events).forEach {
             XCTAssertEqual($0, [.reset])
         }
 
-        [wap2, wap3, wap5, wap6].map(\.wap).map(\.events).forEach {
+        [wap2, wap3, wap5, wap6].map(\.events).forEach {
             XCTAssertEqual($0, [.reset, .pass])
         }
     }
@@ -619,7 +619,7 @@ final class ComplexTransitionBuilderTests:
         callActions(tr)
     }
 
-    @WAPBuilder<E> func resetFulfillPassFulfill(_ e: XCTestExpectation) -> [WAPRow<E>] {
+    @WAPBuilder<E> func resetFulfillPassFulfill(_ e: XCTestExpectation) -> [WAP<E>] {
         when(.reset, line: 10) | e.fulfill
         when(.pass)            | e.fulfill
     }

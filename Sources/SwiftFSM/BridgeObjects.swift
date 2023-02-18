@@ -35,18 +35,6 @@ struct WTAPRow<S: SP, E: EP> {
     }
 }
 
-struct TAPRow<S: SP> {
-    static var empty: Self {
-        .init(tap: .init())
-    }
-    
-    let tap: TAP<S>
-}
-
-struct WAPRow<E: EP> {
-    let wap: WAP<E>
-}
-
 struct RowModifiers<S: SP, E: EP> {
     static var none: Self {
         .init()
@@ -119,17 +107,17 @@ struct Match: Hashable {
 }
 
 struct Whens<S: SP, E: EP> {
-    static func | (lhs: Self, rhs: @escaping () -> ()) -> WAPRow<E> {
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> WAP<E> {
         lhs | [rhs]
     }
     
-    static func | (lhs: Self, rhs: [() -> ()]) -> WAPRow<E> {
-        let wap = WAP(events: lhs.events,
-                      actions: rhs,
-                      match: .none,
-                      file: lhs.file,
-                      line: lhs.line)
-        return WAPRow(wap: wap)
+    static func | (lhs: Self, rhs: [() -> ()]) -> WAP<E> {
+        WAP(events: lhs.events,
+            actions: rhs,
+            match: .none,
+            file: lhs.file,
+            line: lhs.line)
+        
     }
     
     static func | (lhs: Self, rhs: Then<S>) -> WTAPRow<S, E> {
@@ -154,12 +142,12 @@ struct Whens<S: SP, E: EP> {
 struct Then<S: StateProtocol> {
     let state: S?
     
-    static func | (lhs: Self, rhs: @escaping () -> ()) -> TAPRow<S> {
+    static func | (lhs: Self, rhs: @escaping () -> ()) -> TAP<S> {
         lhs | [rhs]
     }
     
-    static func | (lhs: Self, rhs: [() -> ()]) -> TAPRow<S> {
-        TAPRow(tap: TAP(state: lhs.state, actions: rhs, match: .none))
+    static func | (lhs: Self, rhs: [() -> ()]) -> TAP<S> {
+        TAP(state: lhs.state, actions: rhs, match: .none)
     }
 }
 

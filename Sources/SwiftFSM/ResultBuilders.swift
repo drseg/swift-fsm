@@ -37,10 +37,10 @@ struct WTAPBuilder<S: SP, E: EP>: ResultBuilder {
 
 @resultBuilder
 struct TAPBuilder<S: SP>: ResultBuilder {
-    typealias T = TAPRow<S>
+    typealias T = TAP<S>
 }
 
 @resultBuilder
 struct WAPBuilder<E: EP>: ResultBuilder {
-    typealias T = WAPRow<E>
+    typealias T = WAP<E>
 }

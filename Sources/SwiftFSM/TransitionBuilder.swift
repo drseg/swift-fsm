@@ -92,8 +92,8 @@ extension TransitionBuilder {
         Then(state: state)
     }
     
-    func then() -> TAPRow<S> {
-        .empty
+    func then() -> TAP<S> {
+        .init()
     }
     
     func action(

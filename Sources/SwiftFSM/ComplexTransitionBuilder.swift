@@ -74,49 +74,49 @@ extension ComplexTransitionBuilder {
     
     func match(
         _ p: Predicate,
-        @TAPBuilder<S> rows: () -> [TAPRow<S>]
-    ) -> [TAPRow<S>] {
+        @TAPBuilder<S> rows: () -> [TAP<S>]
+    ) -> [TAP<S>] {
         match(anyOf: [p], rows: rows)
     }
     
     func match(
         anyOf p: Predicate,
         _ ps: Predicate...,
-        @TAPBuilder<S> rows: () -> [TAPRow<S>]
-    ) -> [TAPRow<S>] {
+        @TAPBuilder<S> rows: () -> [TAP<S>]
+    ) -> [TAP<S>] {
         match(anyOf: [p] + ps, rows: rows)
     }
     
     func match(
         anyOf p: [Predicate],
-        @TAPBuilder<S> rows: () -> [TAPRow<S>]
-    ) -> [TAPRow<S>] {
-        rows().reduce(into: [TAPRow]()) {
-            $0.append(TAPRow(tap: $1.tap.addMatch(Match(anyOf: p))))
+        @TAPBuilder<S> rows: () -> [TAP<S>]
+    ) -> [TAP<S>] {
+        rows().reduce(into: [TAP]()) {
+            $0.append($1.addMatch(Match(anyOf: p)))
         }
     }
     
     func match(
         _ p: Predicate,
-        @WAPBuilder<E> rows: () -> [WAPRow<E>]
-    ) -> [WAPRow<E>] {
+        @WAPBuilder<E> rows: () -> [WAP<E>]
+    ) -> [WAP<E>] {
         match(anyOf: [p], rows: rows)
     }
     
     func match(
         anyOf p: Predicate,
         _ ps: Predicate...,
-        @WAPBuilder<E> rows: () -> [WAPRow<E>]
-    ) -> [WAPRow<E>] {
+        @WAPBuilder<E> rows: () -> [WAP<E>]
+    ) -> [WAP<E>] {
         match(anyOf: [p] + ps, rows: rows)
     }
     
     func match(
         anyOf p: [Predicate],
-        @WAPBuilder<E> rows: () -> [WAPRow<E>]
-    ) -> [WAPRow<E>] {
-        rows().reduce(into: [WAPRow]()) {
-            $0.append(WAPRow(wap: $1.wap.addMatch(Match(anyOf: p))))
+        @WAPBuilder<E> rows: () -> [WAP<E>]
+    ) -> [WAP<E>] {
+        rows().reduce(into: [WAP]()) {
+            $0.append($1.addMatch(Match(anyOf: p)))
         }
     }
     
@@ -124,7 +124,7 @@ extension ComplexTransitionBuilder {
         _ e: Event...,
         file: String = #file,
         line: Int = #line
-    ) -> WAPRow<E> {
+    ) -> WAP<E> {
         when(e, file: file, line: line)
     }
     
@@ -132,19 +132,19 @@ extension ComplexTransitionBuilder {
         _ e: [Event],
         file: String = #file,
         line: Int = #line
-    ) -> WAPRow<E> {
-        WAPRow(wap: WAP<E>(events: e,
-                           actions: [],
-                           match: .none,
-                           file: file,
-                           line: line))
+    ) -> WAP<E> {
+        WAP(events: e,
+            actions: [],
+            match: .none,
+            file: file,
+            line: line)
     }
     
     func when(
         _ e: Event...,
         file: String = #file,
         line: Int = #line,
-        @TAPBuilder<S> rows: () -> [TAPRow<S>]
+        @TAPBuilder<S> rows: () -> [TAP<S>]
     ) -> [WTAPRow<S, E>] {
         when(e, file: file, line: line, rows: rows)
     }
@@ -153,26 +153,26 @@ extension ComplexTransitionBuilder {
         _ e: [Event],
         file: String = #file,
         line: Int = #line,
-        @TAPBuilder<S> rows: () -> [TAPRow<S>]
+        @TAPBuilder<S> rows: () -> [TAP<S>]
     ) -> [WTAPRow<S, E>] {
         rows().reduce(into: [WTAPRow]()) {
             $0.append(WTAPRow(wtap: WTAP(events: e,
-                                         tap: $1.tap,
+                                         tap: $1,
                                          file: file,
                                          line: line)))
         }
     }
     
-    func then(_ state: S) -> TAPRow<S> {
-        TAPRow(tap: TAP(state: state))
+    func then(_ state: S) -> TAP<S> {
+        TAP(state: state)
     }
     
     func then(
         _ s: State,
-        @WAPBuilder<E> rows: () -> [WAPRow<E>]
+        @WAPBuilder<E> rows: () -> [WAP<E>]
     ) -> [WTAPRow<S, E>] {
         rows().reduce(into: [WTAPRow]()) {
-            $0.append(WTAPRow(wtap: WTAP(state: s, wap: $1.wap)))
+            $0.append(WTAPRow(wtap: WTAP(state: s, wap: $1)))
         }
     }
 }
