@@ -92,13 +92,13 @@ struct Match: Hashable {
         allOf: [any PredicateProtocol] = [],
         anyOf: [any PredicateProtocol] = []
     ) {
-        self.allOf = allOf.erased
-        self.anyOf = anyOf.erased
+        self.allOf = allOf.erase()
+        self.anyOf = anyOf.erase()
     }
     
     init() {
-        self.allOf = []
-        self.anyOf = []
+        allOf = []
+        anyOf = []
     }
     
     static var none: Match {
@@ -114,7 +114,7 @@ struct Match: Hashable {
     }
     
     func add(all: [AnyPredicate] = [], any: [AnyPredicate] = []) -> Self {
-        .init(allOf: self.allOf + all, anyOf: self.anyOf + any)
+        .init(allOf: allOf + all, anyOf: anyOf + any)
     }
 }
 

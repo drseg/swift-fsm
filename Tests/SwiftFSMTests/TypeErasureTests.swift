@@ -15,41 +15,46 @@ private protocol AlwaysEqual { }; extension AlwaysEqual {
     static func == (lhs: Self, rhs: Self) -> Bool { true }
 }
 
-final class ErasedHashableConformanceTests: XCTestCase {
+final class AnyPredicateTests: XCTestCase {
     enum NeverEqualPredicate: PredicateProtocol, NeverEqual { case a }
     enum AlwaysEqualPredicate: PredicateProtocol, AlwaysEqual { case a }
+    
+    func testDescription() {
+        XCTAssertEqual(NeverEqualPredicate.a.erase().description,
+                       "NeverEqualPredicate.a")
+    }
 
     func testStateInequality() {
-        let s1 = NeverEqualPredicate.a.erase
-        let s2 = NeverEqualPredicate.a.erase
+        let s1 = NeverEqualPredicate.a.erase()
+        let s2 = NeverEqualPredicate.a.erase()
 
         XCTAssertNotEqual(s1, s2)
     }
 
     func testStateEquality() {
-        let s1 = AlwaysEqualPredicate.a.erase
-        let s2 = AlwaysEqualPredicate.a.erase
+        let s1 = AlwaysEqualPredicate.a.erase()
+        let s2 = AlwaysEqualPredicate.a.erase()
 
         XCTAssertEqual(s1, s2)
     }
 
     func testStateFalseSet() {
-        let s1 = NeverEqualPredicate.a.erase
-        let s2 = NeverEqualPredicate.a.erase
+        let s1 = NeverEqualPredicate.a.erase()
+        let s2 = NeverEqualPredicate.a.erase()
 
         XCTAssertEqual(2, Set([s1, s2]).count)
     }
 
     func testStateTrueSet() {
-        let s1 = AlwaysEqualPredicate.a.erase
-        let s2 = AlwaysEqualPredicate.a.erase
+        let s1 = AlwaysEqualPredicate.a.erase()
+        let s2 = AlwaysEqualPredicate.a.erase()
 
         XCTAssertEqual(1, Set([s1, s2]).count)
     }
 
     func testStateDictionaryLookup() {
-        let s1 = AlwaysEqualPredicate.a.erase
-        let s2 = NeverEqualPredicate.a.erase
+        let s1 = AlwaysEqualPredicate.a.erase()
+        let s2 = NeverEqualPredicate.a.erase()
 
         let a = [s1: "Pass"]
         let b = [s2: "Pass"]
@@ -69,7 +74,7 @@ final class ErasedHashableConformanceTests: XCTestCase {
         }
 
         let e = expectation(description: "hash")
-        let wrapper = StateSpy() { e.fulfill() }.erase
+        let wrapper = StateSpy() { e.fulfill() }.erase()
         let _ = [wrapper: "Pass"]
         waitForExpectations(timeout: 0.1)
     }

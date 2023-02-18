@@ -16,7 +16,7 @@ extension PredicateProtocol {
         return rhs == self
     }
     
-    var erase: AnyPredicate {
+    func erase() -> AnyPredicate {
         AnyPredicate(base: self)
     }
     
@@ -229,7 +229,7 @@ extension Array where Element == any PredicateProtocol {
         return Set(
             uniqueTypes
                 .allPossibleCases
-                .erased
+                .erase()
                 .uniquePermutations(ofCount: uniqueTypes.count)
                 .map(Set.init)
                 .filter(\.elementsAreUniquelyTyped)
@@ -237,7 +237,7 @@ extension Array where Element == any PredicateProtocol {
     }
     
     var uniqueTypes: [AnyPredicate] {
-        let erased = self.erased
+        let erased = erase()
         return erased.uniqueElementTypes.reduce(
             into: [AnyPredicate]()
         ) { predicates, type in
@@ -245,8 +245,8 @@ extension Array where Element == any PredicateProtocol {
         }
     }
     
-    var erased: [AnyPredicate] {
-        map { $0.erase }
+    func erase() -> [AnyPredicate] {
+        map { $0.erase() }
     }
 }
 

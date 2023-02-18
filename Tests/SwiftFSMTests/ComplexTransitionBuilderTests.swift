@@ -758,7 +758,7 @@ final class MatcherTests: PredicateTests {
         line: UInt = #line
     ) {
         let match = Match(allOf: allOf, anyOf: anyOf)
-        XCTAssertEqual(match.allMatches(a.map(\.erased).asSets),
+        XCTAssertEqual(match.allMatches(a.map { $0.erase() }.asSets),
                        expected.erasedSets,
                        line: line)
     }
@@ -774,11 +774,11 @@ final class MatcherTests: PredicateTests {
     func testAnyOfSinglePredicate() {
         assertMatches(anyOf: [P.a], equals: [[P.a]])
     }
-
+    
     func testAnyOfMultiPredicate() {
         assertMatches(anyOf: [P.a, P.b], equals: [[P.a], [P.b]])
     }
-
+    
     func testAllOfSingleType() {
         assertMatches(allOf: [P.a], equals: [[P.a]])
     }
@@ -841,12 +841,6 @@ final class MatcherTests: PredicateTests {
     }
 }
 
-extension Collection where Element == P {
-    var erased: [AnyPredicate] {
-        map(\.erase)
-    }
-}
-
 extension TableRow {
     subscript(index: Int) -> WTAP<S, E> {
         wtaps[index]
@@ -876,7 +870,7 @@ final class CharacterisationTests: PredicateTests {
 
 extension Collection where Element == [any PredicateProtocol] {
     var erasedSets: Set<Set<AnyPredicate>> {
-        Set(map { Set($0.erased) })
+        Set(map { Set($0.erase()) })
     }
 }
 
