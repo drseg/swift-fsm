@@ -62,15 +62,29 @@ class TestingBase: XCTestCase {
         _ er: () -> [any ErrorRow]
     ) {
         let er = er()
-        let errors = er.first?.errors
-                
+        let errors = er.first?.errors ?? []
+        
+        guard errors.count == offsets.count else {
+            XCTFail("""
+Incorrect number of errors found
+Expected: \(offsets.count)
+Actual: \(errors.count)
+
+Errors found:
+\(errors.map(\.withShortFileName))
+""",
+                    line: line
+            )
+            return
+        }
+        
         offsets.enumerated().forEach {
-            XCTAssertEqual(errors?[$0.offset].line ?? -1,
+            XCTAssertEqual(errors[$0.offset].line,
                            Int(line + $0.element),
                            file: file,
                            line: line + $0.element)
             
-            XCTAssertEqual(errors?[$0.offset].file ?? "nil",
+            XCTAssertEqual(errors[$0.offset].file,
                            file.description,
                            file: file,
                            line: line + $0.element)
@@ -122,7 +136,8 @@ class TestingBase: XCTestCase {
         
         let unexpectedFiles = wtams
             .filter { $0.file != expectedFile.description }
-            .map { "\n\($0)"}
+            .map { "\n\($0.file)" }
+            .joined()
         
         XCTAssertTrue(
             wtams.allSatisfy { $0.file == expectedFile.description },

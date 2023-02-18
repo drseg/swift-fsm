@@ -16,6 +16,10 @@ struct EmptyBlock: Error {
         self.file = file
         self.line = line
     }
+    
+    var withShortFileName: Self {
+        .init(URL(string: file)!.lastPathComponent, line)
+    }
 }
 
 protocol ErrorRow {

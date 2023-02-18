@@ -55,7 +55,7 @@ extension TransitionBuilder {
         
         var errors = rows.map(\.errors).flatten
         if modifiers.isEmpty && wtams.isEmpty {
-            errors = [.init(file, line)] + errors
+            errors.insert(.init(file, line), at: 0)
         }
         
         return .init(wtams: wtams,
