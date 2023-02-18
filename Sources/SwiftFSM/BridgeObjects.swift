@@ -227,4 +227,22 @@ struct WTAP<S: SP, E: EP>: Hashable {
     let match: Match
     let file: String
     let line: Int
+    
+    func addActions(_ a: [() -> ()]) -> Self {
+        WTAP(events: events,
+             state: state,
+             actions: actions + a,
+             match: match,
+             file: file,
+             line: line)
+    }
+    
+    func replaceDefaultState(with s: S) -> Self {
+        WTAP(events: events,
+             state: state ?? s,
+             actions: actions,
+             match: match,
+             file: file,
+             line: line)
+    }
 }

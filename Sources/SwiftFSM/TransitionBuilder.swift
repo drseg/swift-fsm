@@ -51,12 +51,7 @@ extension TransitionBuilder {
     ) -> [WTAP<S, E>] {
         wtaps.reduce(into: [WTAP]()) { wtaps, wtap in
             givenStates.forEach {
-                wtaps.append(WTAP(events: wtap.events,
-                                  state: wtap.state ?? $0,
-                                  actions: wtap.actions,
-                                  match: wtap.match,
-                                  file: wtap.file,
-                                  line: wtap.line))
+                wtaps.append(wtap.replaceDefaultState(with: $0))
             }
         }
     }
@@ -136,16 +131,5 @@ extension TransitionBuilder {
                 wtRows.append(WTAPRow(wtap: wtap.addActions(actions)))
             }
         }
-    }
-}
-
-extension WTAP {
-    func addActions(_ a: [() -> ()]) -> Self {
-        WTAP(events: events,
-             state: state,
-             actions: actions + a,
-             match: match,
-             file: file,
-             line: line)
     }
 }
