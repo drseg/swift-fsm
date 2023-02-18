@@ -96,12 +96,9 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
     }
     
     func testSuperStateFileLine() {
-        let file = #file
-        let line = #line + 4
-        
         buildTransitions {
             let s = SuperState {
-                when(.coin) | then(.locked)
+                when(.coin, line: 1) | then(.locked)
             }
             
             define(.locked) {
@@ -109,37 +106,30 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
             }
         }
         
-        XCTAssertEqual(fsm.firstTransition?.file, file)
-        XCTAssertEqual(fsm.firstTransition?.line, line)
+        XCTAssertEqual(fsm.firstTransition?.file, #file)
+        XCTAssertEqual(fsm.firstTransition?.line, 1)
     }
     
     func testTransitionFileLine() {
-        let file = #file
-        let line = #line + 4
-        
         buildTransitions {
             define(.locked) {
-                when(.coin) | then(.locked)
+                when(.coin, line: 1) | then(.locked)
             }
         }
         
-        XCTAssertEqual(fsm.firstTransition?.file, file)
-        XCTAssertEqual(fsm.firstTransition?.line, line)
+        XCTAssertEqual(fsm.firstTransition?.file, #file)
+        XCTAssertEqual(fsm.firstTransition?.line, 1)
     }
     
     func testThrowsErrorWhenGivenDuplicates() {
         let file = URL(string: #file)!.lastPathComponent
-        let l1 = #line + 7
-        let l2 = #line + 7
-        let l3 = #line + 7
-        let l4 = #line + 7
         
         XCTAssertThrowsError (try fsm.buildTransitions {
             define(.alarming) {
-                when(.coin) | then(.locked)
-                when(.coin) | then(.locked)
-                when(.coin) | then(.unlocked)
-                when(.coin) | then(.unlocked)
+                when(.coin, line: 1) | then(.locked)
+                when(.coin, line: 2) | then(.locked)
+                when(.coin, line: 3) | then(.unlocked)
+                when(.coin, line: 4) | then(.unlocked)
             }
         }) {
             let e = $0 as! DuplicateTransitions<State, Event>
@@ -148,10 +138,10 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
                 .suffix(4)
                 .joined(separator: "\n"),
 """
-alarming | coin | *locked* (\(file): \(l1))
-alarming | coin | *locked* (\(file): \(l2))
-alarming | coin | *unlocked* (\(file): \(l3))
-alarming | coin | *unlocked* (\(file): \(l4))
+alarming | coin | *locked* (\(file): \(1))
+alarming | coin | *locked* (\(file): \(2))
+alarming | coin | *unlocked* (\(file): \(3))
+alarming | coin | *unlocked* (\(file): \(4))
 """
             )
         }
@@ -187,11 +177,11 @@ alarming | coin | *unlocked* (\(file): \(l4))
     
     func testTurnstile() {
         var actual = [String]()
-        func assertEventAction(
-            _ e: Event,
-            _ a: String...,
-            line: UInt = #line
-        ) {
+        func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
+            assertEventAction(e, [a])
+        }
+        
+        func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
             actual += a
             fsm.handleEvent(e)
             XCTAssertEqual(actions, actual, line: line)
@@ -202,8 +192,7 @@ alarming | coin | *unlocked* (\(file): \(l4))
         assertEventAction(.coin,  "unlock")
         assertEventAction(.pass,  "lock")
         assertEventAction(.pass,  "alarmOn")
-#warning("variadics seem to mess with highlighting, should allow arrays everywhere")
-        assertEventAction(.reset, "alarmOff", "lock")
+        assertEventAction(.reset, ["alarmOff", "lock"])
         assertEventAction(.coin,  "unlock")
         assertEventAction(.coin,  "thankyou")
         assertEventAction(.coin,  "thankyou")
@@ -306,13 +295,9 @@ class NSObjectTestBase<S: TestingSP, E: TestingEP>: XCTestCase, TransitionBuilde
     typealias Event = E
     
     func test() {
-        let fsm = FSM<State, Event>(initialState: State())
-        
         XCTAssertThrowsError(
-            try fsm.buildTransitions {
-                define(State()) {
-                    when(Event()) | then(State())
-                }
+            try FSM<State, Event>(initialState: State()).buildTransitions {
+                define(State()) { when(Event()) | then(State()) }
             }
         ) { XCTAssertTrue($0 is NSObjectError) }
     }

@@ -33,12 +33,12 @@ class FSMBase<S: SP, E: EP> {
         
         try addToTable(transitions(from: rows))
         
-        if includeNSObject {
+        if includesNSObject {
             try throwError(NSObjectError())
         }
     }
     
-    var includeNSObject: Bool {
+    var includesNSObject: Bool {
         deepDescription([transitionTable.keys.first?.state as Any,
                          transitionTable.keys.first?.event as Any])
         .contains("NSObject")

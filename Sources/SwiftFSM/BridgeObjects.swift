@@ -7,10 +7,45 @@
 
 import Foundation
 
-struct TableRow<S: SP, E: EP> {
+struct EmptyRow: Error {
+    var description: String { "TILT" }
+    let file: String
+    let line: Int
+}
+
+protocol ErrorRow {
+    static func error(file: String, line: Int) -> Self
+    init(error: EmptyRow)
+    var error: EmptyRow? { get }
+}
+
+extension ErrorRow {
+    static func error(file: String, line: Int) -> Self {
+        .init(error: EmptyRow(file: file, line: line))
+    }
+}
+
+struct TableRow<S: SP, E: EP>: ErrorRow {
     let wtams: [WTAM<S, E>]
     let modifiers: RowModifiers<S, E>
     let givenStates: [S]
+    let error: EmptyRow?
+    
+    init(error: EmptyRow) {
+        self.init(wtams: [], modifiers: .none, givenStates: [], error: error)
+    }
+    
+    init(
+        wtams: [WTAM<S, E>],
+        modifiers: RowModifiers<S, E>,
+        givenStates: [S],
+        error: EmptyRow? = nil
+    ) {
+        self.wtams = wtams
+        self.modifiers = modifiers
+        self.givenStates = givenStates
+        self.error = error
+    }
     
 #warning("temporary use only for refactoring, to be discarded")
     var transitions: [Transition<S, E>] {
@@ -22,20 +57,33 @@ struct TableRow<S: SP, E: EP> {
     }
 }
 
-struct WTAMRow<S: SP, E: EP> {
+struct WTAMRow<S: SP, E: EP>: ErrorRow {
     let wtam: WTAM<S, E>?
     let modifiers: RowModifiers<S, E>
+    let error: EmptyRow?
+    
+    init(error: EmptyRow) {
+        self.init(wtam: nil, modifiers: .none, error: error)
+    }
     
     init(
         wtam: WTAM<S, E>? = nil,
-        modifiers: RowModifiers<S, E> = .none
+        modifiers: RowModifiers<S, E> = .none,
+        error: EmptyRow? = nil
     ) {
         self.wtam = wtam
         self.modifiers = modifiers
+        self.error = error
     }
 }
 
-struct RowModifiers<S: SP, E: EP> {
+struct RowModifiers<S: SP, E: EP>: Equatable {
+    static func == (lhs: RowModifiers<S, E>, rhs: RowModifiers<S, E>) -> Bool {
+        lhs.superStates == rhs.superStates &&
+        lhs.entryActions.count == rhs.entryActions.count &&
+        lhs.exitActions.count == rhs.exitActions.count
+    }
+    
     static var none: Self {
         .init()
     }

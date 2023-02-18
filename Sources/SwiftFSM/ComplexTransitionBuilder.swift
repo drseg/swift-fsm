@@ -226,7 +226,7 @@ extension WAM {
 
 extension Array where Element == any PredicateProtocol {
     var uniquePermutationsOfAllCases: Set<Set<AnyPredicate>> {
-        return Set(
+        Set(
             uniqueTypes
                 .allPossibleCases
                 .erase()
@@ -291,10 +291,7 @@ extension Match {
 
 infix operator ???: AdditionPrecedence
 
-func ??? (
-    lhs: Match.PredicateSets,
-    rhs: Match.PredicateSets
-) -> Match.PredicateSets {
+func ???<T: Collection> (lhs: T, rhs: T) -> T {
     lhs.isEmpty ? rhs : lhs
 }
 

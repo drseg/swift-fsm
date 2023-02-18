@@ -22,8 +22,11 @@ extension TransitionBuilder {
     typealias S = State
     typealias E = Event
     
+#warning("variadics seem to mess with highlighting, should allow arrays everywhere")
     func define(
         _ states: S...,
+        file: String = #file,
+        line: Int = #line,
         @WTAMBuilder<S, E> rows: () -> [WTAMRow<S, E>]
     ) -> TableRow<S, E> {
         let rows = rows()
@@ -42,7 +45,9 @@ extension TransitionBuilder {
                                      entryActions: entryActions,
                                      exitActions: exitActions)
         
-        return TableRow(wtams: wtams, modifiers: modifiers, givenStates: states)
+        return modifiers == .none && wtams.isEmpty
+        ? .error(file: file, line: line)
+        : .init(wtams: wtams, modifiers: modifiers, givenStates: states)
     }
     
     func completeWTAMS(
@@ -98,9 +103,11 @@ extension TransitionBuilder {
     
     func action(
         _ a1: @escaping () -> (),
+        file: String = #file,
+        line: Int = #line,
         @WTAMBuilder<S, E> _ rows: () -> [WTAMRow<S, E>]
     ) -> [WTAMRow<S, E>] {
-        actions([a1], rows)
+        actions([a1], file: file, line: line, rows)
     }
     
     func actions(
@@ -114,22 +121,28 @@ extension TransitionBuilder {
         _ a8: (() -> ())? = nil,
         _ a9: (() -> ())? = nil,
         _ a0: (() -> ())? = nil,
+        file: String = #file,
+        line: Int = #line,
         @WTAMBuilder<S, E> _ rows: () -> [WTAMRow<S, E>]
     ) -> [WTAMRow<S, E>] {
         actions(
             [a1, a2, a3, a4, a5, a6, a7, a8, a9, a0].compactMap { $0 },
+            file: file,
+            line: line,
             rows
         )
     }
     
     func actions(
         _ actions: [() -> ()],
+        file: String = #file,
+        line: Int = #line,
         @WTAMBuilder<S, E> _ rows: () -> [WTAMRow<S, E>]
     ) -> [WTAMRow<S, E>] {
-        rows().reduce(into: [WTAMRow]()) { wtRows, wtRow in
+        rows().reduce(into: [WTAMRow<S, E>]()) { wtRows, wtRow in
             if let wtam = wtRow.wtam {
                 wtRows.append(WTAMRow(wtam: wtam.addActions(actions)))
             }
-        }
+        } ??? [.error(file: file, line: line)]
     }
 }

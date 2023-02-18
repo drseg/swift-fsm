@@ -26,59 +26,87 @@ class TestingBase: XCTestCase {
     
     typealias TR = TableRow<State, Event>
     
+    func testEmpty(
+        file: StaticString = #file,
+        line: UInt = #line,
+        _ er: () -> any ErrorRow
+    ) {
+        testEmpty(file: file, line: line) { [er()] }
+    }
+    
+    func testEmpty(
+        file: StaticString = #file,
+        line: UInt = #line,
+        _ er: () -> [any ErrorRow]
+    ) {
+        let er = er()
+        
+        XCTAssertEqual(er.first?.error?.line ?? -1,
+                       Int(line),
+                       file: file,
+                       line: line)
+        
+        XCTAssertEqual(er.first?.error?.file ?? "nil",
+                       file.description,
+                       file: file,
+                       line: line)
+    }
+    
     func assertFileAndLine(
         _ l: Int,
         forEvent e: Event,
         in ss: SuperState<State, Event>,
-        file f: String = #file,
-        errorFile ef: StaticString = #file,
+        file f: StaticString = #file,
         errorLine el: UInt = #line
     ) {
-        assertFileAndLine(f, l, [e], ss.wtams, errorFile: ef, errorLine: el)
+        assertFileAndLine(f, l, [e], ss.wtams, errorLine: el)
     }
     
     func assertFileAndLine(
         _ l: Int,
         forEvent e: Event,
         in tr: TR,
-        file f: String = #file,
-        errorFile ef: StaticString = #file,
+        file f: StaticString = #file,
         errorLine el: UInt = #line
     ) {
-        assertFileAndLine(f, l, [e], tr.wtams, errorFile: ef, errorLine: el)
+        assertFileAndLine(f, l, [e], tr.wtams, errorLine: el)
     }
     
     func assertFileAndLine(
         _ l: Int,
         forEvents e: [Event],
         in tr: TR,
-        file f: String = #file,
-        errorFile ef: StaticString = #file,
+        file f: StaticString = #file,
         errorLine el: UInt = #line
     ) {
-        assertFileAndLine(f, l, e, tr.wtams, errorFile: ef, errorLine: el)
+        assertFileAndLine(f, l, e, tr.wtams, errorLine: el)
     }
     
     func assertFileAndLine(
-        _ expectedFile: String = #file,
+        _ expectedFile: StaticString = #file,
         _ expectedLine: Int,
         _ events: [Event],
         _ wtams: [WTAM<State, Event>],
-        errorFile: StaticString = #file,
         errorLine: UInt = #line
     ) {
         XCTAssertEqual(
             wtams.first { $0.events == events }?.line ?? -1, expectedLine,
-            file: errorFile,
+            file: expectedFile,
             line: errorLine
         )
         
-        XCTAssertEqual(
-            wtams.first { $0.events == events }?.file ?? "nil", expectedFile,
-            file: errorFile,
+        let unexpectedFiles = wtams
+            .filter { $0.file != expectedFile.description }
+            .map { "\n\($0)"}
+        
+        XCTAssertTrue(
+            wtams.allSatisfy { $0.file == expectedFile.description },
+            "Unexpected files: \(unexpectedFiles)",
+            file: expectedFile,
             line: errorLine
         )
     }
+#warning("tests that use this do not test the default line impl")
 }
 
 class TransitionBuilderTests: TestingBase, TransitionBuilder {
@@ -155,6 +183,10 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertFileAndLine(10, forEvent: .reset, in: s)
     }
     
+    func testEmptyDefine() {
+        testEmpty { define(.unlocked) { } }
+    }
+    
     func testImplements() {
         let tr = define(.locked) {
             implements(s)
@@ -173,6 +205,17 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         }
         
         XCTAssertEqual(1, tr.modifiers.superStates.count)
+    }
+    
+    func testWhenDefaultFileAndLine() {
+        let l1 = #line; let w1 = when(.coin)
+        let l2 = #line; let w2 = when([.coin])
+        
+        XCTAssertEqual(w1.file, #file)
+        XCTAssertEqual(w2.file, #file)
+        
+        XCTAssertEqual(w1.line, l1)
+        XCTAssertEqual(w2.line, l2)
     }
     
     func testSimpleTransitionsWithOperators() {
@@ -212,6 +255,12 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertContains(.locked, .pass, .locked, tr)
         
         assertFileAndLine(10, forEvent: .reset, in: tr)
+    }
+    
+    func testEmptyActions() {
+        testEmpty{ action({ }) { }    }
+        testEmpty{ actions({ }) { }   }
+        testEmpty{ actions([{ }]) { } }
     }
     
     func testActions() {
@@ -317,6 +366,6 @@ extension WTAM<TurnstileState, TurnstileEvent> {
 
 extension Transition<TurnstileState, TurnstileEvent> {
     var description: String {
-        String("(\(givenState.rawValue), \(event.rawValue), \(nextState.rawValue))\n")
+        String("(\(givenState), \(event), \(nextState))\n")
     }
 }

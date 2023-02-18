@@ -389,6 +389,25 @@ final class ComplexTransitionBuilderTests:
         XCTAssertTrue(t2.actions.isEmpty)
         XCTAssertTrue(t2.match.allOf.isEmpty)
     }
+    
+    func testWhenDefaultFileAndLine() {
+        let l1 = #line; let w1: WAM<E> = when(.coin)
+        let l2 = #line; let w2: WAM<E> = when([.coin])
+        let l3 = #line; let w3 = when(.coin)   { then() }
+        let l4 = #line; let w4 = when([.coin]) { then() }
+        
+        XCTAssertEqual(w1.file, #file)
+        XCTAssertEqual(w2.file, #file)
+        
+        XCTAssertEqual(w3[0].wtam?.file, #file)
+        XCTAssertEqual(w4[0].wtam?.file, #file)
+        
+        XCTAssertEqual(w1.line, l1)
+        XCTAssertEqual(w2.line, l2)
+        
+        XCTAssertEqual(w3[0].wtam?.line, l3)
+        XCTAssertEqual(w4[0].wtam?.line, l4)
+    }
 
     func testSingleWhenContext() {
         testWithExpectation(count: 2) { e in
