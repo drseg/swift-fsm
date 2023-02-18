@@ -75,7 +75,7 @@ extension ComplexTransitionBuilder {
             if let wtam = $1.wtam {
                 $0.append(WTAMRow(wtam: wtam.addMatch(Match(anyOf: p))))
             }
-        } ??? [.error(file: file, line: line)]
+        } ??? [.error(file: file, line: line)] 
     }
     
     func match(

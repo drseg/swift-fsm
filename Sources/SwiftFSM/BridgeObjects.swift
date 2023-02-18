@@ -15,13 +15,13 @@ struct EmptyBlock: Error {
 
 protocol ErrorRow {
     static func error(file: String, line: Int) -> Self
-    init(error: EmptyBlock)
-    var error: EmptyBlock? { get }
+    init(errors: [EmptyBlock])
+    var errors: [EmptyBlock] { get }
 }
 
 extension ErrorRow {
     static func error(file: String, line: Int) -> Self {
-        .init(error: EmptyBlock(file: file, line: line))
+        .init(errors: [EmptyBlock(file: file, line: line)])
     }
 }
 
@@ -29,22 +29,22 @@ struct TableRow<S: SP, E: EP>: ErrorRow {
     let wtams: [WTAM<S, E>]
     let modifiers: RowModifiers<S, E>
     let givenStates: [S]
-    let error: EmptyBlock?
+    let errors: [EmptyBlock]
     
-    init(error: EmptyBlock) {
-        self.init(wtams: [], modifiers: .none, givenStates: [], error: error)
+    init(errors: [EmptyBlock]) {
+        self.init(wtams: [], modifiers: .none, givenStates: [], errors: errors)
     }
     
     init(
-        wtams: [WTAM<S, E>],
-        modifiers: RowModifiers<S, E>,
-        givenStates: [S],
-        error: EmptyBlock? = nil
+        wtams: [WTAM<S, E>] = [],
+        modifiers: RowModifiers<S, E> = .none,
+        givenStates: [S] = [],
+        errors: [EmptyBlock] = []
     ) {
         self.wtams = wtams
         self.modifiers = modifiers
         self.givenStates = givenStates
-        self.error = error
+        self.errors = errors
     }
     
 #warning("temporary use only for refactoring, to be discarded")
@@ -60,20 +60,20 @@ struct TableRow<S: SP, E: EP>: ErrorRow {
 struct WTAMRow<S: SP, E: EP>: ErrorRow {
     let wtam: WTAM<S, E>?
     let modifiers: RowModifiers<S, E>
-    let error: EmptyBlock?
+    let errors: [EmptyBlock]
     
-    init(error: EmptyBlock) {
-        self.init(wtam: nil, modifiers: .none, error: error)
+    init(errors: [EmptyBlock]) {
+        self.init(wtam: nil, modifiers: .none, errors: errors)
     }
     
     init(
         wtam: WTAM<S, E>? = nil,
         modifiers: RowModifiers<S, E> = .none,
-        error: EmptyBlock? = nil
+        errors: [EmptyBlock] = []
     ) {
         self.wtam = wtam
         self.modifiers = modifiers
-        self.error = error
+        self.errors = errors
     }
 }
 
@@ -222,16 +222,16 @@ struct WhensThen<S: SP, E: EP> {
 
 struct TAMRow<S: SP>: ErrorRow {
     let tam: TAM<S>?
-    let error: EmptyBlock?
+    let errors: [EmptyBlock]
     
-    init(error: EmptyBlock) {
-        self.error = error
+    init(errors: [EmptyBlock]) {
+        self.errors = errors
         self.tam = nil
     }
     
     init(tam: TAM<S>) {
         self.tam = tam
-        self.error = nil
+        self.errors = []
     }
 }
 
@@ -253,16 +253,16 @@ struct TAM<S: SP> {
 
 struct WAMRow<E: EP>: ErrorRow {
     let wam: WAM<E>?
-    let error: EmptyBlock?
+    let errors: [EmptyBlock]
     
-    init(error: EmptyBlock) {
-        self.error = error
+    init(errors: [EmptyBlock]) {
+        self.errors = errors
         self.wam = nil
     }
     
     init(wam: WAM<E>) {
         self.wam = wam
-        self.error = nil
+        self.errors = []
     }
 }
 

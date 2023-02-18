@@ -45,9 +45,17 @@ extension TransitionBuilder {
                                      entryActions: entryActions,
                                      exitActions: exitActions)
         
-        return modifiers.isEmpty && wtams.isEmpty
-        ? .error(file: file, line: line)
-        : .init(wtams: wtams, modifiers: modifiers, givenStates: states)
+        let errors = rows.map(\.errors).flatten
+        
+        if modifiers.isEmpty && wtams.isEmpty {
+            return errors.isEmpty
+            ? .error(file: file, line: line)
+            : .init(errors: [EmptyBlock(file: file, line: line)] + errors)
+        }
+        
+        return errors.isEmpty
+        ? .init(wtams: wtams, modifiers: modifiers, givenStates: states)
+        : .init(errors: errors)
     }
     
     func completeWTAMS(

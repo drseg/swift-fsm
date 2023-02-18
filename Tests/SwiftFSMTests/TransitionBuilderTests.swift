@@ -26,30 +26,55 @@ class TestingBase: XCTestCase {
     
     typealias TR = TableRow<State, Event>
     
-    func assertEmpty(
+    func assertEmptyBlock(
+        atLineOffset offset: UInt = 0,
         file: StaticString = #file,
         line: UInt = #line,
         _ er: () -> any ErrorRow
     ) {
-        assertEmpty(file: file, line: line) { [er()] }
+        assertEmptyBlock(atLineOffset: offset, file: file, line: line) { [er()] }
     }
     
-    func assertEmpty(
+    func assertEmptyBlock(
+        atLineOffset offset: UInt = 0,
+        file: StaticString = #file,
+        line: UInt = #line,
+        _ er: () -> [any ErrorRow]
+    ) {
+        assertEmptyBlocks(atLineOffsets: [offset], file: file, line: line, er)
+    }
+    
+    func assertEmptyBlocks(
+        atLineOffsets offsets: [UInt] = [0],
+        file: StaticString = #file,
+        line: UInt = #line,
+        _ er: () -> any ErrorRow
+    ) {
+        assertEmptyBlocks(atLineOffsets: offsets, file: file, line: line) {
+            [er()]
+        }
+    }
+    
+    func assertEmptyBlocks(
+        atLineOffsets offsets: [UInt] = [0],
         file: StaticString = #file,
         line: UInt = #line,
         _ er: () -> [any ErrorRow]
     ) {
         let er = er()
-        
-        XCTAssertEqual(er.first?.error?.line ?? -1,
-                       Int(line),
-                       file: file,
-                       line: line)
-        
-        XCTAssertEqual(er.first?.error?.file ?? "nil",
-                       file.description,
-                       file: file,
-                       line: line)
+        let errors = er.first?.errors
+                
+        offsets.enumerated().forEach {
+            XCTAssertEqual(errors?[$0.offset].line ?? -1,
+                           Int(line + $0.element),
+                           file: file,
+                           line: line + $0.element)
+            
+            XCTAssertEqual(errors?[$0.offset].file ?? "nil",
+                           file.description,
+                           file: file,
+                           line: line + $0.element)
+        }
     }
     
     func assertFileAndLine(
@@ -184,7 +209,7 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     }
     
     func testEmptyDefine() {
-        assertEmpty { define(.unlocked) { } }
+        assertEmptyBlock { define(.unlocked) { } }
     }
     
     func testImplements() {
@@ -258,9 +283,22 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     }
     
     func testEmptyActions() {
-        assertEmpty{ action({ }) { }    }
-        assertEmpty{ actions({ }) { }   }
-        assertEmpty{ actions([{ }]) { } }
+        assertEmptyBlock { action({ }) { }    }
+        assertEmptyBlock { actions({ }) { }   }
+        assertEmptyBlock { actions([{ }]) { } }
+        
+        assertEmptyBlock(atLineOffset: 2) {
+            define(.unlocked) {
+                action({ }) { }
+                when(.coin) | then()
+            }
+        }
+        
+        assertEmptyBlocks(atLineOffsets: [1, 2]) {
+            define(.unlocked) {
+                action({ }) { }
+            }
+        }
     }
     
     func testActions() {

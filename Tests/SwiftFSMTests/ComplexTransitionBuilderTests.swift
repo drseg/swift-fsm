@@ -105,17 +105,17 @@ final class ComplexTransitionBuilderTests:
     }
     
     func testEmptyMatch() {
-        assertEmpty { (match(.a) { }) as [WTAMRow<S, E>] }
-        assertEmpty { (match(anyOf: .a) { }) as [WTAMRow<S, E>] }
-        assertEmpty { (match(anyOf: [.a]) { }) as [WTAMRow<S, E>] }
+        assertEmptyBlock { (match(.a) { }) as [WTAMRow<S, E>] }
+        assertEmptyBlock { (match(anyOf: .a) { }) as [WTAMRow<S, E>] }
+        assertEmptyBlock { (match(anyOf: [.a]) { }) as [WTAMRow<S, E>] }
         
-        assertEmpty { (match(.a) { }) as [WAMRow<E>] }
-        assertEmpty { (match(anyOf: .a) { }) as [WAMRow<E>] }
-        assertEmpty { (match(anyOf: [.a]) { }) as [WAMRow<E>] }
+        assertEmptyBlock { (match(.a) { }) as [WAMRow<E>] }
+        assertEmptyBlock { (match(anyOf: .a) { }) as [WAMRow<E>] }
+        assertEmptyBlock { (match(anyOf: [.a]) { }) as [WAMRow<E>] }
         
-        assertEmpty { (match(.a) { }) as [TAMRow<S>] }
-        assertEmpty { (match(anyOf: .a) { }) as [TAMRow<S>] }
-        assertEmpty { (match(anyOf: [.a]) { }) as [TAMRow<S>] }
+        assertEmptyBlock { (match(.a) { }) as [TAMRow<S>] }
+        assertEmptyBlock { (match(anyOf: .a) { }) as [TAMRow<S>] }
+        assertEmptyBlock { (match(anyOf: [.a]) { }) as [TAMRow<S>] }
     }
     
     func testMatcherContext() {
@@ -424,8 +424,8 @@ final class ComplexTransitionBuilderTests:
     }
     
     func testEmptyWhenBlock() {
-        assertEmpty { when(.coin) { } }
-        assertEmpty { when([.coin]) { } }
+        assertEmptyBlock { when(.coin) { } }
+        assertEmptyBlock { when([.coin]) { } }
     }
 
     func testSingleWhenContext() {
@@ -481,7 +481,7 @@ final class ComplexTransitionBuilderTests:
     }
     
     func testEmptyThenBlock() {
-        assertEmpty { then(.unlocked) { } }
+        assertEmptyBlock { then(.unlocked) { } }
     }
 
     func testMultiWhenContext() {
