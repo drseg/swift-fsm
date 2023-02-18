@@ -32,6 +32,8 @@ extension TransitionBuilder {
             rows.map { $0.modifiers }.map(map).flatten
         }
         
+        let wtaps = completeWTAPS(rows.wtaps(), givenStates: states)
+        
         let superStates  = flatten { $0.superStates  }.uniqueValues
         let entryActions = flatten { $0.entryActions }
         let exitActions  = flatten { $0.exitActions  }
@@ -40,12 +42,13 @@ extension TransitionBuilder {
                                      entryActions: entryActions,
                                      exitActions: exitActions)
         
-        return TableRow(wtaps: completeWTAPS(rows.wtaps(), givenStates: states),
-                        modifiers: modifiers,
-                        givenStates: states)
+        return TableRow(wtaps: wtaps, modifiers: modifiers, givenStates: states)
     }
     
-    func completeWTAPS(_ wtaps: [WTAP<S, E>], givenStates: [S]) -> [WTAP<S, E>] {
+    func completeWTAPS(
+        _ wtaps: [WTAP<S, E>],
+        givenStates: [S]
+    ) -> [WTAP<S, E>] {
         wtaps.reduce(into: [WTAP]()) { wtaps, wtap in
             givenStates.forEach {
                 wtaps.append(WTAP(events: wtap.events,

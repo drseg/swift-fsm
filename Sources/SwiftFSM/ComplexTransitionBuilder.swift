@@ -142,18 +142,18 @@ extension ComplexTransitionBuilder {
     
     func when(
         _ e: Event...,
-        @TAPBuilder<S> rows: () -> [TAPRow<S>],
         file: String = #file,
-        line: Int = #line
+        line: Int = #line,
+        @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [WTAPRow<S, E>] {
-        when(e, rows: rows, file: file, line: line)
+        when(e, file: file, line: line, rows: rows)
     }
     
     func when(
         _ e: [Event],
-        @TAPBuilder<S> rows: () -> [TAPRow<S>],
         file: String = #file,
-        line: Int = #line
+        line: Int = #line,
+        @TAPBuilder<S> rows: () -> [TAPRow<S>]
     ) -> [WTAPRow<S, E>] {
         rows().reduce(into: [WTAPRow]()) {
             $0.append(WTAPRow(wtap: WTAP(events: e,
