@@ -35,7 +35,13 @@ extension TransitionBuilder {
             rows.map { $0.modifiers }.map(map).flatten
         }
         
-        let wtams = completeWTAMS(rows.wtams(), givenStates: states)
+        func completeWTAMS() -> [WTAM<S, E>] {
+            rows.wtams().reduce(into: [WTAM]()) { wtams, wtam in
+                states.forEach {
+                    wtams.append(wtam.replaceDefaultState(with: $0))
+                }
+            }
+        }
         
         let superStates  = flatten { $0.superStates  }.uniqueValues
         let entryActions = flatten { $0.entryActions }
@@ -45,28 +51,17 @@ extension TransitionBuilder {
                                      entryActions: entryActions,
                                      exitActions: exitActions)
         
-        let errors = rows.map(\.errors).flatten
+        let wtams = completeWTAMS()
         
+        var errors = rows.map(\.errors).flatten
         if modifiers.isEmpty && wtams.isEmpty {
-            return errors.isEmpty
-            ? .error(file: file, line: line)
-            : .init(errors: [EmptyBlock(file: file, line: line)] + errors)
+            errors = [.init(file, line)] + errors
         }
         
-        return errors.isEmpty
-        ? .init(wtams: wtams, modifiers: modifiers, givenStates: states)
-        : .init(errors: errors)
-    }
-    
-    func completeWTAMS(
-        _ wtams: [WTAM<S, E>],
-        givenStates: [S]
-    ) -> [WTAM<S, E>] {
-        wtams.reduce(into: [WTAM]()) { wtams, wtam in
-            givenStates.forEach {
-                wtams.append(wtam.replaceDefaultState(with: $0))
-            }
-        }
+        return .init(wtams: wtams,
+                     modifiers: modifiers,
+                     givenStates: states,
+                     errors: errors)
     }
     
     func onEnter(_ actions: () -> ()...) -> WTAMRow<S, E> {

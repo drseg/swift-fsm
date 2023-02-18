@@ -11,6 +11,11 @@ struct EmptyBlock: Error {
     var description: String { "TILT" }
     let file: String
     let line: Int
+    
+    init(_ file: String, _ line: Int) {
+        self.file = file
+        self.line = line
+    }
 }
 
 protocol ErrorRow {
@@ -21,7 +26,7 @@ protocol ErrorRow {
 
 extension ErrorRow {
     static func error(file: String, line: Int) -> Self {
-        .init(errors: [EmptyBlock(file: file, line: line)])
+        .init(errors: [EmptyBlock(file, line)])
     }
 }
 
