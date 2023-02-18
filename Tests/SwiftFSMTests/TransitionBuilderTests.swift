@@ -30,52 +30,53 @@ class TestingBase: XCTestCase {
         _ l: Int,
         forEvent e: Event,
         in ss: SuperState<State, Event>,
-        file: String = #file,
-        errorFile: StaticString = #file,
-        line: UInt = #line
+        file f: String = #file,
+        errorFile ef: StaticString = #file,
+        errorLine el: UInt = #line
     ) {
-        XCTAssertEqual(
-            ss.wtaps.first { $0.events == [e] }?.line ?? -1, l,
-            file: errorFile,
-            line: line
-        )
-        
-        XCTAssertEqual(
-            ss.wtaps.first { $0.events == [e] }?.file ?? "nil", file,
-            file: errorFile,
-            line: line
-        )
+        assertFileAndLine(f, l, [e], ss.wtaps, errorFile: ef, errorLine: el)
     }
     
     func assertFileAndLine(
         _ l: Int,
         forEvent e: Event,
         in tr: TR,
-        file: String = #file,
-        errorFile: StaticString = #file,
-        line: UInt = #line
+        file f: String = #file,
+        errorFile ef: StaticString = #file,
+        errorLine el: UInt = #line
     ) {
-        assertFileAndLine(l, forEvents: [e], in: tr, file: file, errorFile: errorFile, line: line)
+        assertFileAndLine(f, l, [e], tr.wtaps, errorFile: ef, errorLine: el)
     }
     
     func assertFileAndLine(
         _ l: Int,
         forEvents e: [Event],
         in tr: TR,
-        file: String = #file,
+        file f: String = #file,
+        errorFile ef: StaticString = #file,
+        errorLine el: UInt = #line
+    ) {
+        assertFileAndLine(f, l, e, tr.wtaps, errorFile: ef, errorLine: el)
+    }
+    
+    func assertFileAndLine(
+        _ expectedFile: String = #file,
+        _ expectedLine: Int,
+        _ events: [Event],
+        _ wtaps: [WTAP<State, Event>],
         errorFile: StaticString = #file,
-        line: UInt = #line
+        errorLine: UInt = #line
     ) {
         XCTAssertEqual(
-            tr.wtaps.first { $0.events == e }?.line ?? -1, l,
+            wtaps.first { $0.events == events }?.line ?? -1, expectedLine,
             file: errorFile,
-            line: line
+            line: errorLine
         )
         
         XCTAssertEqual(
-            tr.wtaps.first { $0.events == e }?.file ?? "nil", file,
+            wtaps.first { $0.events == events }?.file ?? "nil", expectedFile,
             file: errorFile,
-            line: line
+            line: errorLine
         )
     }
 }
