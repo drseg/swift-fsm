@@ -68,7 +68,7 @@ class TestingBase: XCTestCase {
         _ er: () -> [any ErrorRow]
     ) {
         let er = er()
-        let errors = er.first?.errors ?? []
+        let errors = er.map(\.errors).flatten
         
         guard errors.count == offsets.count else {
             XCTFail("""
@@ -79,6 +79,7 @@ Actual: \(errors.count)
 Errors found:
 \(errors.map(\.withShortFileName))
 """,
+                    file: file,
                     line: line
             )
             return
@@ -319,13 +320,6 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertEmptyBlock { actions([{ }]) { } }
         
         assertEmptyBlock(atLineOffset: 2) {
-            define(.unlocked) {
-                action({ }) { }
-                when(.coin) | then()
-            }
-        }
-        
-        assertEmptyBlocks(atLineOffsets: [1, 2]) {
             define(.unlocked) {
                 action({ }) { }
             }

@@ -28,13 +28,13 @@ extension String {
 }
 
 protocol ErrorRow {
-    static func error(file: String, line: Int) -> Self
+    static func error(_ file: String, _ line: Int) -> Self
     init(errors: [EmptyBlock])
     var errors: [EmptyBlock] { get }
 }
 
 extension ErrorRow {
-    static func error(file: String, line: Int) -> Self {
+    static func error(_ file: String, _ line: Int) -> Self {
         .init(errors: [EmptyBlock(file, line)])
     }
 }

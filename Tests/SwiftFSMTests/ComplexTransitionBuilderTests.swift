@@ -118,6 +118,26 @@ final class ComplexTransitionBuilderTests:
         assertEmptyBlock { (match(anyOf: [.a]) { }) as [TAMRow<S>] }
     }
     
+    func testMatchEmptyBlockNesting() {
+        assertEmptyBlocks(atLineOffsets: [3, 4, 5, 7, 9, 10, 11, 13]) {
+            define(.unlocked) {
+                match(.a) {
+                    when(.coin) { }
+                    when(.coin, .pass) { }
+                    when([.coin, .pass]) { }
+                    
+                    then(.unlocked) { }
+                    
+                    action({ }) { }
+                    actions({ }, { }) { }
+                    actions([{ }, { }]) { }
+                    
+                    match(.b) { }
+                }
+            }
+        }
+    }
+    
     func testMatcherContext() {
         testWithExpectation { e in
             let tr =
@@ -895,7 +915,7 @@ extension TableRow {
 
 final class CharacterisationTests: PredicateTests {
     func testPermutations() {
-        let predicates: [any PredicateProtocol] = [Q.a, Q.b, P.a, P.b, R.b]
+        let predicates: [any PredicateProtocol] = [Q.a, Q.b, P.a, P.b, R.b, R.b]
         
         let expected = [[P.a, Q.a, R.a],
                         [P.b, Q.a, R.a],

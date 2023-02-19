@@ -136,20 +136,20 @@ class FSM<S: SP, E: EP>: FSMBase<S, E> {
 }
 
 struct DuplicateTransitions<S: SP, E: EP>: Error {
-    let message = "The same 'given-when' was found in multiple transitions:"
-    let description: String
+    let message = "The same 'given-when' was found in multiple transitions:\n"
+    let localizedDescription: String
     
     init<C: Collection>(_ ts: C) where C.Element == Transition<S, E> {
-        self.description =  message + ts.map {
-            "\n\($0.givenState) | \($0.event) | *\($0.nextState)* (\($0.file.name): \($0.line))"
+        self.localizedDescription =  message + ts.map {
+            "\($0.givenState) | \($0.event) | *\($0.nextState)* (\($0.file.name): \($0.line))"
         }
         .sorted()
-        .joined()
+        .joined(by: "\n")
     }
 }
 
 struct NSObjectError: Error {
-    var description: String {
+    var localizedDescription: String {
         "States and Events must not inherit from NSObject, or include NSObject instances"
     }
 }

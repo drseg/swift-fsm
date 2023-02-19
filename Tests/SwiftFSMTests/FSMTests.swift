@@ -133,7 +133,7 @@ class FSMBuilderTests: FSMTests, TransitionBuilder {
             }
         }) {
             let e = $0 as! DuplicateTransitions<State, Event>
-            XCTAssertEqual(e.description
+            XCTAssertEqual(e.localizedDescription
                 .split(separator: "\n")
                 .suffix(4)
                 .joined(separator: "\n"),

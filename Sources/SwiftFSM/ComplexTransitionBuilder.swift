@@ -72,10 +72,12 @@ extension ComplexTransitionBuilder {
         @WTAMBuilder<S, E> rows: () -> [WTAMRow<S, E>]
     ) -> [WTAMRow<S, E>] {
         rows().reduce(into: [WTAMRow<S, E>]()) {
-            if let wtam = $1.wtam {
-                $0.append(WTAMRow(wtam: wtam.addMatch(Match(anyOf: p))))
-            }
-        } ??? [.error(file: file, line: line)] 
+            $0.append(
+                $1.wtam != nil
+                ? WTAMRow(wtam: $1.wtam!.addMatch(Match(anyOf: p)))
+                : WTAMRow(errors: $1.errors)
+            )
+        } ??? [.error(file, line)] 
     }
     
     func match(
@@ -109,7 +111,7 @@ extension ComplexTransitionBuilder {
                     TAMRow(tam: tam.addMatch(Match(anyOf: p)))
                 )
             }
-        } ??? [.error(file: file, line: line)]
+        } ??? [.error(file, line)]
     }
     
     func match(
@@ -143,7 +145,7 @@ extension ComplexTransitionBuilder {
                     WAMRow(wam: wam.addMatch(Match(anyOf: p)))
                 )
             }
-        } ??? [.error(file: file, line: line)]
+        } ??? [.error(file, line)]
     }
     
     func when(
@@ -188,7 +190,7 @@ extension ComplexTransitionBuilder {
                                              file: file,
                                              line: line)))
             }
-        } ??? [.error(file: file, line: line)]
+        } ??? [.error(file, line)]
     }
     
     func then(_ state: S) -> TAMRow<S> {
@@ -205,7 +207,7 @@ extension ComplexTransitionBuilder {
             if let wam = $1.wam {
                 $0.append(WTAMRow(wtam: WTAM(state: s, wam: wam)))
             }
-        } ??? [.error(file: file, line: line)]
+        } ??? [.error(file, line)]
     }
 }
 
@@ -256,7 +258,7 @@ extension WAM {
     }
 }
 
-extension Array where Element == any PredicateProtocol {
+extension Collection where Element == any PredicateProtocol {
     var uniquePermutationsOfAllCases: Set<Set<AnyPredicate>> {
         Set(
             uniqueTypes

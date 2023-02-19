@@ -52,11 +52,7 @@ extension TransitionBuilder {
                                      exitActions: exitActions)
         
         let wtams = completeWTAMS()
-        
-        var errors = rows.map(\.errors).flatten
-        if modifiers.isEmpty && wtams.isEmpty {
-            errors.insert(.init(file, line), at: 0)
-        }
+        let errors = rows.map(\.errors).flatten ??? [.init(file, line)]
         
         return .init(wtams: wtams,
                      modifiers: modifiers,
@@ -146,6 +142,6 @@ extension TransitionBuilder {
             if let wtam = wtRow.wtam {
                 wtRows.append(WTAMRow(wtam: wtam.addActions(actions)))
             }
-        } ??? [.error(file: file, line: line)]
+        } ??? [.error(file, line)]
     }
 }
