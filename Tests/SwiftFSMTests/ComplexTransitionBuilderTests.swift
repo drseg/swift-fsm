@@ -118,7 +118,7 @@ final class ComplexTransitionBuilderTests:
         assertEmptyBlock { (match(anyOf: [.a]) { }) as [TAMRow<S>] }
     }
     
-    func testMatchEmptyBlockNesting() {
+    func testMatchWithNestedEmptyBlocks() {
         assertEmptyBlocks(atLineOffsets: [3, 4, 5, 7, 9, 10, 11, 13]) {
             define(.unlocked) {
                 match(.a) {
@@ -412,6 +412,24 @@ final class ComplexTransitionBuilderTests:
             }
         }
     }
+    
+    func testActionsWithEmptyMatch() {
+        assertEmptyBlocks(atLineOffsets: [3, 7, 11]) {
+            define(.unlocked) {
+                action({ }) {
+                    match(.a) { }
+                }
+                
+                actions({ }, { }) {
+                    match(.a) { }
+                }
+                
+                actions([{ }, { }]) {
+                    match(.a) { }
+                }
+            }
+        }
+    }
 
     func testThenWithNoArgument() {
         let t1: Then = then()
@@ -447,7 +465,21 @@ final class ComplexTransitionBuilderTests:
         assertEmptyBlock { when(.coin) { } }
         assertEmptyBlock { when([.coin]) { } }
     }
-
+    
+    func testWhenWithNestedEmptyBlocks() {
+        assertEmptyBlocks(atLineOffsets: [3]) {
+            define(.locked) {
+                when(.pass) {
+                    match(.a) {} // should this be allowed?
+                    
+                    // disallowed:
+                    // then(.unlocked) {}
+                    // action({}) {}
+                }
+            }
+        }
+    }
+    
     func testSingleWhenContext() {
         testWithExpectation(count: 2) { e in
             let tr =

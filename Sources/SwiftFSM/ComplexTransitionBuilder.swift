@@ -71,13 +71,9 @@ extension ComplexTransitionBuilder {
         line: Int = #line,
         @WTAMBuilder<S, E> rows: () -> [WTAMRow<S, E>]
     ) -> [WTAMRow<S, E>] {
-        rows().reduce(into: [WTAMRow<S, E>]()) {
-            $0.append(
-                $1.wtam != nil
-                ? WTAMRow(wtam: $1.wtam!.addMatch(Match(anyOf: p)))
-                : WTAMRow(errors: $1.errors)
-            )
-        } ??? [.error(file, line)] 
+        concatenateWTAMRows(rows(), file: file, line: line) {
+            $0.addMatch(Match(anyOf: p))
+        }
     }
     
     func match(
@@ -183,14 +179,13 @@ extension ComplexTransitionBuilder {
         line: Int = #line,
         @TAMBuilder<S> rows: () -> [TAMRow<S>]
     ) -> [WTAMRow<S, E>] {
-        rows().reduce(into: [WTAMRow]()) {
-            if let tam = $1.tam {
-                $0.append(WTAMRow(wtam: WTAM(events: e,
-                                             tam: tam,
-                                             file: file,
-                                             line: line)))
-            }
-        } ??? [.error(file, line)]
+        concatenateRows(rows(), file: file, line: line) {
+            guard let tam = $0.tam else { return nil }
+            return WTAMRow(wtam: WTAM(events: e,
+                                      tam: tam,
+                                      file: file,
+                                      line: line))
+        }
     }
     
     func then(_ state: S) -> TAMRow<S> {

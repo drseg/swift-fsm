@@ -138,10 +138,31 @@ extension TransitionBuilder {
         line: Int = #line,
         @WTAMBuilder<S, E> _ rows: () -> [WTAMRow<S, E>]
     ) -> [WTAMRow<S, E>] {
-        rows().reduce(into: [WTAMRow<S, E>]()) { wtRows, wtRow in
-            if let wtam = wtRow.wtam {
-                wtRows.append(WTAMRow(wtam: wtam.addActions(actions)))
-            }
+        concatenateWTAMRows(rows(), file: file, line: line) {
+            $0.addActions(actions)
+        }
+    }
+    
+    func concatenateWTAMRows(
+        _ rows: [WTAMRow<S, E>],
+        file: String,
+        line: Int,
+        adding updateWTAM: (WTAM<S, E>) -> WTAM<S, E>
+    ) -> [WTAMRow<S, E>] {
+        concatenateRows(rows, file: file, line: line) {
+            guard let wtam = $0.wtam else { return nil }
+            return WTAMRow(wtam: updateWTAM(wtam))
+        }
+    }
+    
+    func concatenateRows<ER1: ErrorRow, ER2: ErrorRow>(
+        _ rows: [ER1],
+        file: String,
+        line: Int,
+        adding row: (ER1) -> ER2?
+    ) -> [ER2] {
+        rows.reduce(into: [ER2]()) {
+            $0.append(row($1) ?? .init(errors: $1.errors))
         } ??? [.error(file, line)]
     }
 }
