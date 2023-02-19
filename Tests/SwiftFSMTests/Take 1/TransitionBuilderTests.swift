@@ -275,6 +275,11 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         XCTAssertEqual(w2.line, l2)
     }
     
+    func testWhenOverloadsProduceIdenticalResults() {
+        XCTAssertEqual(when([.pass]), when(.pass))
+        XCTAssertEqual(when([.pass, .coin]), when(.pass, .coin))
+    }
+    
     func testSimpleTransitionsWithOperators() {
         let tr = define(.locked, .unlocked) {
             when(.reset, line: 10) | then(.unlocked) | []
@@ -345,16 +350,19 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
     }
     
     func testActionBlock() {
-        let e = expectation(description: "action")
-        e.expectedFulfillmentCount = 4
+        var output = ""
         
         let tr = define(.locked) {
-            actions(e.fulfill, e.fulfill) {
+            actions([{ output += "1" }, { output += "2" }]) {
+                when(.coin, line: 10)  | then(.unlocked)
+            }
+            
+            actions({ output += "3" }, { output += "4" }) {
                 when(.coin, line: 10)  | then(.unlocked)
             }
 
-            action(e.fulfill) {
-                when(.pass)            | then(.locked) | e.fulfill
+            action({ output += "5" }) {
+                when(.pass, line: 20)  | then(.locked) | { output += "6" }
             }
         }
 
@@ -362,12 +370,11 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertContains(.locked, .pass, .locked, tr)
         
         assertFileAndLine(10, forEvent: .coin, in: tr)
-
-        tr.wtams.first?.actions.first?()
-        tr.wtams.first?.actions.last?()
-        tr.wtams.last?.actions.first?()
-        tr.wtams.last?.actions.last?()
-        waitForExpectations(timeout: 0.1)
+        assertFileAndLine(20, forEvent: .pass, in: tr)
+        
+        tr.wtams.map(\.actions).flatten.executeAll()
+        
+        XCTAssertEqual(output, "123456")
     }
         
     func testEntryActions() {

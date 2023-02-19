@@ -71,7 +71,7 @@ struct TableRow<S: SP, E: EP>: ErrorRow {
     }
 }
 
-struct WTAMRow<S: SP, E: EP>: ErrorRow {
+struct WTAMRow<S: SP, E: EP>: ErrorRow {    
     let wtam: WTAM<S, E>?
     let modifiers: RowModifiers<S, E>
     let errors: [EmptyBlock]
@@ -168,7 +168,7 @@ struct Match: Hashable {
     }
 }
 
-struct Whens<S: SP, E: EP> {
+struct Whens<S: SP, E: EP>: Equatable {
     static func | (lhs: Self, rhs: @escaping () -> ()) -> WAMRow<E> {
         lhs | [rhs]
     }
@@ -311,7 +311,7 @@ struct WTAM<S: SP, E: EP>: Hashable {
     func addActions(_ a: [() -> ()]) -> Self {
         WTAM(events: events,
              state: state,
-             actions: actions + a,
+             actions: a + actions,
              match: match,
              file: file,
              line: line)
