@@ -193,7 +193,7 @@ extension ComplexTransitionBuilder {
     }
     
     func then(
-        _ s: State,
+        _ s: S? = nil,
         file: String = #file,
         line: Int = #line,
         @WAMBuilder<E> rows: () -> [WAMRow<E>]
@@ -207,7 +207,7 @@ extension ComplexTransitionBuilder {
 }
 
 extension WTAM {
-    init(state: S, wam: WAM<E>) {
+    init(state: S?, wam: WAM<E>) {
         self.init(events: wam.events,
                   state: state,
                   actions: wam.actions,
@@ -227,11 +227,11 @@ extension WTAM {
     
     func addMatch(_ m: Match) -> Self {
         .init(events: events,
-             state: state,
-             actions: actions,
-             match: match + m,
-             file: file,
-             line: line)
+              state: state,
+              actions: actions,
+              match: match + m,
+              file: file,
+              line: line)
     }
 }
 

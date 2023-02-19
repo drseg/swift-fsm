@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Array where Element: Collection {
+extension Collection where Element: Collection {
     var flatten: [Element.Element] {
         flatMap { $0 }
     }
@@ -19,7 +19,7 @@ extension Array where Element: Hashable {
     }
 }
 
-extension Array {
+extension Sequence {
     func transitions<S: SP, E: EP>() -> [Transition<S, E>]
     where Element == TableRow<S, E> {
         map(\.transitions).flatten

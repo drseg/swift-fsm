@@ -3,9 +3,7 @@ import XCTest
 
 enum P: PredicateProtocol { case a, b, c, d, e }
 
-final class ComplexTransitionBuilderTests:
-    TestingBase, ComplexTransitionBuilder
-{
+class ComplexTransitionBuilderTestBase: TestingBase, ComplexTransitionBuilder {
     typealias Predicate = P
     
     func assertContains(
@@ -73,14 +71,50 @@ final class ComplexTransitionBuilderTests:
                      state: t,
                      actions: [],
                      match: m,
-                     file: #file,
-                     line: #line)
+                     file: "",
+                     line: -1)
             ),
-            "\n(\(w), \(t), \(m)) \nnot found in: \n\(tr.description)",
+            notFoundMessage(w, t, m, tr),
             line: line)
         
-        XCTAssertTrue(tr.givenStates.contains(g),
-                      "\n'\(g)' not found in: \(tr.givenStates)",
+        assertGivenStates(tr.givenStates, contains: g, line: line)
+    }
+    
+    func assertAllSatisfy(
+        _ g: State,
+        _ w: [Event],
+        _ t: State,
+        _ m: Match = .none,
+        _ tr: TableRow<State, Event>,
+        _ line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            tr.wtams.allSatisfy {
+                $0 == WTAM(events: w,
+                           state: t,
+                           actions: [],
+                           match: m,
+                           file: "",
+                           line: -1)
+            },
+            notFoundMessage(w, t, m, tr),
+            line: line)
+        
+        assertGivenStates(tr.givenStates, contains: g, line: line)
+    }
+    
+    func notFoundMessage(
+        _ w: [Event],
+        _ t: State,
+        _ m: Match,
+        _ tr: TR
+    ) -> String {
+        "\n(\(w), \(t), \(m)) \nnot found in: \n\(tr.description)"
+    }
+    
+    func assertGivenStates(_ ss: [State], contains s: State, line: UInt) {
+        XCTAssertTrue(ss.contains(s),
+                      "\n'\(s)' not found in: \(ss)",
                       line: line)
     }
     
@@ -103,6 +137,74 @@ final class ComplexTransitionBuilderTests:
     func matchAny(_ ps: P...) -> Match {
         Match(anyOf: ps)
     }
+}
+
+final class TestMatchAsPrimaryBlock: ComplexTransitionBuilderTestBase {
+    @WTAMBuilder<S, E> func wtaPermutations(
+        _ e: XCTestExpectation
+    ) -> [WTAMRow<S, E>] {
+        when(.pass, line: 10) | then(.unlocked) | e.fulfill
+        when(.pass)           | then()          | e.fulfill
+        when(.pass)           | then(.unlocked)
+        when(.pass)           | then()
+    }
+    
+    @WTAMBuilder<S, E> func varWTAPermutations(
+        _ e: XCTestExpectation
+    ) -> [WTAMRow<S, E>] {
+        when(.pass, .coin, line: 10) | then(.unlocked) | e.fulfill
+        when(.pass, .coin)           | then()          | e.fulfill
+        when(.pass, .coin)           | then(.unlocked)
+        when(.pass, .coin)           | then()
+    }
+    
+    @WTAMBuilder<S, E> func arrayWTAPermutations(
+        _ e: XCTestExpectation
+    ) -> [WTAMRow<S, E>] {
+        when([.pass, .coin], line: 10) | then(.unlocked) | e.fulfill
+        when([.pass, .coin])           | then()          | e.fulfill
+        when([.pass, .coin])           | then(.unlocked)
+        when([.pass, .coin])           | then()
+    }
+    
+    func assertMatchPlusWTAs(
+        _ m: Match,
+        _ wtamRows: (XCTestExpectation) -> [WTAMRow<S, E>],
+        _ line: UInt = #line,
+        _ block: (() -> ([WTAMRow<S, E>])) -> [WTAMRow<S, E>]
+    ) {
+        testWithExpectation(count: 2, line: line) { e in
+            let wtamRows = wtamRows(e)
+            assertMatchPlusWTAs(m, wtamRows, line) {
+                define(.unlocked) {
+                    block { wtamRows }
+                }
+            }
+        }
+    }
+    
+    func assertMatchPlusWTAs(
+        _ m: Match,
+        _ wtamRows: [WTAMRow<S, E>],
+        _ line: UInt = #line,
+        _ block: () -> TableRow<State, Event>
+    ) {
+        let tr = block()
+
+        let actions = tr.wtams.map(\.actions)
+        let expectedEvents = wtamRows
+            .map(\.wtam)
+            .compactMap { $0 }
+            .map(\.events)
+            .first ?? []
+        
+        actions.prefix(2).flatten.executeAll()
+        XCTAssertTrue(actions.suffix(2).flatten.isEmpty)
+        
+        assertFileAndLine(10, forEvents: expectedEvents, in: tr, errorLine: line)
+        assertAllSatisfy(.unlocked, expectedEvents, .unlocked, m, tr, line)
+        assertCount(4, tr, line: line)
+    }
     
     func testEmptyMatchBlock() {
         assertEmptyBlock { (match(.a) { }) as [WTAMRow<S, E>] }
@@ -117,6 +219,155 @@ final class ComplexTransitionBuilderTests:
         assertEmptyBlock { (match(anyOf: .a) { }) as [TAMRow<S>] }
         assertEmptyBlock { (match(anyOf: [.a]) { }) as [TAMRow<S>] }
     }
+    #warning("also need to test empty sub blocks")
+    
+    func assertSingleMatchAnyPlusWTAs(
+        line: UInt = #line,
+        _ expected: (XCTestExpectation) -> [WTAMRow<S, E>]
+    ) {
+        assertMatchPlusWTAs(matchAny(.a), expected, line) { rows in
+            match(.a) { rows() }
+        }
+    }
+    
+    func assertVarargMatchAnyPlusWTAs(
+        line: UInt = #line,
+        _ expected: (XCTestExpectation) -> [WTAMRow<S, E>]
+    ) {
+        assertMatchPlusWTAs(matchAny(.a, .b), expected, line) { rows in
+            match(anyOf: .a, .b) { rows() }
+        }
+    }
+    
+    func assertArrayMatchAnyPlusWTAs(
+        line: UInt = #line,
+        _ expected: (XCTestExpectation) -> [WTAMRow<S, E>]
+    ) {
+        assertMatchPlusWTAs(matchAny(.a, .b), expected, line) { rows in
+            match(anyOf: [.a, .b]) { rows() }
+        }
+    }
+    
+    func testMatchBlockWithWhenThenAction() {
+        assertSingleMatchAnyPlusWTAs(wtaPermutations)
+        assertSingleMatchAnyPlusWTAs(varWTAPermutations)
+        assertSingleMatchAnyPlusWTAs(arrayWTAPermutations)
+        
+        assertVarargMatchAnyPlusWTAs(wtaPermutations)
+        assertVarargMatchAnyPlusWTAs(varWTAPermutations)
+        assertVarargMatchAnyPlusWTAs(arrayWTAPermutations)
+        
+        assertArrayMatchAnyPlusWTAs(wtaPermutations)
+        assertArrayMatchAnyPlusWTAs(varWTAPermutations)
+        assertArrayMatchAnyPlusWTAs(arrayWTAPermutations)
+    }
+    
+    @WTAMBuilder<S, E> func whenBlockTAPermutations(
+        _ e: XCTestExpectation
+    ) -> [WTAMRow<S, E>] {
+        when(.pass, line: 10) {
+            then(.unlocked) | e.fulfill
+            then()          | e.fulfill
+            then(.unlocked)
+            then()
+        }
+    }
+    
+    @WTAMBuilder<S, E> func whenVarargBlockTAPermutations(
+        _ e: XCTestExpectation
+    ) -> [WTAMRow<S, E>] {
+        when(.pass, .coin, line: 10) {
+            then(.unlocked) | e.fulfill
+            then()          | e.fulfill
+            then(.unlocked)
+            then()
+        }
+    }
+    
+    @WTAMBuilder<S, E> func whenArrayBlockTAPermutations(
+        _ e: XCTestExpectation
+    ) -> [WTAMRow<S, E>] {
+        when([.pass, .coin], line: 10) {
+            then(.unlocked) | e.fulfill
+            then()          | e.fulfill
+            then(.unlocked)
+            then()
+        }
+    }
+    
+    func testMatchBlockPlusWhenBlockPlusThenAction() {
+        assertSingleMatchAnyPlusWTAs(whenBlockTAPermutations)
+        assertSingleMatchAnyPlusWTAs(whenVarargBlockTAPermutations)
+        assertSingleMatchAnyPlusWTAs(whenArrayBlockTAPermutations)
+        
+        assertVarargMatchAnyPlusWTAs(whenBlockTAPermutations)
+        assertVarargMatchAnyPlusWTAs(whenVarargBlockTAPermutations)
+        assertVarargMatchAnyPlusWTAs(whenArrayBlockTAPermutations)
+        
+        assertArrayMatchAnyPlusWTAs(whenBlockTAPermutations)
+        assertArrayMatchAnyPlusWTAs(whenVarargBlockTAPermutations)
+        assertArrayMatchAnyPlusWTAs(whenArrayBlockTAPermutations)
+    }
+    
+    @WTAMBuilder<S, E> func thenBlockWAPermutations(
+        _ e: XCTestExpectation
+    ) -> [WTAMRow<S, E>] {
+        then(.unlocked) {
+            when(.pass, line: 10) | e.fulfill
+            when(.pass)           | e.fulfill
+        }
+        
+        then() {
+            when(.pass)
+            when(.pass)
+        }
+    }
+    
+    @WTAMBuilder<S, E> func thenBlockVarargWAPermutations(
+        _ e: XCTestExpectation
+    ) -> [WTAMRow<S, E>] {
+        then(.unlocked) {
+            when(.pass, .coin, line: 10) | e.fulfill
+            when(.pass, .coin)           | e.fulfill
+        }
+        
+        then() {
+            when(.pass, .coin)
+            when(.pass, .coin)
+        }
+    }
+    
+    @WTAMBuilder<S, E> func thenBlockArrayWAPermutations(
+        _ e: XCTestExpectation
+    ) -> [WTAMRow<S, E>] {
+        then(.unlocked) {
+            when([.pass, .coin], line: 10) | e.fulfill
+            when([.pass, .coin])           | e.fulfill
+        }
+        
+        then() {
+            when([.pass, .coin])
+            when([.pass, .coin])
+        }
+    }
+    
+    func testMatchBlockPlusThenBlockPlusWhenAction() {
+        assertSingleMatchAnyPlusWTAs(thenBlockWAPermutations)
+        assertSingleMatchAnyPlusWTAs(thenBlockVarargWAPermutations)
+        assertSingleMatchAnyPlusWTAs(thenBlockArrayWAPermutations)
+        
+        assertVarargMatchAnyPlusWTAs(thenBlockWAPermutations)
+        assertVarargMatchAnyPlusWTAs(thenBlockVarargWAPermutations)
+        assertVarargMatchAnyPlusWTAs(thenBlockArrayWAPermutations)
+        
+        assertArrayMatchAnyPlusWTAs(thenBlockWAPermutations)
+        assertArrayMatchAnyPlusWTAs(thenBlockVarargWAPermutations)
+        assertArrayMatchAnyPlusWTAs(thenBlockArrayWAPermutations)
+    }
+}
+
+final class ComplexTransitionBuilderTests: ComplexTransitionBuilderTestBase {
+    // MARK: Original tests
     
     func testMatchWithNestedEmptyBlocks() {
         assertEmptyBlocks(atLineOffsets: [3, 4, 5, 7, 9, 10, 11, 13]) {
