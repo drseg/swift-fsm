@@ -136,12 +136,16 @@ Errors found:
         
         let unexpectedFiles = wtams
             .filter { $0.file != expectedFile.description }
-            .map { "\n\($0.file)" }
-            .joined()
+            .map(\.file.lastPathComponent)
+            .joined(by: "\n")
+        
+        let actualFiles = wtams
+            .map(\.file.lastPathComponent)
+            .joined(by: "\n")
         
         XCTAssertTrue(
             wtams.allSatisfy { $0.file == expectedFile.description },
-            "Unexpected files: \(unexpectedFiles)",
+            "Unexpected files:\n\(unexpectedFiles)\nFound in:\n(\(actualFiles)",
             file: expectedFile,
             line: errorLine
         )

@@ -18,7 +18,13 @@ struct EmptyBlock: Error {
     }
     
     var withShortFileName: Self {
-        .init(URL(string: file)!.lastPathComponent, line)
+        .init(file.lastPathComponent, line)
+    }
+}
+
+extension String {
+    var lastPathComponent: Self {
+        URL(string: self)!.lastPathComponent
     }
 }
 
