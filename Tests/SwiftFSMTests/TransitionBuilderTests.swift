@@ -18,6 +18,12 @@ enum TurnstileEvent: String, EP, CustomStringConvertible {
     }
 }
 
+extension EmptyBlock {
+    var withShortFileName: Self {
+        .init(file.lastPathComponent, line)
+    }
+}
+
 class TestingBase: XCTestCase {
     typealias State = TurnstileState
     typealias Event = TurnstileEvent
@@ -227,7 +233,13 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertFileAndLine(10, forEvent: .reset, in: s)
     }
     
-    func testEmptyDefine() {
+    func testEmptyBlockDescription() {
+        let error = EmptyBlock("cat://cat/Cat.cat", 1)
+        let expected = "Empty context block found at Cat.cat: 1"
+        XCTAssertEqual(expected, error.localizedDescription)
+    }
+    
+    func testEmptyDefineBlock() {
         assertEmptyBlock { define(.unlocked) { } }
     }
     
@@ -301,7 +313,7 @@ class TransitionBuilderTests: TestingBase, TransitionBuilder {
         assertFileAndLine(10, forEvent: .reset, in: tr)
     }
     
-    func testEmptyActions() {
+    func testEmptyActionsBlock() {
         assertEmptyBlock { action({ }) { }    }
         assertEmptyBlock { actions({ }) { }   }
         assertEmptyBlock { actions([{ }]) { } }

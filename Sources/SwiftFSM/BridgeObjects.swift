@@ -8,17 +8,16 @@
 import Foundation
 
 struct EmptyBlock: Error {
-    var description: String { "TILT" }
     let file: String
     let line: Int
+    
+    var localizedDescription: String {
+        "Empty context block found at \(file.lastPathComponent): \(line)"
+    }
     
     init(_ file: String, _ line: Int) {
         self.file = file
         self.line = line
-    }
-    
-    var withShortFileName: Self {
-        .init(file.lastPathComponent, line)
     }
 }
 

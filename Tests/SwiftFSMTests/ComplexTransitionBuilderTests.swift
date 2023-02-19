@@ -104,7 +104,7 @@ final class ComplexTransitionBuilderTests:
         Match(anyOf: ps)
     }
     
-    func testEmptyMatch() {
+    func testEmptyMatchBlock() {
         assertEmptyBlock { (match(.a) { }) as [WTAMRow<S, E>] }
         assertEmptyBlock { (match(anyOf: .a) { }) as [WTAMRow<S, E>] }
         assertEmptyBlock { (match(anyOf: [.a]) { }) as [WTAMRow<S, E>] }
