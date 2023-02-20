@@ -22,8 +22,8 @@ extension TransitionBuilderProtocol {
         let rows = block()
         
         guard !rows.isEmpty else {
-           return  [TableRow(errors: [EmptyBuilderBlockError(file: file,
-                                                             line: line)])]
+            return  [TableRow(errors: [.init(file: file,
+                                             line: line)])]
         }
         
         return rows.reduce(into: [TableRow]()) {
@@ -48,6 +48,48 @@ extension TransitionBuilderProtocol {
     
     func exitActions(_ actions: [() -> ()]) -> TableRow {
         TableRow(exitActions: actions)
+    }
+}
+
+struct FinalActionsNode: Node {
+    typealias Input = Never
+    typealias Output = () -> ()
+    
+    let actions: [() -> ()]
+    let rest: [any Node<Never>] = []
+    
+    func combineWithRest(_ rest: [Never]) -> [() -> ()] {
+        actions
+    }
+}
+
+struct FinalThenNode: Node {
+    typealias Input = FinalActionsNode.Output
+    typealias Output = (state: AnyHashable, actions: [Input])
+    
+    let state: AnyHashable
+    var rest: [any Node<FinalActionsNode.Output>] = []
+    
+    func combineWithRest(
+        _ rest: [() -> ()]
+    ) -> [Output] {
+        [(state: state, actions: rest)]
+    }
+}
+
+struct FinalWhenNode: Node {
+    typealias Input = FinalThenNode.Output
+    typealias Output = (events: [AnyHashable],
+                        state: AnyHashable?,
+                        actions: [FinalActionsNode.Output])
+    
+    let events: [AnyHashable]
+    var rest: [any Node<FinalThenNode.Output>] = []
+    
+    func combineWithRest(_ rest: [FinalThenNode.Output]) -> [Output] {
+        [(events: events,
+          state: rest.first?.state,
+          actions: rest.first?.actions ?? [])]
     }
 }
 

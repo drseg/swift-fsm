@@ -8,12 +8,8 @@
 import XCTest
 @testable import SwiftFSM
 
-protocol Addable {
-    static func + (lhs: Self, rhs: Self) -> Self
-}
-
-extension String: Addable {}
-extension Int: Addable {}
+protocol Addable { static func + (lhs: Self, rhs: Self) -> Self }
+extension String: Addable {}; extension Int: Addable {}
 
 class NodeTests: XCTestCase {
     class GenericNode<NodeType, IOType: Addable> {
@@ -33,25 +29,10 @@ class NodeTests: XCTestCase {
     }
     
     @available(macOS 13, iOS 16, *)
-    class SafeStringNode: GenericNode<any Node<String>, String>, Node { }
-    class UnsafeStringNode: GenericNode<UnsafeNode, String>, UnsafeNode, Nameable { }
-    
-    func assertNodes<N: NodeBase>(
-        _ n0: N,
-        _ n1: N,
-        _ n2: N,
-        _ n3: N,
-        _ output: [String],
-        _ line: UInt = #line
-    ) {
-        XCTAssertEqual(output, ["GivenWhenThen1", "GivenWhenThen2"], line: line)
-        
-        XCTAssertEqual(Set([n1, n2, n3]).count, 3, line: line)
-        XCTAssertEqual(Set([n1, n1, n1]).count, 1, line: line)
-        
-        XCTAssertEqual(n2, n2, line: line)
-        XCTAssertNotEqual(n1, n2, line: line)
-    }
+    class SafeStringNode:
+        GenericNode<any Node<String>, String>, Node { }
+    class UnsafeStringNode:
+        GenericNode<UnsafeNode, String>, UnsafeNode, Nameable { }
     
     @available(macOS 13, iOS 16, *)
     func testSafeNodesCallCombineWithRestRecursively() {
@@ -60,7 +41,8 @@ class NodeTests: XCTestCase {
         let n2 = SafeStringNode(first: "When", rest: [n0, n1])
         let n3 = SafeStringNode(first: "Given", rest: [n2])
         
-        assertNodes(n0, n1, n2, n3, n3.finalise())
+        XCTAssertEqual(n3.finalise(),
+                       ["GivenWhenThen1", "GivenWhenThen2"])
     }
     
     func testUnsafeNodesCallCombineWithRestRecursively() {
@@ -69,7 +51,8 @@ class NodeTests: XCTestCase {
         let n2 = UnsafeStringNode(first: "When", rest: [n0, n1])
         let n3 = UnsafeStringNode(first: "Given", rest: [n2])
         
-        assertNodes(n0, n1, n2, n3, try! n3.finalise())
+        XCTAssertEqual(try! n3.finalise(),
+                       ["GivenWhenThen1", "GivenWhenThen2"])
     }
     
     func testUnsafeNodeThrowsErrorIfOutputInputTypeMismatch() {

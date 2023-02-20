@@ -7,21 +7,11 @@
 
 import Foundation
 
-protocol NodeBase: Hashable {
-    associatedtype Value: Hashable
-    associatedtype Input: Hashable
-    associatedtype Output: Hashable
-    
-    var first: Value { get }
-    
+protocol NodeBase {
+    associatedtype Input
+    associatedtype Output
+        
     func combineWithRest(_ rest: [Input]) -> [Output]
-}
-
-extension NodeBase {
-    func isEqual(to rhs: any NodeBase) -> Bool {
-        guard let rhs = rhs as? Self else { return false }
-        return self == rhs
-    }
 }
 
 protocol UnsafeNode: NodeBase {
@@ -30,13 +20,6 @@ protocol UnsafeNode: NodeBase {
 }
 
 extension UnsafeNode {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.first == rhs.first &&
-        zip(lhs.rest, rhs.rest).allSatisfy {
-            $0.0.isEqual(to: $0.1)
-        }
-    }
-    
     func finalise() throws -> [Output] {
         try combineWithRest(rest.reduce(into: [Input]()) {
             guard let finalised = try $1.finalise() as? [Input] else {
@@ -50,13 +33,6 @@ Error: \(type(of: try $1.finalise())) must equal Array<\(Input.self)>
             $0.append(contentsOf: finalised)
         })
     }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(first)
-        rest.forEach {
-            $0.hash(into: &hasher)
-        }
-    }
 }
 
 extension String: Error { }
@@ -69,23 +45,9 @@ protocol Node<Output>: NodeBase {
 
 @available(macOS 13, iOS 16, *)
 extension Node {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.first == rhs.first &&
-        zip(lhs.rest, rhs.rest).allSatisfy {
-            $0.0.isEqual(to: $0.1)
-        }
-    }
-    
     func finalise() -> [Output] {
         combineWithRest(rest.reduce(into: [Input]()) {
             $0.append(contentsOf: $1.finalise())
         })
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(first)
-        rest.forEach {
-            $0.hash(into: &hasher)
-        }
     }
 }
