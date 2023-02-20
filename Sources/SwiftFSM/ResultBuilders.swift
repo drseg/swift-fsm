@@ -26,21 +26,12 @@ extension ResultBuilder {
 }
 
 @resultBuilder
-struct TableBuilder<S: SP, E: EP>: ResultBuilder {
-    typealias T = TableRow<S, E>
+struct TableRowBuilder: ResultBuilder {
+    typealias T = TableRow
 }
 
-@resultBuilder
-struct WTAMBuilder<S: SP, E: EP>: ResultBuilder {
-    typealias T = WTAMRow<S, E>
-}
-
-@resultBuilder
-struct TAMBuilder<S: SP>: ResultBuilder {
-    typealias T = TAMRow<S>
-}
-
-@resultBuilder
-struct WAMBuilder<E: EP>: ResultBuilder {
-    typealias T = WAMRow<E>
+extension Collection where Element: Collection {
+    var flatten: [Element.Element] {
+        flatMap { $0 }
+    }
 }
