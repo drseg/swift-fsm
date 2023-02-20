@@ -8,43 +8,33 @@
 import XCTest
 @testable import SwiftFSM
 
-final class NodeTests: XCTestCase {
-    class StringNodeBase {
-        typealias Value = String
-        typealias Input = String
-        typealias Output = String
-        
-        var first: String
-        
-        init(first: String) {
-            self.first = first
-        }
+protocol Addable {
+    static func + (lhs: Self, rhs: Self) -> Self
+}
 
-        func combineWithRest(_ rest: [String]) -> [String] {
-            rest.reduce(into: [String]()) {
+extension String: Addable {}
+extension Int: Addable {}
+
+class NodeTests: XCTestCase {
+    class GenericNode<NodeType, IOType: Addable> {
+        var first: IOType
+        var rest: [NodeType]
+        
+        init(first: IOType, rest: [NodeType]) {
+            self.first = first
+            self.rest = rest
+        }
+        
+        func combineWithRest(_ rest: [IOType]) -> [IOType] {
+            rest.reduce(into: [IOType]()) {
                 $0.append(first + $1)
             } ??? [first]
         }
     }
     
     @available(macOS 13, iOS 16, *)
-    class StringNode: StringNodeBase, Node {
-        var rest: [any Node<Input>]
-        
-        init(first: String, rest: [any Node<Input>]) {
-            self.rest = rest
-            super.init(first: first)
-        }
-    }
-    
-    class UnsafeStringNode: StringNodeBase, UnsafeNode {
-        var rest: [any UnsafeNode]
-        
-        init(first: String, rest: [any UnsafeNode]) {
-            self.rest = rest
-            super.init(first: first)
-        }
-    }
+    class SafeStringNode: GenericNode<any Node<String>, String>, Node { }
+    class UnsafeStringNode: GenericNode<UnsafeNode, String>, UnsafeNode, Nameable { }
     
     func assertNodes<N: NodeBase>(
         _ n0: N,
@@ -62,51 +52,46 @@ final class NodeTests: XCTestCase {
         XCTAssertEqual(n2, n2, line: line)
         XCTAssertNotEqual(n1, n2, line: line)
     }
-
+    
     @available(macOS 13, iOS 16, *)
-    func testSafe() {
-        let n0 = StringNode(first: "Then1", rest: [])
-        let n1 = StringNode(first: "Then2", rest: [])
-        let n2 = StringNode(first: "When", rest: [n0, n1])
-        let n3 = StringNode(first: "Given", rest: [n2])
+    func testSafeNodesCallCombineWithRestRecursively() {
+        let n0 = SafeStringNode(first: "Then1", rest: [])
+        let n1 = SafeStringNode(first: "Then2", rest: [])
+        let n2 = SafeStringNode(first: "When", rest: [n0, n1])
+        let n3 = SafeStringNode(first: "Given", rest: [n2])
         
         assertNodes(n0, n1, n2, n3, n3.finalise())
     }
     
-    func testUnsafe() {
+    func testUnsafeNodesCallCombineWithRestRecursively() {
         let n0 = UnsafeStringNode(first: "Then1", rest: [])
         let n1 = UnsafeStringNode(first: "Then2", rest: [])
         let n2 = UnsafeStringNode(first: "When", rest: [n0, n1])
         let n3 = UnsafeStringNode(first: "Given", rest: [n2])
-
+        
         assertNodes(n0, n1, n2, n3, try! n3.finalise())
     }
     
-    func testUnsafeErrors() {
-        struct IntNode: UnsafeNode {
-            typealias Value = Int
-            typealias Input = Int
-            typealias Output = Int
-            
-            var first: Int
-            var rest: [any UnsafeNode]
-            
-            func combineWithRest(_ rest: [Int]) -> [Int] {
-                [first]
-            }
-        }
+    func testUnsafeNodeThrowsErrorIfOutputInputTypeMismatch() {
+        class IntNode: GenericNode<UnsafeNode, Int>, UnsafeNode, Nameable {}
         
         let n1 = IntNode(first: 1, rest: [])
         let n2 = UnsafeStringNode(first: "1", rest: [n1])
         
         XCTAssertThrowsError(try n2.finalise()) {
             if let error = $0 as? String {
-                XCTAssertTrue(error.contains("UnsafeStringNode"))
-                XCTAssertTrue(error.contains("IntNode"))
+                XCTAssertTrue(error.contains(UnsafeStringNode.name))
+                XCTAssertTrue(error.contains(IntNode.name))
             } else {
                 XCTFail("Wrong error")
             }
         }
+    }
+}
+
+protocol Nameable { }; extension Nameable {
+    static var name: String {
+        String(describing: Self.self)
     }
 }
 
