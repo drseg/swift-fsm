@@ -16,15 +16,16 @@ protocol Node<Output>: Hashable {
     var first: Value { get }
     var rest: [any Node<Input>] { get }
     
-    func finalise() -> Output
+    func finalise() -> [Output]
+    func combineWithRest(_ rest: [Input]) -> [Output]
 }
 
 @available(macOS 13.0.0, *)
 extension Node {
-    func makeInput() -> [Input] {
-        rest.reduce(into: [Input]()) {
-            $0.append($1.finalise())
-        }
+    func finalise() -> [Output] {
+        combineWithRest(rest.reduce(into: [Input]()) {
+            $0.append(contentsOf: $1.finalise())
+        })
     }
     
     static func == (lhs: Self, rhs: Self) -> Bool {
@@ -56,44 +57,32 @@ final class Playground: XCTestCase {
 
         var first: String
         var rest: [any Node<String>]
-        
-        func finalise() -> String {
-            fatalError("subclasses must implement")
-        }
-        
+
         init(first: String, rest: [any Node<String>]) {
             self.first = first
             self.rest = rest
         }
-    }
-    
-    class DefineNode: StringNode {
-        override func finalise() -> String {
-            makeInput().reduce(into: [String]()) {
-                $0.append(first + $1)
-            }.joined(separator: "-")
-        }
-    }
-    
-    class WhenNode: StringNode {
-        override func finalise() -> String {
-            first + makeInput().joined()
-        }
-    }
-    
-    class ThenNode: StringNode {
-        override func finalise() -> String {
-            first + makeInput().joined()
-        }
-    }
-    
-    func test() {
-        let n1 = ThenNode(first: "Then", rest: [])
-        let n2 = WhenNode(first: "When", rest: [n1])
-        let n3 = DefineNode(first: "Given", rest: [n2, n2])
         
-        XCTAssertEqual(n3.finalise(), "GivenWhenThen-GivenWhenThen")
+        func combineWithRest(_ rest: [String]) -> [String] {
+            rest.reduce(into: [String]()) {
+                $0.append(first + $1)
+            } ??? [first]
+        }
+    }
+
+    func test() {
+        let n1 = StringNode(first: "Then", rest: [])
+        let n2 = StringNode(first: "When", rest: [n1])
+        let n3 = StringNode(first: "Given", rest: [n2])
+
+        XCTAssertEqual(n3.finalise(), ["GivenWhenThen"])
         XCTAssertEqual(Set([n1, n2, n3]).count, 3)
         XCTAssertEqual(Set([n1, n1, n1]).count, 1)
     }
+}
+
+infix operator ???: AdditionPrecedence
+
+func ???<T: Collection> (lhs: T, rhs: T) -> T {
+    lhs.isEmpty ? rhs : lhs
 }
