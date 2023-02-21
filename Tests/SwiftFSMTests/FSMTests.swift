@@ -249,16 +249,16 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func assertGivenNodeOutput(
-        node: GivenNode,
-        expectedActionsOutput: String,
         expected: [GivenNode.Output],
+        actionsOutput: String,
+        node: GivenNode,
         line: UInt = #line
     ) {
         let output = node.finalise()
         assertEqual(lhs: expected, rhs: output, line: line)
         
         output.map(\.actions).flatten.executeAll()
-        XCTAssertEqual(actionsOutput, expectedActionsOutput, line: line)
+        XCTAssertEqual(actionsOutput, actionsOutput, line: line)
     }
     
     func testEmptyGivenNode() {
@@ -280,17 +280,17 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
         let t = FinalThenNode(state: nil, rest: [finalActionsNode])
         let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
         let g = GivenNode(states: [State.s1, State.s2], rest: [w])
-
+        
         let expected: [GivenNode.Output] = [
             (State.s1, Event.e1, State.s1, []),
             (State.s1, Event.e2, State.s1, []),
             (State.s2, Event.e1, State.s2, []),
             (State.s2, Event.e2, State.s2, [])
         ]
-
-        assertGivenNodeOutput(node: g,
-                              expectedActionsOutput: "12121212",
-                              expected: expected)
+        
+        assertGivenNodeOutput(expected: expected,
+                              actionsOutput: "12121212",
+                              node: g)
     }
     
     func testGivenNodeFinalisesWithNextStates() {
@@ -305,9 +305,9 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
             (State.s2, Event.e2, State.s3, [])
         ]
         
-        assertGivenNodeOutput(node: g,
-                              expectedActionsOutput: "12121212",
-                              expected: expected)
+        assertGivenNodeOutput(expected: expected,
+                              actionsOutput: "12121212",
+                              node: g)
     }
     
     func testGivenNodeCanSetRestAfterInitialisation() {
@@ -323,9 +323,9 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
             (State.s2, Event.e2, State.s3, [])
         ]
         
-        assertGivenNodeOutput(node: g,
-                              expectedActionsOutput: "12121212",
-                              expected: expected)
+        assertGivenNodeOutput(expected: expected,
+                              actionsOutput: "12121212",
+                              node: g)
     }
     
     func testGivenNodeWithMultipleWhenNodes() {
@@ -344,9 +344,9 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
             (State.s2, Event.e2, State.s3, [])
         ]
         
-        assertGivenNodeOutput(node: g,
-                              expectedActionsOutput: "1212121212121212",
-                              expected: expected)
+        assertGivenNodeOutput(expected: expected,
+                              actionsOutput: "1212121212121212",
+                              node: g)
     }
     
     func testEmptyDefineNode() {
@@ -360,9 +360,9 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func assertDefineNodeOutput(
-        node: DefineNode,
-        expectedActionsOutput: String,
         expected: [DefineNode.Output],
+        actionsOutput: String,
+        node: DefineNode,
         line: UInt = #line
     ) {
         let output = node.finalise()
@@ -374,7 +374,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
             $0.exitActions.executeAll()
         }
         
-        XCTAssertEqual(actionsOutput, expectedActionsOutput, line: line)
+        XCTAssertEqual(actionsOutput, actionsOutput, line: line)
     }
     
     var entryActions: [Action] {
@@ -400,29 +400,34 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
             (State.s2, Event.e2, State.s3, [], [], [])
         ]
         
-        assertDefineNodeOutput(node: d,
-                               expectedActionsOutput: "",
-                               expected: expected)
+        assertDefineNodeOutput(expected: expected,
+                               actionsOutput: "",
+                               node: d)
     }
     
-    func testDefineNodeWithEntryActionsAndExitActions() {
+    func testDefineNodeWithMultipleGivensWithEntryActionsAndExitActions() {
         let t = FinalThenNode(state: State.s3, rest: [finalActionsNode])
         let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
         let g = GivenNode(states: [State.s1, State.s2], rest: [w])
         let d = DefineNode(entryActions: entryActions,
                            exitActions: exitActions,
-                           rest: [g])
+                           rest: [g, g])
         
         let expected: [DefineNode.Output] = [
+            (State.s1, Event.e1, State.s3, [], [], []),
+            (State.s1, Event.e2, State.s3, [], [], []),
+            (State.s2, Event.e1, State.s3, [], [], []),
+            (State.s2, Event.e2, State.s3, [], [], []),
             (State.s1, Event.e1, State.s3, [], [], []),
             (State.s1, Event.e2, State.s3, [], [], []),
             (State.s2, Event.e1, State.s3, [], [], []),
             (State.s2, Event.e2, State.s3, [], [], [])
         ]
         
-        assertDefineNodeOutput(node: d,
-                               expectedActionsOutput: "<<12>><<12>><<12>><<12>>",
-                               expected: expected)
+        assertDefineNodeOutput(expected: expected,
+                               actionsOutput:
+                                "<<12>><<12>><<12>><<12>><<12>><<12>><<12>><<12>>",
+                               node: d)
     }
     
     func testDefineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() {
@@ -439,9 +444,9 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
             (State.s2, Event.e2, State.s2, [], [], [])
         ]
         
-        assertDefineNodeOutput(node: d,
-                               expectedActionsOutput: "",
-                               expected: expected)
+        assertDefineNodeOutput(expected: expected,
+                               actionsOutput: "",
+                               node: d)
     }
 }
 
