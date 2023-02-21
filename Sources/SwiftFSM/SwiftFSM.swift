@@ -55,10 +55,10 @@ struct FinalActionsNode: Node {
     typealias Input = Never
     typealias Output = () -> ()
     
-    let actions: [() -> ()]
+    let actions: [Output]
     let rest: [any Node<Never>] = []
     
-    func combineWithRest(_ rest: [Never]) -> [() -> ()] {
+    func combineWithRest(_ rest: [Never]) -> [Output] {
         actions
     }
 }
@@ -68,28 +68,30 @@ struct FinalThenNode: Node {
     typealias Output = (state: AnyHashable, actions: [Input])
     
     let state: AnyHashable
-    var rest: [any Node<FinalActionsNode.Output>] = []
+    var rest: [any Node<Input>] = []
     
-    func combineWithRest(
-        _ rest: [() -> ()]
-    ) -> [Output] {
+    func combineWithRest(_ rest: [Input]) -> [Output] {
         [(state: state, actions: rest)]
     }
 }
 
 struct FinalWhenNode: Node {
     typealias Input = FinalThenNode.Output
-    typealias Output = (events: [AnyHashable],
+    typealias Output = (event: AnyHashable,
                         state: AnyHashable?,
                         actions: [FinalActionsNode.Output])
     
     let events: [AnyHashable]
-    var rest: [any Node<FinalThenNode.Output>] = []
+    var rest: [any Node<Input>] = []
     
-    func combineWithRest(_ rest: [FinalThenNode.Output]) -> [Output] {
-        [(events: events,
-          state: rest.first?.state,
-          actions: rest.first?.actions ?? [])]
+    func combineWithRest(_ rest: [Input]) -> [Output] {
+        events.reduce(into: [Output]()) {
+            $0.append((
+                event: $1,
+                state: rest.first?.state,
+                actions: rest.first?.actions ?? [])
+            )
+        }
     }
 }
 

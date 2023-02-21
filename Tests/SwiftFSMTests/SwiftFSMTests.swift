@@ -10,17 +10,19 @@ import XCTest
 
 final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     enum State: AnyHashable, AnyHashableEnum { case s1 }
-    enum Event: AnyHashable, AnyHashableEnum { case e1 }
+    enum Event: AnyHashable, AnyHashableEnum { case e1, e2 }
+    
+    var output = ""
     
     func testDefineWithEmptyBlockHasSingleRowWithError() {
         let line = #line; let rows = define(.s1) { }
         XCTAssertEqual(1, rows.count)
         XCTAssertEqual(1, rows.first?.errors.count)
         
-        let error = rows.first!.errors.first!
-        XCTAssertEqual(error.callingFunction, "define")
-        XCTAssertEqual(error.line, line)
-        XCTAssertEqual(error.file, #file)
+        let error = rows[0].errors[0]
+        XCTAssertEqual("define", error.callingFunction)
+        XCTAssertEqual(line, error.line)
+        XCTAssertEqual(#file, error.file)
     }
     
     func testEntryActionsFunction() {
@@ -46,9 +48,8 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testDefineCanAcceptEntryActions() {
-        var output = ""
         let rows = define(.s1) {
-            entryActions { output += "1" }
+            entryActions { self.output += "1" }
         }
         
         rows.allEntryActions.executeAll()
@@ -59,9 +60,8 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testDefineCanAcceptExitActions() {
-        var output = ""
         let rows = define(.s1) {
-            exitActions { output += "1" }
+            exitActions { self.output += "1" }
         }
         
         rows.allExitActions.executeAll()
@@ -76,7 +76,6 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
         XCTAssertTrue(n.finalise().isEmpty)
     }
     
-    var output = ""
     
     var finalActionsNode: FinalActionsNode {
         FinalActionsNode(actions: [{ self.output += "1" },
@@ -95,7 +94,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     ) {
         let result = t.finalise()
         XCTAssertEqual(1, result.count, line: line)
-        XCTAssertEqual(result[0].state, State.s1, line: line)
+        XCTAssertEqual(State.s1, result[0].state, line: line)
         XCTAssertTrue(result[0].actions.isEmpty, line: line)
     }
     
@@ -150,39 +149,75 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
                       rest: [finalActionsNode])
     }
     
-    func testFinalWhenNodeAcceptsEmptyThenNode() {
-        let w = FinalWhenNode(events: [Event.e1], rest: [])
-        let result = w.finalise()
+    func assertFinalWhenNode(
+        state: AnyHashable?,
+        actionsCount: Int,
+        actionsOutput: String,
+        node: FinalWhenNode,
+        line: UInt
+    ) {
+        let result = node.finalise()
         
-        XCTAssertEqual(1, result.count)
-        XCTAssertEqual(result[0].state, nil)
-        XCTAssertEqual(result[0].events, [Event.e1])
-        XCTAssertEqual(0, result.first!.actions.count)
+        guard result.count == 2 else {
+            XCTFail("Incorrect count: \(result.count) instead of 2", line: line)
+            return
+        }
+        
+        XCTAssertEqual(state, result[0].state, line: line)
+        XCTAssertEqual(state, result[1].state, line: line)
+        
+        XCTAssertEqual(Event.e1, result[0].event, line: line)
+        XCTAssertEqual(Event.e2, result[1].event, line: line)
+        
+        XCTAssertEqual(actionsCount, result[0].actions.count, line: line)
+        XCTAssertEqual(actionsCount, result[1].actions.count, line: line)
+        
+        result[0].actions.executeAll()
+        result[1].actions.executeAll()
+        
+        XCTAssertEqual(actionsOutput, output, line: line)
     }
     
+    func testFinalWhenNodeAcceptsEmptyThenNode() {
+        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [])
+        assertFinalWhenNode(state: nil,
+                            actionsCount: 0,
+                            actionsOutput: "",
+                            node: w,
+                            line: #line)
+    }
+    
+    
     func assertFinalWhenNodeWithActions(
-        expected: String,
+        expected: String = "1212",
         _ w: FinalWhenNode,
         line: UInt = #line
     ) {
-        let result = w.finalise()
-        XCTAssertEqual(1, result.count, line: line)
-        XCTAssertEqual(result[0].state, State.s1, line: line)
-        XCTAssertEqual(result[0].events, [Event.e1], line: line)
-
-        result[0].actions.executeAll()
-        XCTAssertEqual(expected, output, line: line)
+        assertFinalWhenNode(state: State.s1,
+                            actionsCount: 2,
+                            actionsOutput: expected,
+                            node: w,
+                            line: line)
     }
     
     func testFinalWhenNodeFinalisesWithCorrectActions() {
-        let w = FinalWhenNode(events: [Event.e1], rest: [finalThenNode])
-        assertFinalWhenNodeWithActions(expected: "12", w)
+        let w = FinalWhenNode(events: [Event.e1, Event.e2],
+                              rest: [finalThenNode])
+        assertFinalWhenNodeWithActions(w)
+    }
+    
+    func testFinalWhenNodeIgnoresExtraThenNodes() {
+        let w = FinalWhenNode(events: [Event.e1, Event.e2],
+                              rest: [finalThenNode,
+                                     finalThenNode])
+        assertFinalWhenNodeWithActions(w)
     }
     
     func testThenNodeCanBeSetAfterInitialisation() {
-        var w = FinalWhenNode(events: [Event.e1])
+        var w = FinalWhenNode(events: [Event.e1, Event.e2])
         w.rest.append(finalThenNode)
-        assertFinalWhenNodeWithActions(expected: "12", w)
+        w.rest.append(finalThenNode)
+        assertFinalWhenNodeWithActions(w)
     }
 }
 
