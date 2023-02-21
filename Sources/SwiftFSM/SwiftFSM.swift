@@ -125,7 +125,7 @@ struct DefineNode: Node {
     
     let entryActions: [Action]
     let exitActions: [Action]
-    var rest: [any Node<GivenNode.Output>]
+    var rest: [any Node<GivenNode.Output>] = []
     
     func combineWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         rest.reduce(into: [Output]()) {
