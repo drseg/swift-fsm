@@ -51,14 +51,15 @@ extension TransitionBuilderProtocol {
     }
 }
 
+typealias Action = () -> ()
+
 struct FinalActionsNode: Node {
-    typealias Input = Never
-    typealias Output = () -> ()
+    typealias Output = Action
     
     let actions: [Output]
     let rest: [any Node<Never>] = []
     
-    func combineWithRest(_ rest: [Never]) -> [Output] {
+    func combineWithRest(_ : [Never]) -> [Output] {
         actions
     }
 }
@@ -66,29 +67,23 @@ struct FinalActionsNode: Node {
 typealias ThenOutput = (state: AnyHashable?, actions: [() -> ()])
 
 struct FinalThenNode: Node {
-    typealias Input = FinalActionsNode.Output
-    typealias Output = ThenOutput
-    
     let state: AnyHashable?
     var rest: [any Node<Input>] = []
     
-    func combineWithRest(_ rest: [Input]) -> [Output] {
+    func combineWithRest(_ rest: [FinalActionsNode.Output]) -> [ThenOutput] {
         [(state: state, actions: rest)]
     }
 }
 
 typealias WhenOutput = (event: AnyHashable,
                         state: AnyHashable?,
-                        actions: [() -> ()])
+                        actions: [Action])
 
 struct FinalWhenNode: Node {
-    typealias Input = FinalThenNode.Output
-    typealias Output = WhenOutput
-    
     let events: [AnyHashable]
     var rest: [any Node<Input>] = []
     
-    func combineWithRest(_ rest: [Input]) -> [Output] {
+    func combineWithRest(_ rest: [FinalThenNode.Output]) -> [WhenOutput] {
         events.reduce(into: [Output]()) {
             $0.append((
                 event: $1,
@@ -100,11 +95,10 @@ struct FinalWhenNode: Node {
 }
 
 struct GivenNode: Node {
-    typealias Input = WhenOutput
     typealias Output = (state: AnyHashable,
                         event: AnyHashable,
                         nextState: AnyHashable,
-                        actions: [() -> ()])
+                        actions: [Action])
     
     let states: [AnyHashable]
     var rest: [any Node<WhenOutput>] = []
@@ -121,17 +115,45 @@ struct GivenNode: Node {
     }
 }
 
+struct DefineNode: Node {
+    typealias Output = (state: AnyHashable,
+                        event: AnyHashable,
+                        nextState: AnyHashable,
+                        actions: [Action],
+                        entryActions: [Action],
+                        exitActions: [Action])
+    
+    let entryActions: [Action]
+    let exitActions: [Action]
+    var rest: [any Node<GivenNode.Output>]
+    
+    func combineWithRest(_ rest: [GivenNode.Output]) -> [Output] {
+        rest.reduce(into: [Output]()) {
+            $0.append((state: $1.state,
+                       event: $1.event,
+                       nextState: $1.nextState,
+                       actions: $1.actions,
+                       entryActions:
+                        $1.state == $1.nextState
+                            ? [] : entryActions,
+                       exitActions:
+                        $1.state == $1.nextState
+                            ? [] : exitActions))
+        }
+    }
+}
+
 struct TableRow {
     let state: AnyHashable?
     let errors: [EmptyBuilderBlockError]
-    let entryActions: [() -> ()]
-    let exitActions: [() -> ()]
+    let entryActions: [Action]
+    let exitActions: [Action]
     
     init(
         state: AnyHashable? = nil,
         errors: [EmptyBuilderBlockError] = [],
-        entryActions: [() -> ()] = [],
-        exitActions: [() -> ()] = []
+        entryActions: [Action] = [],
+        exitActions: [Action] = []
     ) {
         self.state = state
         self.errors = errors

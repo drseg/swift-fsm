@@ -71,18 +71,21 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
         XCTAssertEqual(State.s1, rows[0].state)
     }
     
-    func testEmptyFinalActionsFinalisesToEmptyArray() {
+    func testEmptyFinalActions() {
         let n = FinalActionsNode(actions: [])
         XCTAssertTrue(n.finalise().isEmpty)
     }
     
-    
-    var finalActionsNode: FinalActionsNode {
-        FinalActionsNode(actions: [{ self.actionsOutput += "1" },
-                                   { self.actionsOutput += "2" }])
+    var actions: [Action] {
+        [{ self.actionsOutput += "1" },
+         { self.actionsOutput += "2" }]
     }
     
-    func testFinalActionsFinalisesWithCorrectActions() {
+    var finalActionsNode: FinalActionsNode {
+        FinalActionsNode(actions: actions)
+    }
+    
+    func testFinalActionsFinalisesCorrectly() {
         let n = finalActionsNode
         n.finalise().executeAll()
         XCTAssertEqual("12", actionsOutput)
@@ -110,7 +113,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
         assertEmptyFinalThen(t)
     }
     
-    func testFinalThenNodeWithEmptyFinalActionsNode() {
+    func testFinalThenNodeWithEmptyRest() {
         let t = FinalThenNode(state: State.s1,
                               rest: [FinalActionsNode(actions: [])])
         assertEmptyFinalThen(t)
@@ -128,7 +131,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
         XCTAssertEqual(expected, actionsOutput, line: line)
     }
     
-    func testFinalThenNodeFinalisesWithCorrectActions() {
+    func testFinalThenNodeFinalisesCorrectly() {
         let t = FinalThenNode(state: State.s1,
                               rest: [finalActionsNode])
         
@@ -189,7 +192,17 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
         return true
     }
     
-    func testFinalWhenNodeAcceptsEmptyThenNode() {
+    func testEmptyFinalWhenNode() {
+        let w = FinalWhenNode(events: [], rest: [])
+        XCTAssertTrue(w.finalise().isEmpty)
+    }
+    
+    func testEmptyFinalWhenNodeWithActions() {
+        let w = FinalWhenNode(events: [], rest: [finalThenNode])
+        XCTAssertTrue(w.finalise().isEmpty)
+    }
+    
+    func testFinalWhenNodeWithEmptyRest() {
         let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [])
         assertFinalWhenNode(state: nil,
                             actionsCount: 0,
@@ -241,32 +254,24 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
         expected: [GivenNode.Output],
         line: UInt = #line
     ) {
-        func isEqual(lhs: [GivenNode.Output], rhs: [GivenNode.Output]) -> Bool {
-            guard lhs.count == rhs.count else { return false }
-            
-            for (lhs, rhs) in zip(lhs, rhs) {
-                guard lhs.state == rhs.state &&
-                        lhs.event == rhs.event &&
-                        lhs.nextState == rhs.nextState else { return false }
-            }
-            return true
-        }
-        
         let output = node.finalise()
-        
-        XCTAssertTrue(isEqual(lhs: output, rhs: expected),
-"""
-\n\nActual: \(output.description)
-
-did not equal expected: \(expected.description)
-""",
-                      line: line)
+        assertEqual(lhs: expected, rhs: output, line: line)
         
         output.map(\.actions).flatten.executeAll()
         XCTAssertEqual(actionsOutput, expectedActionsOutput, line: line)
     }
     
-    func testGivenNodeAcceptsEmptyFinalWhenNodes() {
+    func testEmptyGivenNode() {
+        let g = GivenNode(states: [], rest: [])
+        XCTAssertTrue(g.finalise().isEmpty)
+    }
+    
+    func testGivenNodeWithEmptyStates() {
+        let g = GivenNode(states: [], rest: [finalWhenNode])
+        XCTAssertTrue(g.finalise().isEmpty)
+    }
+    
+    func testGivenNodeWithEmptyRest() {
         let g = GivenNode(states: [State.s1, State.s2], rest: [])
         XCTAssertTrue(g.finalise().isEmpty)
     }
@@ -343,6 +348,145 @@ did not equal expected: \(expected.description)
                               expectedActionsOutput: "1212121212121212",
                               expected: expected)
     }
+    
+    func testEmptyDefineNode() {
+        let d = DefineNode(entryActions: [], exitActions: [], rest: [])
+        XCTAssertTrue(d.finalise().isEmpty)
+    }
+    
+    func testDefineNodeWithActionsButNoRest() {
+        let d = DefineNode(entryActions: [{ }], exitActions: [{ }], rest: [])
+        XCTAssertTrue(d.finalise().isEmpty)
+    }
+    
+    func assertDefineNodeOutput(
+        node: DefineNode,
+        expectedActionsOutput: String,
+        expected: [DefineNode.Output],
+        line: UInt = #line
+    ) {
+        let output = node.finalise()
+        assertEqual(lhs: expected, rhs: output, line: line)
+        
+        output.forEach {
+            $0.entryActions.executeAll()
+            $0.actions.executeAll()
+            $0.exitActions.executeAll()
+        }
+        
+        XCTAssertEqual(actionsOutput, expectedActionsOutput, line: line)
+    }
+    
+    var entryActions: [Action] {
+        [ { self.actionsOutput += "<"}, { self.actionsOutput += "<"} ]
+    }
+    
+    var exitActions: [Action] {
+        [ { self.actionsOutput += ">"}, { self.actionsOutput += ">"} ]
+    }
+    
+    func testDefineNodeWithNoActions() {
+        let t = FinalThenNode(state: State.s3, rest: [])
+        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
+        let g = GivenNode(states: [State.s1, State.s2], rest: [w])
+        let d = DefineNode(entryActions: [],
+                           exitActions: [],
+                           rest: [g])
+        
+        let expected: [DefineNode.Output] = [
+            (State.s1, Event.e1, State.s3, [], [], []),
+            (State.s1, Event.e2, State.s3, [], [], []),
+            (State.s2, Event.e1, State.s3, [], [], []),
+            (State.s2, Event.e2, State.s3, [], [], [])
+        ]
+        
+        assertDefineNodeOutput(node: d,
+                               expectedActionsOutput: "",
+                               expected: expected)
+    }
+    
+    func testDefineNodeWithEntryActionsAndExitActions() {
+        let t = FinalThenNode(state: State.s3, rest: [finalActionsNode])
+        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
+        let g = GivenNode(states: [State.s1, State.s2], rest: [w])
+        let d = DefineNode(entryActions: entryActions,
+                           exitActions: exitActions,
+                           rest: [g])
+        
+        let expected: [DefineNode.Output] = [
+            (State.s1, Event.e1, State.s3, [], [], []),
+            (State.s1, Event.e2, State.s3, [], [], []),
+            (State.s2, Event.e1, State.s3, [], [], []),
+            (State.s2, Event.e2, State.s3, [], [], [])
+        ]
+        
+        assertDefineNodeOutput(node: d,
+                               expectedActionsOutput: "<<12>><<12>><<12>><<12>>",
+                               expected: expected)
+    }
+    
+    func testDefineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() {
+        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [])
+        let g = GivenNode(states: [State.s1, State.s2], rest: [w])
+        let d = DefineNode(entryActions: entryActions,
+                           exitActions: exitActions,
+                           rest: [g])
+        
+        let expected: [DefineNode.Output] = [
+            (State.s1, Event.e1, State.s1, [], [], []),
+            (State.s1, Event.e2, State.s1, [], [], []),
+            (State.s2, Event.e1, State.s2, [], [], []),
+            (State.s2, Event.e2, State.s2, [], [], [])
+        ]
+        
+        assertDefineNodeOutput(node: d,
+                               expectedActionsOutput: "",
+                               expected: expected)
+    }
+}
+
+func assertEqual(
+    lhs: [GivenNode.Output],
+    rhs: [GivenNode.Output],
+    line: UInt
+) {
+    assertEqual(lhs: lhs.map { ($0.state, $0.event, $0.nextState) },
+                rhs: rhs.map { ($0.state, $0.event, $0.nextState) },
+                line: line)
+}
+
+func assertEqual(
+    lhs: [DefineNode.Output],
+    rhs: [DefineNode.Output],
+    line: UInt
+) {
+    assertEqual(lhs: lhs.map { ($0.state, $0.event, $0.nextState) },
+                rhs: rhs.map { ($0.state, $0.event, $0.nextState) },
+                line: line)
+}
+
+typealias SES = (state: AnyHashable, event: AnyHashable, nextState: AnyHashable)
+
+func assertEqual(lhs: [SES], rhs: [SES], line: UInt) {
+    XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
+"""
+\n\nActual: \(lhs.description)
+
+did not equal expected: \(rhs.description)
+""",
+                  line: line)
+}
+
+
+func isEqual(lhs: [SES], rhs: [SES]) -> Bool {
+    guard lhs.count == rhs.count else { return false }
+    
+    for (lhs, rhs) in zip(lhs, rhs) {
+        guard lhs.state == rhs.state &&
+                lhs.event == rhs.event &&
+                lhs.nextState == rhs.nextState else { return false }
+    }
+    return true
 }
 
 extension [TableRow] {
@@ -369,7 +513,7 @@ extension AnyHashable: ExpressibleByStringInterpolation {
     }
 }
 
-extension [GivenNode.Output] {
+extension [SES] {
     var description: String {
         reduce(into: ["\n"]) {
             $0.append("(\($1.state), \($1.event), \($1.nextState))")
