@@ -19,7 +19,7 @@ final class MatchTests: XCTestCase {
         equals expected: [[any PredicateProtocol]],
         line: UInt = #line
     ) {
-        let match = Match(anyOf: anyOf, allOf: allOf)
+        let match = Match(any: anyOf, all: allOf)
         XCTAssertEqual(match.allMatches(a.map { $0.erase() }.asSets),
                        expected.erasedSets,
                        line: line)
@@ -37,44 +37,117 @@ final class MatchTests: XCTestCase {
     }
     
     func testAddingAnyToEmpty() {
-        XCTAssertEqual(Match() + Match(anyOf: [P.a]), Match(anyOf: [P.a]))
+        XCTAssertEqual(Match() + Match(any: [P.a]), Match(any: [P.a]))
     }
     
     func testAddingAllToEmpty() {
-        XCTAssertEqual(Match() + Match(allOf: [P.a]), Match(allOf: [P.a]))
+        XCTAssertEqual(Match() + Match(all: [P.a]), Match(all: [P.a]))
     }
     
     func testAddingAnyAndAllToEmpty() {
-        let addend = Match(anyOf: [P.a], allOf: [P.b])
+        let addend = Match(any: [P.a], all: [P.b])
         XCTAssertEqual(Match() + addend, addend)
     }
     
     func testAddingAnytoAny() {
-        let m1 = Match(anyOf: [P.a])
-        let m2 = Match(anyOf: [Q.a])
+        let m1 = Match(any: [P.a])
+        let m2 = Match(any: [Q.a])
         
-        XCTAssertEqual(m1 + m2, Match(anyOf: [P.a, Q.a]))
+        XCTAssertEqual(m1 + m2, Match(any: [P.a, Q.a]))
     }
     
     func testAddingAlltoAny() {
-        let m1 = Match(anyOf: [Q.a])
-        let m2 = Match(allOf: [P.a])
+        let m1 = Match(any: [Q.a])
+        let m2 = Match(all: [P.a])
         
-        XCTAssertEqual(m1 + m2, Match(anyOf: [Q.a], allOf: [P.a]))
+        XCTAssertEqual(m1 + m2, Match(any: [Q.a], all: [P.a]))
     }
     
     func testAddingAnyAndAlltoAny() {
-        let m1 = Match(anyOf: [Q.a])
-        let m2 = Match(anyOf: [R.a], allOf: [P.a])
+        let m1 = Match(any: [Q.a])
+        let m2 = Match(any: [R.a], all: [P.a])
         
-        XCTAssertEqual(m1 + m2, Match(anyOf: [Q.a, R.a], allOf: [P.a]))
+        XCTAssertEqual(m1 + m2, Match(any: [Q.a, R.a], all: [P.a]))
     }
     
     func testAddingAnyAndAllToAnyAndAll() {
-        let m1 = Match(anyOf: [P.a], allOf: [Q.a])
-        let m2 = Match(anyOf: [P.b], allOf: [Q.b])
+        let m1 = Match(any: [P.a], all: [Q.a])
+        let m2 = Match(any: [P.b], all: [Q.b])
         
-        XCTAssertEqual(m1 + m2, Match(anyOf: [P.a, P.b], allOf: [Q.a, Q.b]))
+        XCTAssertEqual(m1 + m2, Match(any: [P.a, P.b], all: [Q.a, Q.b]))
+    }
+
+    func testMatchFinalisesToItself() {
+        XCTAssertEqual(Match(any: [P.a]),
+                       try? Match(any: [P.a]).finalise().get())
+    }
+
+    func testEmptyMatchWithNextFinalisesToNext() {
+        let match = Match().prepend(Match(any: [P.a]))
+
+        XCTAssertEqual(Match(any: [P.a]),
+                       try? match.finalise().get())
+    }
+    
+    func testMatchWithNextFinalisesToSum() {
+        let match = Match(any: [P.a],
+                          all: [P.b]).prepend(Match(any: [Q.a],
+                                                    all: [Q.b]))
+
+        XCTAssertEqual(Match(any: [P.a, Q.a], all: [P.b, Q.b]),
+                       try? match.finalise().get())
+    }
+    
+    func assertDuplicateTypes(_ m: Match, line: UInt = #line) {
+        assertThrows(m, line: line) {
+            XCTAssertEqual($0 as? MatchError,
+                           .duplicateTypes(message: "P.a, P.b",
+                                           file: m.file,
+                                           line: m.line),
+                           line: line)
+        }
+    }
+    
+    func assertThrows(
+        _ m: Match,
+        line: UInt = #line,
+        _ assertion: (Error) -> ()
+    ) {
+        XCTAssertThrowsError(try m.finalise().get(), line: line) {
+            assertion($0)
+        }
+    }
+    
+    func testMatchWithMultipleInstancesOfSameTypeInAllIsError() {
+        assertDuplicateTypes(Match(all: [P.a, P.b]))
+    }
+    
+    func testMatchFormingDuplicateTypesOnFinaliseIsError() {
+        assertDuplicateTypes(Match(all: [P.a]).prepend(Match(all: [P.b])))
+    }
+    
+    func assertDuplicateValues(_ m: Match, line: UInt = #line) {
+        assertThrows(m) {
+            XCTAssertEqual($0 as? MatchError,
+                           .duplicateValues(message: "P.a",
+                                            file: m.file,
+                                            line: m.line),
+                           line: line)
+        }
+    }
+    
+    func testMatchWithSamePredicateInAnyAndAllIsError() {
+        assertDuplicateValues(Match(any: [P.a, P.b], all: [P.a]))
+    }
+    
+    func testMatchFormingDuplicateValuesOnFinaliseIsError() {
+        assertDuplicateValues(
+            Match(any: [P.b], all: [P.a]).prepend(Match(any: [P.a]))
+        )
+    }
+    
+    func testIsErrorWhenNextMatchIsError() {
+        assertDuplicateTypes(Match(all: [P.a, P.b]).prepend(Match()))
     }
     
     func testAllEmpty() {

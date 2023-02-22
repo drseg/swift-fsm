@@ -55,3 +55,13 @@ extension Array {
         map { ($0 as! any PredicateProtocol).erase() }
     }
 }
+
+extension Collection where Element == AnyPredicate {
+    var elementsAreUniquelyTyped: Bool {
+        uniqueElementTypes.count == count
+    }
+    
+    var uniqueElementTypes: Set<String> {
+        Set(map(\.type))
+    }
+}
