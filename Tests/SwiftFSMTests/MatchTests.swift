@@ -76,25 +76,34 @@ final class MatchTests: XCTestCase {
         
         XCTAssertEqual(m1 + m2, Match(any: [P.a, P.b], all: [Q.a, Q.b]))
     }
+    
+    func assertFinalise(_ m: Match, _ e: Match, line: UInt = #line) {
+        XCTAssertEqual(e, try? m.finalise().get(), line: line)
+    }
 
     func testMatchFinalisesToItself() {
-        XCTAssertEqual(Match(any: [P.a]),
-                       try? Match(any: [P.a]).finalise().get())
+        assertFinalise(Match(any: [P.a]),
+                       Match(any: [P.a]))
     }
 
     func testEmptyMatchWithNextFinalisesToNext() {
-        let match = Match().prepend(Match(any: [P.a]))
-
-        XCTAssertEqual(Match(any: [P.a]),
-                       try? match.finalise().get())
+        assertFinalise(Match().prepend(Match(any: [P.a])),
+                       Match(any: [P.a]))
     }
     
     func testMatchWithNextFinalisesToSum() {
-        let match = Match(any: [P.a],
-                          all: [P.b]).prepend(Match(any: [Q.a],
-                                                    all: [Q.b]))
-
-        XCTAssertEqual(Match(any: [P.a, Q.a], all: [P.b, Q.b]),
+        assertFinalise(Match(any: [P.a],
+                             all: [P.b]).prepend(Match(any: [Q.a],
+                                                       all: [Q.b])),
+                       Match(any: [P.a, Q.a], all: [P.b, Q.b]))
+    }
+    
+    func testLongMatchChain() {
+        var match = Match(any: [P.a])
+        
+        100 * { match = match.prepend(Match()) }
+        
+        XCTAssertEqual(Match(any: [P.a]),
                        try? match.finalise().get())
     }
     
@@ -225,6 +234,12 @@ final class MatchTests: XCTestCase {
                                [P.a, Q.a, R.b],
                                [P.a, Q.b, R.a],
                                [P.a, Q.b, R.b]])
+    }
+}
+
+extension Match: CustomStringConvertible {
+    public var description: String {
+        "\(matchAny), \(matchAll)"
     }
 }
 

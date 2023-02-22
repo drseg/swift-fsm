@@ -81,8 +81,9 @@ class Match {
         return .success(m)
     }
 
-    func add(any: Set<AnyPredicate>, all: Set<AnyPredicate>) -> Match {
-        .init(any: matchAny.union(any), all: matchAll.union(all))
+    private func add(any: Set<AnyPredicate>, all: Set<AnyPredicate>) -> Match {
+        .init(any: matchAny.union(any),
+              all: matchAll.union(all))
     }
     
     private func emptySets() -> PredicateSets {
@@ -114,12 +115,6 @@ extension Match: Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(matchAny)
         hasher.combine(matchAll)
-    }
-}
-
-extension Match: CustomStringConvertible {
-    var description: String {
-        "\(matchAny), \(matchAll)"
     }
 }
 
