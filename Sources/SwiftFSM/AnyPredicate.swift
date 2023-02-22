@@ -6,31 +6,31 @@
 
 import Foundation
 
-protocol Predicate: CaseIterable, Hashable { }
+protocol PredicateProtocol: CaseIterable, Hashable { }
 
-extension Predicate {
+extension PredicateProtocol {
     func erase() -> AnyPredicate {
         AnyPredicate(base: self)
     }
     
-    var allCases: [any Predicate] {
-        Self.allCases as! [any Predicate]
+    var allCases: [any PredicateProtocol] {
+        Self.allCases as! [any PredicateProtocol]
     }
 }
 
 struct AnyPredicate: CustomStringConvertible, Hashable {
     private let wrapped: AnyHashable
     
-    init<P: Predicate>(base: P) {
+    init<P: PredicateProtocol>(base: P) {
         wrapped = AnyHashable(base)
     }
     
-    func unwrap<P: Predicate>(to: P.Type) -> P {
+    func unwrap<P: PredicateProtocol>(to: P.Type) -> P {
         wrapped as! P
     }
     
     var allCases: [Self] {
-        (wrapped as! any Predicate).allCases.erase()
+        (wrapped as! any PredicateProtocol).allCases.erase()
     }
     
     var description: String {
@@ -43,15 +43,15 @@ struct AnyPredicate: CustomStringConvertible, Hashable {
 }
 
 extension Array {
-    func erase() -> [AnyPredicate] where Element: Predicate {
+    func erase() -> [AnyPredicate] where Element: PredicateProtocol {
         _erase()
     }
     
-    func erase() -> [AnyPredicate] where Element == any Predicate {
+    func erase() -> [AnyPredicate] where Element == any PredicateProtocol {
         _erase()
     }
     
     private func _erase() -> [AnyPredicate] {
-        map { ($0 as! any Predicate).erase() }
+        map { ($0 as! any PredicateProtocol).erase() }
     }
 }

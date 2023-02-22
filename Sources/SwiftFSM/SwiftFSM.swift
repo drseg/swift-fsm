@@ -9,7 +9,6 @@ import Foundation
 
 typealias Action = () -> ()
 
-
 struct AnyTraceable {
     let base: AnyHashable
     let file: String

@@ -16,8 +16,8 @@ private protocol AlwaysEqual { }; extension AlwaysEqual {
 }
 
 final class AnyPredicateTests: XCTestCase {
-    enum NeverEqualPredicate: Predicate, NeverEqual { case a, b }
-    enum AlwaysEqualPredicate: Predicate, AlwaysEqual { case a, b }
+    enum NeverEqualPredicate: PredicateProtocol, NeverEqual { case a, b }
+    enum AlwaysEqualPredicate: PredicateProtocol, AlwaysEqual { case a, b }
     
     func testDescription() {
         XCTAssertEqual(NeverEqualPredicate.a.erase().description,
@@ -67,7 +67,7 @@ final class AnyPredicateTests: XCTestCase {
     }
 
     func testErasedWrapperUsesWrappedHasher() {
-        struct Spy: Predicate, NeverEqual {
+        struct Spy: PredicateProtocol, NeverEqual {
             let fulfill: () -> ()
             static var allCases: [Spy] { [Spy(fulfill: {})] }
             func hash(into hasher: inout Hasher) { fulfill() }
@@ -79,7 +79,7 @@ final class AnyPredicateTests: XCTestCase {
         waitForExpectations(timeout: 0.1)
     }
     
-    enum P: Predicate { case a, b, c, d, e, f, g }
+    enum P: PredicateProtocol { case a, b, c, d, e, f, g }
     
     func testBasePreservesType() {
         let a1 = P.a.erase().unwrap(to: P.self)

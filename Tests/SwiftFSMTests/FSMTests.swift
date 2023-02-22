@@ -1,7 +1,6 @@
 //
 //  SwiftFSMTests.swift
 //  
-//
 //  Created by Daniel Segall on 19/02/2023.
 //
 
@@ -36,7 +35,7 @@ final class SwiftFSMTests: XCTestCase {
             randomisedTrace("cat")
         }
         
-        for _ in 1...100 { // repetitions needed to prove hasher
+        1000 * {
             let dict = [randomCat: randomCat]
             XCTAssertEqual(dict[randomCat], randomCat)
         }
