@@ -1,8 +1,7 @@
 //
-//  Builders.swift
-//  FiniteStateMachine
+//  ResultBuilder.swift
 //
-//  Created by Daniel Segall on 05/02/2023.
+//  Created by Daniel Segall on 21/02/2023.
 //
 
 import Foundation
@@ -23,11 +22,6 @@ extension ResultBuilder {
     static func buildBlock(_ cs: [T]...) -> [T] {
         cs.flatten
     }
-}
-
-@resultBuilder
-struct TableRowBuilder: ResultBuilder {
-    typealias T = TableRow
 }
 
 extension Collection where Element: Collection {

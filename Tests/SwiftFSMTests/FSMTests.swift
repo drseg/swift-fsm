@@ -14,61 +14,12 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     
     var actionsOutput = ""
     
-    func testDefineWithEmptyBlockHasSingleRowWithError() {
-        let line = #line; let rows = define(.s1) { }
-        XCTAssertEqual(1, rows.count)
-        XCTAssertEqual(1, rows.first?.errors.count)
+    func testEmptyBlockError() {
+        let error = EmptyBuilderBlockError(file: #file, line: 10)
         
-        let error = rows[0].errors[0]
-        XCTAssertEqual("define", error.callingFunction)
-        XCTAssertEqual(line, error.line)
+        XCTAssertEqual("testEmptyBlockError", error.callingFunction)
+        XCTAssertEqual(10, error.line)
         XCTAssertEqual(#file, error.file)
-    }
-    
-    func testEntryActionsFunction() {
-        var output = ""
-        let a1 = entryActions { output += "1" }
-        let a2 = entryActions({ output += "2" }, { output += "3" })
-        let a3 = entryActions([{ output += "4" }, { output += "5" }])
-        
-        [a1, a2, a3].allEntryActions.executeAll()
-        
-        XCTAssertEqual("12345", output)
-    }
-    
-    func testExitActionsFunction() {
-        var output = ""
-        let a1 = exitActions { output += "1" }
-        let a2 = exitActions({ output += "2" }, { output += "3" })
-        let a3 = exitActions([{ output += "4" }, { output += "5" }])
-        
-        [a1, a2, a3].allExitActions.executeAll()
-        
-        XCTAssertEqual("12345", output)
-    }
-    
-    func testDefineCanAcceptEntryActions() {
-        let rows = define(.s1) {
-            entryActions { self.actionsOutput += "1" }
-        }
-        
-        rows.allEntryActions.executeAll()
-        
-        XCTAssertEqual(1, rows.count)
-        XCTAssertEqual("1", actionsOutput)
-        XCTAssertEqual(State.s1, rows[0].state)
-    }
-    
-    func testDefineCanAcceptExitActions() {
-        let rows = define(.s1) {
-            exitActions { self.actionsOutput += "1" }
-        }
-        
-        rows.allExitActions.executeAll()
-        
-        XCTAssertEqual(1, rows.count)
-        XCTAssertEqual("1", actionsOutput)
-        XCTAssertEqual(State.s1, rows[0].state)
     }
     
     func testEmptyFinalActions() {
@@ -144,8 +95,8 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
         assertFinalThenNodeWithActions(expected: "12", t)
     }
     
+    // this is logically degenerate but the handling is reasonable
     func testFinalThenNodeFinalisesWithMultipleActionsNodes() {
-        // this is a degenerate case but the handling is reasonable
         let t = FinalThenNode(state: State.s1,
                               rest: [finalActionsNode,
                                      finalActionsNode])
@@ -503,17 +454,7 @@ func isEqual(lhs: [SES], rhs: [SES]) -> Bool {
     return true
 }
 
-extension [TableRow] {
-    var allEntryActions: [() -> ()] {
-        map(\.entryActions).flatten
-    }
-    
-    var allExitActions: [() -> ()] {
-        map(\.exitActions).flatten
-    }
-}
-
-extension Collection where Element == () -> () {
+extension Collection where Element == Action {
     func executeAll() {
         forEach { $0() }
     }

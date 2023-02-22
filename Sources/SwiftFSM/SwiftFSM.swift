@@ -12,59 +12,18 @@ protocol TransitionBuilderProtocol {
     associatedtype Event: Hashable
 }
 
-extension TransitionBuilderProtocol {
-    func define(
-        _ state: State,
-        _ line: Int = #line,
-        _ file: String = #file,
-        @TableRowBuilder _ block: () -> [TableRow]
-    ) -> [TableRow] {
-        let rows = block()
-        
-        guard !rows.isEmpty else {
-            return  [TableRow(errors: [.init(file: file,
-                                             line: line)])]
-        }
-        
-        return rows.reduce(into: [TableRow]()) {
-            $0.append(TableRow(state: state,
-                               errors: $1.errors,
-                               entryActions: $1.entryActions,
-                               exitActions: $1.exitActions))
-        }
-    }
-    
-    func entryActions(_ actions: () -> ()...) -> TableRow {
-        entryActions(actions)
-    }
-    
-    func entryActions(_ actions: [() -> ()]) -> TableRow {
-        TableRow(entryActions: actions)
-    }
-    
-    func exitActions(_ actions: () -> ()...) -> TableRow {
-        exitActions(actions)
-    }
-    
-    func exitActions(_ actions: [() -> ()]) -> TableRow {
-        TableRow(exitActions: actions)
-    }
-}
-
 typealias Action = () -> ()
 
 struct FinalActionsNode: Node {
-    typealias Output = Action
-    
-    let actions: [Output]
+    let actions: [Action]
     let rest: [any Node<Never>] = []
     
-    func combineWithRest(_ : [Never]) -> [Output] {
+    func combineWithRest(_ : [Never]) -> [Action] {
         actions
     }
 }
 
-typealias ThenOutput = (state: AnyHashable?, actions: [() -> ()])
+typealias ThenOutput = (state: AnyHashable?, actions: [Action])
 
 struct FinalThenNode: Node {
     let state: AnyHashable?
@@ -85,10 +44,10 @@ struct FinalWhenNode: Node {
     
     func combineWithRest(_ rest: [FinalThenNode.Output]) -> [WhenOutput] {
         events.reduce(into: [Output]()) {
-            $0.append((
-                event: $1,
-                state: rest.first?.state,
-                actions: rest.first?.actions ?? [])
+            $0.append(
+                (event: $1,
+                 state: rest.first?.state,
+                 actions: rest.first?.actions ?? [])
             )
         }
     }
@@ -134,31 +93,10 @@ struct DefineNode: Node {
                        nextState: $1.nextState,
                        actions: $1.actions,
                        entryActions:
-                        $1.state == $1.nextState
-                            ? [] : entryActions,
+                        $1.state == $1.nextState ? [] : entryActions,
                        exitActions:
-                        $1.state == $1.nextState
-                            ? [] : exitActions))
+                        $1.state == $1.nextState ? [] : exitActions))
         }
-    }
-}
-
-struct TableRow {
-    let state: AnyHashable?
-    let errors: [EmptyBuilderBlockError]
-    let entryActions: [Action]
-    let exitActions: [Action]
-    
-    init(
-        state: AnyHashable? = nil,
-        errors: [EmptyBuilderBlockError] = [],
-        entryActions: [Action] = [],
-        exitActions: [Action] = []
-    ) {
-        self.state = state
-        self.errors = errors
-        self.entryActions = entryActions
-        self.exitActions = exitActions
     }
 }
 
@@ -167,7 +105,7 @@ struct EmptyBuilderBlockError: Error {
     let file: String
     let line: Int
     
-    init(callingFunction: String = #function,file: String, line: Int) {
+    init(callingFunction: String = #function, file: String, line: Int) {
         self.callingFunction = String(callingFunction.prefix { $0 != "(" })
         self.file = file
         self.line = line
