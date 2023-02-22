@@ -8,19 +8,43 @@
 import XCTest
 @testable import SwiftFSM
 
-final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
-    enum State: AnyHashable, AnyHashableEnum { case s1, s2, s3 }
-    enum Event: AnyHashable, AnyHashableEnum { case e1, e2, e3 }
-    
-    let s1 = State.s1
-    let s2 = State.s2
-    let s3 = State.s3
-    
-    let e1 = Event.e1
-    let e2 = Event.e2
-    let e3 = Event.e3
+final class SwiftFSMTests: XCTestCase {
+    let s1: AnyTraceable = "S1", s2: AnyTraceable = "S2", s3: AnyTraceable = "S3"
+    let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
     
     var actionsOutput = ""
+    
+    func randomisedTrace(_ base: String) -> AnyTraceable {
+        AnyTraceable(base: base,
+                  file: UUID().uuidString,
+                  line: Int.random(in: 0...Int.max))
+    }
+    
+    func testTraceableEquality() {
+        let t1 = randomisedTrace("cat")
+        let t2 = randomisedTrace("cat")
+        let t3 = randomisedTrace("bat")
+        let t4: AnyTraceable = "cat"
+        
+        XCTAssertEqual(t1, t2)
+        XCTAssertEqual(t1, t4)
+        XCTAssertNotEqual(t1, t3)
+    }
+    
+    func testTraceableHashingMatchesEquatable() {
+        var randomCat: AnyTraceable {
+            randomisedTrace("cat")
+        }
+        
+        for _ in 1...100 { // repetitions needed to prove hasher
+            let dict = [randomCat: randomCat]
+            XCTAssertEqual(dict[randomCat], randomCat)
+        }
+    }
+    
+    func testTraceableDescription() {
+        XCTAssertEqual(s1.description, "S1")
+    }
     
     func testEmptyBlockError() {
         let error = EmptyBuilderBlockError(file: #file, line: 10)
@@ -52,7 +76,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     
     func assertEmptyFinalThen(
         _ t: FinalThenNode,
-        thenState: AnyHashable? = State.s1,
+        thenState: AnyTraceable? = "S1",
         line: UInt = #line
     ) {
         let result = t.finalise()
@@ -118,7 +142,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func assertFinalWhenNode(
-        state: AnyHashable?,
+        state: AnyTraceable?,
         actionsCount: Int,
         actionsOutput: String,
         node: FinalWhenNode,
@@ -422,7 +446,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
 }
 
-typealias SES = (state: AnyHashable, event: AnyHashable, nextState: AnyHashable)
+typealias SES = (state: AnyTraceable, event: AnyTraceable, nextState: AnyTraceable)
 
 func assertEqual(lhs: [SES], rhs: [SES], line: UInt) {
     XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
@@ -452,14 +476,6 @@ extension Collection where Element == Action {
     }
 }
 
-extension AnyHashable: ExpressibleByStringInterpolation {
-    public typealias StringLiteralType = String
-    
-    public init(stringLiteral: String) {
-        self = AnyHashable(stringLiteral)
-    }
-}
-
 extension [SES] {
     var description: String {
         reduce(into: ["\n"]) {
@@ -468,13 +484,14 @@ extension [SES] {
     }
 }
 
-protocol AnyHashableEnum: RawRepresentable, CustomStringConvertible
-where RawValue == AnyHashable { }
+extension AnyTraceable: ExpressibleByStringLiteral {
+    public init(stringLiteral value: String) {
+        self.init(base: AnyHashable(value), file: "null", line: -1)
+    }
+}
 
-extension AnyHashableEnum {
-    init?(rawValue: AnyHashable) { nil }
-    
-    var description: String {
-        String(describing: rawValue.base)
+extension AnyTraceable: CustomStringConvertible {
+    public var description: String {
+        base.description
     }
 }

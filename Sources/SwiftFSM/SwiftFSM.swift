@@ -7,12 +7,30 @@
 
 import Foundation
 
-protocol TransitionBuilderProtocol {
-    associatedtype State: Hashable
-    associatedtype Event: Hashable
+typealias Action = () -> ()
+
+
+struct AnyTraceable {
+    let base: AnyHashable
+    let file: String
+    let line: Int
+    
+    init(base: AnyHashable, file: String, line: Int) {
+        self.base = base
+        self.file = file
+        self.line = line
+    }
 }
 
-typealias Action = () -> ()
+extension AnyTraceable: Hashable {
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.base == rhs.base
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(base)
+    }
+}
 
 struct FinalActionsNode: Node {
     let actions: [Action]
@@ -23,10 +41,10 @@ struct FinalActionsNode: Node {
     }
 }
 
-typealias ThenOutput = (state: AnyHashable?, actions: [Action])
+typealias ThenOutput = (state: AnyTraceable?, actions: [Action])
 
 struct FinalThenNode: Node {
-    let state: AnyHashable?
+    let state: AnyTraceable?
     var rest: [any Node<Input>] = []
     
     func combineWithRest(_ rest: [FinalActionsNode.Output]) -> [ThenOutput] {
@@ -34,12 +52,12 @@ struct FinalThenNode: Node {
     }
 }
 
-typealias WhenOutput = (event: AnyHashable,
-                        state: AnyHashable?,
+typealias WhenOutput = (event: AnyTraceable,
+                        state: AnyTraceable?,
                         actions: [Action])
 
 struct FinalWhenNode: Node {
-    let events: [AnyHashable]
+    let events: [AnyTraceable]
     var rest: [any Node<Input>] = []
     
     func combineWithRest(_ rest: [FinalThenNode.Output]) -> [WhenOutput] {
@@ -54,12 +72,12 @@ struct FinalWhenNode: Node {
 }
 
 struct GivenNode: Node {
-    typealias Output = (state: AnyHashable,
-                        event: AnyHashable,
-                        nextState: AnyHashable,
+    typealias Output = (state: AnyTraceable,
+                        event: AnyTraceable,
+                        nextState: AnyTraceable,
                         actions: [Action])
     
-    let states: [AnyHashable]
+    let states: [AnyTraceable]
     var rest: [any Node<WhenOutput>] = []
     
     func combineWithRest(_ rest: [WhenOutput]) -> [Output] {
@@ -75,9 +93,9 @@ struct GivenNode: Node {
 }
 
 struct DefineNode: Node {
-    typealias Output = (state: AnyHashable,
-                        event: AnyHashable,
-                        nextState: AnyHashable,
+    typealias Output = (state: AnyTraceable,
+                        event: AnyTraceable,
+                        nextState: AnyTraceable,
                         actions: [Action],
                         entryActions: [Action],
                         exitActions: [Action])
