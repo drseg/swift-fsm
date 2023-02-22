@@ -1,6 +1,5 @@
 //
-//  File.swift
-//  
+//  Nodes.swift
 //
 //  Created by Daniel Segall on 20/02/2023.
 //
@@ -19,6 +18,12 @@ protocol UnsafeNode: NodeBase {
     func finalise() throws -> [Output]
 }
 
+@available(macOS 13, iOS 16, *)
+protocol Node<Output>: NodeBase {
+    var rest: [any Node<Input>] { get }
+    func finalise() -> [Output]
+}
+
 extension UnsafeNode {
     func finalise() throws -> [Output] {
         try combineWithRest(rest.reduce(into: [Input]()) {
@@ -35,19 +40,17 @@ Error: \(type(of: try $1.finalise())) must equal Array<\(Input.self)>
     }
 }
 
-extension String: Error { }
-
-@available(macOS 13, iOS 16, *)
-protocol Node<Output>: NodeBase {
-    var rest: [any Node<Input>] { get }
-    func finalise() -> [Output]
-}
-
 @available(macOS 13, iOS 16, *)
 extension Node {
     func finalise() -> [Output] {
-        combineWithRest(rest.reduce(into: [Input]()) {
-            $0.append(contentsOf: $1.finalise())
-        })
+        combineWithRest(
+            rest.reduce(into: [Input]()) {
+                $0.append(contentsOf: $1.finalise())
+            }
+        )
     }
 }
+
+extension String: Error { }
+
+

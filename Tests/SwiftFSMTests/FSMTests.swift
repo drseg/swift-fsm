@@ -12,6 +12,14 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     enum State: AnyHashable, AnyHashableEnum { case s1, s2, s3 }
     enum Event: AnyHashable, AnyHashableEnum { case e1, e2, e3 }
     
+    let s1 = State.s1
+    let s2 = State.s2
+    let s3 = State.s3
+    
+    let e1 = Event.e1
+    let e2 = Event.e2
+    let e3 = Event.e3
+    
     var actionsOutput = ""
     
     func testEmptyBlockError() {
@@ -59,13 +67,13 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testEmptyFinalThenNode() {
-        let t = FinalThenNode(state: State.s1,
+        let t = FinalThenNode(state: s1,
                               rest: [])
         assertEmptyFinalThen(t)
     }
     
     func testFinalThenNodeWithEmptyRest() {
-        let t = FinalThenNode(state: State.s1,
+        let t = FinalThenNode(state: s1,
                               rest: [FinalActionsNode(actions: [])])
         assertEmptyFinalThen(t)
     }
@@ -77,27 +85,27 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     ) {
         let result = t.finalise()
         XCTAssertEqual(1, result.count, line: line)
-        XCTAssertEqual(result[0].state, State.s1, line: line)
+        XCTAssertEqual(result[0].state, s1, line: line)
         result.first!.actions.executeAll()
         XCTAssertEqual(expected, actionsOutput, line: line)
     }
     
     func testFinalThenNodeFinalisesCorrectly() {
-        let t = FinalThenNode(state: State.s1,
+        let t = FinalThenNode(state: s1,
                               rest: [finalActionsNode])
         
         assertFinalThenNodeWithActions(expected: "12", t)
     }
     
     func testFinalThenNodeCanSetRestAfterInitialisation() {
-        var t = FinalThenNode(state: State.s1)
+        var t = FinalThenNode(state: s1)
         t.rest.append(finalActionsNode)
         assertFinalThenNodeWithActions(expected: "12", t)
     }
     
     // this is logically degenerate but the handling is reasonable
     func testFinalThenNodeFinalisesWithMultipleActionsNodes() {
-        let t = FinalThenNode(state: State.s1,
+        let t = FinalThenNode(state: s1,
                               rest: [finalActionsNode,
                                      finalActionsNode])
         
@@ -105,7 +113,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     var finalThenNode: FinalThenNode {
-        FinalThenNode(state: State.s1,
+        FinalThenNode(state: s1,
                       rest: [finalActionsNode])
     }
     
@@ -128,8 +136,8 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
             result[$0].actions.executeAll()
         }
         
-        XCTAssertEqual(Event.e1, result[0].event, line: line)
-        XCTAssertEqual(Event.e2, result[1].event, line: line)
+        XCTAssertEqual(e1, result[0].event, line: line)
+        XCTAssertEqual(e2, result[1].event, line: line)
                 
         XCTAssertEqual(actionsOutput, actionsOutput, line: line)
     }
@@ -154,7 +162,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testFinalWhenNodeWithEmptyRest() {
-        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [])
+        let w = FinalWhenNode(events: [e1, e2], rest: [])
         assertFinalWhenNode(state: nil,
                             actionsCount: 0,
                             actionsOutput: "",
@@ -167,7 +175,7 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
         _ w: FinalWhenNode,
         line: UInt = #line
     ) {
-        assertFinalWhenNode(state: State.s1,
+        assertFinalWhenNode(state: s1,
                             actionsCount: 2,
                             actionsOutput: expected,
                             node: w,
@@ -175,25 +183,25 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testFinalWhenNodeFinalisesWithCorrectActions() {
-        let w = FinalWhenNode(events: [Event.e1, Event.e2],
+        let w = FinalWhenNode(events: [e1, e2],
                               rest: [finalThenNode])
         assertFinalWhenNodeWithActions(w)
     }
     
     func testFinalWhenNodeIgnoresExtraThenNodes() {
-        let w = FinalWhenNode(events: [Event.e1, Event.e2],
+        let w = FinalWhenNode(events: [e1, e2],
                               rest: [finalThenNode,
                                      finalThenNode])
         assertFinalWhenNodeWithActions(w)
     }
     
     var finalWhenNode: FinalWhenNode {
-        FinalWhenNode(events: [Event.e1, Event.e2],
+        FinalWhenNode(events: [e1, e2],
                       rest: [finalThenNode])
     }
     
     func testFinalWhenNodeCanSetRestAfterInitialisation() {
-        var w = FinalWhenNode(events: [Event.e1, Event.e2])
+        var w = FinalWhenNode(events: [e1, e2])
         w.rest.append(finalThenNode)
         w.rest.append(finalThenNode)
         assertFinalWhenNodeWithActions(w)
@@ -225,21 +233,19 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testGivenNodeWithEmptyRest() {
-        let g = GivenNode(states: [State.s1, State.s2], rest: [])
+        let g = GivenNode(states: [s1, s2], rest: [])
         XCTAssertTrue(g.finalise().isEmpty)
     }
         
     func testGivenNodeFinalisesFillingInEmptyNextStates() {
         let t = FinalThenNode(state: nil, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
-        let g = GivenNode(states: [State.s1, State.s2], rest: [w])
+        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let g = GivenNode(states: [s1, s2], rest: [w])
         
-        let expected = [
-            (State.s1, Event.e1, State.s1),
-            (State.s1, Event.e2, State.s1),
-            (State.s2, Event.e1, State.s2),
-            (State.s2, Event.e2, State.s2)
-        ]
+        let expected = [(s1, e1, s1),
+                        (s1, e2, s1),
+                        (s2, e1, s2),
+                        (s2, e2, s2)]
         
         assertGivenNodeOutput(expected: expected,
                               actionsOutput: "12121212",
@@ -247,16 +253,14 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testGivenNodeFinalisesWithNextStates() {
-        let t = FinalThenNode(state: State.s3, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
-        let g = GivenNode(states: [State.s1, State.s2], rest: [w])
+        let t = FinalThenNode(state: s3, rest: [finalActionsNode])
+        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let g = GivenNode(states: [s1, s2], rest: [w])
         
-        let expected = [
-            (State.s1, Event.e1, State.s3),
-            (State.s1, Event.e2, State.s3),
-            (State.s2, Event.e1, State.s3),
-            (State.s2, Event.e2, State.s3)
-        ]
+        let expected = [(s1, e1, s3),
+                        (s1, e2, s3),
+                        (s2, e1, s3),
+                        (s2, e2, s3)]
         
         assertGivenNodeOutput(expected: expected,
                               actionsOutput: "12121212",
@@ -264,17 +268,15 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testGivenNodeCanSetRestAfterInitialisation() {
-        let t = FinalThenNode(state: State.s3, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
-        var g = GivenNode(states: [State.s1, State.s2])
+        let t = FinalThenNode(state: s3, rest: [finalActionsNode])
+        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        var g = GivenNode(states: [s1, s2])
         g.rest.append(w)
         
-        let expected = [
-            (State.s1, Event.e1, State.s3),
-            (State.s1, Event.e2, State.s3),
-            (State.s2, Event.e1, State.s3),
-            (State.s2, Event.e2, State.s3)
-        ]
+        let expected = [(s1, e1, s3),
+                        (s1, e2, s3),
+                        (s2, e1, s3),
+                        (s2, e2, s3)]
         
         assertGivenNodeOutput(expected: expected,
                               actionsOutput: "12121212",
@@ -282,20 +284,18 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testGivenNodeWithMultipleWhenNodes() {
-        let t = FinalThenNode(state: State.s3, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
-        let g = GivenNode(states: [State.s1, State.s2], rest: [w, w])
+        let t = FinalThenNode(state: s3, rest: [finalActionsNode])
+        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let g = GivenNode(states: [s1, s2], rest: [w, w])
         
-        let expected = [
-            (State.s1, Event.e1, State.s3),
-            (State.s1, Event.e2, State.s3),
-            (State.s1, Event.e1, State.s3),
-            (State.s1, Event.e2, State.s3),
-            (State.s2, Event.e1, State.s3),
-            (State.s2, Event.e2, State.s3),
-            (State.s2, Event.e1, State.s3),
-            (State.s2, Event.e2, State.s3)
-        ]
+        let expected = [(s1, e1, s3),
+                        (s1, e2, s3),
+                        (s1, e1, s3),
+                        (s1, e2, s3),
+                        (s2, e1, s3),
+                        (s2, e2, s3),
+                        (s2, e1, s3),
+                        (s2, e2, s3)]
         
         assertGivenNodeOutput(expected: expected,
                               actionsOutput: "1212121212121212",
@@ -341,20 +341,18 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testDefineNodeWithNoActions() {
-        let t = FinalThenNode(state: State.s3, rest: [])
-        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
-        let g = GivenNode(states: [State.s1, State.s2], rest: [w])
+        let t = FinalThenNode(state: s3, rest: [])
+        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let g = GivenNode(states: [s1, s2], rest: [w])
         
         let d = DefineNode(entryActions: [],
                            exitActions: [],
                            rest: [g])
         
-        let expected = [
-            (State.s1, Event.e1, State.s3),
-            (State.s1, Event.e2, State.s3),
-            (State.s2, Event.e1, State.s3),
-            (State.s2, Event.e2, State.s3)
-        ]
+        let expected = [(s1, e1, s3),
+                        (s1, e2, s3),
+                        (s2, e1, s3),
+                        (s2, e2, s3)]
         
         assertDefineNodeOutput(expected: expected,
                                actionsOutput: "",
@@ -362,20 +360,18 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testDefineNodeCanSetRestAfterInitialisation() {
-        let t = FinalThenNode(state: State.s3, rest: [])
-        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
-        let g = GivenNode(states: [State.s1, State.s2], rest: [w])
+        let t = FinalThenNode(state: s3, rest: [])
+        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let g = GivenNode(states: [s1, s2], rest: [w])
         
         var d = DefineNode(entryActions: [],
                            exitActions: [])
         d.rest.append(g)
         
-        let expected = [
-            (State.s1, Event.e1, State.s3),
-            (State.s1, Event.e2, State.s3),
-            (State.s2, Event.e1, State.s3),
-            (State.s2, Event.e2, State.s3)
-        ]
+        let expected = [(s1, e1, s3),
+                        (s1, e2, s3),
+                        (s2, e1, s3),
+                        (s2, e2, s3)]
         
         assertDefineNodeOutput(expected: expected,
                                actionsOutput: "",
@@ -383,24 +379,22 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testDefineNodeWithMultipleGivensWithEntryActionsAndExitActions() {
-        let t = FinalThenNode(state: State.s3, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [t])
-        let g = GivenNode(states: [State.s1, State.s2], rest: [w])
+        let t = FinalThenNode(state: s3, rest: [finalActionsNode])
+        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let g = GivenNode(states: [s1, s2], rest: [w])
         
         let d = DefineNode(entryActions: entryActions,
                            exitActions: exitActions,
                            rest: [g, g])
         
-        let expected = [
-            (State.s1, Event.e1, State.s3),
-            (State.s1, Event.e2, State.s3),
-            (State.s2, Event.e1, State.s3),
-            (State.s2, Event.e2, State.s3),
-            (State.s1, Event.e1, State.s3),
-            (State.s1, Event.e2, State.s3),
-            (State.s2, Event.e1, State.s3),
-            (State.s2, Event.e2, State.s3)
-        ]
+        let expected = [(s1, e1, s3),
+                        (s1, e2, s3),
+                        (s2, e1, s3),
+                        (s2, e2, s3),
+                        (s1, e1, s3),
+                        (s1, e2, s3),
+                        (s2, e1, s3),
+                        (s2, e2, s3)]
         
         assertDefineNodeOutput(
             expected: expected,
@@ -410,19 +404,17 @@ final class SwiftFSMTests: XCTestCase, TransitionBuilderProtocol {
     }
     
     func testDefineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() {
-        let w = FinalWhenNode(events: [Event.e1, Event.e2], rest: [])
-        let g = GivenNode(states: [State.s1, State.s2], rest: [w])
+        let w = FinalWhenNode(events: [e1, e2], rest: [])
+        let g = GivenNode(states: [s1, s2], rest: [w])
         
         let d = DefineNode(entryActions: entryActions,
                            exitActions: exitActions,
                            rest: [g])
         
-        let expected = [
-            (State.s1, Event.e1, State.s1),
-            (State.s1, Event.e2, State.s1),
-            (State.s2, Event.e1, State.s2),
-            (State.s2, Event.e2, State.s2)
-        ]
+        let expected = [(s1, e1, s1),
+                        (s1, e2, s1),
+                        (s2, e1, s2),
+                        (s2, e2, s2)]
         
         assertDefineNodeOutput(expected: expected,
                                actionsOutput: "",
