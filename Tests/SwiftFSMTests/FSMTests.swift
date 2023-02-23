@@ -15,8 +15,8 @@ final class SwiftFSMTests: XCTestCase {
     
     func randomisedTrace(_ base: String) -> AnyTraceable {
         AnyTraceable(base: base,
-                  file: UUID().uuidString,
-                  line: Int.random(in: 0...Int.max))
+                     file: UUID().uuidString,
+                     line: Int.random(in: 0...Int.max))
     }
     
     func testTraceableEquality() {
@@ -31,9 +31,7 @@ final class SwiftFSMTests: XCTestCase {
     }
     
     func testTraceableHashingMatchesEquatable() {
-        var randomCat: AnyTraceable {
-            randomisedTrace("cat")
-        }
+        var randomCat: AnyTraceable { randomisedTrace("cat") }
         
         1000 * {
             let dict = [randomCat: randomCat]

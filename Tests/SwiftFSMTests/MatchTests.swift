@@ -35,13 +35,6 @@ class InitialisationTests: MatchTests {
                           Match(any: P.a, P.b, all: Q.a, R.a))
     }
     
-    func testHashable() {
-        1000 * {
-            let dict = [Match(): Match()]
-            XCTAssertEqual(Match(), dict[Match()])
-        }
-    }
-    
     func testSingleItemIsAll() {
         let match = Match(P.a)
         XCTAssertEqual(match.matchAll, [P.a.erase()])
@@ -50,6 +43,17 @@ class InitialisationTests: MatchTests {
 }
 
 class AdditionTests: MatchTests {
+    func testAdditionTakesFileAndLineFromLHS() {
+        let m1 = Match(file: "1", line: 1)
+        let m2 = Match(file: "2", line: 2)
+        
+        XCTAssertEqual((m1 + m2).file, "1")
+        XCTAssertEqual((m2 + m1).file, "2")
+        
+        XCTAssertEqual((m1 + m2).line, 1)
+        XCTAssertEqual((m2 + m1).line, 2)
+    }
+    
     func testAddingEmptyMatches() {
         XCTAssertEqual(Match() + Match(), Match())
     }
@@ -123,7 +127,7 @@ class FinalisationTests: MatchTests {
                              all: Q.a, R.a, T.a, U.a))
     }
     
-    func testLongMatchChain() {
+    func testLongChain() {
         var match = Match(P.a)
         
         100 * { match = match.prepend(Match()) }
@@ -139,7 +143,12 @@ class ValidationTests: MatchTests {
         line: UInt = #line
     ) {
         assertThrows(m1, line: line) {
-            XCTAssertEqual($0 as! MatchError,
+            guard let error = $0 as? DuplicateTypes else {
+                XCTFail("Unexpected error \($0)", line: line)
+                return
+            }
+            
+            XCTAssertEqual(error,
                            DuplicateTypes(message: "P.a, P.b",
                                           files: [m1.file],
                                           lines: [m1.line]),
@@ -157,15 +166,15 @@ class ValidationTests: MatchTests {
         }
     }
     
-    func testMatchWithMultipleInstancesOfSameTypeInAllIsError() {
+    func testAll_WithMultipleInstancesOfSameTypeIsError() {
         assertDuplicateTypes(Match(all: P.a, P.b))
     }
     
-    func testIsErrorWhenFirstMatchIsError() {
+    func testAll_PrependedWithMultipleInstancesOfSameTypeIsError() {
         assertDuplicateTypes(Match().prepend(Match(all: P.a, P.b)))
     }
         
-    func testIsErrorWhenNextMatchIsError() {
+    func testAll_WithMultipleInstancesOfSameTypePrependedWithValidIsError() {
         assertDuplicateTypes(Match(all: P.a, P.b).prepend(Match()))
     }
     
@@ -175,7 +184,12 @@ class ValidationTests: MatchTests {
         line: UInt = #line
     ) {
         assertThrows(m1.prepend(m2), line: line) {
-            XCTAssertEqual($0 as! MatchError,
+            guard let error = $0 as? DuplicateTypes else {
+                XCTFail("Unexpected error \($0)", line: line)
+                return
+            }
+            
+            XCTAssertEqual(error,
                            DuplicateTypes(message: "P.a, P.b",
                                           files: [m1.file, m2.file],
                                           lines: [m1.line, m2.line]),
@@ -183,14 +197,19 @@ class ValidationTests: MatchTests {
         }
     }
     
-    func testMatchFormingDuplicateTypesOnFinaliseIsError() {
+    func testAll_CombinationFormingDuplicateTypesIsError() {
         assertCombinedDuplicateTypes(Match(P.a),
                                      prepend: Match(P.b))
     }
     
-    func testCobminedInvalidMatchesProduceErrorWithBothFilesAndLines() {
+    func testAll_CombinationOfInvalidMatchesIsError() {
         assertCombinedDuplicateTypes(Match(all: P.a, P.b),
                                      prepend: Match(all: P.a, P.b))
+    }
+    
+    func testAny_All_CombinationFormingDuplicateTypesIsError() {
+        assertCombinedDuplicateTypes(Match(all: P.a, Q.a),
+                                     prepend: Match(all: P.a, Q.a))
     }
     
     func assertDuplicateValues(
@@ -203,7 +222,12 @@ class ValidationTests: MatchTests {
         let lines = m2 == nil ? [m1.line] : [m1.line, m2!.line]
         
         assertThrows(match, line: line) {
-            XCTAssertEqual($0 as! MatchError,
+            guard let error = $0 as? DuplicateValues else {
+                XCTFail("Unexpected error \($0)", line: line)
+                return
+            }
+            
+            XCTAssertEqual(error,
                            DuplicateValues(message: "P.a",
                                            files: files,
                                            lines: lines),
@@ -211,18 +235,13 @@ class ValidationTests: MatchTests {
         }
     }
     
-    func testMatchWithSamePredicateInAnyAndAllIsError() {
-        assertDuplicateValues(Match(any: P.a, P.b, all: P.a, Q.a))
-    }
-    
-    func testMatchAnyFormingDuplicateValuesOnFinaliseIsError() {
+    func testAny_CombinationFormingDuplicateValuesIsError() {
         assertDuplicateValues(Match(any: P.a, P.b),
                               prepend: Match(any: P.a, P.b))
     }
     
-    func testMatchAllFormingDuplicateValuesOnFinaliseIsError() {
-        assertDuplicateValues(Match(all: P.a, Q.a),
-                              prepend: Match(all: P.a, Q.a))
+    func testAny_All_WithSamePredicateIsError() {
+        assertDuplicateValues(Match(any: P.a, P.b, all: P.a, Q.a))
     }
 }
 
@@ -324,7 +343,7 @@ extension Match: CustomStringConvertible {
     }
 }
 
-extension Match: Hashable {
+extension Match: Equatable {
     public static func == (lhs: Match, rhs: Match) -> Bool {
         guard lhs.matchAny.count == rhs.matchAny.count else { return false }
         guard lhs.matchAll.count == rhs.matchAll.count else { return false }
@@ -338,11 +357,6 @@ extension Match: Hashable {
         }
         
         return true
-    }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(matchAny)
-        hasher.combine(matchAll)
     }
 }
 

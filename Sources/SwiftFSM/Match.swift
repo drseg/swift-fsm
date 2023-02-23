@@ -12,7 +12,10 @@ class Match {
     typealias MatchResult = Result<Match, MatchError>
     
     static func + (lhs: Match, rhs: Match) -> Match {
-        lhs.add(any: rhs.matchAny, all: rhs.matchAll)
+        .init(any: lhs.matchAny + rhs.matchAny,
+              all: lhs.matchAll + rhs.matchAll,
+              file: lhs.file,
+              line: lhs.line)
     }
     
     let matchAny: [AnyPredicate]
@@ -28,10 +31,7 @@ class Match {
         file: String = #file,
         line: Int = #line
     ) {
-        self.init(any: [],
-                  all: p,
-                  file: file,
-                  line: line)
+        self.init(any: [], all: p, file: file, line: line)
     }
     
     convenience init(
@@ -106,63 +106,58 @@ class Match {
     }
     
     func finalise() -> MatchResult {
-        guard let next else {
-            return validate(self)
-        }
+        guard let next else { return validate(self) }
         
-        let thisResult = validate(self)
-        let nextResult = next.finalise()
+        let firstResult = validate(self)
+        let restResult = next.finalise()
         
-        switch (thisResult, nextResult) {
-        case (.success, .success(let next)):
-            let additionResult = validate(self + next)
+        switch (firstResult, restResult) {
+        case (.success, .success(let rest)):
+            let combinedResult = validate(self + rest)
             
-            if case .failure = additionResult {
-                return additionResult.append(files: [next.file],
-                                             lines: [next.line])
+            if case .failure = combinedResult {
+                return combinedResult.append(file: rest.file, line: rest.line)
             }
-            return additionResult
+            return combinedResult
             
-        case (.failure, .failure(let f)):
-            return thisResult.append(files: f.files, lines: f.lines)
+        case (.failure, .failure(let e)):
+            return firstResult.append(files: e.files, lines: e.lines)
             
         case (.success, .failure):
-            return nextResult
+            return restResult
             
         case (.failure, .success):
-            return thisResult
+            return firstResult
         }
     }
     
     private func validate(_ m: Match) -> MatchResult {
+        func failure<C: Collection>(
+            predicates: C,
+            type: MatchError.Type
+        ) -> MatchResult where C.Element == AnyPredicate {
+            .failure(type.init(message: predicates.formattedDescription(),
+                               files: [file],
+                               lines: [line]))
+        }
+        
         guard m.matchAll.elementsAreUniquelyTyped else {
-            let message = m.matchAll.formattedDescription()
-            return .failure(DuplicateTypes(message: message,
-                                           files: [file],
-                                           lines: [line]))
+            return failure(predicates: m.matchAll,
+                           type: DuplicateTypes.self)
         }
         
         guard m.matchAny.elementsAreUnique else {
-            let message = m.matchAny.formattedDescription()
-            return .failure(DuplicateValues(message: message,
-                                            files: [file],
-                                            lines: [line]))
+            return failure(predicates: m.matchAny,
+                           type: DuplicateValues.self)
         }
-        
-        let intersection = Set(m.matchAll).intersection(Set(m.matchAny))
+                
+        let intersection = matchAll.filter { matchAny.contains($0) }
         guard intersection.isEmpty else {
-            let message = intersection.formattedDescription()
-            return .failure(DuplicateValues(message: message,
-                                            files: [file],
-                                            lines: [line]))
+            return failure(predicates: intersection,
+                           type: DuplicateValues.self)
         }
         
         return .success(m)
-    }
-
-    private func add(any: [AnyPredicate], all: [AnyPredicate]) -> Match {
-        .init(any: matchAny + any,
-              all: matchAll + all)
     }
     
     private func emptySets() -> PredicateSets {
@@ -202,9 +197,13 @@ class DuplicateTypes: MatchError {}
 class DuplicateValues: MatchError {}
 
 extension Result<Match, MatchError> {
+    func append(file: String, line: Int) -> Self {
+        append(files: [file], lines: [line])
+    }
+    
     func append(files: [String], lines: [Int]) -> Self {
-        if case .failure(let failure) = self {
-            return .failure(failure.append(files: files, lines: lines))
+        if case .failure(let error) = self {
+            return .failure(error.append(files: files, lines: lines))
         }
         
         return self
@@ -226,7 +225,8 @@ extension Collection {
 }
 
 extension Collection
-where Element: Collection, Element: Hashable, Element.Element: Hashable {
+where Element: Collection & Hashable, Element.Element: Hashable
+{
     var asSets: Set<Set<Element.Element>> {
         Set(map(Set.init)).removeEmpties
     }
