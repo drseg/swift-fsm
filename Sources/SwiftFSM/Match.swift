@@ -7,35 +7,90 @@
 import Foundation
 
 class Match {
-    typealias PredicateSets = Set<Set<AnyPredicate>>
+    typealias PredicateSets = Set<PredicateSet>
+    typealias PredicateSet = Set<AnyPredicate>
+    typealias MatchResult = Result<Match, MatchError>
     
     static func + (lhs: Match, rhs: Match) -> Match {
         lhs.add(any: rhs.matchAny, all: rhs.matchAll)
     }
     
-    let matchAny: Set<AnyPredicate>
-    let matchAll: Set<AnyPredicate>
+    let matchAny: [AnyPredicate]
+    let matchAll: [AnyPredicate]
     
     let file: String
     let line: Int
     
     private var next: Match? = nil
-        
+    
     init(
-        any: [any PredicateProtocol] = [],
-        all: [any PredicateProtocol] = [],
+        _ p: any PredicateProtocol...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.matchAll = Set(all.erase())
-        self.matchAny = Set(any.erase())
+        self.matchAny = []
+        self.matchAll = p.erase()
         self.file = file
         self.line = line
     }
     
     init(
-        any: Set<AnyPredicate>,
-        all: Set<AnyPredicate>,
+        any: any PredicateProtocol,
+        _ any2: any PredicateProtocol,
+        _ anyRest: any PredicateProtocol...,
+        all: any PredicateProtocol,
+        _ all2: any PredicateProtocol,
+        _ allRest: any PredicateProtocol...,
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.matchAny = [any.erase(), any2.erase()] + anyRest.erase()
+        self.matchAll = [all.erase(), all2.erase()] + allRest.erase()
+        self.file = file
+        self.line = line
+    }
+    
+    init(
+        any: any PredicateProtocol,
+        _ any2: any PredicateProtocol,
+        _ anyRest: any PredicateProtocol...,
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.matchAny = [any.erase(), any2.erase()] + anyRest.erase()
+        self.matchAll = []
+        self.file = file
+        self.line = line
+    }
+    
+    init(
+        all: any PredicateProtocol,
+        _ all2: any PredicateProtocol,
+        _ allRest: any PredicateProtocol...,
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.matchAny = []
+        self.matchAll = [all.erase(), all2.erase()] + allRest.erase()
+        self.file = file
+        self.line = line
+    }
+        
+    init(
+        any: [any PredicateProtocol],
+        all: [any PredicateProtocol],
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.matchAny = any.erase()
+        self.matchAll = all.erase()
+        self.file = file
+        self.line = line
+    }
+    
+    init(
+        any: [AnyPredicate],
+        all: [AnyPredicate],
         file: String = #file,
         line: Int = #line
     ) {
@@ -50,40 +105,64 @@ class Match {
         return m
     }
     
-    func finalise() -> Result<Match, MatchError> {
-        guard let nextResult = next?.finalise() else {
+    func finalise() -> MatchResult {
+        guard let next else {
             return validate(self)
         }
         
-        if case .success(let success) = nextResult {
-            return validate(self + success)
-        }
+        let thisResult = validate(self)
+        let nextResult = next.finalise()
         
-        return nextResult
+        switch (thisResult, nextResult) {
+        case (.success, .success(let next)):
+            let additionResult = validate(self + next)
+            
+            if case .failure = additionResult {
+                return additionResult.append(files: [next.file],
+                                             lines: [next.line])
+            }
+            return additionResult
+            
+        case (.failure, .failure(let f)):
+            return thisResult.append(files: f.files, lines: f.lines)
+            
+        case (.success, .failure):
+            return nextResult
+            
+        case (.failure, .success):
+            return thisResult
+        }
     }
     
-    private func validate(_ m: Match) -> Result<Match, MatchError> {
+    private func validate(_ m: Match) -> MatchResult {
         guard m.matchAll.elementsAreUniquelyTyped else {
             let message = m.matchAll.formattedDescription()
-            return .failure(.duplicateTypes(message: message,
-                                            file: file,
-                                            line: line))
+            return .failure(DuplicateTypes(message: message,
+                                           files: [file],
+                                           lines: [line]))
         }
         
-        let intersection = m.matchAll.intersection(m.matchAny)
+        guard m.matchAny.elementsAreUnique else {
+            let message = m.matchAny.formattedDescription()
+            return .failure(DuplicateValues(message: message,
+                                            files: [file],
+                                            lines: [line]))
+        }
+        
+        let intersection = Set(m.matchAll).intersection(Set(m.matchAny))
         guard intersection.isEmpty else {
             let message = intersection.formattedDescription()
-            return .failure(.duplicateValues(message: message,
-                                             file: file,
-                                             line: line))
+            return .failure(DuplicateValues(message: message,
+                                            files: [file],
+                                            lines: [line]))
         }
         
         return .success(m)
     }
 
-    private func add(any: Set<AnyPredicate>, all: Set<AnyPredicate>) -> Match {
-        .init(any: matchAny.union(any),
-              all: matchAll.union(all))
+    private func add(any: [AnyPredicate], all: [AnyPredicate]) -> Match {
+        .init(any: matchAny + any,
+              all: matchAll + all)
     }
     
     private func emptySets() -> PredicateSets {
@@ -101,20 +180,34 @@ class Match {
     }
 }
 
-enum MatchError: Error, Equatable {
-    case duplicateTypes(message: String, file: String, line: Int)
-    case duplicateValues(message: String, file: String, line: Int)
-    case unknownError
-}
-
-extension Match: Hashable {
-    static func == (lhs: Match, rhs: Match) -> Bool {
-        lhs.matchAny == rhs.matchAny && lhs.matchAll == rhs.matchAll
+class MatchError: Error {
+    let message: String
+    let files: [String]
+    let lines: [Int]
+    
+    required init(message: String, files: [String], lines: [Int]) {
+        self.message = message
+        self.files = files
+        self.lines = lines
     }
     
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(matchAny)
-        hasher.combine(matchAll)
+    func append(files: [String], lines: [Int]) -> Self {
+        Self.init(message: message,
+                  files: self.files + files,
+                  lines: self.lines + lines)
+    }
+}
+
+class DuplicateTypes: MatchError {}
+class DuplicateValues: MatchError {}
+
+extension Result<Match, MatchError> {
+    func append(files: [String], lines: [Int]) -> Self {
+        if case .failure(let failure) = self {
+            return .failure(failure.append(files: files, lines: lines))
+        }
+        
+        return self
     }
 }
 
@@ -122,7 +215,9 @@ extension Set {
     static func + (lhs: Self, rhs: Self) -> Self {
         lhs.union(rhs)
     }
-    
+}
+
+extension Collection {
     func formattedDescription() -> String where Element == AnyPredicate {
         map(\.description)
             .sorted()

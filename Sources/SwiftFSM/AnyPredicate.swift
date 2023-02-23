@@ -57,6 +57,10 @@ extension Array {
 }
 
 extension Collection where Element == AnyPredicate {
+    var elementsAreUnique: Bool {
+        Set(self).count == count
+    }
+    
     var elementsAreUniquelyTyped: Bool {
         uniqueElementTypes.count == count
     }
