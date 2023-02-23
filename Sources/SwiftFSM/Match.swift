@@ -23,18 +23,18 @@ class Match {
     
     private var next: Match? = nil
     
-    init(
+    convenience init(
         _ p: any PredicateProtocol...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.matchAny = []
-        self.matchAll = p.erase()
-        self.file = file
-        self.line = line
+        self.init(any: [],
+                  all: p,
+                  file: file,
+                  line: line)
     }
     
-    init(
+    convenience init(
         any: any PredicateProtocol,
         _ any2: any PredicateProtocol,
         _ anyRest: any PredicateProtocol...,
@@ -44,48 +44,48 @@ class Match {
         file: String = #file,
         line: Int = #line
     ) {
-        self.matchAny = [any.erase(), any2.erase()] + anyRest.erase()
-        self.matchAll = [all.erase(), all2.erase()] + allRest.erase()
-        self.file = file
-        self.line = line
+        self.init(any: [any.erase(), any2.erase()] + anyRest.erase(),
+                  all: [all.erase(), all2.erase()] + allRest.erase(),
+                  file: file,
+                  line: line)
     }
     
-    init(
+    convenience init(
         any: any PredicateProtocol,
         _ any2: any PredicateProtocol,
         _ anyRest: any PredicateProtocol...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.matchAny = [any.erase(), any2.erase()] + anyRest.erase()
-        self.matchAll = []
-        self.file = file
-        self.line = line
+        self.init(any: [any.erase(), any2.erase()] + anyRest.erase(),
+                  all: [],
+                  file: file,
+                  line: line)
     }
     
-    init(
+    convenience init(
         all: any PredicateProtocol,
         _ all2: any PredicateProtocol,
         _ allRest: any PredicateProtocol...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.matchAny = []
-        self.matchAll = [all.erase(), all2.erase()] + allRest.erase()
-        self.file = file
-        self.line = line
+        self.init(any: [],
+                  all: [all.erase(), all2.erase()] + allRest.erase(),
+                  file: file,
+                  line: line)
     }
         
-    init(
+    convenience init(
         any: [any PredicateProtocol],
         all: [any PredicateProtocol],
         file: String = #file,
         line: Int = #line
     ) {
-        self.matchAny = any.erase()
-        self.matchAll = all.erase()
-        self.file = file
-        self.line = line
+        self.init(any: any.erase(),
+                  all: all.erase(),
+                  file: file,
+                  line: line)
     }
     
     init(
