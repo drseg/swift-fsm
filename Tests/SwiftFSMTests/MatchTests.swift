@@ -8,12 +8,13 @@ import XCTest
 @testable import SwiftFSM
 
 class MatchTests: XCTestCase {
-    let p1: AnyHashable = "P1",         p2: AnyHashable = "P2"
-    let q1: AnyHashable = 1,            q2: AnyHashable = 2
-    let r1: AnyHashable = 1.1,          r2: AnyHashable = 2.2
-    let s1: AnyHashable = true,         s2: AnyHashable = false
-    let t1: AnyHashable = ["T1"],       t2: AnyHashable = ["T2"]
-    let u1: AnyHashable = ["U1": "U1"], u2: AnyHashable = ["U2": "U2"]
+    // types irrelevant as long as each row is uniquely typed
+    let p1: AnyHashable = "P1",            p2: AnyHashable = "P2"
+    let q1: AnyHashable = ["Q1": 1],       q2: AnyHashable = ["Q2": 2]
+    let r1: AnyHashable = [1: "R1"],       r2: AnyHashable = [2: "R2"]
+    let s1: AnyHashable = Substring("S1"), s2: AnyHashable = Substring("S2")
+    let t1: AnyHashable = ["T1"],          t2: AnyHashable = ["T2"]
+    let u1: AnyHashable = ["U1": "U1"],    u2: AnyHashable = ["U2": "U2"]
 }
 
 class BasicTests: MatchTests {
