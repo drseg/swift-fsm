@@ -75,14 +75,14 @@ class Match {
     }
     
     func finalise() -> MatchResult {
-        guard let next else { return validate(self) }
+        guard let next else { return self.validate() }
         
-        let firstResult = validate(self)
+        let firstResult = self.validate()
         let restResult = next.finalise()
         
         switch (firstResult, restResult) {
         case (.success, .success(let rest)):
-            let combinedResult = validate(self + rest)
+            let combinedResult = (self + rest).validate()
             
             if case .failure = combinedResult {
                 return combinedResult.append(file: rest.file, line: rest.line)
@@ -100,21 +100,23 @@ class Match {
         }
     }
     
-    private func validate(_ m: Match) -> MatchResult {
-        func failure<C: Collection>(predicates: C, type: MatchError.Type) -> MatchResult
-        where C.Element == AnyH {
+    private func validate() -> MatchResult {
+        func failure<C: Collection>(
+            predicates: C,
+            type: MatchError.Type
+        ) -> MatchResult where C.Element == AnyH {
             .failure(type.init(message: predicates.formattedDescription(),
                                files: [file],
                                lines: [line]))
         }
         
-        guard m.matchAll.elementsAreUniquelyTyped else {
-            return failure(predicates: m.matchAll,
+        guard matchAll.elementsAreUniquelyTyped else {
+            return failure(predicates: matchAll,
                            type: DuplicateTypes.self)
         }
         
-        guard m.matchAny.elementsAreUnique else {
-            return failure(predicates: m.matchAny,
+        guard matchAny.elementsAreUnique else {
+            return failure(predicates: matchAny,
                            type: DuplicateValues.self)
         }
                 
@@ -124,7 +126,7 @@ class Match {
                            type: DuplicateValues.self)
         }
         
-        return .success(m)
+        return .success(self)
     }
 }
 

@@ -8,7 +8,7 @@ import XCTest
 @testable import SwiftFSM
 
 class MatchTests: XCTestCase {
-    // types irrelevant as long as each row is uniquely typed
+    // base types irrelevant as long as each row is uniquely typed
     let p1: AnyHashable = "P1",            p2: AnyHashable = "P2"
     let q1: AnyHashable = ["Q1": 1],       q2: AnyHashable = ["Q2": 2]
     let r1: AnyHashable = [1: "R1"],       r2: AnyHashable = [2: "R2"]
@@ -20,17 +20,22 @@ class MatchTests: XCTestCase {
 class BasicTests: MatchTests {
     func testEquatable() {
         XCTAssertEqual(Match(), Match())
+        
         XCTAssertEqual(Match(any: p1, p2, all: q1, r1),
                        Match(any: p1, p2, all: q1, r1))
+        
         XCTAssertEqual(Match(any: p1, p2, all: q1, r1),
                        Match(any: p2, p1, all: r1, q1))
         
         XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1),
                           Match(any: p1, s2, all: q1, r1))
+        
         XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1),
                           Match(any: p1, p2, all: q1, s1))
+        
         XCTAssertNotEqual(Match(any: p1, p2, p2, all: q1, r1),
                           Match(any: p1, p2, all: q1, r1))
+        
         XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1, r1),
                           Match(any: p1, p2, all: q1, r1))
     }
@@ -132,8 +137,7 @@ class FinalisationTests: MatchTests {
         
         100 * { match = match.prepend(Match()) }
         
-        XCTAssertEqual(Match(p1),
-                       try! match.finalise().get())
+        XCTAssertEqual(Match(p1), try! match.finalise().get())
     }
 }
 
@@ -147,27 +151,26 @@ class ValidationTests: MatchTests {
         }
     }
     
-    func assertDuplicateTypes(_ m1: Match, line: UInt = #line) {
+    func assertHasDuplicateTypes(_ m1: Match, line: UInt = #line) {
         let error = DuplicateTypes(message: "p1, p2",
                                    files: [m1.file],
                                    lines: [m1.line])
         assertThrows(error, match: m1, line: line)
     }
     
-    
     func testAll_WithMultipleInstancesOfSameTypeIsError() {
-        assertDuplicateTypes(Match(all: p1, p2))
+        assertHasDuplicateTypes(Match(all: p1, p2))
     }
     
     func testAll_PrependedWithMultipleInstancesOfSameTypeIsError() {
-        assertDuplicateTypes(Match().prepend(Match(all: p1, p2)))
+        assertHasDuplicateTypes(Match().prepend(Match(all: p1, p2)))
     }
         
     func testAll_WithMultipleInstancesOfSameTypePrependedWithValidIsError() {
-        assertDuplicateTypes(Match(all: p1, p2).prepend(Match()))
+        assertHasDuplicateTypes(Match(all: p1, p2).prepend(Match()))
     }
     
-    func assertCombinedDuplicateTypes(_ m1: Match, prepend m2: Match, line: UInt = #line) {
+    func assertCombinationHasDuplicateTypes(_ m1: Match, prepend m2: Match, line: UInt = #line) {
         let expected = DuplicateTypes(message: "p1, p2",
                                       files: [m1.file, m2.file],
                                       lines: [m1.line, m2.line])
@@ -176,28 +179,29 @@ class ValidationTests: MatchTests {
     }
     
     func testAll_CombinationFormingDuplicateTypesIsError() {
-        assertCombinedDuplicateTypes(Match(p1),
-                                     prepend: Match(p2))
+        assertCombinationHasDuplicateTypes(Match(p1),
+                                           prepend: Match(p2))
     }
     
     func testAll_CombinationOfInvalidMatchesIsError() {
-        assertCombinedDuplicateTypes(Match(all: p1, p2),
-                                     prepend: Match(all: p1, p2))
+        assertCombinationHasDuplicateTypes(Match(all: p1, p2),
+                                           prepend: Match(all: p1, p2))
     }
     
     func testAny_All_CombinationFormingDuplicateTypesIsError() {
-        assertCombinedDuplicateTypes(Match(all: p1, q1),
-                                     prepend: Match(all: p1, q1))
+        assertCombinationHasDuplicateTypes(Match(all: p1, q1),
+                                           prepend: Match(all: p1, q1))
     }
     
-    func assertDuplicateValues(_ m: Match, line: UInt = #line) {
+    func assertHasDuplicateValues(_ m: Match, line: UInt = #line) {
         let expected =  DuplicateValues(message: "p1",
                                         files: [m.file],
                                         lines: [m.line])
+        
         assertThrows(expected, match: m, line: line)
     }
     
-    func assertCombinedDuplicateValues(_ m1: Match, prepend m2: Match, line: UInt = #line) {
+    func assertCombinationHasDuplicateValues(_ m1: Match, prepend m2: Match, line: UInt = #line) {
         let expected =  DuplicateValues(message: "p1, p2",
                                         files: [m1.file, m2.file],
                                         lines: [m1.line, m2.line])
@@ -206,12 +210,17 @@ class ValidationTests: MatchTests {
     }
     
     func testAny_All_WithSamePredicateIsError() {
-        assertDuplicateValues(Match(any: p1, p2, all: p1, q1))
+        assertHasDuplicateValues(Match(any: p1, p2, all: p1, q1))
+    }
+    
+    func testAny_PrependedWithAllWithSamePredicateIsError() {
+        assertCombinationHasDuplicateValues(Match(any: p1, p2),
+                                            prepend: Match(all: p1, q1))
     }
     
     func testAny_CombinationFormingDuplicateValuesIsError() {
-        assertCombinedDuplicateValues(Match(any: p1, p2),
-                                      prepend: Match(any: p1, p2))
+        assertCombinationHasDuplicateValues(Match(any: p1, p2),
+                                            prepend: Match(any: p1, p2))
     }
 }
 
@@ -223,16 +232,11 @@ extension Match: CustomStringConvertible {
 
 extension Match: Equatable {
     public static func == (lhs: Match, rhs: Match) -> Bool {
-        guard lhs.matchAny.count == rhs.matchAny.count else { return false }
-        guard lhs.matchAll.count == rhs.matchAll.count else { return false }
+        guard lhs.matchAny.count == rhs.matchAny.count, lhs.matchAll.count == rhs.matchAll.count
+        else { return false }
         
-        for any in lhs.matchAny {
-            guard rhs.matchAny.contains(any) else { return false}
-        }
-        
-        for all in lhs.matchAll {
-            guard rhs.matchAll.contains(all) else { return false}
-        }
+        guard lhs.matchAny.allSatisfy({ rhs.matchAny.contains($0) }) else { return false }
+        guard lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) }) else { return false }
         
         return true
     }
@@ -240,7 +244,18 @@ extension Match: Equatable {
 
 extension MatchError: CustomStringConvertible {
     public var description: String {
-        "Message: \(message)\nFiles: \(files.map { URL(string: $0)!.lastPathComponent})\nLines: \(lines)"
+        String.build {
+            "Message: \(message)"
+            "Files: \(files.map { URL(string: $0)!.lastPathComponent})"
+            "Lines: \(lines)"
+        }
+    }
+}
+
+@resultBuilder struct StringBuilder: ResultBuilder { typealias T = String }
+extension String {
+    static func build(@StringBuilder _ b:  () -> [String]) -> String {
+        b().joined(separator: "\n")
     }
 }
 
@@ -254,7 +269,5 @@ extension MatchError: Equatable {
 infix operator *
 
 func * (lhs: Int, rhs: Action) {
-    for _ in 1...lhs {
-        rhs()
-    }
+    for _ in 1...lhs { rhs() }
 }
