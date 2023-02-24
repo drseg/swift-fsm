@@ -8,6 +8,7 @@ import Foundation
 
 class Match {
     typealias MatchResult = Result<Match, MatchError>
+    typealias AnyH = AnyHashable
     
     static func + (lhs: Match, rhs: Match) -> Match {
         .init(any: lhs.matchAny + rhs.matchAny,
@@ -16,70 +17,52 @@ class Match {
               line: lhs.line)
     }
     
-    let matchAny: [AnyHashable]
-    let matchAll: [AnyHashable]
+    let matchAny: [AnyH]
+    let matchAll: [AnyH]
     
     let file: String
     let line: Int
     
     private var next: Match? = nil
     
-    convenience init(
-        _ p: AnyHashable...,
-        file: String = #file,
-        line: Int = #line
-    ) {
+    convenience init(_ p: AnyH..., file: String = #file, line: Int = #line) {
         self.init(any: [], all: p, file: file, line: line)
     }
     
     convenience init(
-        any: AnyHashable,
-        _ any2: AnyHashable,
-        _ anyRest: AnyHashable...,
-        all: AnyHashable,
-        _ all2: AnyHashable,
-        _ allRest: AnyHashable...,
+        any: AnyH,
+        _ any2: AnyH,
+        _ anyRest: AnyH...,
+        all: AnyH,
+        _ all2: AnyH,
+        _ allRest: AnyH...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.init(any: [any, any2] + anyRest,
-                  all: [all, all2] + allRest,
-                  file: file,
-                  line: line)
+        self.init(any: [any, any2] + anyRest, all: [all, all2] + allRest, file: file, line: line)
     }
     
     convenience init(
-        any: AnyHashable,
-        _ any2: AnyHashable,
-        _ anyRest: AnyHashable...,
+        any: AnyH,
+        _ any2: AnyH,
+        _ anyRest: AnyH...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.init(any: [any, any2] + anyRest,
-                  all: [],
-                  file: file,
-                  line: line)
+        self.init(any: [any, any2] + anyRest, all: [], file: file, line: line)
     }
     
     convenience init(
-        all: AnyHashable,
-        _ all2: AnyHashable,
-        _ allRest: AnyHashable...,
+        all: AnyH,
+        _ all2: AnyH,
+        _ allRest: AnyH...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.init(any: [],
-                  all: [all, all2] + allRest,
-                  file: file,
-                  line: line)
+        self.init(any: [], all: [all, all2] + allRest, file: file, line: line)
     }
     
-    init(
-        any: [AnyHashable],
-        all: [AnyHashable],
-        file: String = #file,
-        line: Int = #line
-    ) {
+    init(any: [AnyH], all: [AnyH], file: String = #file, line: Int = #line) {
         self.matchAny = any
         self.matchAll = all
         self.file = file
@@ -118,10 +101,8 @@ class Match {
     }
     
     private func validate(_ m: Match) -> MatchResult {
-        func failure<C: Collection>(
-            predicates: C,
-            type: MatchError.Type
-        ) -> MatchResult where C.Element == AnyHashable {
+        func failure<C: Collection>(predicates: C, type: MatchError.Type) -> MatchResult
+        where C.Element == AnyH {
             .failure(type.init(message: predicates.formattedDescription(),
                                files: [file],
                                lines: [line]))
@@ -188,15 +169,13 @@ extension AnyHashable {
     }
 }
 
-extension Collection {
-    func formattedDescription() -> String where Element == AnyHashable {
+extension Collection where Element == AnyHashable {
+    func formattedDescription() -> String {
         map(\.description)
             .sorted()
             .joined(separator: ", ")
     }
-}
-
-extension Collection where Element == AnyHashable {
+    
     var elementsAreUnique: Bool {
         Set(self).count == count
     }

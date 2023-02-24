@@ -138,33 +138,22 @@ class FinalisationTests: MatchTests {
 }
 
 class ValidationTests: MatchTests {
-    func assertDuplicateTypes(
-        _ m1: Match,
-        line: UInt = #line
-    ) {
-        assertThrows(m1, line: line) {
-            guard let error = $0 as? DuplicateTypes else {
-                XCTFail("Unexpected error \($0)", line: line)
-                return
-            }
-            
-            XCTAssertEqual(error,
-                           DuplicateTypes(message: "p1, p2",
-                                          files: [m1.file],
-                                          lines: [m1.line]),
+    func assertThrows(_ e: MatchError, match m: Match, line: UInt = #line) {
+        XCTAssertThrowsError(try m.finalise().get(), line: line) {
+            XCTAssertEqual(String(describing: type(of: $0)),
+                           String(describing: type(of: e)),
                            line: line)
+            XCTAssertEqual($0 as? MatchError, e, line: line)
         }
     }
     
-    func assertThrows(
-        _ m: Match,
-        line: UInt = #line,
-        _ assertion: (Error) -> ()
-    ) {
-        XCTAssertThrowsError(try m.finalise().get(), line: line) {
-            assertion($0)
-        }
+    func assertDuplicateTypes(_ m1: Match, line: UInt = #line) {
+        let error = DuplicateTypes(message: "p1, p2",
+                                   files: [m1.file],
+                                   lines: [m1.line])
+        assertThrows(error, match: m1, line: line)
     }
+    
     
     func testAll_WithMultipleInstancesOfSameTypeIsError() {
         assertDuplicateTypes(Match(all: p1, p2))
@@ -178,23 +167,12 @@ class ValidationTests: MatchTests {
         assertDuplicateTypes(Match(all: p1, p2).prepend(Match()))
     }
     
-    func assertCombinedDuplicateTypes(
-        _ m1: Match,
-        prepend m2: Match,
-        line: UInt = #line
-    ) {
-        assertThrows(m1.prepend(m2), line: line) {
-            guard let error = $0 as? DuplicateTypes else {
-                XCTFail("Unexpected error \($0)", line: line)
-                return
-            }
-            
-            XCTAssertEqual(error,
-                           DuplicateTypes(message: "p1, p2",
-                                          files: [m1.file, m2.file],
-                                          lines: [m1.line, m2.line]),
-                           line: line)
-        }
+    func assertCombinedDuplicateTypes(_ m1: Match, prepend m2: Match, line: UInt = #line) {
+        let expected = DuplicateTypes(message: "p1, p2",
+                                      files: [m1.file, m2.file],
+                                      lines: [m1.line, m2.line])
+        
+        assertThrows(expected, match: m1.prepend(m2), line: line)
     }
     
     func testAll_CombinationFormingDuplicateTypesIsError() {
@@ -212,36 +190,28 @@ class ValidationTests: MatchTests {
                                      prepend: Match(all: p1, q1))
     }
     
-    func assertDuplicateValues(
-        _ m1: Match,
-        prepend m2: Match? = nil,
-        line: UInt = #line
-    ) {
-        let match = m2 == nil ? m1 : m1.prepend(m2!)
-        let files = m2 == nil ? [m1.file] : [m1.file, m2!.file]
-        let lines = m2 == nil ? [m1.line] : [m1.line, m2!.line]
-        
-        assertThrows(match, line: line) {
-            guard let error = $0 as? DuplicateValues else {
-                XCTFail("Unexpected error \($0)", line: line)
-                return
-            }
-            
-            XCTAssertEqual(error,
-                           DuplicateValues(message: "p1",
-                                           files: files,
-                                           lines: lines),
-                           line: line)
-        }
+    func assertDuplicateValues(_ m: Match, line: UInt = #line) {
+        let expected =  DuplicateValues(message: "p1",
+                                        files: [m.file],
+                                        lines: [m.line])
+        assertThrows(expected, match: m, line: line)
     }
     
-    func testAny_CombinationFormingDuplicateValuesIsError() {
-        assertDuplicateValues(Match(any: p1, p2),
-                              prepend: Match(any: p1, p2))
+    func assertCombinedDuplicateValues(_ m1: Match, prepend m2: Match, line: UInt = #line) {
+        let expected =  DuplicateValues(message: "p1, p2",
+                                        files: [m1.file, m2.file],
+                                        lines: [m1.line, m2.line])
+        
+        assertThrows(expected, match: m1.prepend(m2), line: line)
     }
     
     func testAny_All_WithSamePredicateIsError() {
         assertDuplicateValues(Match(any: p1, p2, all: p1, q1))
+    }
+    
+    func testAny_CombinationFormingDuplicateValuesIsError() {
+        assertCombinedDuplicateValues(Match(any: p1, p2),
+                                      prepend: Match(any: p1, p2))
     }
 }
 
