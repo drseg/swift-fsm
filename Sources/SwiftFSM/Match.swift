@@ -164,13 +164,19 @@ class Match {
         Set(arrayLiteral: Set([AnyPredicate]()))
     }
     
-    func allMatches(_ ps: PredicateSets) -> PredicateSets {
+    func allPredicatePermutations(_ ps: PredicateSets) -> PredicateSets {
         let anyAndAll = matchAny.reduce(into: emptySets()) {
             $0.insert(Set(matchAll) + [$1])
         }.removeEmpties ??? [matchAll].asSets
         
+        let includedTypes = (matchAny + matchAll).uniqueElementTypes
+        
         return ps.reduce(into: emptySets()) { result, p in
-            anyAndAll.forEach { result.insert(p + $0) }
+            var filtered = p
+            while let existing = filtered.first(where: { includedTypes.contains($0.type) }) {
+                filtered.remove(existing)
+            }
+            anyAndAll.forEach { result.insert(filtered + $0) }
         }.removeEmpties ??? ps ??? anyAndAll
     }
 }
@@ -225,8 +231,7 @@ extension Collection {
 }
 
 extension Collection
-where Element: Collection & Hashable, Element.Element: Hashable
-{
+where Element: Collection & Hashable, Element.Element: Hashable {
     var asSets: Set<Set<Element.Element>> {
         Set(map(Set.init)).removeEmpties
     }
