@@ -7,8 +7,6 @@
 import Foundation
 
 class Match {
-    typealias PredicateSets = Set<PredicateSet>
-    typealias PredicateSet = Set<AnyPredicate>
     typealias MatchResult = Result<Match, MatchError>
     
     static func + (lhs: Match, rhs: Match) -> Match {
@@ -18,8 +16,8 @@ class Match {
               line: lhs.line)
     }
     
-    let matchAny: [AnyPredicate]
-    let matchAll: [AnyPredicate]
+    let matchAny: [AnyHashable]
+    let matchAll: [AnyHashable]
     
     let file: String
     let line: Int
@@ -27,7 +25,7 @@ class Match {
     private var next: Match? = nil
     
     convenience init(
-        _ p: any PredicateProtocol...,
+        _ p: AnyHashable...,
         file: String = #file,
         line: Int = #line
     ) {
@@ -35,62 +33,50 @@ class Match {
     }
     
     convenience init(
-        any: any PredicateProtocol,
-        _ any2: any PredicateProtocol,
-        _ anyRest: any PredicateProtocol...,
-        all: any PredicateProtocol,
-        _ all2: any PredicateProtocol,
-        _ allRest: any PredicateProtocol...,
+        any: AnyHashable,
+        _ any2: AnyHashable,
+        _ anyRest: AnyHashable...,
+        all: AnyHashable,
+        _ all2: AnyHashable,
+        _ allRest: AnyHashable...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.init(any: [any.erase(), any2.erase()] + anyRest.erase(),
-                  all: [all.erase(), all2.erase()] + allRest.erase(),
+        self.init(any: [any, any2] + anyRest,
+                  all: [all, all2] + allRest,
                   file: file,
                   line: line)
     }
     
     convenience init(
-        any: any PredicateProtocol,
-        _ any2: any PredicateProtocol,
-        _ anyRest: any PredicateProtocol...,
+        any: AnyHashable,
+        _ any2: AnyHashable,
+        _ anyRest: AnyHashable...,
         file: String = #file,
         line: Int = #line
     ) {
-        self.init(any: [any.erase(), any2.erase()] + anyRest.erase(),
+        self.init(any: [any, any2] + anyRest,
                   all: [],
                   file: file,
                   line: line)
     }
     
     convenience init(
-        all: any PredicateProtocol,
-        _ all2: any PredicateProtocol,
-        _ allRest: any PredicateProtocol...,
+        all: AnyHashable,
+        _ all2: AnyHashable,
+        _ allRest: AnyHashable...,
         file: String = #file,
         line: Int = #line
     ) {
         self.init(any: [],
-                  all: [all.erase(), all2.erase()] + allRest.erase(),
-                  file: file,
-                  line: line)
-    }
-        
-    convenience init(
-        any: [any PredicateProtocol],
-        all: [any PredicateProtocol],
-        file: String = #file,
-        line: Int = #line
-    ) {
-        self.init(any: any.erase(),
-                  all: all.erase(),
+                  all: [all, all2] + allRest,
                   file: file,
                   line: line)
     }
     
     init(
-        any: [AnyPredicate],
-        all: [AnyPredicate],
+        any: [AnyHashable],
+        all: [AnyHashable],
         file: String = #file,
         line: Int = #line
     ) {
@@ -135,7 +121,7 @@ class Match {
         func failure<C: Collection>(
             predicates: C,
             type: MatchError.Type
-        ) -> MatchResult where C.Element == AnyPredicate {
+        ) -> MatchResult where C.Element == AnyHashable {
             .failure(type.init(message: predicates.formattedDescription(),
                                files: [file],
                                lines: [line]))
@@ -158,26 +144,6 @@ class Match {
         }
         
         return .success(m)
-    }
-    
-    private func emptySets() -> PredicateSets {
-        Set(arrayLiteral: Set([AnyPredicate]()))
-    }
-    
-    func allPredicatePermutations(_ ps: PredicateSets) -> PredicateSets {
-        let anyAndAll = matchAny.reduce(into: emptySets()) {
-            $0.insert(Set(matchAll) + [$1])
-        }.removeEmpties ??? [matchAll].asSets
-        
-        let includedTypes = (matchAny + matchAll).uniqueElementTypes
-        
-        return ps.reduce(into: emptySets()) { result, p in
-            var filtered = p
-            while let existing = filtered.first(where: { includedTypes.contains($0.type) }) {
-                filtered.remove(existing)
-            }
-            anyAndAll.forEach { result.insert(filtered + $0) }
-        }.removeEmpties ??? ps ??? anyAndAll
     }
 }
 
@@ -216,33 +182,30 @@ extension Result<Match, MatchError> {
     }
 }
 
-extension Set {
-    static func + (lhs: Self, rhs: Self) -> Self {
-        lhs.union(rhs)
+extension AnyHashable {
+    var type: String {
+        String(describing: Swift.type(of: base))
     }
 }
 
 extension Collection {
-    func formattedDescription() -> String where Element == AnyPredicate {
+    func formattedDescription() -> String where Element == AnyHashable {
         map(\.description)
             .sorted()
             .joined(separator: ", ")
     }
 }
 
-extension Collection
-where Element: Collection & Hashable, Element.Element: Hashable {
-    var asSets: Set<Set<Element.Element>> {
-        Set(map(Set.init)).removeEmpties
+extension Collection where Element == AnyHashable {
+    var elementsAreUnique: Bool {
+        Set(self).count == count
     }
     
-    var removeEmpties: Set<Element> {
-        Set(filter { !$0.isEmpty })
+    var elementsAreUniquelyTyped: Bool {
+        uniqueElementTypes.count == count
     }
-}
-
-infix operator ???: AdditionPrecedence
-
-func ???<T: Collection> (lhs: T, rhs: T) -> T {
-    lhs.isEmpty ? rhs : lhs
+    
+    var uniqueElementTypes: Set<String> {
+        Set(map(\.type))
+    }
 }

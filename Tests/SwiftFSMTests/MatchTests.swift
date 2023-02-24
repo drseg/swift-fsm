@@ -8,36 +8,35 @@ import XCTest
 @testable import SwiftFSM
 
 class MatchTests: XCTestCase {
-    enum P: PredicateProtocol { case a, b, c }
-    enum Q: PredicateProtocol { case a, b, c }
-    enum R: PredicateProtocol { case a, b, c }
-    enum S: PredicateProtocol { case a, b, c }
-    enum T: PredicateProtocol { case a, b, c }
-    enum U: PredicateProtocol { case a, b, c }
-    enum V: PredicateProtocol { case a, b, c }
+    let p1: AnyHashable = "P1",         p2: AnyHashable = "P2"
+    let q1: AnyHashable = 1,            q2: AnyHashable = 2
+    let r1: AnyHashable = 1.1,          r2: AnyHashable = 2.2
+    let s1: AnyHashable = true,         s2: AnyHashable = false
+    let t1: AnyHashable = ["T1"],       t2: AnyHashable = ["T2"]
+    let u1: AnyHashable = ["U1": "U1"], u2: AnyHashable = ["U2": "U2"]
 }
 
 class BasicTests: MatchTests {
     func testEquatable() {
         XCTAssertEqual(Match(), Match())
-        XCTAssertEqual(Match(any: P.a, P.b, all: Q.a, R.a),
-                       Match(any: P.a, P.b, all: Q.a, R.a))
-        XCTAssertEqual(Match(any: P.a, P.b, all: Q.a, R.a),
-                       Match(any: P.b, P.a, all: R.a, Q.a))
+        XCTAssertEqual(Match(any: p1, p2, all: q1, r1),
+                       Match(any: p1, p2, all: q1, r1))
+        XCTAssertEqual(Match(any: p1, p2, all: q1, r1),
+                       Match(any: p2, p1, all: r1, q1))
         
-        XCTAssertNotEqual(Match(any: P.a, P.b, all: Q.a, R.a),
-                          Match(any: P.a, S.b, all: Q.a, R.a))
-        XCTAssertNotEqual(Match(any: P.a, P.b, all: Q.a, R.a),
-                          Match(any: P.a, P.b, all: Q.a, S.a))
-        XCTAssertNotEqual(Match(any: P.a, P.b, P.b, all: Q.a, R.a),
-                          Match(any: P.a, P.b, all: Q.a, R.a))
-        XCTAssertNotEqual(Match(any: P.a, P.b, all: Q.a, R.a, R.a),
-                          Match(any: P.a, P.b, all: Q.a, R.a))
+        XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1),
+                          Match(any: p1, s2, all: q1, r1))
+        XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1),
+                          Match(any: p1, p2, all: q1, s1))
+        XCTAssertNotEqual(Match(any: p1, p2, p2, all: q1, r1),
+                          Match(any: p1, p2, all: q1, r1))
+        XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1, r1),
+                          Match(any: p1, p2, all: q1, r1))
     }
     
     func testSingleItemIsAll() {
-        let match = Match(P.a)
-        XCTAssertEqual(match.matchAll, [P.a.erase()])
+        let match = Match(p1)
+        XCTAssertEqual(match.matchAll, [p1])
         XCTAssertTrue(match.matchAny.isEmpty)
     }
 }
@@ -59,48 +58,48 @@ class AdditionTests: MatchTests {
     }
     
     func testAddingAnyToEmpty() {
-        XCTAssertEqual(Match() + Match(any: P.a, P.b),
-                       Match(any: P.a, P.b))
+        XCTAssertEqual(Match() + Match(any: p1, p2),
+                       Match(any: p1, p2))
     }
     
     func testAddingAllToEmpty() {
-        XCTAssertEqual(Match() + Match(P.a), Match(P.a))
+        XCTAssertEqual(Match() + Match(p1), Match(p1))
     }
     
     func testAddingAnyAndAllToEmpty() {
-        let addend = Match(any: P.a, P.b, all: Q.a, Q.b)
+        let addend = Match(any: p1, p2, all: q1, q2)
         XCTAssertEqual(Match() + addend, addend)
     }
     
     func testAddingAnytoAny() {
-        let m1 = Match(any: P.a, P.b)
-        let m2 = Match(any: Q.a, Q.b)
+        let m1 = Match(any: p1, p2)
+        let m2 = Match(any: q1, q2)
         
-        XCTAssertEqual(m1 + m2, Match(any: P.a, P.b, Q.a, Q.b))
+        XCTAssertEqual(m1 + m2, Match(any: p1, p2, q1, q2))
     }
     
     func testAddingAlltoAny() {
-        let m1 = Match(any: Q.a, Q.b)
-        let m2 = Match(all: P.a, P.b)
+        let m1 = Match(any: q1, q2)
+        let m2 = Match(all: p1, p2)
         
-        XCTAssertEqual(m1 + m2, Match(any: Q.a, Q.b,
-                                      all: P.a, P.b))
+        XCTAssertEqual(m1 + m2, Match(any: q1, q2,
+                                      all: p1, p2))
     }
     
     func testAddingAnyAndAlltoAny() {
-        let m1 = Match(any: Q.a, Q.b)
-        let m2 = Match(any: R.a, R.b, all: P.a, P.b)
+        let m1 = Match(any: q1, q2)
+        let m2 = Match(any: r1, r2, all: p1, p2)
         
-        XCTAssertEqual(m1 + m2, Match(any: Q.a, Q.b, R.a, R.b,
-                                      all: P.a, P.b))
+        XCTAssertEqual(m1 + m2, Match(any: q1, q2, r1, r2,
+                                      all: p1, p2))
     }
     
     func testAddingAnyAndAllToAnyAndAll() {
-        let m1 = Match(any: P.a, P.b, all: Q.a, Q.b)
-        let m2 = Match(any: R.a, R.b, all: S.a, S.b)
+        let m1 = Match(any: p1, p2, all: q1, q2)
+        let m2 = Match(any: r1, r2, all: s1, s2)
         
-        XCTAssertEqual(m1 + m2, Match(any: P.a, P.b, R.a, R.b,
-                                      all: Q.a, Q.b, S.a, S.b))
+        XCTAssertEqual(m1 + m2, Match(any: p1, p2, r1, r2,
+                                      all: q1, q2, s1, s2))
     }
 }
 
@@ -110,29 +109,29 @@ class FinalisationTests: MatchTests {
     }
 
     func testMatchFinalisesToItself() {
-        assertFinalise(Match(P.a),
-                       Match(P.a))
+        assertFinalise(Match(p1),
+                       Match(p1))
     }
 
     func testEmptyMatchWithNextFinalisesToNext() {
-        assertFinalise(Match().prepend(Match(any: P.a, P.b)),
-                       Match(any: P.a, P.b))
+        assertFinalise(Match().prepend(Match(any: p1, p2)),
+                       Match(any: p1, p2))
     }
     
     func testMatchWithNextFinalisesToSum() {
-        assertFinalise(Match(any: P.a, P.b,
-                             all: Q.a, R.a).prepend(Match(any: S.a, S.b,
-                                                          all: T.a, U.a)),
-                       Match(any: P.a, P.b, S.a, S.b,
-                             all: Q.a, R.a, T.a, U.a))
+        assertFinalise(Match(any: p1, p2,
+                             all: q1, r1).prepend(Match(any: s1, s2,
+                                                        all: t1, u1)),
+                       Match(any: p1, p2, s1, s2,
+                             all: q1, r1, t1, u1))
     }
     
     func testLongChain() {
-        var match = Match(P.a)
+        var match = Match(p1)
         
         100 * { match = match.prepend(Match()) }
         
-        XCTAssertEqual(Match(P.a),
+        XCTAssertEqual(Match(p1),
                        try! match.finalise().get())
     }
 }
@@ -149,7 +148,7 @@ class ValidationTests: MatchTests {
             }
             
             XCTAssertEqual(error,
-                           DuplicateTypes(message: "P.a, P.b",
+                           DuplicateTypes(message: "p1, p2",
                                           files: [m1.file],
                                           lines: [m1.line]),
                            line: line)
@@ -167,15 +166,15 @@ class ValidationTests: MatchTests {
     }
     
     func testAll_WithMultipleInstancesOfSameTypeIsError() {
-        assertDuplicateTypes(Match(all: P.a, P.b))
+        assertDuplicateTypes(Match(all: p1, p2))
     }
     
     func testAll_PrependedWithMultipleInstancesOfSameTypeIsError() {
-        assertDuplicateTypes(Match().prepend(Match(all: P.a, P.b)))
+        assertDuplicateTypes(Match().prepend(Match(all: p1, p2)))
     }
         
     func testAll_WithMultipleInstancesOfSameTypePrependedWithValidIsError() {
-        assertDuplicateTypes(Match(all: P.a, P.b).prepend(Match()))
+        assertDuplicateTypes(Match(all: p1, p2).prepend(Match()))
     }
     
     func assertCombinedDuplicateTypes(
@@ -190,7 +189,7 @@ class ValidationTests: MatchTests {
             }
             
             XCTAssertEqual(error,
-                           DuplicateTypes(message: "P.a, P.b",
+                           DuplicateTypes(message: "p1, p2",
                                           files: [m1.file, m2.file],
                                           lines: [m1.line, m2.line]),
                            line: line)
@@ -198,18 +197,18 @@ class ValidationTests: MatchTests {
     }
     
     func testAll_CombinationFormingDuplicateTypesIsError() {
-        assertCombinedDuplicateTypes(Match(P.a),
-                                     prepend: Match(P.b))
+        assertCombinedDuplicateTypes(Match(p1),
+                                     prepend: Match(p2))
     }
     
     func testAll_CombinationOfInvalidMatchesIsError() {
-        assertCombinedDuplicateTypes(Match(all: P.a, P.b),
-                                     prepend: Match(all: P.a, P.b))
+        assertCombinedDuplicateTypes(Match(all: p1, p2),
+                                     prepend: Match(all: p1, p2))
     }
     
     func testAny_All_CombinationFormingDuplicateTypesIsError() {
-        assertCombinedDuplicateTypes(Match(all: P.a, Q.a),
-                                     prepend: Match(all: P.a, Q.a))
+        assertCombinedDuplicateTypes(Match(all: p1, q1),
+                                     prepend: Match(all: p1, q1))
     }
     
     func assertDuplicateValues(
@@ -228,7 +227,7 @@ class ValidationTests: MatchTests {
             }
             
             XCTAssertEqual(error,
-                           DuplicateValues(message: "P.a",
+                           DuplicateValues(message: "p1",
                                            files: files,
                                            lines: lines),
                            line: line)
@@ -236,123 +235,12 @@ class ValidationTests: MatchTests {
     }
     
     func testAny_CombinationFormingDuplicateValuesIsError() {
-        assertDuplicateValues(Match(any: P.a, P.b),
-                              prepend: Match(any: P.a, P.b))
+        assertDuplicateValues(Match(any: p1, p2),
+                              prepend: Match(any: p1, p2))
     }
     
     func testAny_All_WithSamePredicateIsError() {
-        assertDuplicateValues(Match(any: P.a, P.b, all: P.a, Q.a))
-    }
-}
-
-class PermutationsTests: MatchTests {
-    func testAllEmpty() {
-        XCTAssertEqual(Match().allPredicatePermutations([]), [])
-    }
-    
-    func assertPermutations(
-        anyOf: [any PredicateProtocol] = [],
-        allOf: [any PredicateProtocol] = [],
-        with a: [[any PredicateProtocol]] = [],
-        expected: [[any PredicateProtocol]],
-        line: UInt = #line
-    ) {
-        let match = Match(any: anyOf, all: allOf)
-        XCTAssertEqual(match.allPredicatePermutations(a.map { $0.erase() }.asSets),
-                       expected.erasedSets,
-                       line: line)
-    }
-    
-    func testEmptyMatcher() {
-        assertPermutations(expected: [])
-    }
-    
-    func testAnyOfSinglePredicate() {
-        assertPermutations(anyOf: [P.a], expected: [[P.a]])
-    }
-    
-    func testAnyOfMultiPredicate() {
-        assertPermutations(anyOf: [P.a, P.b], expected: [[P.a], [P.b]])
-    }
-    
-    func testAllOfSingleType() {
-        assertPermutations(allOf: [P.a], expected: [[P.a]])
-    }
-    
-    func testAllOfMultiTypeM() {
-        assertPermutations(allOf: [P.a, Q.a], expected: [[P.a, Q.a]])
-    }
-    
-    func testCombinedAnyAndAll() {
-        assertPermutations(anyOf: [R.a, R.b],
-                           allOf: [P.a, Q.a],
-                           expected: [[P.a, Q.a, R.a],
-                                      [P.a, Q.a, R.b]])
-    }
-    
-    func testEmptyMatcherWithSingleOther() {
-        assertPermutations(with: [[P.a]],
-                           expected: [[P.a]])
-    }
-    
-    func testEmptyMatcherWithMultiOther() {
-        assertPermutations(with: [[P.a, Q.a]],
-                           expected: [[P.a, Q.a]])
-    }
-    
-    func testEmptyMatcherWithMultiMultiOther() {
-        assertPermutations(with: [[P.a, Q.a],
-                                  [P.a, Q.b]],
-                           expected: [[P.a, Q.a],
-                                      [P.a, Q.b]])
-    }
-    
-    func testAnyMatcherWithOther() {
-        assertPermutations(anyOf: [P.a, P.b],
-                           with: [[Q.a, R.a],
-                                  [Q.b, R.b]],
-                           expected: [[P.a, Q.a, R.a],
-                                      [P.a, Q.b, R.b],
-                                      [P.b, Q.a, R.a],
-                                      [P.b, Q.b, R.b]])
-    }
-    
-    func testAllMatcherWithOther() {
-        assertPermutations(allOf: [P.a, Q.a],
-                           with: [[R.a],
-                                  [R.b]],
-                           expected: [[P.a, Q.a, R.a],
-                                      [P.a, Q.a, R.b]])
-    }
-    
-    func testAnyAndAllMatcherWithOther() {
-        assertPermutations(anyOf: [Q.a, Q.b],
-                           allOf: [P.a],
-                           with: [[R.a],
-                                  [R.b]],
-                           expected: [[P.a, Q.a, R.a],
-                                      [P.a, Q.a, R.b],
-                                      [P.a, Q.b, R.a],
-                                      [P.a, Q.b, R.b]])
-    }
-        
-    func testAnyIgnoresTypesAlreadySpecified() {
-        assertPermutations(anyOf: [P.a],
-                           with: [[P.b, P.c, Q.a]],
-                           expected: [[P.a, Q.a]])
-    }
-    
-    func testAllIgnoresTypesAlreadySpecified() {
-        assertPermutations(allOf: [P.a],
-                           with: [[P.b, P.c, Q.a]],
-                           expected: [[P.a, Q.a]])
-    }
-    
-    func testAnyAllIgnoresTypesAlreadySpecified() {
-        assertPermutations(anyOf: [P.a],
-                           allOf: [R.a],
-                           with: [[P.b, P.c, R.b, Q.a]],
-                           expected: [[P.a, R.a, Q.a]])
+        assertDuplicateValues(Match(any: p1, p2, all: p1, q1))
     }
 }
 
@@ -389,12 +277,6 @@ extension MatchError: Equatable {
     public static func == (lhs: MatchError, rhs: MatchError) -> Bool {
         lhs.files.sorted() == rhs.files.sorted() &&
         lhs.lines.sorted() == rhs.lines.sorted()
-    }
-}
-
-extension Collection where Element == [any PredicateProtocol] {
-    var erasedSets: Set<Set<AnyPredicate>> {
-        Set(map { Set($0.erase()) })
     }
 }
 
