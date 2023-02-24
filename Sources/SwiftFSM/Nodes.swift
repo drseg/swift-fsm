@@ -10,26 +10,26 @@ protocol NodeBase {
     associatedtype Input
     associatedtype Output
         
-    func combineWithRest(_ rest: [Input]) -> [Output]
+    func combinedWithRest(_ rest: [Input]) -> [Output]
 }
 
 protocol UnsafeNode: NodeBase {
     var rest: [any UnsafeNode] { get }
-    func finalise() throws -> [Output]
+    func finalised() throws -> [Output]
 }
 
 @available(macOS 13, iOS 16, *)
 protocol Node<Output>: NodeBase {
     var rest: [any Node<Input>] { get }
-    func finalise() -> [Output]
+    func finalised() -> [Output]
 }
 
 extension UnsafeNode {
-    func finalise() throws -> [Output] {
-        try combineWithRest(rest.reduce(into: [Input]()) {
-            guard let finalised = try $1.finalise() as? [Input] else {
+    func finalised() throws -> [Output] {
+        try combinedWithRest(rest.reduce(into: [Input]()) {
+            guard let finalised = try $1.finalised() as? [Input] else {
                 throw """
-Error: \(type(of: try $1.finalise())) must equal Array<\(Input.self)>
+Error: \(type(of: try $1.finalised())) must equal Array<\(Input.self)>
     Self: \(type(of: self))
     Rest: \(rest.isEmpty ? "nil" : String(describing: type(of: rest.first!)))
 """
@@ -42,10 +42,10 @@ Error: \(type(of: try $1.finalise())) must equal Array<\(Input.self)>
 
 @available(macOS 13, iOS 16, *)
 extension Node {
-    func finalise() -> [Output] {
-        combineWithRest(
+    func finalised() -> [Output] {
+        combinedWithRest(
             rest.reduce(into: [Input]()) {
-                $0.append(contentsOf: $1.finalise())
+                $0.append(contentsOf: $1.finalised())
             }
         )
     }

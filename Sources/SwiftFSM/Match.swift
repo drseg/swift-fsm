@@ -85,12 +85,12 @@ class Match {
             let combinedResult = (self + rest).validate()
             
             if case .failure = combinedResult {
-                return combinedResult.append(file: rest.file, line: rest.line)
+                return combinedResult.appending(file: rest.file, line: rest.line)
             }
             return combinedResult
             
         case (.failure, .failure(let e)):
-            return firstResult.append(files: e.files, lines: e.lines)
+            return firstResult.appending(files: e.files, lines: e.lines)
             
         case (.success, .failure):
             return restResult
@@ -152,11 +152,11 @@ class DuplicateTypes: MatchError {}
 class DuplicateValues: MatchError {}
 
 extension Result<Match, MatchError> {
-    func append(file: String, line: Int) -> Self {
-        append(files: [file], lines: [line])
+    func appending(file: String, line: Int) -> Self {
+        appending(files: [file], lines: [line])
     }
     
-    func append(files: [String], lines: [Int]) -> Self {
+    func appending(files: [String], lines: [Int]) -> Self {
         if case .failure(let error) = self {
             return .failure(error.append(files: files, lines: lines))
         }

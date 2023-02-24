@@ -53,7 +53,7 @@ final class SwiftFSMTests: XCTestCase {
     
     func testEmptyFinalActions() {
         let n = FinalActionsNode(actions: [])
-        XCTAssertTrue(n.finalise().isEmpty)
+        XCTAssertTrue(n.finalised().isEmpty)
     }
     
     var actions: [Action] {
@@ -67,7 +67,7 @@ final class SwiftFSMTests: XCTestCase {
     
     func testFinalActionsFinalisesCorrectly() {
         let n = finalActionsNode
-        n.finalise().executeAll()
+        n.finalised().executeAll()
         XCTAssertEqual("12", actionsOutput)
     }
     
@@ -76,7 +76,7 @@ final class SwiftFSMTests: XCTestCase {
         thenState: AnyTraceable? = "S1",
         line: UInt = #line
     ) {
-        let result = t.finalise()
+        let result = t.finalised()
         XCTAssertEqual(1, result.count, line: line)
         XCTAssertEqual(thenState, result[0].state, line: line)
         XCTAssertTrue(result[0].actions.isEmpty, line: line)
@@ -104,7 +104,7 @@ final class SwiftFSMTests: XCTestCase {
         _ t: FinalThenNode,
         line: UInt = #line
     ) {
-        let result = t.finalise()
+        let result = t.finalised()
         XCTAssertEqual(1, result.count, line: line)
         XCTAssertEqual(result[0].state, s1, line: line)
         result.first!.actions.executeAll()
@@ -145,7 +145,7 @@ final class SwiftFSMTests: XCTestCase {
         node: FinalWhenNode,
         line: UInt
     ) {
-        let result = node.finalise()
+        let result = node.finalised()
         
         guard assertCount(actual: result.count, expected: 2, line: line) else {
             return
@@ -174,12 +174,12 @@ final class SwiftFSMTests: XCTestCase {
     
     func testEmptyFinalWhenNode() {
         let w = FinalWhenNode(events: [], rest: [])
-        XCTAssertTrue(w.finalise().isEmpty)
+        XCTAssertTrue(w.finalised().isEmpty)
     }
     
     func testEmptyFinalWhenNodeWithActions() {
         let w = FinalWhenNode(events: [], rest: [finalThenNode])
-        XCTAssertTrue(w.finalise().isEmpty)
+        XCTAssertTrue(w.finalised().isEmpty)
     }
     
     func testFinalWhenNodeWithEmptyRest() {
@@ -234,28 +234,28 @@ final class SwiftFSMTests: XCTestCase {
         node: GivenNode,
         line: UInt = #line
     ) {
-        let output = node.finalise()
+        let output = node.finalised()
         assertEqual(lhs: expected,
                     rhs: output.map { ($0.state, $0.event, $0.nextState) },
                     line: line)
         
-        output.map(\.actions).flatten.executeAll()
+        output.map(\.actions).flattened.executeAll()
         XCTAssertEqual(actionsOutput, actionsOutput, line: line)
     }
     
     func testEmptyGivenNode() {
         let g = GivenNode(states: [], rest: [])
-        XCTAssertTrue(g.finalise().isEmpty)
+        XCTAssertTrue(g.finalised().isEmpty)
     }
     
     func testGivenNodeWithEmptyStates() {
         let g = GivenNode(states: [], rest: [finalWhenNode])
-        XCTAssertTrue(g.finalise().isEmpty)
+        XCTAssertTrue(g.finalised().isEmpty)
     }
     
     func testGivenNodeWithEmptyRest() {
         let g = GivenNode(states: [s1, s2], rest: [])
-        XCTAssertTrue(g.finalise().isEmpty)
+        XCTAssertTrue(g.finalised().isEmpty)
     }
         
     func testGivenNodeFinalisesFillingInEmptyNextStates() {
@@ -325,12 +325,12 @@ final class SwiftFSMTests: XCTestCase {
     
     func testEmptyDefineNode() {
         let d = DefineNode(entryActions: [], exitActions: [], rest: [])
-        XCTAssertTrue(d.finalise().isEmpty)
+        XCTAssertTrue(d.finalised().isEmpty)
     }
     
     func testDefineNodeWithActionsButNoRest() {
         let d = DefineNode(entryActions: [{ }], exitActions: [{ }], rest: [])
-        XCTAssertTrue(d.finalise().isEmpty)
+        XCTAssertTrue(d.finalised().isEmpty)
     }
     
     func assertDefineNodeOutput(
@@ -339,7 +339,7 @@ final class SwiftFSMTests: XCTestCase {
         node: DefineNode,
         line: UInt = #line
     ) {
-        let output = node.finalise()
+        let output = node.finalised()
         assertEqual(lhs: expected,
                     rhs: output.map { ($0.state, $0.event, $0.nextState) },
                     line: line)

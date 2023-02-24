@@ -1,6 +1,5 @@
 //
-//  File.swift
-//  
+//  SwiftFSM.swift
 //
 //  Created by Daniel Segall on 19/02/2023.
 //
@@ -35,7 +34,7 @@ struct FinalActionsNode: Node {
     let actions: [Action]
     let rest: [any Node<Never>] = []
     
-    func combineWithRest(_ : [Never]) -> [Action] {
+    func combinedWithRest(_ : [Never]) -> [Action] {
         actions
     }
 }
@@ -46,7 +45,7 @@ struct FinalThenNode: Node {
     let state: AnyTraceable?
     var rest: [any Node<Input>] = []
     
-    func combineWithRest(_ rest: [FinalActionsNode.Output]) -> [ThenOutput] {
+    func combinedWithRest(_ rest: [FinalActionsNode.Output]) -> [ThenOutput] {
         [(state: state, actions: rest)]
     }
 }
@@ -59,7 +58,7 @@ struct FinalWhenNode: Node {
     let events: [AnyTraceable]
     var rest: [any Node<Input>] = []
     
-    func combineWithRest(_ rest: [FinalThenNode.Output]) -> [WhenOutput] {
+    func combinedWithRest(_ rest: [FinalThenNode.Output]) -> [WhenOutput] {
         events.reduce(into: [Output]()) {
             $0.append(
                 (event: $1,
@@ -79,7 +78,7 @@ struct GivenNode: Node {
     let states: [AnyTraceable]
     var rest: [any Node<WhenOutput>] = []
     
-    func combineWithRest(_ rest: [WhenOutput]) -> [Output] {
+    func combinedWithRest(_ rest: [WhenOutput]) -> [Output] {
         states.reduce(into: [Output]()) { result, state in
             rest.forEach {
                 result.append((state: state,
@@ -103,7 +102,7 @@ struct DefineNode: Node {
     let exitActions: [Action]
     var rest: [any Node<GivenNode.Output>] = []
     
-    func combineWithRest(_ rest: [GivenNode.Output]) -> [Output] {
+    func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         rest.reduce(into: [Output]()) {
             $0.append((state: $1.state,
                        event: $1.event,
@@ -122,8 +121,8 @@ struct EmptyBuilderBlockError: Error {
     let file: String
     let line: Int
     
-    init(callingFunction: String = #function, file: String, line: Int) {
-        self.callingFunction = String(callingFunction.prefix { $0 != "(" })
+    init(caller: String = #function, file: String, line: Int) {
+        self.callingFunction = String(caller.prefix { $0 != "(" })
         self.file = file
         self.line = line
     }

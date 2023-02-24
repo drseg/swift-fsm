@@ -20,12 +20,12 @@ extension ResultBuilder {
     }
     
     static func buildBlock(_ cs: [T]...) -> [T] {
-        cs.flatten
+        cs.flattened
     }
 }
 
 extension Collection where Element: Collection {
-    var flatten: [Element.Element] {
+    var flattened: [Element.Element] {
         flatMap { $0 }
     }
 }
