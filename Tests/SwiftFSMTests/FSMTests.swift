@@ -53,7 +53,7 @@ final class SwiftFSMTests: XCTestCase {
     
     func testEmptyFinalActions() {
         let n = FinalActionsNode(actions: [])
-        XCTAssertTrue(n.finalised().isEmpty)
+        XCTAssertTrue(n.finalised().0.isEmpty)
     }
     
     var actions: [Action] {
@@ -67,7 +67,7 @@ final class SwiftFSMTests: XCTestCase {
     
     func testFinalActionsFinalisesCorrectly() {
         let n = finalActionsNode
-        n.finalised().executeAll()
+        n.finalised().0.executeAll()
         XCTAssertEqual("12", actionsOutput)
     }
     
@@ -76,7 +76,7 @@ final class SwiftFSMTests: XCTestCase {
         thenState: AnyTraceable? = "S1",
         line: UInt = #line
     ) {
-        let result = t.finalised()
+        let result = t.finalised().0
         XCTAssertEqual(1, result.count, line: line)
         XCTAssertEqual(thenState, result[0].state, line: line)
         XCTAssertTrue(result[0].actions.isEmpty, line: line)
@@ -104,7 +104,7 @@ final class SwiftFSMTests: XCTestCase {
         _ t: FinalThenNode,
         line: UInt = #line
     ) {
-        let result = t.finalised()
+        let result = t.finalised().0
         XCTAssertEqual(1, result.count, line: line)
         XCTAssertEqual(result[0].state, s1, line: line)
         result.first!.actions.executeAll()
@@ -145,7 +145,7 @@ final class SwiftFSMTests: XCTestCase {
         node: FinalWhenNode,
         line: UInt
     ) {
-        let result = node.finalised()
+        let result = node.finalised().0
         
         guard assertCount(actual: result.count, expected: 2, line: line) else {
             return
@@ -174,12 +174,12 @@ final class SwiftFSMTests: XCTestCase {
     
     func testEmptyFinalWhenNode() {
         let w = FinalWhenNode(events: [], rest: [])
-        XCTAssertTrue(w.finalised().isEmpty)
+        XCTAssertTrue(w.finalised().0.isEmpty)
     }
     
     func testEmptyFinalWhenNodeWithActions() {
         let w = FinalWhenNode(events: [], rest: [finalThenNode])
-        XCTAssertTrue(w.finalised().isEmpty)
+        XCTAssertTrue(w.finalised().0.isEmpty)
     }
     
     func testFinalWhenNodeWithEmptyRest() {
@@ -234,7 +234,7 @@ final class SwiftFSMTests: XCTestCase {
         node: GivenNode,
         line: UInt = #line
     ) {
-        let output = node.finalised()
+        let output = node.finalised().0
         assertEqual(lhs: expected,
                     rhs: output.map { ($0.state, $0.event, $0.nextState) },
                     line: line)
@@ -245,17 +245,17 @@ final class SwiftFSMTests: XCTestCase {
     
     func testEmptyGivenNode() {
         let g = GivenNode(states: [], rest: [])
-        XCTAssertTrue(g.finalised().isEmpty)
+        XCTAssertTrue(g.finalised().0.isEmpty)
     }
     
     func testGivenNodeWithEmptyStates() {
         let g = GivenNode(states: [], rest: [finalWhenNode])
-        XCTAssertTrue(g.finalised().isEmpty)
+        XCTAssertTrue(g.finalised().0.isEmpty)
     }
     
     func testGivenNodeWithEmptyRest() {
         let g = GivenNode(states: [s1, s2], rest: [])
-        XCTAssertTrue(g.finalised().isEmpty)
+        XCTAssertTrue(g.finalised().0.isEmpty)
     }
         
     func testGivenNodeFinalisesFillingInEmptyNextStates() {
@@ -325,12 +325,12 @@ final class SwiftFSMTests: XCTestCase {
     
     func testEmptyDefineNode() {
         let d = DefineNode(entryActions: [], exitActions: [], rest: [])
-        XCTAssertTrue(d.finalised().isEmpty)
+        XCTAssertTrue(d.finalised().0.isEmpty)
     }
     
     func testDefineNodeWithActionsButNoRest() {
         let d = DefineNode(entryActions: [{ }], exitActions: [{ }], rest: [])
-        XCTAssertTrue(d.finalised().isEmpty)
+        XCTAssertTrue(d.finalised().0.isEmpty)
     }
     
     func assertDefineNodeOutput(
@@ -339,7 +339,7 @@ final class SwiftFSMTests: XCTestCase {
         node: DefineNode,
         line: UInt = #line
     ) {
-        let output = node.finalised()
+        let output = node.finalised().0
         assertEqual(lhs: expected,
                     rhs: output.map { ($0.state, $0.event, $0.nextState) },
                     line: line)
