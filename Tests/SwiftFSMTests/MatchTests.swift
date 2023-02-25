@@ -134,9 +134,7 @@ class FinalisationTests: MatchTests {
     
     func testLongChain() {
         var match = Match(p1)
-        
         100 * { match = match.prepend(Match()) }
-        
         XCTAssertEqual(Match(p1), try! match.finalise().get())
     }
 }
@@ -158,15 +156,12 @@ class ValidationTests: MatchTests {
         assertThrows(error, match: m1, line: line)
     }
     
-    func testAll_WithMultipleInstancesOfSameTypeIsError() {
+    func testAll_WithDuplicateTypes() {
         assertHasDuplicateTypes(Match(all: p1, p2))
     }
     
-    func testAll_PrependedWithMultipleInstancesOfSameTypeIsError() {
+    func testAll_CombiningAll_WithDuplicateTypes() {
         assertHasDuplicateTypes(Match().prepend(Match(all: p1, p2)))
-    }
-        
-    func testAll_WithMultipleInstancesOfSameTypePrependedWithValidIsError() {
         assertHasDuplicateTypes(Match(all: p1, p2).prepend(Match()))
     }
     
@@ -178,17 +173,12 @@ class ValidationTests: MatchTests {
         assertThrows(expected, match: m1.prepend(m2), line: line)
     }
     
-    func testAll_CombinationFormingDuplicateTypesIsError() {
-        assertCombinationHasDuplicateTypes(Match(p1),
-                                           prepend: Match(p2))
-    }
-    
-    func testAll_CombinationOfInvalidMatchesIsError() {
+    func testAllInvalid_CombiningAllInvalid() {
         assertCombinationHasDuplicateTypes(Match(all: p1, p2),
                                            prepend: Match(all: p1, p2))
     }
     
-    func testAny_All_CombinationFormingDuplicateTypesIsError() {
+    func testAll_CombiningAll_FormingDuplicateTypes() {
         assertCombinationHasDuplicateTypes(Match(all: p1, q1),
                                            prepend: Match(all: p1, q1))
     }
@@ -209,16 +199,16 @@ class ValidationTests: MatchTests {
         assertThrows(expected, match: m1.prepend(m2), line: line)
     }
     
-    func testAny_All_WithSamePredicateIsError() {
+    func testAny_All_WithSamePredicate() {
         assertHasDuplicateValues(Match(any: p1, p2, all: p1, q1))
     }
     
-    func testAny_PrependedWithAllWithSamePredicateIsError() {
+    func testAny_CombiningAll_FormingDuplicateValues() {
         assertCombinationHasDuplicateValues(Match(any: p1, p2),
                                             prepend: Match(all: p1, q1))
     }
     
-    func testAny_CombinationFormingDuplicateValuesIsError() {
+    func testAny_CombiningAny_FormingDuplicateValues() {
         assertCombinationHasDuplicateValues(Match(any: p1, p2),
                                             prepend: Match(any: p1, p2))
     }

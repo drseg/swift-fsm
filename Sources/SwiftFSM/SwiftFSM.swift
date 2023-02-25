@@ -117,12 +117,12 @@ struct DefineNode: Node {
 }
 
 struct EmptyBuilderBlockError: Error {
-    let callingFunction: String
+    let caller: String
     let file: String
     let line: Int
     
     init(caller: String = #function, file: String, line: Int) {
-        self.callingFunction = String(caller.prefix { $0 != "(" })
+        self.caller = String(caller.prefix { $0 != "(" })
         self.file = file
         self.line = line
     }

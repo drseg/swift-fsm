@@ -46,7 +46,7 @@ final class SwiftFSMTests: XCTestCase {
     func testEmptyBlockError() {
         let error = EmptyBuilderBlockError(file: #file, line: 10)
         
-        XCTAssertEqual("testEmptyBlockError", error.callingFunction)
+        XCTAssertEqual("testEmptyBlockError", error.caller)
         XCTAssertEqual(10, error.line)
         XCTAssertEqual(#file, error.file)
     }
