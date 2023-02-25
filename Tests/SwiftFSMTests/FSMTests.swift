@@ -323,14 +323,40 @@ final class SwiftFSMTests: XCTestCase {
                               node: g)
     }
     
-    func testEmptyDefineNode() {
-        let d = DefineNode(entryActions: [], exitActions: [], rest: [])
-        XCTAssertTrue(d.finalised().0.isEmpty)
+    func assertEmptyDefineHasError(
+        _ finalised: ([DefineNode.Output], [Error]),
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(finalised.0.isEmpty)
+        XCTAssertEqual(finalised.1 as? [EmptyBuilderBlockError],
+                       [EmptyBuilderBlockError(caller: "caller", file: "file", line: 10)],
+                       line: line)
     }
     
-    func testDefineNodeWithActionsButNoRest() {
-        let d = DefineNode(entryActions: [{ }], exitActions: [{ }], rest: [])
-        XCTAssertTrue(d.finalised().0.isEmpty)
+    func testEmptyDefineNodeProducesError() {
+        assertEmptyDefineHasError(
+            DefineNode(
+                entryActions: [],
+                exitActions: [],
+                rest: [],
+                caller: "caller",
+                file: "file",
+                line: 10
+            ).finalised()
+        )
+    }
+    
+    func testDefineNodeWithActionsButNoRestProducesError() {
+        assertEmptyDefineHasError(
+            DefineNode(
+                entryActions: [{ }],
+                exitActions: [{ }],
+                rest: [],
+                caller: "caller",
+                file: "file",
+                line: 10
+            ).finalised()
+        )
     }
     
     func assertDefineNodeOutput(

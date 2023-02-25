@@ -101,6 +101,9 @@ struct DefineNode: Node {
     let entryActions: [Action]
     let exitActions: [Action]
     var rest: [any Node<GivenNode.Output>] = []
+    var caller = #function
+    var file = #file
+    var line = #line
     
     func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         rest.reduce(into: [Output]()) {
@@ -114,9 +117,15 @@ struct DefineNode: Node {
                         $1.state == $1.nextState ? [] : exitActions))
         }
     }
+    
+    func validate() -> [Error] {
+        rest.isEmpty
+        ? [EmptyBuilderBlockError(caller: caller, file: file, line: line)]
+        : []
+    }
 }
 
-struct EmptyBuilderBlockError: Error {
+struct EmptyBuilderBlockError: Error, Equatable {
     let caller: String
     let file: String
     let line: Int
