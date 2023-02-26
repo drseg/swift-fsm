@@ -44,7 +44,7 @@ final class SwiftFSMTests: XCTestCase {
     }
     
     func testEmptyBlockError() {
-        let error = EmptyBuilderBlockError(file: #file, line: 10)
+        let error = EmptyBuilderError(file: #file, line: 10)
         
         XCTAssertEqual("testEmptyBlockError", error.caller)
         XCTAssertEqual(10, error.line)
@@ -324,12 +324,15 @@ final class SwiftFSMTests: XCTestCase {
     }
     
     func assertEmptyDefineHasError(
-        _ finalised: ([DefineNode.Output], [Error]),
+        _ d: DefineNode,
         line: UInt = #line
     ) {
+        let finalised = d.finalised()
         XCTAssertTrue(finalised.0.isEmpty)
-        XCTAssertEqual(finalised.1 as? [EmptyBuilderBlockError],
-                       [EmptyBuilderBlockError(caller: "caller", file: "file", line: 10)],
+        XCTAssertEqual(finalised.1 as? [EmptyBuilderError],
+                       [EmptyBuilderError(caller: d.caller,
+                                          file: d.file,
+                                          line: d.line)],
                        line: line)
     }
     
@@ -342,7 +345,7 @@ final class SwiftFSMTests: XCTestCase {
                 caller: "caller",
                 file: "file",
                 line: 10
-            ).finalised()
+            )
         )
     }
     
@@ -355,7 +358,7 @@ final class SwiftFSMTests: XCTestCase {
                 caller: "caller",
                 file: "file",
                 line: 10
-            ).finalised()
+            )
         )
     }
     

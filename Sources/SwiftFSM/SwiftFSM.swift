@@ -120,12 +120,12 @@ struct DefineNode: Node {
     
     func validate() -> [Error] {
         rest.isEmpty
-        ? [EmptyBuilderBlockError(caller: caller, file: file, line: line)]
+        ? [EmptyBuilderError(caller: caller, file: file, line: line)]
         : []
     }
 }
 
-struct EmptyBuilderBlockError: Error, Equatable {
+struct EmptyBuilderError: Error, Equatable {
     let caller: String
     let file: String
     let line: Int

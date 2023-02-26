@@ -140,7 +140,7 @@ class FinalisationTests: MatchTests {
 }
 
 class ValidationTests: MatchTests {
-    func assertThrows(_ e: MatchError, match m: Match, line: UInt = #line) {
+    func assert(match m: Match, is e: MatchError, line: UInt = #line) {
         XCTAssertThrowsError(try m.finalise().get(), line: line) {
             XCTAssertEqual(String(describing: type(of: $0)),
                            String(describing: type(of: e)),
@@ -153,7 +153,7 @@ class ValidationTests: MatchTests {
         let error = DuplicateTypes(message: "p1, p2",
                                    files: [m1.file],
                                    lines: [m1.line])
-        assertThrows(error, match: m1, line: line)
+        assert(match: m1, is: error, line: line)
     }
     
     func testAll_WithDuplicateTypes() {
@@ -165,38 +165,38 @@ class ValidationTests: MatchTests {
         assertHasDuplicateTypes(Match(all: p1, p2).prepend(Match()))
     }
     
-    func assertCombinationHasDuplicateTypes(_ m1: Match, prepend m2: Match, line: UInt = #line) {
-        let expected = DuplicateTypes(message: "p1, p2",
-                                      files: [m1.file, m2.file],
-                                      lines: [m1.line, m2.line])
+    func assertDuplicateTypesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
+        let error = DuplicateTypes(message: "p1, p2",
+                                   files: [m1.file, m2.file],
+                                   lines: [m1.line, m2.line])
         
-        assertThrows(expected, match: m1.prepend(m2), line: line)
+        assert(match: m1.prepend(m2), is: error, line: line)
     }
     
     func testAllInvalid_CombiningAllInvalid() {
-        assertCombinationHasDuplicateTypes(Match(all: p1, p2),
-                                           prepend: Match(all: p1, p2))
+        assertDuplicateTypesWhenAdded(Match(all: p1, p2),
+                                      Match(all: p1, p2))
     }
     
     func testAll_CombiningAll_FormingDuplicateTypes() {
-        assertCombinationHasDuplicateTypes(Match(all: p1, q1),
-                                           prepend: Match(all: p1, q1))
+        assertDuplicateTypesWhenAdded(Match(all: p1, q1),
+                                      Match(all: p1, q1))
     }
     
     func assertHasDuplicateValues(_ m: Match, line: UInt = #line) {
-        let expected =  DuplicateValues(message: "p1",
-                                        files: [m.file],
-                                        lines: [m.line])
+        let error =  DuplicateValues(message: "p1",
+                                     files: [m.file],
+                                     lines: [m.line])
         
-        assertThrows(expected, match: m, line: line)
+        assert(match: m, is: error, line: line)
     }
     
-    func assertCombinationHasDuplicateValues(_ m1: Match, prepend m2: Match, line: UInt = #line) {
-        let expected =  DuplicateValues(message: "p1, p2",
-                                        files: [m1.file, m2.file],
-                                        lines: [m1.line, m2.line])
+    func assertDuplicateValuesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
+        let error =  DuplicateValues(message: "p1, p2",
+                                     files: [m1.file, m2.file],
+                                     lines: [m1.line, m2.line])
         
-        assertThrows(expected, match: m1.prepend(m2), line: line)
+        assert(match: m1.prepend(m2), is: error, line: line)
     }
     
     func testAny_All_WithSamePredicate() {
@@ -204,13 +204,13 @@ class ValidationTests: MatchTests {
     }
     
     func testAny_CombiningAll_FormingDuplicateValues() {
-        assertCombinationHasDuplicateValues(Match(any: p1, p2),
-                                            prepend: Match(all: p1, q1))
+        assertDuplicateValuesWhenAdded(Match(any: p1, p2),
+                                       Match(all: p1, q1))
     }
     
     func testAny_CombiningAny_FormingDuplicateValues() {
-        assertCombinationHasDuplicateValues(Match(any: p1, p2),
-                                            prepend: Match(any: p1, p2))
+        assertDuplicateValuesWhenAdded(Match(any: p1, p2),
+                                       Match(any: p1, p2))
     }
 }
 
@@ -222,13 +222,10 @@ extension Match: CustomStringConvertible {
 
 extension Match: Equatable {
     public static func == (lhs: Match, rhs: Match) -> Bool {
-        guard lhs.matchAny.count == rhs.matchAny.count, lhs.matchAll.count == rhs.matchAll.count
-        else { return false }
-        
-        guard lhs.matchAny.allSatisfy({ rhs.matchAny.contains($0) }) else { return false }
-        guard lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) }) else { return false }
-        
-        return true
+        lhs.matchAny.count == rhs.matchAny.count &&
+        lhs.matchAll.count == rhs.matchAll.count &&
+        lhs.matchAny.allSatisfy({ rhs.matchAny.contains($0) }) &&
+        lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) })
     }
 }
 
