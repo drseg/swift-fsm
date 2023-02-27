@@ -69,7 +69,21 @@ struct FinalWhenNode: Node {
     }
 }
 
-struct FinalMatchNode: Node {
+protocol PopulatedNode: Node {
+    var caller: String { get }
+    var file: String { get }
+    var line: Int { get }
+}
+
+extension PopulatedNode {
+    func validate() -> [Error] {
+        rest.isEmpty
+        ? [EmptyBuilderError(caller: caller, file: file, line: line)]
+        : []
+    }
+}
+
+struct FinalMatchNode: PopulatedNode {
     typealias Output = (match: Match,
                         event: AnyTraceable,
                         state: AnyTraceable?,
@@ -91,12 +105,6 @@ struct FinalMatchNode: Node {
                  actions: $1.actions)
             )
         }
-    }
-    
-    func validate() -> [Error] {
-        rest.isEmpty
-        ? [EmptyBuilderError(caller: caller, file: file, line: line)]
-        : []
     }
 }
 
@@ -123,7 +131,7 @@ struct GivenNode: Node {
     }
 }
 
-struct DefineNode: Node {
+struct DefineNode: PopulatedNode {
     typealias Output = (state: AnyTraceable,
                         match: Match,
                         event: AnyTraceable,
@@ -135,6 +143,7 @@ struct DefineNode: Node {
     let entryActions: [Action]
     let exitActions: [Action]
     var rest: [any Node<GivenNode.Output>] = []
+    
     var caller = #function
     var file = #file
     var line = #line
@@ -151,12 +160,6 @@ struct DefineNode: Node {
                        exitActions:
                         $1.state == $1.nextState ? [] : exitActions))
         }
-    }
-    
-    func validate() -> [Error] {
-        rest.isEmpty
-        ? [EmptyBuilderError(caller: caller, file: file, line: line)]
-        : []
     }
 }
 

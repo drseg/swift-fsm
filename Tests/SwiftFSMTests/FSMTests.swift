@@ -7,11 +7,40 @@
 import XCTest
 @testable import SwiftFSM
 
-final class SwiftFSMTests: XCTestCase {
+class FSMNodeTests: XCTestCase {
     let s1: AnyTraceable = "S1", s2: AnyTraceable = "S2", s3: AnyTraceable = "S3"
     let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
     
     var actionsOutput = ""
+    
+    var actions: [Action] {
+        [{ self.actionsOutput += "1" },
+         { self.actionsOutput += "2" }]
+    }
+    
+    var finalActionsNode: FinalActionsNode {
+        FinalActionsNode(actions: actions)
+    }
+    
+    var finalThenNode: FinalThenNode {
+        FinalThenNode(state: s1,
+                      rest: [finalActionsNode])
+    }
+    
+    var finalWhenNode: FinalWhenNode {
+        FinalWhenNode(events: [e1, e2],
+                      rest: [finalThenNode])
+    }
+    
+    var entryActions: [Action] {
+        [{ self.actionsOutput += "<" },
+         { self.actionsOutput += "<" }]
+    }
+    
+    var exitActions: [Action] {
+        [{ self.actionsOutput += ">" },
+         { self.actionsOutput += ">" }]
+    }
     
     func assertEqual(
         _ lhs: FinalMatchNode.Output,
@@ -29,13 +58,13 @@ final class SwiftFSMTests: XCTestCase {
         XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
     """
     \n\nActual: \(lhs.description)
-
+    
     did not equal expected: \(rhs.description)
     """,
                       line: line)
     }
-
-
+    
+    
     func isEqual(lhs: [SES], rhs: [SES]) -> Bool {
         guard lhs.count == rhs.count else { return false }
         
@@ -53,84 +82,17 @@ final class SwiftFSMTests: XCTestCase {
                      line: Int.random(in: 0...Int.max))
     }
     
-    func testTraceableEquality() {
-        let t1 = randomisedTrace("cat")
-        let t2 = randomisedTrace("cat")
-        let t3 = randomisedTrace("bat")
-        let t4: AnyTraceable = "cat"
-        
-        XCTAssertEqual(t1, t2)
-        XCTAssertEqual(t1, t4)
-        XCTAssertNotEqual(t1, t3)
-    }
-    
-    func testTraceableHashingMatchesEquatable() {
-        var randomCat: AnyTraceable { randomisedTrace("cat") }
-        
-        1000 * {
-            let dict = [randomCat: randomCat]
-            XCTAssertEqual(dict[randomCat], randomCat)
-        }
-    }
-    
-    func testTraceableDescription() {
-        XCTAssertEqual(s1.description, "S1")
-    }
-    
-    func testEmptyBlockError() {
-        let error = EmptyBuilderError(file: #file, line: 10)
-        
-        XCTAssertEqual("testEmptyBlockError", error.caller)
-        XCTAssertEqual(10, error.line)
-        XCTAssertEqual(#file, error.file)
-    }
-    
-    func testEmptyFinalActions() {
-        let n = FinalActionsNode(actions: [])
-        XCTAssertTrue(n.finalised().0.isEmpty)
-    }
-    
-    var actions: [Action] {
-        [{ self.actionsOutput += "1" },
-         { self.actionsOutput += "2" }]
-    }
-    
-    var finalActionsNode: FinalActionsNode {
-        FinalActionsNode(actions: actions)
-    }
-    
-    func testFinalActionsFinalisesCorrectly() {
-        let n = finalActionsNode
-        n.finalised().0.executeAll()
-        XCTAssertEqual("12", actionsOutput)
-    }
-    
     func assertEmptyFinalThen(
         _ t: FinalThenNode,
         thenState: AnyTraceable? = "S1",
         line: UInt = #line
     ) {
+        XCTAssertTrue(t.finalised().1.isEmpty, line: line)
+        
         let result = t.finalised().0
         XCTAssertEqual(1, result.count, line: line)
         XCTAssertEqual(thenState, result[0].state, line: line)
         XCTAssertTrue(result[0].actions.isEmpty, line: line)
-    }
-    
-    func testNilThenNodeState() {
-        let t = FinalThenNode(state: nil, rest: [])
-        assertEmptyFinalThen(t, thenState: nil)
-    }
-    
-    func testEmptyFinalThenNode() {
-        let t = FinalThenNode(state: s1,
-                              rest: [])
-        assertEmptyFinalThen(t)
-    }
-    
-    func testFinalThenNodeWithEmptyRest() {
-        let t = FinalThenNode(state: s1,
-                              rest: [FinalActionsNode(actions: [])])
-        assertEmptyFinalThen(t)
     }
     
     func assertFinalThenNodeWithActions(
@@ -138,38 +100,13 @@ final class SwiftFSMTests: XCTestCase {
         _ t: FinalThenNode,
         line: UInt = #line
     ) {
+        XCTAssertTrue(t.finalised().1.isEmpty, line: line)
+        
         let result = t.finalised().0
         XCTAssertEqual(1, result.count, line: line)
         XCTAssertEqual(result[0].state, s1, line: line)
         result.first!.actions.executeAll()
         XCTAssertEqual(expected, actionsOutput, line: line)
-    }
-    
-    func testFinalThenNodeFinalisesCorrectly() {
-        let t = FinalThenNode(state: s1,
-                              rest: [finalActionsNode])
-        
-        assertFinalThenNodeWithActions(expected: "12", t)
-    }
-    
-    func testFinalThenNodeCanSetRestAfterInitialisation() {
-        var t = FinalThenNode(state: s1)
-        t.rest.append(finalActionsNode)
-        assertFinalThenNodeWithActions(expected: "12", t)
-    }
-    
-    // this is logically degenerate but the handling is reasonable
-    func testFinalThenNodeFinalisesWithMultipleActionsNodes() {
-        let t = FinalThenNode(state: s1,
-                              rest: [finalActionsNode,
-                                     finalActionsNode])
-        
-        assertFinalThenNodeWithActions(expected: "1212", t)
-    }
-    
-    var finalThenNode: FinalThenNode {
-        FinalThenNode(state: s1,
-                      rest: [finalActionsNode])
     }
     
     func assertFinalWhenNode(
@@ -206,6 +143,154 @@ final class SwiftFSMTests: XCTestCase {
             return false
         }
         return true
+    }
+    
+    func assertFinalMatchNode(_ m: FinalMatchNode, line: UInt = #line) {
+        let finalised = m.finalised()
+
+        XCTAssertTrue(finalised.1.isEmpty, line: line)
+        XCTAssertEqual(finalised.0.count, 2, line: line)
+        
+        assertEqual(finalised.0[0], (Match(), e1, s1, []), line: line)
+        assertEqual(finalised.0[1], (Match(), e2, s1, []), line: line)
+        
+        finalised.0.map(\.actions).flattened.executeAll()
+        XCTAssertEqual(actionsOutput, "1212", line: line)
+    }
+    
+    func assertGivenNodeOutput(
+        expected: [SES],
+        actionsOutput: String,
+        node: GivenNode,
+        line: UInt = #line
+    ) {
+        let output = node.finalised()
+        assertEqual(lhs: expected,
+                    rhs: output.0.map { ($0.state, $0.event, $0.nextState) },
+                    line: line)
+        
+        output.0.map(\.actions).flattened.executeAll()
+        XCTAssertEqual(actionsOutput, actionsOutput, line: line)
+        XCTAssertTrue(output.1.isEmpty, line: line)
+    }
+    
+    func assertEmptyDefineHasError(
+        _ d: DefineNode,
+        line: UInt = #line
+    ) {
+        let finalised = d.finalised()
+        XCTAssertTrue(finalised.0.isEmpty)
+        XCTAssertEqual(finalised.1 as? [EmptyBuilderError],
+                       [EmptyBuilderError(caller: d.caller,
+                                          file: d.file,
+                                          line: d.line)],
+                       line: line)
+    }
+    
+    func assertDefineNodeOutput(
+        expected: [SES],
+        actionsOutput: String,
+        node: DefineNode,
+        line: UInt = #line
+    ) {
+        let output = node.finalised().0
+        assertEqual(lhs: expected,
+                    rhs: output.map { ($0.state, $0.event, $0.nextState) },
+                    line: line)
+        
+        output.forEach {
+            $0.entryActions.executeAll()
+            $0.actions.executeAll()
+            $0.exitActions.executeAll()
+        }
+        
+        XCTAssertEqual(actionsOutput, actionsOutput, line: line)
+    }
+}
+
+final class SwiftFSMTests: FSMNodeTests {
+    func testTraceableEquality() {
+        let t1 = randomisedTrace("cat")
+        let t2 = randomisedTrace("cat")
+        let t3 = randomisedTrace("bat")
+        let t4: AnyTraceable = "cat"
+        
+        XCTAssertEqual(t1, t2)
+        XCTAssertEqual(t1, t4)
+        XCTAssertNotEqual(t1, t3)
+    }
+    
+    func testTraceableHashingMatchesEquatable() {
+        var randomCat: AnyTraceable { randomisedTrace("cat") }
+        
+        1000 * {
+            let dict = [randomCat: randomCat]
+            XCTAssertEqual(dict[randomCat], randomCat)
+        }
+    }
+    
+    func testTraceableDescription() {
+        XCTAssertEqual(s1.description, "S1")
+    }
+    
+    func testEmptyBlockError() {
+        let error = EmptyBuilderError(file: #file, line: 10)
+        
+        XCTAssertEqual("testEmptyBlockError", error.caller)
+        XCTAssertEqual(10, error.line)
+        XCTAssertEqual(#file, error.file)
+    }
+    
+    func testEmptyFinalActions() {
+        let n = FinalActionsNode(actions: [])
+        XCTAssertTrue(n.finalised().0.isEmpty)
+        XCTAssertTrue(n.finalised().1.isEmpty)
+    }
+        
+    func testFinalActionsFinalisesCorrectly() {
+        let n = finalActionsNode
+        n.finalised().0.executeAll()
+        XCTAssertEqual("12", actionsOutput)
+        XCTAssertTrue(n.finalised().1.isEmpty)
+    }
+    
+    func testNilThenNodeState() {
+        let t = FinalThenNode(state: nil, rest: [])
+        assertEmptyFinalThen(t, thenState: nil)
+    }
+    
+    func testEmptyFinalThenNode() {
+        let t = FinalThenNode(state: s1,
+                              rest: [])
+        assertEmptyFinalThen(t)
+    }
+    
+    func testFinalThenNodeWithEmptyRest() {
+        let t = FinalThenNode(state: s1,
+                              rest: [FinalActionsNode(actions: [])])
+        assertEmptyFinalThen(t)
+    }
+    
+    func testFinalThenNodeFinalisesCorrectly() {
+        let t = FinalThenNode(state: s1,
+                              rest: [finalActionsNode])
+        
+        assertFinalThenNodeWithActions(expected: "12", t)
+    }
+    
+    func testFinalThenNodeCanSetRestAfterInitialisation() {
+        var t = FinalThenNode(state: s1)
+        t.rest.append(finalActionsNode)
+        assertFinalThenNodeWithActions(expected: "12", t)
+    }
+    
+    // this is logically degenerate but the handling is reasonable
+    func testFinalThenNodeFinalisesWithMultipleActionsNodes() {
+        let t = FinalThenNode(state: s1,
+                              rest: [finalActionsNode,
+                                     finalActionsNode])
+        
+        assertFinalThenNodeWithActions(expected: "1212", t)
     }
     
     func testEmptyFinalWhenNode() {
@@ -252,11 +337,6 @@ final class SwiftFSMTests: XCTestCase {
         assertFinalWhenNodeWithActions(w)
     }
     
-    var finalWhenNode: FinalWhenNode {
-        FinalWhenNode(events: [e1, e2],
-                      rest: [finalThenNode])
-    }
-    
     func testFinalWhenNodeCanSetRestAfterInitialisation() {
         var w = FinalWhenNode(events: [e1, e2])
         w.rest.append(finalThenNode)
@@ -278,32 +358,13 @@ final class SwiftFSMTests: XCTestCase {
     
     func testFinalMatchNodeWithActions() {
         let m = FinalMatchNode(match: Match(), rest: [finalWhenNode])
-        let finalised = m.finalised()
-
-        XCTAssertTrue(finalised.1.isEmpty)
-        XCTAssertEqual(finalised.0.count, 2)
-        
-        assertEqual(finalised.0[0], (Match(), e1, s1, []))
-        assertEqual(finalised.0[1], (Match(), e2, s1, []))
-        
-        finalised.0.map(\.actions).flattened.executeAll()
-        XCTAssertEqual(actionsOutput, "1212")
+        assertFinalMatchNode(m)
     }
     
-    func assertGivenNodeOutput(
-        expected: [SES],
-        actionsOutput: String,
-        node: GivenNode,
-        line: UInt = #line
-    ) {
-        let output = node.finalised()
-        assertEqual(lhs: expected,
-                    rhs: output.0.map { ($0.state, $0.event, $0.nextState) },
-                    line: line)
-        
-        output.0.map(\.actions).flattened.executeAll()
-        XCTAssertEqual(actionsOutput, actionsOutput, line: line)
-        XCTAssertTrue(output.1.isEmpty, line: line)
+    func testFinalMatchNodeSetupAfterInit() {
+        var m = FinalMatchNode(match: Match())
+        m.rest.append(finalWhenNode)
+        assertFinalMatchNode(m)
     }
     
     func testEmptyGivenNode() {
@@ -385,20 +446,7 @@ final class SwiftFSMTests: XCTestCase {
                               actionsOutput: "1212121212121212",
                               node: g)
     }
-    
-    func assertEmptyDefineHasError(
-        _ d: DefineNode,
-        line: UInt = #line
-    ) {
-        let finalised = d.finalised()
-        XCTAssertTrue(finalised.0.isEmpty)
-        XCTAssertEqual(finalised.1 as? [EmptyBuilderError],
-                       [EmptyBuilderError(caller: d.caller,
-                                          file: d.file,
-                                          line: d.line)],
-                       line: line)
-    }
-    
+
     func testEmptyDefineNodeProducesError() {
         assertEmptyDefineHasError(
             DefineNode(
@@ -423,34 +471,6 @@ final class SwiftFSMTests: XCTestCase {
                 line: 10
             )
         )
-    }
-    
-    func assertDefineNodeOutput(
-        expected: [SES],
-        actionsOutput: String,
-        node: DefineNode,
-        line: UInt = #line
-    ) {
-        let output = node.finalised().0
-        assertEqual(lhs: expected,
-                    rhs: output.map { ($0.state, $0.event, $0.nextState) },
-                    line: line)
-        
-        output.forEach {
-            $0.entryActions.executeAll()
-            $0.actions.executeAll()
-            $0.exitActions.executeAll()
-        }
-        
-        XCTAssertEqual(actionsOutput, actionsOutput, line: line)
-    }
-    
-    var entryActions: [Action] {
-        [ { self.actionsOutput += "<" }, { self.actionsOutput += "<" } ]
-    }
-    
-    var exitActions: [Action] {
-        [ { self.actionsOutput += ">" }, { self.actionsOutput += ">" } ]
     }
     
     func testDefineNodeWithNoActions() {
