@@ -13,6 +13,40 @@ final class SwiftFSMTests: XCTestCase {
     
     var actionsOutput = ""
     
+    func assertEqual(
+        _ lhs: FinalMatchNode.Output,
+        _ rhs: FinalMatchNode.Output,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(lhs.match == rhs.match &&
+                      lhs.event == rhs.event &&
+                      lhs.state == rhs.state,
+                      "\(lhs) does not equal \(rhs)",
+                      line: line)
+    }
+    
+    func assertEqual(lhs: [SES], rhs: [SES], line: UInt) {
+        XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
+    """
+    \n\nActual: \(lhs.description)
+
+    did not equal expected: \(rhs.description)
+    """,
+                      line: line)
+    }
+
+
+    func isEqual(lhs: [SES], rhs: [SES]) -> Bool {
+        guard lhs.count == rhs.count else { return false }
+        
+        for (lhs, rhs) in zip(lhs, rhs) {
+            guard lhs.state == rhs.state &&
+                    lhs.event == rhs.event &&
+                    lhs.nextState == rhs.nextState else { return false }
+        }
+        return true
+    }
+    
     func randomisedTrace(_ base: String) -> AnyTraceable {
         AnyTraceable(base: base,
                      file: UUID().uuidString,
@@ -146,6 +180,7 @@ final class SwiftFSMTests: XCTestCase {
         line: UInt
     ) {
         let result = node.finalised().0
+        let errors = node.finalised().1
         
         guard assertCount(actual: result.count, expected: 2, line: line) else {
             return
@@ -161,6 +196,7 @@ final class SwiftFSMTests: XCTestCase {
         XCTAssertEqual(e2, result[1].event, line: line)
                 
         XCTAssertEqual(actionsOutput, actionsOutput, line: line)
+        XCTAssertTrue(errors.isEmpty, line: line)
     }
     
     func assertCount(actual: Int, expected: Int, line: UInt) -> Bool {
@@ -228,19 +264,46 @@ final class SwiftFSMTests: XCTestCase {
         assertFinalWhenNodeWithActions(w)
     }
     
+    func testEmptyFinalMatchNodeIsError() {
+        let m = FinalMatchNode(match: Match(),
+                               rest: [],
+                               caller: "caller",
+                               file: "file",
+                               line: 10)
+        let output = m.finalised()
+        XCTAssertTrue(output.0.isEmpty)
+        XCTAssertEqual([EmptyBuilderError(caller: "caller", file: "file", line: 10)],
+                       output.1 as? [EmptyBuilderError])
+    }
+    
+    func testFinalMatchNodeWithActions() {
+        let m = FinalMatchNode(match: Match(), rest: [finalWhenNode])
+        let finalised = m.finalised()
+
+        XCTAssertTrue(finalised.1.isEmpty)
+        XCTAssertEqual(finalised.0.count, 2)
+        
+        assertEqual(finalised.0[0], (Match(), e1, s1, []))
+        assertEqual(finalised.0[1], (Match(), e2, s1, []))
+        
+        finalised.0.map(\.actions).flattened.executeAll()
+        XCTAssertEqual(actionsOutput, "1212")
+    }
+    
     func assertGivenNodeOutput(
         expected: [SES],
         actionsOutput: String,
         node: GivenNode,
         line: UInt = #line
     ) {
-        let output = node.finalised().0
+        let output = node.finalised()
         assertEqual(lhs: expected,
-                    rhs: output.map { ($0.state, $0.event, $0.nextState) },
+                    rhs: output.0.map { ($0.state, $0.event, $0.nextState) },
                     line: line)
         
-        output.map(\.actions).flattened.executeAll()
+        output.0.map(\.actions).flattened.executeAll()
         XCTAssertEqual(actionsOutput, actionsOutput, line: line)
+        XCTAssertTrue(output.1.isEmpty, line: line)
     }
     
     func testEmptyGivenNode() {
@@ -383,11 +446,11 @@ final class SwiftFSMTests: XCTestCase {
     }
     
     var entryActions: [Action] {
-        [ { self.actionsOutput += "<"}, { self.actionsOutput += "<"} ]
+        [ { self.actionsOutput += "<" }, { self.actionsOutput += "<" } ]
     }
     
     var exitActions: [Action] {
-        [ { self.actionsOutput += ">"}, { self.actionsOutput += ">"} ]
+        [ { self.actionsOutput += ">" }, { self.actionsOutput += ">" } ]
     }
     
     func testDefineNodeWithNoActions() {
@@ -472,35 +535,13 @@ final class SwiftFSMTests: XCTestCase {
     }
 }
 
-typealias SES = (state: AnyTraceable, event: AnyTraceable, nextState: AnyTraceable)
-
-func assertEqual(lhs: [SES], rhs: [SES], line: UInt) {
-    XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
-"""
-\n\nActual: \(lhs.description)
-
-did not equal expected: \(rhs.description)
-""",
-                  line: line)
-}
-
-
-func isEqual(lhs: [SES], rhs: [SES]) -> Bool {
-    guard lhs.count == rhs.count else { return false }
-    
-    for (lhs, rhs) in zip(lhs, rhs) {
-        guard lhs.state == rhs.state &&
-                lhs.event == rhs.event &&
-                lhs.nextState == rhs.nextState else { return false }
-    }
-    return true
-}
-
 extension Collection where Element == Action {
     func executeAll() {
         forEach { $0() }
     }
 }
+
+typealias SES = (state: AnyTraceable, event: AnyTraceable, nextState: AnyTraceable)
 
 extension [SES] {
     var description: String {

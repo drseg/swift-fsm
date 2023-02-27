@@ -160,7 +160,7 @@ class ValidationTests: MatchTests {
         assertHasDuplicateTypes(Match(all: p1, p2))
     }
     
-    func testAll_CombiningAll_WithDuplicateTypes() {
+    func testAll_AddingAll_WithDuplicateTypes() {
         assertHasDuplicateTypes(Match().prepend(Match(all: p1, p2)))
         assertHasDuplicateTypes(Match(all: p1, p2).prepend(Match()))
     }
@@ -173,12 +173,12 @@ class ValidationTests: MatchTests {
         assert(match: m1.prepend(m2), is: error, line: line)
     }
     
-    func testAllInvalid_CombiningAllInvalid() {
+    func testAllInvalid_AddingAllInvalid() {
         assertDuplicateTypesWhenAdded(Match(all: p1, p2),
                                       Match(all: p1, p2))
     }
     
-    func testAll_CombiningAll_FormingDuplicateTypes() {
+    func testAll_AddingAll_FormingDuplicateTypes() {
         assertDuplicateTypesWhenAdded(Match(all: p1, q1),
                                       Match(all: p1, q1))
     }
@@ -191,6 +191,10 @@ class ValidationTests: MatchTests {
         assert(match: m, is: error, line: line)
     }
     
+    func testAny_All_WithSamePredicates() {
+        assertHasDuplicateValues(Match(any: p1, p2, all: p1, q1))
+    }
+    
     func assertDuplicateValuesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
         let error =  DuplicateValues(message: "p1, p2",
                                      files: [m1.file, m2.file],
@@ -199,16 +203,12 @@ class ValidationTests: MatchTests {
         assert(match: m1.prepend(m2), is: error, line: line)
     }
     
-    func testAny_All_WithSamePredicate() {
-        assertHasDuplicateValues(Match(any: p1, p2, all: p1, q1))
-    }
-    
-    func testAny_CombiningAll_FormingDuplicateValues() {
+    func testAny_AddingAll_FormingDuplicateValues() {
         assertDuplicateValuesWhenAdded(Match(any: p1, p2),
                                        Match(all: p1, q1))
     }
     
-    func testAny_CombiningAny_FormingDuplicateValues() {
+    func testAny_AddingAny_FormingDuplicateValues() {
         assertDuplicateValuesWhenAdded(Match(any: p1, p2),
                                        Match(any: p1, p2))
     }

@@ -69,8 +69,40 @@ struct FinalWhenNode: Node {
     }
 }
 
+struct FinalMatchNode: Node {
+    typealias Output = (match: Match,
+                        event: AnyTraceable,
+                        state: AnyTraceable?,
+                        actions: [Action])
+    
+    let match: Match
+    var rest: [any Node<Input>] = []
+    
+    var caller = #function
+    var file = #file
+    var line = #line
+    
+    func combinedWithRest(_ rest: [WhenOutput]) -> [Output] {
+        rest.reduce(into: [Output]()) {
+            $0.append(
+                (match: match,
+                 event: $1.event,
+                 state: $1.state,
+                 actions: $1.actions)
+            )
+        }
+    }
+    
+    func validate() -> [Error] {
+        rest.isEmpty
+        ? [EmptyBuilderError(caller: caller, file: file, line: line)]
+        : []
+    }
+}
+
 struct GivenNode: Node {
     typealias Output = (state: AnyTraceable,
+                        match: Match,
                         event: AnyTraceable,
                         nextState: AnyTraceable,
                         actions: [Action])
@@ -82,6 +114,7 @@ struct GivenNode: Node {
         states.reduce(into: [Output]()) { result, state in
             rest.forEach {
                 result.append((state: state,
+                               match: Match(),
                                event: $0.event,
                                nextState: $0.state ?? state,
                                actions: $0.actions))
@@ -92,6 +125,7 @@ struct GivenNode: Node {
 
 struct DefineNode: Node {
     typealias Output = (state: AnyTraceable,
+                        match: Match,
                         event: AnyTraceable,
                         nextState: AnyTraceable,
                         actions: [Action],
@@ -108,6 +142,7 @@ struct DefineNode: Node {
     func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         rest.reduce(into: [Output]()) {
             $0.append((state: $1.state,
+                       match: $1.match,
                        event: $1.event,
                        nextState: $1.nextState,
                        actions: $1.actions,
