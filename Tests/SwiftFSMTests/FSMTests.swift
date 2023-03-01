@@ -28,23 +28,23 @@ class FSMNodeTests: XCTestCase {
          { self.actionsOutput += ">" }]
     }
     
-    var finalActionsNode: FinalActionsNode {
-        FinalActionsNode(actions: actions)
+    var finalActionsNode: ActionsNode {
+        ActionsNode(actions: actions)
     }
     
-    var finalThenNode: FinalThenNode {
-        FinalThenNode(state: s1,
+    var finalThenNode: ThenNode {
+        ThenNode(state: s1,
                       rest: [finalActionsNode])
     }
     
-    var finalWhenNode: FinalWhenNode {
-        FinalWhenNode(events: [e1, e2],
+    var finalWhenNode: WhenNode {
+        WhenNode(events: [e1, e2],
                       rest: [finalThenNode])
     }
     
     func assertEqual(
-        _ lhs: CompleteMatchNode.Output,
-        _ rhs: CompleteMatchNode.Output,
+        _ lhs: MatchNode.Output,
+        _ rhs: MatchNode.Output,
         line: UInt = #line
     ) {
         XCTAssertTrue(lhs.match == rhs.match &&
@@ -83,7 +83,7 @@ class FSMNodeTests: XCTestCase {
     }
     
     func assertEmptyFinalThen(
-        _ t: FinalThenNode,
+        _ t: ThenNode,
         thenState: AnyTraceable? = "S1",
         line: UInt = #line
     ) {
@@ -91,31 +91,35 @@ class FSMNodeTests: XCTestCase {
         let result = finalised.0
         let errors = finalised.1
         
+        guard assertCount(actual: result.count, expected: 1, line: line) else {
+            return
+        }
+        
         XCTAssertTrue(errors.isEmpty, line: line)
-        XCTAssertEqual(1, result.count, line: line)
         XCTAssertEqual(thenState, result[0].state, line: line)
         XCTAssertTrue(result[0].actions.isEmpty, line: line)
     }
     
     func assertFinalThenWithActions(
         expected: String,
-        _ t: FinalThenNode,
+        _ t: ThenNode,
         line: UInt = #line
     ) {
         let finalised = t.finalised()
         let result = finalised.0
         let errors = finalised.1
-        
+                
         XCTAssertTrue(errors.isEmpty, line: line)
-        XCTAssertEqual(1, result.count, line: line)
         XCTAssertEqual(result[0].state, s1, line: line)
-        result.map(\.actions).flattened.executeAll()
+        result.executeAll()
         XCTAssertEqual(expected, actionsOutput, line: line)
     }
     
     func assertEmptyNodeWithoutError(_ n: some Node, line: UInt = #line) {
-        XCTAssertTrue(n.finalised().0.isEmpty, line: line)
-        XCTAssertTrue(n.finalised().1.isEmpty, line: line)
+        let f = n.finalised()
+        
+        XCTAssertTrue(f.0.isEmpty, "Not empty: \(f.0)", line: line)
+        XCTAssertTrue(f.1.isEmpty, "Not empty: \(f.1)", line: line)
     }
     
     func assertEmptyNodeWithError(_ n: some NeverEmptyNode, line: UInt = #line) {
@@ -135,20 +139,16 @@ class FSMNodeTests: XCTestCase {
         state: AnyTraceable?,
         actionsCount: Int,
         actionsOutput: String,
-        node: FinalWhenNode,
+        node: WhenNode,
         line: UInt
     ) {
         let result = node.finalised().0
         let errors = node.finalised().1
         
-        guard assertCount(actual: result.count, expected: 2, line: line) else {
-            return
-        }
-        
         (0..<2).forEach {
             XCTAssertEqual(state, result[$0].state, line: line)
             XCTAssertEqual(actionsCount, result[$0].actions.count, line: line)
-            result[$0].actions.executeAll()
+            result.executeAll()
         }
         
         XCTAssertEqual(e1, result[0].event, line: line)
@@ -167,7 +167,7 @@ class FSMNodeTests: XCTestCase {
         return true
     }
     
-    func assertFinalMatch(_ m: CompleteMatchNode, line: UInt = #line) {
+    func assertFinalMatch(_ m: MatchNode, line: UInt = #line) {
         let finalised = m.finalised()
         let result = finalised.0
         let errors = finalised.1
@@ -178,7 +178,7 @@ class FSMNodeTests: XCTestCase {
         assertEqual(result[0], (Match(), e1, s1, []), line: line)
         assertEqual(result[1], (Match(), e2, s1, []), line: line)
         
-        result.map(\.actions).flattened.executeAll()
+        result.executeAll()
         XCTAssertEqual(actionsOutput, "1212", line: line)
     }
     
@@ -260,7 +260,7 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testEmptyFinalActions() {
-        assertEmptyNodeWithoutError(FinalActionsNode(actions: []))
+        assertEmptyNodeWithoutError(ActionsNode(actions: []))
     }
     
     func testFinalActionsFinalisesCorrectly() {
@@ -272,33 +272,33 @@ final class SwiftFSMTests: FSMNodeTests {
     
     func testNilThenNodeState() {
         assertEmptyFinalThen(
-            FinalThenNode(state: nil, rest: []),
+            ThenNode(state: nil, rest: []),
             thenState: nil
         )
     }
     
     func testEmptyFinalThenNode() {
         assertEmptyFinalThen(
-            FinalThenNode(state: s1, rest: [])
+            ThenNode(state: s1, rest: [])
         )
     }
     
     func testFinalThenNodeWithEmptyRest() {
         assertEmptyFinalThen(
-            FinalThenNode(state: s1,
-                          rest: [FinalActionsNode(actions: [])])
+            ThenNode(state: s1,
+                          rest: [ActionsNode(actions: [])])
         )
     }
     
     func testFinalThenNodeFinalisesCorrectly() {
         assertFinalThenWithActions(
             expected: "12",
-            FinalThenNode(state: s1, rest: [finalActionsNode])
+            ThenNode(state: s1, rest: [finalActionsNode])
         )
     }
     
     func testFinalThenNodeCanSetRestAfterInit() {
-        var t = FinalThenNode(state: s1)
+        var t = ThenNode(state: s1)
         t.rest.append(finalActionsNode)
         assertFinalThenWithActions(expected: "12", t)
     }
@@ -306,30 +306,30 @@ final class SwiftFSMTests: FSMNodeTests {
     func testFinalThenNodeFinalisesWithMultipleActionsNodes() {
         assertFinalThenWithActions(
             expected: "1212",
-            FinalThenNode(state: s1, rest: [finalActionsNode,
-                                            finalActionsNode])
+            ThenNode(state: s1, rest: [finalActionsNode,
+                                       finalActionsNode])
         )
     }
     
     func testEmptyFinalWhenNode() {
-        assertEmptyNodeWithoutError(FinalWhenNode(events: [], rest: []))
+        assertEmptyNodeWithoutError(WhenNode(events: [], rest: []))
     }
     
     func testEmptyFinalWhenNodeWithActions() {
-        assertEmptyNodeWithoutError(FinalWhenNode(events: [], rest: [finalThenNode]))
+        assertEmptyNodeWithoutError(WhenNode(events: [], rest: [finalThenNode]))
     }
     
     func testFinalWhenNodeWithEmptyRest() {
         assertFinalWhen(state: nil,
                         actionsCount: 0,
                         actionsOutput: "",
-                        node: FinalWhenNode(events: [e1, e2], rest: []),
+                        node: WhenNode(events: [e1, e2], rest: []),
                         line: #line)
     }
     
     func assertFinalWhenNodeWithActions(
         expected: String = "1212",
-        _ w: FinalWhenNode,
+        _ w: WhenNode,
         line: UInt = #line
     ) {
         assertFinalWhen(state: s1,
@@ -341,26 +341,18 @@ final class SwiftFSMTests: FSMNodeTests {
     
     func testFinalWhenNodeFinalisesWithCorrectActions() {
         assertFinalWhenNodeWithActions(
-            FinalWhenNode(events: [e1, e2], rest: [finalThenNode])
-        )
-    }
-    
-    func testFinalWhenNodeIgnoresExtraThenNodes() {
-        assertFinalWhenNodeWithActions(
-            FinalWhenNode(events: [e1, e2], rest: [finalThenNode,
-                                                   finalThenNode])
+            WhenNode(events: [e1, e2], rest: [finalThenNode])
         )
     }
     
     func testFinalWhenNodeCanSetRestAfterInit() {
-        var w = FinalWhenNode(events: [e1, e2])
-        w.rest.append(finalThenNode)
+        var w = WhenNode(events: [e1, e2])
         w.rest.append(finalThenNode)
         assertFinalWhenNodeWithActions(w)
     }
     
     func testEmptyFinalMatchNodeIsError() {
-        assertEmptyNodeWithError(CompleteMatchNode(match: Match(),
+        assertEmptyNodeWithError(MatchNode(match: Match(),
                                                 rest: [],
                                                 caller: "caller",
                                                 file: "file",
@@ -368,11 +360,11 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testFinalMatchNodeWithActions() {
-        assertFinalMatch(CompleteMatchNode(match: Match(), rest: [finalWhenNode]))
+        assertFinalMatch(MatchNode(match: Match(), rest: [finalWhenNode]))
     }
     
     func testFinalMatchNodeCanSetRestAfterInit() {
-        var m = CompleteMatchNode(match: Match())
+        var m = MatchNode(match: Match())
         m.rest.append(finalWhenNode)
         assertFinalMatch(m)
     }
@@ -390,8 +382,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testGivenNodeFinalisesFillingInEmptyNextStates() {
-        let t = FinalThenNode(state: nil, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let t = ThenNode(state: nil, rest: [finalActionsNode])
+        let w = WhenNode(events: [e1, e2], rest: [t])
         let g = GivenNode(states: [s1, s2], rest: [w])
         
         let expected = [(s1, e1, s1),
@@ -405,8 +397,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testGivenNodeFinalisesWithNextStates() {
-        let t = FinalThenNode(state: s3, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let t = ThenNode(state: s3, rest: [finalActionsNode])
+        let w = WhenNode(events: [e1, e2], rest: [t])
         let g = GivenNode(states: [s1, s2], rest: [w])
         
         let expected = [(s1, e1, s3),
@@ -420,8 +412,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testGivenNodeCanSetRestAfterInitialisation() {
-        let t = FinalThenNode(state: s3, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let t = ThenNode(state: s3, rest: [finalActionsNode])
+        let w = WhenNode(events: [e1, e2], rest: [t])
         var g = GivenNode(states: [s1, s2])
         g.rest.append(w)
         
@@ -436,8 +428,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testGivenNodeWithMultipleWhenNodes() {
-        let t = FinalThenNode(state: s3, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let t = ThenNode(state: s3, rest: [finalActionsNode])
+        let w = WhenNode(events: [e1, e2], rest: [t])
         let g = GivenNode(states: [s1, s2], rest: [w, w])
         
         let expected = [(s1, e1, s3),
@@ -481,8 +473,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testDefineNodeWithNoActions() {
-        let t = FinalThenNode(state: s3, rest: [])
-        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let t = ThenNode(state: s3, rest: [])
+        let w = WhenNode(events: [e1, e2], rest: [t])
         let g = GivenNode(states: [s1, s2], rest: [w])
         
         let d = DefineNode(entryActions: [],
@@ -500,8 +492,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testDefineNodeCanSetRestAfterInit() {
-        let t = FinalThenNode(state: s3, rest: [])
-        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let t = ThenNode(state: s3, rest: [])
+        let w = WhenNode(events: [e1, e2], rest: [t])
         let g = GivenNode(states: [s1, s2], rest: [w])
         
         var d = DefineNode(entryActions: [],
@@ -519,8 +511,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testDefineNodeWithMultipleGivensWithEntryActionsAndExitActions() {
-        let t = FinalThenNode(state: s3, rest: [finalActionsNode])
-        let w = FinalWhenNode(events: [e1, e2], rest: [t])
+        let t = ThenNode(state: s3, rest: [finalActionsNode])
+        let w = WhenNode(events: [e1, e2], rest: [t])
         let g = GivenNode(states: [s1, s2], rest: [w])
         
         let d = DefineNode(entryActions: entryActions,
@@ -544,7 +536,7 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testDefineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() {
-        let w = FinalWhenNode(events: [e1, e2], rest: [])
+        let w = WhenNode(events: [e1, e2], rest: [])
         let g = GivenNode(states: [s1, s2], rest: [w])
         
         let d = DefineNode(entryActions: entryActions,
@@ -562,8 +554,12 @@ final class SwiftFSMTests: FSMNodeTests {
     }
 }
 
-extension Collection where Element == Action {
-    func executeAll() {
+extension Collection {
+    func executeAll() where Element == DefaultIO {
+        map(\.actions).flattened.forEach { $0() }
+    }
+    
+    func executeAll() where Element == Action {
         forEach { $0() }
     }
 }

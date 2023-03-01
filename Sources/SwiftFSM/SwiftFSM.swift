@@ -30,41 +30,49 @@ extension AnyTraceable: Hashable {
     }
 }
 
-struct FinalActionsNode: Node {
+typealias DefaultIO = (match: Match,
+                       event: AnyTraceable?,
+                       state: AnyTraceable?,
+                       actions: [Action])
+
+struct ActionsNode: Node {
     let actions: [Action]
     let rest: [any Node<Never>] = []
     
-    func combinedWithRest(_ : [Never]) -> [Action] {
-        actions
+    func combinedWithRest(_ : [Never]) -> [DefaultIO] {
+        actions.isEmpty ? [] : [(match: Match(),
+                                 event: nil,
+                                 state: nil,
+                                 actions: actions)]
     }
 }
 
-typealias ThenOutput = (state: AnyTraceable?, actions: [Action])
-
-struct FinalThenNode: Node {
+struct ThenNode: Node {
     let state: AnyTraceable?
     var rest: [any Node<Input>] = []
     
-    func combinedWithRest(_ rest: [FinalActionsNode.Output]) -> [ThenOutput] {
-        [(state: state, actions: rest)]
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        rest.reduce(into: [DefaultIO]()) {
+            $0.append((match: $1.match,
+                       event: $1.event,
+                       state: state,
+                       actions: $1.actions))
+        } ??? [(match: Match(), event: nil, state: state, actions: [])]
     }
 }
 
-typealias WhenOutput = (event: AnyTraceable,
-                        state: AnyTraceable?,
-                        actions: [Action])
-
-struct FinalWhenNode: Node {
+struct WhenNode: Node {
     let events: [AnyTraceable]
     var rest: [any Node<Input>] = []
     
-    func combinedWithRest(_ rest: [FinalThenNode.Output]) -> [WhenOutput] {
-        events.reduce(into: [Output]()) {
-            $0.append(
-                (event: $1,
-                 state: rest.first?.state,
-                 actions: rest.first?.actions ?? [])
-            )
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        events.reduce(into: [DefaultIO]()) { output, event in
+            output.append(contentsOf: rest.reduce(into: [DefaultIO]()) {
+                $0.append((match: $1.match,
+                           event: event,
+                           state: $1.state,
+                           actions: $1.actions))
+            } ??? [(match: Match(), event: event, state: nil, actions: [])])
         }
     }
 }
@@ -83,12 +91,7 @@ extension NeverEmptyNode {
     }
 }
 
-struct CompleteMatchNode: NeverEmptyNode {
-    typealias Output = (match: Match,
-                        event: AnyTraceable,
-                        state: AnyTraceable?,
-                        actions: [Action])
-    
+struct MatchNode: NeverEmptyNode {
     let match: Match
     var rest: [any Node<Input>] = []
     
@@ -96,7 +99,7 @@ struct CompleteMatchNode: NeverEmptyNode {
     var file = #file
     var line = #line
     
-    func combinedWithRest(_ rest: [WhenOutput]) -> [Output] {
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: [Output]()) {
             $0.append(
                 (match: match,
@@ -116,14 +119,14 @@ struct GivenNode: Node {
                         actions: [Action])
     
     let states: [AnyTraceable]
-    var rest: [any Node<WhenOutput>] = []
+    var rest: [any Node<DefaultIO>] = []
     
-    func combinedWithRest(_ rest: [WhenOutput]) -> [Output] {
+    func combinedWithRest(_ rest: [DefaultIO]) -> [Output] {
         states.reduce(into: [Output]()) { result, state in
             rest.forEach {
                 result.append((state: state,
-                               match: Match(),
-                               event: $0.event,
+                               match: $0.match,
+                               event: $0.event!,
                                nextState: $0.state ?? state,
                                actions: $0.actions))
             }
@@ -173,4 +176,10 @@ struct EmptyBuilderError: Error, Equatable {
         self.file = file
         self.line = line
     }
+}
+
+infix operator ???
+
+func ???<T: Collection> (lhs: T, rhs: T) -> T {
+    lhs.isEmpty ? rhs : lhs
 }
