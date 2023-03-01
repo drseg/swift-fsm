@@ -69,13 +69,13 @@ struct FinalWhenNode: Node {
     }
 }
 
-protocol PopulatedNode: Node {
+protocol NeverEmptyNode: Node {
     var caller: String { get }
     var file: String { get }
     var line: Int { get }
 }
 
-extension PopulatedNode {
+extension NeverEmptyNode {
     func validate() -> [Error] {
         rest.isEmpty
         ? [EmptyBuilderError(caller: caller, file: file, line: line)]
@@ -83,7 +83,7 @@ extension PopulatedNode {
     }
 }
 
-struct FinalMatchNode: PopulatedNode {
+struct CompleteMatchNode: NeverEmptyNode {
     typealias Output = (match: Match,
                         event: AnyTraceable,
                         state: AnyTraceable?,
@@ -131,7 +131,7 @@ struct GivenNode: Node {
     }
 }
 
-struct DefineNode: PopulatedNode {
+struct DefineNode: NeverEmptyNode {
     typealias Output = (state: AnyTraceable,
                         match: Match,
                         event: AnyTraceable,
