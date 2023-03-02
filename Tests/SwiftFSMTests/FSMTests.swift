@@ -262,7 +262,7 @@ class FSMNodeTests: XCTestCase {
         XCTAssertEqual(actionsOutput, actionsOutput, line: line)
     }
     
-    func assertDefaultIONodeChain(
+    func assertDefaultIONodeChains(
         node: any DefaultIONode,
         match: Match = Match(any: ["1"], all: [1]),
         event: AnyTraceable = "E1",
@@ -270,26 +270,33 @@ class FSMNodeTests: XCTestCase {
         actionsOutput: String = "chain",
         line: UInt = #line
     ) {
-        let output = node.finalised()
-        let results = output.0
-        
-        print(node)
-        
-        guard assertCount(actual: results.count, expected: 1, line: line) else {
-            return
+        nodeChains.forEach {
+            var node = node
+            node.rest.append($0)
+            
+            let output = node.finalised()
+            let results = output.0
+            
+            print(node)
+            
+            guard assertCount(actual: results.count, expected: 1, line: line) else {
+                return
+            }
+            
+            let result = results[0]
+            
+            let actualPredicates = result.match.finalise()
+            let expectedPredicates = match.finalise()
+            
+            XCTAssertEqual(expectedPredicates, actualPredicates, line: line)
+            XCTAssertEqual(event, result.event, line: line)
+            XCTAssertEqual(state, result.state, line: line)
+            
+            result.actions.executeAll()
+            XCTAssertEqual(actionsOutput, self.actionsOutput, line: line)
+            
+            self.actionsOutput = ""
         }
-        
-        let result = results[0]
-        
-        let actualPredicates = result.match.finalise()
-        let expectedPredicates = match.finalise()
-        
-        XCTAssertEqual(expectedPredicates, actualPredicates, line: line)
-        XCTAssertEqual(event, result.event, line: line)
-        XCTAssertEqual(state, result.state, line: line)
-        
-        result.actions.executeAll()
-        XCTAssertEqual(actionsOutput, self.actionsOutput, line: line)
     }
 }
 
@@ -338,12 +345,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testActionsPlusChainFinalisesCorrectly() {
-        nodeChains.forEach {
-            let a = ActionsNode(actions: [{ self.actionsOutput += "action" }],
-                                rest: [$0])
-            assertDefaultIONodeChain(node: a, actionsOutput: "actionchain")
-            actionsOutput = ""
-        }
+        let a = ActionsNode(actions: [{ self.actionsOutput += "action" }])
+        assertDefaultIONodeChains(node: a, actionsOutput: "actionchain")
     }
     
     func testNilThenNodeState() {
@@ -374,11 +377,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testThenNodePlusChainFinalisesCorrectly() {
-        nodeChains.forEach {
-            let t = ThenNode(state: s2, rest: [$0])
-            assertDefaultIONodeChain(node: t, state: s2)
-            actionsOutput = ""
-        }
+        let t = ThenNode(state: s2)
+        assertDefaultIONodeChains(node: t, state: s2)
     }
     
     func testThenNodeCanSetRestAfterInit() {
@@ -430,11 +430,8 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testWhenNodeWithChainFinalisesCorrectly() {
-        nodeChains.forEach {
-            let w = WhenNode(events: [e3], rest: [$0])
-            assertDefaultIONodeChain(node: w, event: e3)
-            actionsOutput = ""
-        }
+        let w = WhenNode(events: [e3])
+        assertDefaultIONodeChains(node: w, event: e3)
     }
     
     func testWhenNodeCanSetRestAfterInit() {
@@ -456,12 +453,9 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testMatchNodeWithChainFinalisesCorrectly() {
-        nodeChains.forEach {
-            let m = MatchNode(match: Match(any: ["2"], all: [true]), rest: [$0])
-            assertDefaultIONodeChain(node: m, match: Match(any: ["2", "1"],
-                                                           all: [true, 1]))
-            actionsOutput = ""
-        }
+        let m = MatchNode(match: Match(any: ["2"], all: [true]))
+        assertDefaultIONodeChains(node: m, match: Match(any: ["2", "1"],
+                                                       all: [true, 1]))
     }
     
     func testMatchNodeCanSetRestAfterInit() {
