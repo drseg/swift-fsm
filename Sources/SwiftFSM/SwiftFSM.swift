@@ -35,7 +35,9 @@ typealias DefaultIO = (match: Match,
                        state: AnyTraceable?,
                        actions: [Action])
 
-struct ActionsNode: Node {
+protocol DefaultIONode: Node where Output == DefaultIO, Input == Output { }
+
+struct ActionsNode: DefaultIONode {
     let actions: [Action]
     var rest: [any Node<Input>] = []
     
@@ -49,7 +51,7 @@ struct ActionsNode: Node {
     }
 }
 
-struct ThenNode: Node {
+struct ThenNode: DefaultIONode {
     let state: AnyTraceable?
     var rest: [any Node<Input>] = []
     
@@ -63,7 +65,7 @@ struct ThenNode: Node {
     }
 }
 
-struct WhenNode: Node {
+struct WhenNode: DefaultIONode {
     let events: [AnyTraceable]
     var rest: [any Node<Input>] = []
     
@@ -93,7 +95,7 @@ extension NeverEmptyNode {
     }
 }
 
-struct MatchNode: NeverEmptyNode {
+struct MatchNode: DefaultIONode, NeverEmptyNode {
     let match: Match
     var rest: [any Node<Input>] = []
     
@@ -109,7 +111,7 @@ struct MatchNode: NeverEmptyNode {
                  state: $1.state,
                  actions: $1.actions)
             )
-        }
+        } ??? [(match: match, event: nil, state: nil, actions: [])]
     }
 }
 

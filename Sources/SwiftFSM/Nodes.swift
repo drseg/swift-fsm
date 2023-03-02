@@ -19,13 +19,13 @@ extension NodeBase {
 }
 
 protocol UnsafeNode: NodeBase {
-    var rest: [any UnsafeNode] { get }
+    var rest: [any UnsafeNode] { get set }
     func finalised() throws -> ([Output], [Error])
 }
 
 @available(macOS 13, iOS 16, *)
 protocol Node<Output>: NodeBase {
-    var rest: [any Node<Input>] { get }
+    var rest: [any Node<Input>] { get set }
     func finalised() -> ([Output], [Error])
 }
 
