@@ -37,13 +37,15 @@ typealias DefaultIO = (match: Match,
 
 struct ActionsNode: Node {
     let actions: [Action]
-    let rest: [any Node<Never>] = []
+    var rest: [any Node<Input>] = []
     
-    func combinedWithRest(_ : [Never]) -> [DefaultIO] {
-        actions.isEmpty ? [] : [(match: Match(),
-                                 event: nil,
-                                 state: nil,
-                                 actions: actions)]
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        actions.isEmpty ? [] : rest.reduce(into: [DefaultIO]()) {
+            $0.append((match: $1.match,
+                       event: $1.event,
+                       state: $1.state,
+                       actions: actions + $1.actions))
+        } ??? [(match: Match(), event: nil, state: nil, actions: actions)]
     }
 }
 
@@ -102,7 +104,7 @@ struct MatchNode: NeverEmptyNode {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: [Output]()) {
             $0.append(
-                (match: match,
+                (match: $1.match.prepend(match),
                  event: $1.event,
                  state: $1.state,
                  actions: $1.actions)
