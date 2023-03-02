@@ -240,7 +240,10 @@ class FSMNodeTests: XCTestCase {
              ActionsNode(actions: [{ self.actionsOutput += "chain" }])]
                         
             return nodes.permutations(ofCount: 4).map { $0 }.reduce(into: [any Node<DefaultIO>]()) {
-                var one = $1[0], two = $1[1], three = $1[2], four = $1[3]
+                var one = $1[0].copy(),
+                    two = $1[1].copy(),
+                    three = $1[2].copy(),
+                    four = $1[3].copy()
                 
                 three.rest.append(four as! any Node<DefaultIO>)
                 two.rest.append(three as! any Node<DefaultIO>)
@@ -251,7 +254,7 @@ class FSMNodeTests: XCTestCase {
         }()
         
         nodeChains.forEach {
-            var node = node
+            var node = node.copy()
             node.rest.append($0)
             
             let output = node.finalised()
@@ -360,7 +363,7 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testThenNodeCanSetRestAfterInit() {
-        var t = ThenNode(state: s1)
+        let t = ThenNode(state: s1)
         t.rest.append(actionsNode)
         assertThenWithActions(expected: "12", t)
     }
@@ -413,7 +416,7 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testWhenNodeCanSetRestAfterInit() {
-        var w = WhenNode(events: [e1, e2])
+        let w = WhenNode(events: [e1, e2])
         w.rest.append(thenNode)
         assertWhenNodeWithActions(w)
     }
@@ -437,7 +440,7 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testMatchNodeCanSetRestAfterInit() {
-        var m = MatchNode(match: Match())
+        let m = MatchNode(match: Match())
         m.rest.append(whenNode)
         assertMatch(m)
     }
@@ -634,6 +637,36 @@ extension Collection {
     
     func executeAll() where Element == Action {
         forEach { $0() }
+    }
+}
+
+protocol DefaultIONode: Node where Output == DefaultIO, Input == Output {
+    func copy() -> Self
+}
+
+extension ActionsNode: DefaultIONode {
+    func copy() -> Self {
+        ActionsNode(actions: actions, rest: rest) as! Self
+    }
+}
+
+extension ThenNode: DefaultIONode {
+    func copy() -> Self {
+        ThenNode(state: state, rest: rest) as! Self
+    }
+}
+
+extension WhenNode: DefaultIONode {
+    func copy() -> Self {
+        WhenNode(events: events, rest: rest) as! Self
+    }
+}
+
+extension MatchNode: DefaultIONode {
+    func copy() -> Self {
+        MatchNode(
+            match: match, rest: rest, caller: caller, file: file, line: line
+        ) as! Self
     }
 }
 

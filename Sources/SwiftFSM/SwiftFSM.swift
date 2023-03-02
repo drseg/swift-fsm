@@ -30,57 +30,6 @@ extension AnyTraceable: Hashable {
     }
 }
 
-typealias DefaultIO = (match: Match,
-                       event: AnyTraceable?,
-                       state: AnyTraceable?,
-                       actions: [Action])
-
-protocol DefaultIONode: Node where Output == DefaultIO, Input == Output { }
-
-struct ActionsNode: DefaultIONode {
-    let actions: [Action]
-    var rest: [any Node<Input>] = []
-    
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        actions.isEmpty ? [] : rest.reduce(into: [DefaultIO]()) {
-            $0.append((match: $1.match,
-                       event: $1.event,
-                       state: $1.state,
-                       actions: actions + $1.actions))
-        } ??? [(match: Match(), event: nil, state: nil, actions: actions)]
-    }
-}
-
-struct ThenNode: DefaultIONode {
-    let state: AnyTraceable?
-    var rest: [any Node<Input>] = []
-    
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        rest.reduce(into: [DefaultIO]()) {
-            $0.append((match: $1.match,
-                       event: $1.event,
-                       state: state,
-                       actions: $1.actions))
-        } ??? [(match: Match(), event: nil, state: state, actions: [])]
-    }
-}
-
-struct WhenNode: DefaultIONode {
-    let events: [AnyTraceable]
-    var rest: [any Node<Input>] = []
-    
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        events.reduce(into: [DefaultIO]()) { output, event in
-            output.append(contentsOf: rest.reduce(into: [DefaultIO]()) {
-                $0.append((match: $1.match,
-                           event: event,
-                           state: $1.state,
-                           actions: $1.actions))
-            } ??? [(match: Match(), event: event, state: nil, actions: [])])
-        }
-    }
-}
-
 protocol NeverEmptyNode: Node {
     var caller: String { get }
     var file: String { get }
@@ -95,13 +44,91 @@ extension NeverEmptyNode {
     }
 }
 
-struct MatchNode: DefaultIONode, NeverEmptyNode {
-    let match: Match
-    var rest: [any Node<Input>] = []
+typealias DefaultIO = (match: Match,
+                       event: AnyTraceable?,
+                       state: AnyTraceable?,
+                       actions: [Action])
+
+class ActionsNode: Node {
+    let actions: [Action]
+    var rest: [any Node<Input>]
     
-    var caller = #function
-    var file = #file
-    var line = #line
+    init(actions: [Action], rest: [any Node<Input>] = []) {
+        self.actions = actions
+        self.rest = rest
+    }
+    
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        actions.isEmpty ? [] : rest.reduce(into: [DefaultIO]()) {
+            $0.append((match: $1.match,
+                       event: $1.event,
+                       state: $1.state,
+                       actions: actions + $1.actions))
+        } ??? [(match: Match(), event: nil, state: nil, actions: actions)]
+    }
+}
+
+class ThenNode: Node {
+    let state: AnyTraceable?
+    var rest: [any Node<Input>]
+    
+    init(state: AnyTraceable?, rest: [any Node<Input>] = []) {
+        self.state = state
+        self.rest = rest
+    }
+    
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        rest.reduce(into: [DefaultIO]()) {
+            $0.append((match: $1.match,
+                       event: $1.event,
+                       state: state,
+                       actions: $1.actions))
+        } ??? [(match: Match(), event: nil, state: state, actions: [])]
+    }
+}
+
+class WhenNode: Node {
+    let events: [AnyTraceable]
+    var rest: [any Node<Input>]
+    
+    init(events: [AnyTraceable], rest: [any Node<Input>] = []) {
+        self.events = events
+        self.rest = rest
+    }
+    
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        events.reduce(into: [DefaultIO]()) { output, event in
+            output.append(contentsOf: rest.reduce(into: [DefaultIO]()) {
+                $0.append((match: $1.match,
+                           event: event,
+                           state: $1.state,
+                           actions: $1.actions))
+            } ??? [(match: Match(), event: event, state: nil, actions: [])])
+        }
+    }
+}
+
+class MatchNode: NeverEmptyNode {
+    let match: Match
+    var rest: [any Node<Input>]
+    
+    var caller: String
+    var file: String
+    var line: Int
+    
+    init(
+        match: Match,
+        rest: [any Node<Input>] = [],
+        caller: String = #function,
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.match = match
+        self.rest = rest
+        self.caller = caller
+        self.file = file
+        self.line = line
+    }
     
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: [Output]()) {
