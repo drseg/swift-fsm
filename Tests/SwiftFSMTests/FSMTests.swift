@@ -43,44 +43,6 @@ class FSMNodeTests: XCTestCase {
                  rest: [thenNode])
     }
     
-    var nodeChain: any Node<DefaultIO> {
-        MatchNode(
-            match: Match(any: ["1"], all: [1]),
-            rest: [WhenNode(
-                events: [e1],
-                rest: [ThenNode(
-                    state: s1,
-                    rest: [ActionsNode(
-                        actions: [{ self.actionsOutput += "chain" }])])
-                ])
-            ]
-        )
-    }
-    
-    var nodeChains: [any Node<DefaultIO>] {
-        let m = MatchNode(match: Match(any: ["1"], all: [1]))
-        let w = WhenNode(events: [e1])
-        let t = ThenNode(state: s1)
-        let a = ActionsNode(actions: [{ self.actionsOutput += "chain" }])
-        
-        let all: [any DefaultIONode] = [m, w, t, a]
-        
-        let permutations = all.permutations(ofCount: 4).map { $0 }
-        
-        return permutations.reduce(into: [any Node<DefaultIO>]()) {
-            var one = $1[0]
-            var two = $1[1]
-            var three = $1[2]
-            let four = $1[3]
-            
-            three.rest.append(four as! any Node<DefaultIO>)
-            two.rest.append(three as! any Node<DefaultIO>)
-            one.rest.append(two as! any Node<DefaultIO>)
-            
-            $0.append(one as! any Node<DefaultIO>)
-        }
-    }
-    
     func assertEqual(
         _ lhs: MatchNode.Output,
         _ rhs: MatchNode.Output,
@@ -270,15 +232,31 @@ class FSMNodeTests: XCTestCase {
         actionsOutput: String = "chain",
         line: UInt = #line
     ) {
+        let nodeChains: [any Node<DefaultIO>] = {
+            let nodes: [any DefaultIONode] =
+            [MatchNode(match: Match(any: ["1"], all: [1])),
+             WhenNode(events: [e1]),
+             ThenNode(state: s1),
+             ActionsNode(actions: [{ self.actionsOutput += "chain" }])]
+                        
+            return nodes.permutations(ofCount: 4).map { $0 }.reduce(into: [any Node<DefaultIO>]()) {
+                var one = $1[0], two = $1[1], three = $1[2], four = $1[3]
+                
+                three.rest.append(four as! any Node<DefaultIO>)
+                two.rest.append(three as! any Node<DefaultIO>)
+                one.rest.append(two as! any Node<DefaultIO>)
+                
+                $0.append(one as! any Node<DefaultIO>)
+            }
+        }()
+        
         nodeChains.forEach {
             var node = node
             node.rest.append($0)
             
             let output = node.finalised()
             let results = output.0
-            
-            print(node)
-            
+                        
             guard assertCount(actual: results.count, expected: 1, line: line) else {
                 return
             }
