@@ -318,6 +318,10 @@ final class SwiftFSMTests: FSMNodeTests {
         assertEmptyNodeWithoutError(ActionsNode(actions: [], rest: []))
     }
     
+    func testEmptyActionsBlock() {
+        assertEmptyNodeWithError(ActionsBlockNode(actions: [], rest: []))
+    }
+    
     func testActionsFinalisesCorrectly() {
         let n = actionsNode
         n.finalised().0.executeAll()
@@ -377,11 +381,11 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testEmptyWhenNode() {
-        assertEmptyNodeWithoutError(WhenNode(events: [], rest: []))
+        assertEmptyNodeWithError(WhenNode(events: [], rest: []))
     }
     
     func testEmptyWhenNodeWithActions() {
-        assertEmptyNodeWithoutError(WhenNode(events: [], rest: [thenNode]))
+        assertEmptyNodeWithError(WhenNode(events: [], rest: [thenNode]))
     }
     
     func testWhenNodeWithEmptyRest() {

@@ -49,11 +49,11 @@ typealias DefaultIO = (match: Match,
                        state: AnyTraceable?,
                        actions: [Action])
 
-class ActionsNode: Node {
+class ActionsNodeBase {
     let actions: [Action]
-    var rest: [any Node<Input>]
+    var rest: [any Node<DefaultIO>]
     
-    init(actions: [Action], rest: [any Node<Input>] = []) {
+    init(actions: [Action], rest: [any Node<DefaultIO>] = []) {
         self.actions = actions
         self.rest = rest
     }
@@ -65,6 +65,28 @@ class ActionsNode: Node {
                        state: $1.state,
                        actions: actions + $1.actions))
         } ??? [(match: Match(), event: nil, state: nil, actions: actions)]
+    }
+}
+
+class ActionsNode: ActionsNodeBase, Node { }
+
+class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
+    let caller: String
+    let file: String
+    let line: Int
+    
+    init(
+        actions: [Action],
+        rest: [any Node<Input>],
+        caller: String = #function,
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.caller = caller
+        self.file = file
+        self.line = line
+        
+        super.init(actions: actions, rest: rest)
     }
 }
 
@@ -87,13 +109,26 @@ class ThenNode: Node {
     }
 }
 
-class WhenNode: Node {
+class WhenNode: NeverEmptyNode {
     let events: [AnyTraceable]
     var rest: [any Node<Input>]
     
-    init(events: [AnyTraceable], rest: [any Node<Input>] = []) {
+    let caller: String
+    let file: String
+    let line: Int
+    
+    init(
+        events: [AnyTraceable],
+        rest: [any Node<Input>] = [],
+        caller: String = #function,
+        file: String = #file,
+        line: Int = #line
+    ) {
         self.events = events
         self.rest = rest
+        self.caller = caller
+        self.file = file
+        self.line = line
     }
     
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
@@ -105,6 +140,12 @@ class WhenNode: Node {
                            actions: $1.actions))
             } ??? [(match: Match(), event: event, state: nil, actions: [])])
         }
+    }
+    
+    func validate() -> [Error] {
+        events.isEmpty
+        ? [EmptyBuilderError(caller: caller, file: file, line: line)]
+        : []
     }
 }
 
