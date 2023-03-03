@@ -38,7 +38,11 @@ protocol NeverEmptyNode: Node {
 
 extension NeverEmptyNode {
     func validate() -> [Error] {
-        rest.isEmpty
+        makeError(if: rest.isEmpty)
+    }
+    
+    fileprivate func makeError(if predicate: Bool) -> [Error] {
+        predicate
         ? [EmptyBuilderError(caller: caller, file: file, line: line)]
         : []
     }
@@ -90,11 +94,11 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
     }
 }
 
-class ThenNode: Node {
+class ThenNodeBase {
     let state: AnyTraceable?
-    var rest: [any Node<Input>]
+    var rest: [any Node<DefaultIO>]
     
-    init(state: AnyTraceable?, rest: [any Node<Input>] = []) {
+    init(state: AnyTraceable?, rest: [any Node<DefaultIO>] = []) {
         self.state = state
         self.rest = rest
     }
@@ -109,9 +113,31 @@ class ThenNode: Node {
     }
 }
 
-class WhenNode: NeverEmptyNode {
+class ThenNode: ThenNodeBase, Node { }
+
+class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
+    let caller: String
+    let file: String
+    let line: Int
+    
+    init(
+        state: AnyTraceable,
+        rest: [any Node<Input>],
+        caller: String = #function,
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.caller = caller
+        self.file = file
+        self.line = line
+        
+        super.init(state: state, rest: rest)
+    }
+}
+
+class WhenNodeBase {
     let events: [AnyTraceable]
-    var rest: [any Node<Input>]
+    var rest: [any Node<DefaultIO>]
     
     let caller: String
     let file: String
@@ -119,7 +145,7 @@ class WhenNode: NeverEmptyNode {
     
     init(
         events: [AnyTraceable],
-        rest: [any Node<Input>] = [],
+        rest: [any Node<DefaultIO>] = [],
         caller: String = #function,
         file: String = #file,
         line: Int = #line
@@ -141,11 +167,17 @@ class WhenNode: NeverEmptyNode {
             } ??? [(match: Match(), event: event, state: nil, actions: [])])
         }
     }
-    
+}
+
+class WhenNode: WhenNodeBase, NeverEmptyNode {
     func validate() -> [Error] {
-        events.isEmpty
-        ? [EmptyBuilderError(caller: caller, file: file, line: line)]
-        : []
+        makeError(if: events.isEmpty)
+    }
+}
+
+class WhenBlockNode: WhenNodeBase, NeverEmptyNode {
+    func validate() -> [Error] {
+        makeError(if: events.isEmpty || rest.isEmpty)
     }
 }
 

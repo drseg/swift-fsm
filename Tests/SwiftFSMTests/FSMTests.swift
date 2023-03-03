@@ -354,6 +354,10 @@ final class SwiftFSMTests: FSMNodeTests {
         )
     }
     
+    func testEmptyThenBlockNode() {
+        assertEmptyNodeWithError(ThenBlockNode(state: s1, rest: []))
+    }
+    
     func testThenNodeFinalisesCorrectly() {
         assertThenWithActions(
             expected: "12",
@@ -386,6 +390,10 @@ final class SwiftFSMTests: FSMNodeTests {
     
     func testEmptyWhenNodeWithActions() {
         assertEmptyNodeWithError(WhenNode(events: [], rest: [thenNode]))
+    }
+    
+    func testEmptyWhenBlockNodeWithActions() {
+        assertEmptyNodeWithError(WhenBlockNode(events: [e1]))
     }
     
     func testWhenNodeWithEmptyRest() {
