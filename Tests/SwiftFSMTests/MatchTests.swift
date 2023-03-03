@@ -7,12 +7,12 @@
 import XCTest
 @testable import SwiftFSM
 
-enum P: PredicateProtocol { case a, b, c }
-enum Q: PredicateProtocol { case a, b, c }
-enum R: PredicateProtocol { case a, b, c }
-enum S: PredicateProtocol { case a, b, c }
-enum T: PredicateProtocol { case a, b, c }
-enum U: PredicateProtocol { case a, b, c }
+enum P: Predicate { case a, b, c }
+enum Q: Predicate { case a, b, c }
+enum R: Predicate { case a, b, c }
+enum S: Predicate { case a, b, c }
+enum T: Predicate { case a, b, c }
+enum U: Predicate { case a, b, c }
 
 class MatchTests: XCTestCase {
     let p1 = P.a, p2 = P.b
@@ -226,10 +226,10 @@ class MatchCombinationsTests: MatchTests {
     }
     
     func assertCombinations(
-        anyOf: [any PredicateProtocol] = [],
-        allOf: [any PredicateProtocol] = [],
-        with a: [[any PredicateProtocol]] = [],
-        expected: [[any PredicateProtocol]],
+        anyOf: [any Predicate] = [],
+        allOf: [any Predicate] = [],
+        with a: [[any Predicate]] = [],
+        expected: [[any Predicate]],
         line: UInt = #line
     ) {
         let match = Match(any: anyOf, all: allOf)
@@ -371,7 +371,7 @@ extension MatchError: Equatable {
     }
 }
 
-extension Collection where Element == [any PredicateProtocol] {
+extension Collection where Element == [any Predicate] {
     var erasedSets: Set<Set<AnyPredicate>> {
         Set(map { Set($0.erase()) })
     }

@@ -16,8 +16,8 @@ private protocol AlwaysEqual { }; extension AlwaysEqual {
 }
 
 final class AnyPredicateTests: XCTestCase {
-    enum NeverEqualPredicate: PredicateProtocol, NeverEqual   { case a }
-    enum AlwaysEqualPredicate: PredicateProtocol, AlwaysEqual { case a }
+    enum NeverEqualPredicate: Predicate, NeverEqual   { case a }
+    enum AlwaysEqualPredicate: Predicate, AlwaysEqual { case a }
     
     func testDescription() {
         XCTAssertEqual(NeverEqualPredicate.a.erase().description,
@@ -67,7 +67,7 @@ final class AnyPredicateTests: XCTestCase {
     }
 
     func testErasedWrapperUsesWrappedHasher() {
-        struct Spy: PredicateProtocol, NeverEqual {
+        struct Spy: Predicate, NeverEqual {
             let fulfill: () -> ()
             static var allCases: [Spy] { [Spy(fulfill: {})] }
             func hash(into hasher: inout Hasher) { fulfill() }
@@ -94,9 +94,9 @@ final class AnyPredicateTests: XCTestCase {
 
 final class PredicateCombinationsTests: XCTestCase {
     func testCombinationsAccuracy() {
-        enum P: PredicateProtocol { case a, b }
-        enum Q: PredicateProtocol { case a, b }
-        enum R: PredicateProtocol { case a, b }
+        enum P: Predicate { case a, b }
+        enum Q: Predicate { case a, b }
+        enum R: Predicate { case a, b }
         
         let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erase()
         
@@ -113,9 +113,9 @@ final class PredicateCombinationsTests: XCTestCase {
     }
     
     func testLargeCombinations() {
-        enum P: PredicateProtocol { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
-        enum Q: PredicateProtocol { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
-        enum R: PredicateProtocol { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
+        enum P: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
+        enum Q: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
+        enum R: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
         
         let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erase()
         

@@ -8,7 +8,7 @@ import Foundation
 
 class Match {
     typealias Result = Swift.Result<Match, MatchError>
-    typealias AnyP = any PredicateProtocol
+    typealias AnyP = any Predicate
     
     static func + (lhs: Match, rhs: Match) -> Match {
         .init(any: lhs.matchAny + rhs.matchAny,
