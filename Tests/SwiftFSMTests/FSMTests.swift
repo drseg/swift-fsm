@@ -55,7 +55,7 @@ class FSMNodeTests: XCTestCase {
                       line: line)
     }
     
-    func assertEqual(lhs: [SES], rhs: [SES], line: UInt) {
+    func assertEqual(lhs: [MSES], rhs: [MSES], line: UInt) {
         XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
     """
     \n\nActual: \(lhs.description)
@@ -66,11 +66,12 @@ class FSMNodeTests: XCTestCase {
     }
     
     
-    func isEqual(lhs: [SES], rhs: [SES]) -> Bool {
+    func isEqual(lhs: [MSES], rhs: [MSES]) -> Bool {
         guard lhs.count == rhs.count else { return false }
         
         for (lhs, rhs) in zip(lhs, rhs) {
-            guard lhs.state == rhs.state &&
+            guard lhs.match == rhs.match &&
+                    lhs.state == rhs.state &&
                     lhs.event == rhs.event &&
                     lhs.nextState == rhs.nextState else { return false }
         }
@@ -182,7 +183,7 @@ class FSMNodeTests: XCTestCase {
     }
     
     func assertGivenNode(
-        expected: [SES],
+        expected: [MSES],
         actionsOutput: String,
         node: GivenNode,
         line: UInt = #line
@@ -192,7 +193,7 @@ class FSMNodeTests: XCTestCase {
         let errors = finalised.1
         
         assertEqual(lhs: expected,
-                    rhs: result.map { ($0.state, $0.event, $0.nextState) },
+                    rhs: result.map { ($0.match, $0.state, $0.event, $0.nextState) },
                     line: line)
         
         result.map(\.actions).flattened.executeAll()
@@ -201,7 +202,7 @@ class FSMNodeTests: XCTestCase {
     }
     
     func assertDefineNode(
-        expected: [SES],
+        expected: [MSES],
         actionsOutput: String,
         node: DefineNode,
         line: UInt = #line
@@ -211,7 +212,7 @@ class FSMNodeTests: XCTestCase {
         let errors = finalised.1
         
         assertEqual(lhs: expected,
-                    rhs: result.map { ($0.state, $0.event, $0.nextState) },
+                    rhs: result.map { ($0.match, $0.state, $0.event, $0.nextState) },
                     line: line)
         
         result.forEach {
@@ -469,15 +470,18 @@ final class SwiftFSMTests: FSMNodeTests {
         assertEmptyNodeWithoutError(GivenNode(states: [s1, s2], rest: []))
     }
     
+    var m1: Match = Match(any: [1], all: ["1"])
+    
     func testGivenNodeFinalisesFillingInEmptyNextStates() {
         let t = ThenNode(state: nil, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
-        let g = GivenNode(states: [s1, s2], rest: [w])
+        let m = MatchNode(match: m1, rest: [w])
+        let g = GivenNode(states: [s1, s2], rest: [m])
         
-        let expected = [(s1, e1, s1),
-                        (s1, e2, s1),
-                        (s2, e1, s2),
-                        (s2, e2, s2)]
+        let expected = [(m1, s1, e1, s1),
+                        (m1, s1, e2, s1),
+                        (m1, s2, e1, s2),
+                        (m1, s2, e2, s2)]
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
@@ -487,12 +491,13 @@ final class SwiftFSMTests: FSMNodeTests {
     func testGivenNodeFinalisesWithNextStates() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
-        let g = GivenNode(states: [s1, s2], rest: [w])
+        let m = MatchNode(match: m1, rest: [w])
+        let g = GivenNode(states: [s1, s2], rest: [m])
         
-        let expected = [(s1, e1, s3),
-                        (s1, e2, s3),
-                        (s2, e1, s3),
-                        (s2, e2, s3)]
+        let expected = [(m1, s1, e1, s3),
+                        (m1, s1, e2, s3),
+                        (m1, s2, e1, s3),
+                        (m1, s2, e2, s3)]
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
@@ -502,13 +507,14 @@ final class SwiftFSMTests: FSMNodeTests {
     func testGivenNodeCanSetRestAfterInitialisation() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
+        let m = MatchNode(match: m1, rest: [w])
         var g = GivenNode(states: [s1, s2])
-        g.rest.append(w)
+        g.rest.append(m)
         
-        let expected = [(s1, e1, s3),
-                        (s1, e2, s3),
-                        (s2, e1, s3),
-                        (s2, e2, s3)]
+        let expected = [(m1, s1, e1, s3),
+                        (m1, s1, e2, s3),
+                        (m1, s2, e1, s3),
+                        (m1, s2, e2, s3)]
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
@@ -518,16 +524,17 @@ final class SwiftFSMTests: FSMNodeTests {
     func testGivenNodeWithMultipleWhenNodes() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
-        let g = GivenNode(states: [s1, s2], rest: [w, w])
+        let m = MatchNode(match: m1, rest: [w, w])
+        let g = GivenNode(states: [s1, s2], rest: [m])
         
-        let expected = [(s1, e1, s3),
-                        (s1, e2, s3),
-                        (s1, e1, s3),
-                        (s1, e2, s3),
-                        (s2, e1, s3),
-                        (s2, e2, s3),
-                        (s2, e1, s3),
-                        (s2, e2, s3)]
+        let expected = [(m1, s1, e1, s3),
+                        (m1, s1, e2, s3),
+                        (m1, s1, e1, s3),
+                        (m1, s1, e2, s3),
+                        (m1, s2, e1, s3),
+                        (m1, s2, e2, s3),
+                        (m1, s2, e1, s3),
+                        (m1, s2, e2, s3)]
         
         assertGivenNode(expected: expected,
                         actionsOutput: "1212121212121212",
@@ -563,16 +570,17 @@ final class SwiftFSMTests: FSMNodeTests {
     func testDefineNodeWithNoActions() {
         let t = ThenNode(state: s3, rest: [])
         let w = WhenNode(events: [e1, e2], rest: [t])
-        let g = GivenNode(states: [s1, s2], rest: [w])
+        let m = MatchNode(match: m1, rest: [w])
+        let g = GivenNode(states: [s1, s2], rest: [m])
         
         let d = DefineNode(entryActions: [],
                            exitActions: [],
                            rest: [g])
         
-        let expected = [(s1, e1, s3),
-                        (s1, e2, s3),
-                        (s2, e1, s3),
-                        (s2, e2, s3)]
+        let expected = [(m1, s1, e1, s3),
+                        (m1, s1, e2, s3),
+                        (m1, s2, e1, s3),
+                        (m1, s2, e2, s3)]
         
         assertDefineNode(expected: expected,
                          actionsOutput: "",
@@ -582,16 +590,17 @@ final class SwiftFSMTests: FSMNodeTests {
     func testDefineNodeCanSetRestAfterInit() {
         let t = ThenNode(state: s3, rest: [])
         let w = WhenNode(events: [e1, e2], rest: [t])
-        let g = GivenNode(states: [s1, s2], rest: [w])
+        let m = MatchNode(match: m1, rest: [w])
+        let g = GivenNode(states: [s1, s2], rest: [m])
         
         var d = DefineNode(entryActions: [],
                            exitActions: [])
         d.rest.append(g)
         
-        let expected = [(s1, e1, s3),
-                        (s1, e2, s3),
-                        (s2, e1, s3),
-                        (s2, e2, s3)]
+        let expected = [(m1, s1, e1, s3),
+                        (m1, s1, e2, s3),
+                        (m1, s2, e1, s3),
+                        (m1, s2, e2, s3)]
         
         assertDefineNode(expected: expected,
                          actionsOutput: "",
@@ -601,20 +610,21 @@ final class SwiftFSMTests: FSMNodeTests {
     func testDefineNodeWithMultipleGivensWithEntryActionsAndExitActions() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
-        let g = GivenNode(states: [s1, s2], rest: [w])
+        let m = MatchNode(match: m1, rest: [w])
+        let g = GivenNode(states: [s1, s2], rest: [m])
         
         let d = DefineNode(entryActions: entryActions,
                            exitActions: exitActions,
                            rest: [g, g])
         
-        let expected = [(s1, e1, s3),
-                        (s1, e2, s3),
-                        (s2, e1, s3),
-                        (s2, e2, s3),
-                        (s1, e1, s3),
-                        (s1, e2, s3),
-                        (s2, e1, s3),
-                        (s2, e2, s3)]
+        let expected = [(m1, s1, e1, s3),
+                        (m1, s1, e2, s3),
+                        (m1, s2, e1, s3),
+                        (m1, s2, e2, s3),
+                        (m1, s1, e1, s3),
+                        (m1, s1, e2, s3),
+                        (m1, s2, e1, s3),
+                        (m1, s2, e2, s3)]
         
         assertDefineNode(
             expected: expected,
@@ -625,16 +635,17 @@ final class SwiftFSMTests: FSMNodeTests {
     
     func testDefineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() {
         let w = WhenNode(events: [e1, e2], rest: [])
-        let g = GivenNode(states: [s1, s2], rest: [w])
+        let m = MatchNode(match: m1, rest: [w])
+        let g = GivenNode(states: [s1, s2], rest: [m])
         
         let d = DefineNode(entryActions: entryActions,
                            exitActions: exitActions,
                            rest: [g])
         
-        let expected = [(s1, e1, s1),
-                        (s1, e2, s1),
-                        (s2, e1, s2),
-                        (s2, e2, s2)]
+        let expected = [(m1, s1, e1, s1),
+                        (m1, s1, e2, s1),
+                        (m1, s2, e1, s2),
+                        (m1, s2, e2, s2)]
         
         assertDefineNode(expected: expected,
                          actionsOutput: "",
@@ -682,12 +693,12 @@ extension MatchNode: DefaultIONode {
     }
 }
 
-typealias SES = (state: AnyTraceable, event: AnyTraceable, nextState: AnyTraceable)
+typealias MSES = (match: Match, state: AnyTraceable, event: AnyTraceable, nextState: AnyTraceable)
 
-extension [SES] {
+extension [MSES] {
     var description: String {
         reduce(into: ["\n"]) {
-            $0.append("(\($1.state), \($1.event), \($1.nextState))")
+            $0.append("(\($1.match), \($1.state), \($1.event), \($1.nextState))")
         }.joined(separator: "\n")
     }
 }
