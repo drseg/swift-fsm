@@ -472,12 +472,15 @@ final class SwiftFSMTests: FSMNodeTests {
     
     var m1: Match = Match(any: [1], all: ["1"])
     
-    func testGivenNodeFinalisesFillingInEmptyNextStates() {
-        let t = ThenNode(state: nil, rest: [actionsNode])
+    func givenNode(thenState: AnyTraceable?, actionsNode: ActionsNode) -> GivenNode {
+        let t = ThenNode(state: thenState, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
         let m = MatchNode(match: m1, rest: [w])
-        let g = GivenNode(states: [s1, s2], rest: [m])
         
+        return GivenNode(states: [s1, s2], rest: [m])
+    }
+    
+    func testGivenNodeFinalisesFillingInEmptyNextStates() {
         let expected = [(m1, s1, e1, s1),
                         (m1, s1, e2, s1),
                         (m1, s2, e1, s2),
@@ -485,15 +488,11 @@ final class SwiftFSMTests: FSMNodeTests {
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
-                        node: g)
+                        node: givenNode(thenState: nil,
+                                        actionsNode: actionsNode))
     }
     
     func testGivenNodeFinalisesWithNextStates() {
-        let t = ThenNode(state: s3, rest: [actionsNode])
-        let w = WhenNode(events: [e1, e2], rest: [t])
-        let m = MatchNode(match: m1, rest: [w])
-        let g = GivenNode(states: [s1, s2], rest: [m])
-        
         let expected = [(m1, s1, e1, s3),
                         (m1, s1, e2, s3),
                         (m1, s2, e1, s3),
@@ -501,7 +500,8 @@ final class SwiftFSMTests: FSMNodeTests {
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
-                        node: g)
+                        node: givenNode(thenState: s3,
+                                        actionsNode: actionsNode))
     }
     
     func testGivenNodeCanSetRestAfterInitialisation() {
@@ -568,14 +568,10 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testDefineNodeWithNoActions() {
-        let t = ThenNode(state: s3, rest: [])
-        let w = WhenNode(events: [e1, e2], rest: [t])
-        let m = MatchNode(match: m1, rest: [w])
-        let g = GivenNode(states: [s1, s2], rest: [m])
-        
         let d = DefineNode(entryActions: [],
                            exitActions: [],
-                           rest: [g])
+                           rest: [givenNode(thenState: s3,
+                                            actionsNode: ActionsNode(actions: []))])
         
         let expected = [(m1, s1, e1, s3),
                         (m1, s1, e2, s3),
@@ -608,14 +604,12 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testDefineNodeWithMultipleGivensWithEntryActionsAndExitActions() {
-        let t = ThenNode(state: s3, rest: [actionsNode])
-        let w = WhenNode(events: [e1, e2], rest: [t])
-        let m = MatchNode(match: m1, rest: [w])
-        let g = GivenNode(states: [s1, s2], rest: [m])
-        
         let d = DefineNode(entryActions: entryActions,
                            exitActions: exitActions,
-                           rest: [g, g])
+                           rest: [givenNode(thenState: s3,
+                                            actionsNode: actionsNode),
+                                  givenNode(thenState: s3,
+                                            actionsNode: actionsNode)])
         
         let expected = [(m1, s1, e1, s3),
                         (m1, s1, e2, s3),
@@ -634,13 +628,10 @@ final class SwiftFSMTests: FSMNodeTests {
     }
     
     func testDefineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() {
-        let w = WhenNode(events: [e1, e2], rest: [])
-        let m = MatchNode(match: m1, rest: [w])
-        let g = GivenNode(states: [s1, s2], rest: [m])
-        
         let d = DefineNode(entryActions: entryActions,
                            exitActions: exitActions,
-                           rest: [g])
+                           rest: [givenNode(thenState: nil,
+                                            actionsNode: actionsNode)])
         
         let expected = [(m1, s1, e1, s1),
                         (m1, s1, e2, s1),
