@@ -43,6 +43,18 @@ class FSMNodeTests: XCTestCase {
                  rest: [thenNode])
     }
     
+    var m1: Match {
+        Match(any: [1], all: ["1"])
+    }
+    
+    func givenNode(thenState: AnyTraceable?, actionsNode: ActionsNode) -> GivenNode {
+        let t = ThenNode(state: thenState, rest: [actionsNode])
+        let w = WhenNode(events: [e1, e2], rest: [t])
+        let m = MatchNode(match: m1, rest: [w])
+        
+        return GivenNode(states: [s1, s2], rest: [m])
+    }
+    
     func assertEqual(
         _ lhs: MatchNode.Output,
         _ rhs: MatchNode.Output,
@@ -280,9 +292,12 @@ class FSMNodeTests: XCTestCase {
             self.actionsOutput = ""
         }
     }
+    
+
+    
 }
 
-final class SwiftFSMTests: FSMNodeTests {
+final class TraceableTests: FSMNodeTests {
     func testTraceableEquality() {
         let t1 = randomisedTrace("cat")
         let t2 = randomisedTrace("cat")
@@ -306,7 +321,9 @@ final class SwiftFSMTests: FSMNodeTests {
     func testTraceableDescription() {
         XCTAssertEqual(s1.description, "S1")
     }
-    
+}
+
+final class ErrorTests: FSMNodeTests {
     func testEmptyBlockError() {
         let error = EmptyBuilderError(file: "file", line: 10)
         
@@ -314,7 +331,9 @@ final class SwiftFSMTests: FSMNodeTests {
         XCTAssertEqual(10, error.line)
         XCTAssertEqual("file", error.file)
     }
-    
+}
+
+final class ActionsNodeTests: FSMNodeTests {
     func testEmptyActions() {
         assertEmptyNodeWithoutError(ActionsNode(actions: [], rest: []))
     }
@@ -334,7 +353,9 @@ final class SwiftFSMTests: FSMNodeTests {
         let a = ActionsNode(actions: [{ self.actionsOutput += "action" }])
         assertDefaultIONodeChains(node: a, actionsOutput: "actionchain")
     }
-    
+}
+
+final class ThenNodeTests: FSMNodeTests {
     func testNilThenNodeState() {
         assertEmptyThen(
             ThenNode(state: nil, rest: []),
@@ -384,7 +405,9 @@ final class SwiftFSMTests: FSMNodeTests {
                                        actionsNode])
         )
     }
-    
+}
+
+final class WhenNodeTests: FSMNodeTests {
     func testEmptyWhenNode() {
         assertEmptyNodeWithError(WhenNode(events: [], rest: []))
     }
@@ -433,7 +456,9 @@ final class SwiftFSMTests: FSMNodeTests {
         w.rest.append(thenNode)
         assertWhenNodeWithActions(w)
     }
-    
+}
+
+final class MatchNodeTests: FSMNodeTests {
     func testEmptyMatchNodeIsError() {
         assertEmptyNodeWithError(MatchNode(match: Match(),
                                            rest: [],
@@ -457,7 +482,9 @@ final class SwiftFSMTests: FSMNodeTests {
         m.rest.append(whenNode)
         assertMatch(m)
     }
-    
+}
+
+final class GivenNodeTests: FSMNodeTests {
     func testEmptyGivenNode() {
         assertEmptyNodeWithoutError(GivenNode(states: [], rest: []))
     }
@@ -469,17 +496,7 @@ final class SwiftFSMTests: FSMNodeTests {
     func testGivenNodeWithEmptyRest() {
         assertEmptyNodeWithoutError(GivenNode(states: [s1, s2], rest: []))
     }
-    
-    var m1: Match = Match(any: [1], all: ["1"])
-    
-    func givenNode(thenState: AnyTraceable?, actionsNode: ActionsNode) -> GivenNode {
-        let t = ThenNode(state: thenState, rest: [actionsNode])
-        let w = WhenNode(events: [e1, e2], rest: [t])
-        let m = MatchNode(match: m1, rest: [w])
-        
-        return GivenNode(states: [s1, s2], rest: [m])
-    }
-    
+
     func testGivenNodeFinalisesFillingInEmptyNextStates() {
         let expected = [(m1, s1, e1, s1),
                         (m1, s1, e2, s1),
@@ -540,7 +557,9 @@ final class SwiftFSMTests: FSMNodeTests {
                         actionsOutput: "1212121212121212",
                         node: g)
     }
-    
+}
+
+final class DefineNodeTests: FSMNodeTests {
     func testEmptyDefineNodeProducesError() {
         assertEmptyNodeWithError(
             DefineNode(
