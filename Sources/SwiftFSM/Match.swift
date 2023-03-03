@@ -86,12 +86,7 @@ class Match {
         
         switch (firstResult, restResult) {
         case (.success, .success(let rest)):
-            let combinedResult = (self + rest).validate()
-            
-            if case .failure = combinedResult {
-                return combinedResult.appending(file: rest.file, line: rest.line)
-            }
-            return combinedResult
+            return (self + rest).validate().appending(file: rest.file, line: rest.line)
             
         case (.failure, .failure(let e)):
             return firstResult.appending(files: e.files, lines: e.lines)
@@ -115,42 +110,37 @@ class Match {
         }
         
         guard matchAll.elementsAreUniquelyTyped else {
-            return failure(predicates: matchAll,
-                           type: DuplicateTypes.self)
+            return failure(predicates: matchAll, type: DuplicateTypes.self)
         }
         
         guard matchAny.elementsAreUnique else {
-            return failure(predicates: matchAny,
-                           type: DuplicateValues.self)
+            return failure(predicates: matchAny, type: DuplicateValues.self)
         }
                 
         let intersection = matchAll.filter { matchAny.contains($0) }
         guard intersection.isEmpty else {
-            return failure(predicates: intersection,
-                           type: DuplicateValues.self)
+            return failure(predicates: intersection, type: DuplicateValues.self)
         }
         
         return .success(self)
     }
     
-    private func emptySets() -> PredicateSets {
-        Set(arrayLiteral: Set([AnyPredicate]()))
-    }
     
-    func allPredicatePermutations(_ ps: PredicateSets) -> PredicateSets {
-        let anyAndAll = matchAny.reduce(into: emptySets()) {
+    func allPredicateCombinations(_ ps: PredicateSets) -> PredicateSets {
+        var emptySets: PredicateSets { Set(arrayLiteral: Set([AnyPredicate]())) }
+        
+        let anyAndAll = matchAny.reduce(into: emptySets) {
             $0.insert(Set(matchAll) + [$1])
-        }.removeEmpties ??? [matchAll].asSets
+        }.removingEmpties ??? [matchAll].asSets
         
         let includedTypes = (matchAny + matchAll).uniqueElementTypes
-        
-        return ps.reduce(into: emptySets()) { result, p in
+        return ps.reduce(into: emptySets) { result, p in
             var filtered = p
             while let existing = filtered.first(where: { includedTypes.contains($0.type) }) {
                 filtered.remove(existing)
             }
             anyAndAll.forEach { result.insert(filtered + $0) }
-        }.removeEmpties ??? ps ??? anyAndAll
+        }.removingEmpties ??? ps ??? anyAndAll
     }
 }
 
@@ -166,9 +156,9 @@ class MatchError: Error {
     }
     
     func append(files: [String], lines: [Int]) -> Self {
-        Self.init(message: message,
-                  files: self.files + files,
-                  lines: self.lines + lines)
+        .init(message: message,
+              files: self.files + files,
+              lines: self.lines + lines)
     }
 }
 
@@ -181,11 +171,7 @@ extension Match.Result {
     }
     
     func appending(files: [String], lines: [Int]) -> Self {
-        if case .failure(let error) = self {
-            return .failure(error.append(files: files, lines: lines))
-        }
-        
-        return self
+        mapError { $0.append(files: files, lines: lines) }
     }
 }
 
@@ -199,10 +185,10 @@ extension Collection where Element == AnyPredicate {
 
 extension Collection where Element: Collection & Hashable, Element.Element: Hashable {
     var asSets: Set<Set<Element.Element>> {
-        Set(map(Set.init)).removeEmpties
+        Set(map(Set.init)).removingEmpties
     }
     
-    var removeEmpties: Set<Element> {
+    var removingEmpties: Set<Element> {
         Set(filter { !$0.isEmpty })
     }
 }

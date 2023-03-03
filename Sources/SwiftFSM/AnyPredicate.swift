@@ -47,22 +47,19 @@ struct AnyPredicate: CustomStringConvertible, Hashable {
 }
 
 extension Array {
-    func erase() -> [AnyPredicate] where Element: PredicateProtocol {
-        _erase()
-    }
-    
-    func erase() -> [AnyPredicate] where Element == any PredicateProtocol {
-        _erase()
-    }
+    func erase() -> [AnyPredicate] where Element: PredicateProtocol       { _erase() }
+    func erase() -> [AnyPredicate] where Element == any PredicateProtocol { _erase() }
     
     private func _erase() -> [AnyPredicate] {
         map { ($0 as! any PredicateProtocol).erase() }
     }
 }
 
-extension Collection where Element == any PredicateProtocol {
-    var uniquePermutationsOfAllCases: PredicateSets {
-        Set(uniqueTypes
+extension Collection where Element == AnyPredicate {
+    var combinationsOfAllCases: PredicateSets {
+        let uniqueTypes = uniqueTypes
+        
+        return Set(uniqueTypes
             .allPossibleCases
             .combinations(ofCount: uniqueTypes.count)
             .map(Set.init)
@@ -71,23 +68,13 @@ extension Collection where Element == any PredicateProtocol {
     }
     
     var uniqueTypes: [AnyPredicate] {
-        let erased = erase()
-        return erased.uniqueElementTypes.reduce(
-            into: [AnyPredicate]()
-        ) { predicates, type in
-            predicates.append(erased.first { $0.type == type }!)
+        uniqueElementTypes.reduce(into: [AnyPredicate]()) { predicates, type in
+            predicates.append(first { $0.type == type }!)
         }
     }
     
-    func erase() -> [AnyPredicate] {
-        map { $0.erase() }
-    }
-}
-
-
-extension Collection where Element == AnyPredicate {
     var allPossibleCases: [AnyPredicate] {
-        map { $0.allCases }.flattened
+        map(\.allCases).flattened
     }
     
     var elementsAreUnique: Bool {

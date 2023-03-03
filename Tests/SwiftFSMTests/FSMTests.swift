@@ -292,9 +292,6 @@ class FSMNodeTests: XCTestCase {
             self.actionsOutput = ""
         }
     }
-    
-
-    
 }
 
 final class TraceableTests: FSMNodeTests {

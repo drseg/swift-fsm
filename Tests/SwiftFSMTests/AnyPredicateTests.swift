@@ -16,8 +16,8 @@ private protocol AlwaysEqual { }; extension AlwaysEqual {
 }
 
 final class AnyPredicateTests: XCTestCase {
-    enum NeverEqualPredicate: PredicateProtocol, NeverEqual { case a, b }
-    enum AlwaysEqualPredicate: PredicateProtocol, AlwaysEqual { case a, b }
+    enum NeverEqualPredicate: PredicateProtocol, NeverEqual   { case a }
+    enum AlwaysEqualPredicate: PredicateProtocol, AlwaysEqual { case a }
     
     func testDescription() {
         XCTAssertEqual(NeverEqualPredicate.a.erase().description,
@@ -92,13 +92,13 @@ final class AnyPredicateTests: XCTestCase {
     }
 }
 
-final class CombinationsTests: XCTestCase {
-    func testPermutationsAccuracy() {
+final class PredicateCombinationsTests: XCTestCase {
+    func testCombinationsAccuracy() {
         enum P: PredicateProtocol { case a, b }
         enum Q: PredicateProtocol { case a, b }
         enum R: PredicateProtocol { case a, b }
         
-        let predicates: [any PredicateProtocol] = [Q.a, Q.b, P.a, P.b, R.b, R.b]
+        let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erase()
         
         let expected = [[P.a, Q.a, R.a],
                         [P.b, Q.a, R.a],
@@ -109,18 +109,18 @@ final class CombinationsTests: XCTestCase {
                         [P.a, Q.b, R.b],
                         [P.b, Q.b, R.b]].erasedSets
         
-        XCTAssertEqual(expected, predicates.uniquePermutationsOfAllCases)
+        XCTAssertEqual(expected, predicates.combinationsOfAllCases)
     }
     
-    func testLargePermutations() {
+    func testLargeCombinations() {
         enum P: PredicateProtocol { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
         enum Q: PredicateProtocol { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
         enum R: PredicateProtocol { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
         
-        let predicates: [any PredicateProtocol] = [Q.a, Q.b, P.a, P.b, R.b, R.b]
+        let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erase()
         
         XCTAssertEqual(P.allCases.count * Q.allCases.count * R.allCases.count,
-                       predicates.uniquePermutationsOfAllCases.count)
+                       predicates.combinationsOfAllCases.count)
     }
 }
 

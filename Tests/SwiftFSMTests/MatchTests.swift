@@ -220,12 +220,12 @@ class ValidationTests: MatchTests {
     }
 }
 
-class PermutationsTests: MatchTests {
+class MatchCombinationsTests: MatchTests {
     func testAllEmpty() {
-        XCTAssertEqual(Match().allPredicatePermutations([]), [])
+        XCTAssertEqual(Match().allPredicateCombinations([]), [])
     }
     
-    func assertPermutations(
+    func assertCombinations(
         anyOf: [any PredicateProtocol] = [],
         allOf: [any PredicateProtocol] = [],
         with a: [[any PredicateProtocol]] = [],
@@ -233,57 +233,57 @@ class PermutationsTests: MatchTests {
         line: UInt = #line
     ) {
         let match = Match(any: anyOf, all: allOf)
-        XCTAssertEqual(match.allPredicatePermutations(a.map { $0.erase() }.asSets),
+        XCTAssertEqual(match.allPredicateCombinations(a.map { $0.erase() }.asSets),
                        expected.erasedSets,
                        line: line)
     }
     
     func testEmptyMatcher() {
-        assertPermutations(expected: [])
+        assertCombinations(expected: [])
     }
     
     func testAnyOfSinglePredicate() {
-        assertPermutations(anyOf: [P.a], expected: [[P.a]])
+        assertCombinations(anyOf: [P.a], expected: [[P.a]])
     }
     
     func testAnyOfMultiPredicate() {
-        assertPermutations(anyOf: [P.a, P.b], expected: [[P.a], [P.b]])
+        assertCombinations(anyOf: [P.a, P.b], expected: [[P.a], [P.b]])
     }
     
     func testAllOfSingleType() {
-        assertPermutations(allOf: [P.a], expected: [[P.a]])
+        assertCombinations(allOf: [P.a], expected: [[P.a]])
     }
     
     func testAllOfMultiTypeM() {
-        assertPermutations(allOf: [P.a, Q.a], expected: [[P.a, Q.a]])
+        assertCombinations(allOf: [P.a, Q.a], expected: [[P.a, Q.a]])
     }
     
     func testCombinedAnyAndAll() {
-        assertPermutations(anyOf: [R.a, R.b],
+        assertCombinations(anyOf: [R.a, R.b],
                            allOf: [P.a, Q.a],
                            expected: [[P.a, Q.a, R.a],
                                       [P.a, Q.a, R.b]])
     }
     
     func testEmptyMatcherWithSingleOther() {
-        assertPermutations(with: [[P.a]],
+        assertCombinations(with: [[P.a]],
                            expected: [[P.a]])
     }
     
     func testEmptyMatcherWithMultiOther() {
-        assertPermutations(with: [[P.a, Q.a]],
+        assertCombinations(with: [[P.a, Q.a]],
                            expected: [[P.a, Q.a]])
     }
     
     func testEmptyMatcherWithMultiMultiOther() {
-        assertPermutations(with: [[P.a, Q.a],
+        assertCombinations(with: [[P.a, Q.a],
                                   [P.a, Q.b]],
                            expected: [[P.a, Q.a],
                                       [P.a, Q.b]])
     }
     
     func testAnyMatcherWithOther() {
-        assertPermutations(anyOf: [P.a, P.b],
+        assertCombinations(anyOf: [P.a, P.b],
                            with: [[Q.a, R.a],
                                   [Q.b, R.b]],
                            expected: [[P.a, Q.a, R.a],
@@ -293,7 +293,7 @@ class PermutationsTests: MatchTests {
     }
     
     func testAllMatcherWithOther() {
-        assertPermutations(allOf: [P.a, Q.a],
+        assertCombinations(allOf: [P.a, Q.a],
                            with: [[R.a],
                                   [R.b]],
                            expected: [[P.a, Q.a, R.a],
@@ -301,7 +301,7 @@ class PermutationsTests: MatchTests {
     }
     
     func testAnyAndAllMatcherWithOther() {
-        assertPermutations(anyOf: [Q.a, Q.b],
+        assertCombinations(anyOf: [Q.a, Q.b],
                            allOf: [P.a],
                            with: [[R.a],
                                   [R.b]],
@@ -312,19 +312,19 @@ class PermutationsTests: MatchTests {
     }
         
     func testAnyIgnoresTypesAlreadySpecified() {
-        assertPermutations(anyOf: [P.a],
+        assertCombinations(anyOf: [P.a],
                            with: [[P.b, P.c, Q.a]],
                            expected: [[P.a, Q.a]])
     }
     
     func testAllIgnoresTypesAlreadySpecified() {
-        assertPermutations(allOf: [P.a],
+        assertCombinations(allOf: [P.a],
                            with: [[P.b, P.c, Q.a]],
                            expected: [[P.a, Q.a]])
     }
     
     func testAnyAllIgnoresTypesAlreadySpecified() {
-        assertPermutations(anyOf: [P.a],
+        assertCombinations(anyOf: [P.a],
                            allOf: [R.a],
                            with: [[P.b, P.c, R.b, Q.a]],
                            expected: [[P.a, R.a, Q.a]])
