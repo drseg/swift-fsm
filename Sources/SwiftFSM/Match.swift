@@ -7,8 +7,8 @@
 import Foundation
 
 class Match {
-    typealias MatchResult = Result<Match, MatchError>
-    typealias AnyH = AnyHashable
+    typealias Result = Swift.Result<Match, MatchError>
+    typealias AnyP = any PredicateProtocol
     
     static func + (lhs: Match, rhs: Match) -> Match {
         .init(any: lhs.matchAny + rhs.matchAny,
@@ -17,25 +17,25 @@ class Match {
               line: lhs.line)
     }
     
-    let matchAny: [AnyH]
-    let matchAll: [AnyH]
+    let matchAny: [AnyPredicate]
+    let matchAll: [AnyPredicate]
     
     let file: String
     let line: Int
     
     private var next: Match? = nil
     
-    convenience init(_ p: AnyH..., file: String = #file, line: Int = #line) {
+    convenience init(_ p: AnyP..., file: String = #file, line: Int = #line) {
         self.init(any: [], all: p, file: file, line: line)
     }
     
     convenience init(
-        any: AnyH,
-        _ any2: AnyH,
-        _ anyRest: AnyH...,
-        all: AnyH,
-        _ all2: AnyH,
-        _ allRest: AnyH...,
+        any: AnyP,
+        _ any2: AnyP,
+        _ anyRest: AnyP...,
+        all: AnyP,
+        _ all2: AnyP,
+        _ allRest: AnyP...,
         file: String = #file,
         line: Int = #line
     ) {
@@ -43,9 +43,9 @@ class Match {
     }
     
     convenience init(
-        any: AnyH,
-        _ any2: AnyH,
-        _ anyRest: AnyH...,
+        any: AnyP,
+        _ any2: AnyP,
+        _ anyRest: AnyP...,
         file: String = #file,
         line: Int = #line
     ) {
@@ -53,16 +53,20 @@ class Match {
     }
     
     convenience init(
-        all: AnyH,
-        _ all2: AnyH,
-        _ allRest: AnyH...,
+        all: AnyP,
+        _ all2: AnyP,
+        _ allRest: AnyP...,
         file: String = #file,
         line: Int = #line
     ) {
         self.init(any: [], all: [all, all2] + allRest, file: file, line: line)
     }
     
-    init(any: [AnyH], all: [AnyH], file: String = #file, line: Int = #line) {
+    convenience init(any: [AnyP], all: [AnyP], file: String = #file, line: Int = #line) {
+        self.init(any: any.erase(), all: all.erase(), file: file, line: line)
+    }
+    
+    init(any: [AnyPredicate], all: [AnyPredicate], file: String = #file, line: Int = #line) {
         self.matchAny = any
         self.matchAll = all
         self.file = file
@@ -74,7 +78,7 @@ class Match {
         return m
     }
     
-    func finalise() -> MatchResult {
+    func finalise() -> Result {
         guard let next else { return self.validate() }
         
         let firstResult = self.validate()
@@ -100,11 +104,11 @@ class Match {
         }
     }
     
-    private func validate() -> MatchResult {
+    private func validate() -> Result {
         func failure<C: Collection>(
             predicates: C,
             type: MatchError.Type
-        ) -> MatchResult where C.Element == AnyH {
+        ) -> Result where C.Element == AnyPredicate {
             .failure(type.init(message: predicates.formattedDescription(),
                                files: [file],
                                lines: [line]))
@@ -127,6 +131,26 @@ class Match {
         }
         
         return .success(self)
+    }
+    
+    private func emptySets() -> PredicateSets {
+        Set(arrayLiteral: Set([AnyPredicate]()))
+    }
+    
+    func allPredicatePermutations(_ ps: PredicateSets) -> PredicateSets {
+        let anyAndAll = matchAny.reduce(into: emptySets()) {
+            $0.insert(Set(matchAll) + [$1])
+        }.removeEmpties ??? [matchAll].asSets
+        
+        let includedTypes = (matchAny + matchAll).uniqueElementTypes
+        
+        return ps.reduce(into: emptySets()) { result, p in
+            var filtered = p
+            while let existing = filtered.first(where: { includedTypes.contains($0.type) }) {
+                filtered.remove(existing)
+            }
+            anyAndAll.forEach { result.insert(filtered + $0) }
+        }.removeEmpties ??? ps ??? anyAndAll
     }
 }
 
@@ -151,7 +175,7 @@ class MatchError: Error {
 class DuplicateTypes: MatchError {}
 class DuplicateValues: MatchError {}
 
-extension Result<Match, MatchError> {
+extension Match.Result {
     func appending(file: String, line: Int) -> Self {
         appending(files: [file], lines: [line])
     }
@@ -165,28 +189,26 @@ extension Result<Match, MatchError> {
     }
 }
 
-extension AnyHashable {
-    var type: String {
-        String(describing: Swift.type(of: base))
-    }
-}
-
-extension Collection where Element == AnyHashable {
+extension Collection where Element == AnyPredicate {
     func formattedDescription() -> String {
         map(\.description)
             .sorted()
             .joined(separator: ", ")
     }
-    
-    var elementsAreUnique: Bool {
-        Set(self).count == count
+}
+
+extension Collection where Element: Collection & Hashable, Element.Element: Hashable {
+    var asSets: Set<Set<Element.Element>> {
+        Set(map(Set.init)).removeEmpties
     }
     
-    var elementsAreUniquelyTyped: Bool {
-        uniqueElementTypes.count == count
+    var removeEmpties: Set<Element> {
+        Set(filter { !$0.isEmpty })
     }
-    
-    var uniqueElementTypes: Set<String> {
-        Set(map(\.type))
+}
+
+extension Set {
+    static func + (lhs: Self, rhs: Self) -> Self {
+        lhs.union(rhs)
     }
 }

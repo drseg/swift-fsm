@@ -7,14 +7,20 @@
 import XCTest
 @testable import SwiftFSM
 
+enum P: PredicateProtocol { case a, b, c }
+enum Q: PredicateProtocol { case a, b, c }
+enum R: PredicateProtocol { case a, b, c }
+enum S: PredicateProtocol { case a, b, c }
+enum T: PredicateProtocol { case a, b, c }
+enum U: PredicateProtocol { case a, b, c }
+
 class MatchTests: XCTestCase {
-    // base types irrelevant as long as each row is uniquely typed
-    let p1: AnyHashable = "P1",            p2: AnyHashable = "P2"
-    let q1: AnyHashable = ["Q1": 1],       q2: AnyHashable = ["Q2": 2]
-    let r1: AnyHashable = [1: "R1"],       r2: AnyHashable = [2: "R2"]
-    let s1: AnyHashable = Substring("S1"), s2: AnyHashable = Substring("S2")
-    let t1: AnyHashable = ["T1"],          t2: AnyHashable = ["T2"]
-    let u1: AnyHashable = ["U1": "U1"],    u2: AnyHashable = ["U2": "U2"]
+    let p1 = P.a, p2 = P.b
+    let q1 = Q.a, q2 = Q.b
+    let r1 = R.a, r2 = R.b
+    let s1 = S.a, s2 = S.b
+    let t1 = T.a, t2 = T.b
+    let u1 = U.a, u2 = U.b
 }
 
 class BasicTests: MatchTests {
@@ -42,7 +48,7 @@ class BasicTests: MatchTests {
     
     func testSingleItemIsAll() {
         let match = Match(p1)
-        XCTAssertEqual(match.matchAll, [p1])
+        XCTAssertEqual(match.matchAll, [p1.erase()])
         XCTAssertTrue(match.matchAny.isEmpty)
     }
 }
@@ -214,6 +220,118 @@ class ValidationTests: MatchTests {
     }
 }
 
+class PermutationsTests: MatchTests {
+    func testAllEmpty() {
+        XCTAssertEqual(Match().allPredicatePermutations([]), [])
+    }
+    
+    func assertPermutations(
+        anyOf: [any PredicateProtocol] = [],
+        allOf: [any PredicateProtocol] = [],
+        with a: [[any PredicateProtocol]] = [],
+        expected: [[any PredicateProtocol]],
+        line: UInt = #line
+    ) {
+        let match = Match(any: anyOf, all: allOf)
+        XCTAssertEqual(match.allPredicatePermutations(a.map { $0.erase() }.asSets),
+                       expected.erasedSets,
+                       line: line)
+    }
+    
+    func testEmptyMatcher() {
+        assertPermutations(expected: [])
+    }
+    
+    func testAnyOfSinglePredicate() {
+        assertPermutations(anyOf: [P.a], expected: [[P.a]])
+    }
+    
+    func testAnyOfMultiPredicate() {
+        assertPermutations(anyOf: [P.a, P.b], expected: [[P.a], [P.b]])
+    }
+    
+    func testAllOfSingleType() {
+        assertPermutations(allOf: [P.a], expected: [[P.a]])
+    }
+    
+    func testAllOfMultiTypeM() {
+        assertPermutations(allOf: [P.a, Q.a], expected: [[P.a, Q.a]])
+    }
+    
+    func testCombinedAnyAndAll() {
+        assertPermutations(anyOf: [R.a, R.b],
+                           allOf: [P.a, Q.a],
+                           expected: [[P.a, Q.a, R.a],
+                                      [P.a, Q.a, R.b]])
+    }
+    
+    func testEmptyMatcherWithSingleOther() {
+        assertPermutations(with: [[P.a]],
+                           expected: [[P.a]])
+    }
+    
+    func testEmptyMatcherWithMultiOther() {
+        assertPermutations(with: [[P.a, Q.a]],
+                           expected: [[P.a, Q.a]])
+    }
+    
+    func testEmptyMatcherWithMultiMultiOther() {
+        assertPermutations(with: [[P.a, Q.a],
+                                  [P.a, Q.b]],
+                           expected: [[P.a, Q.a],
+                                      [P.a, Q.b]])
+    }
+    
+    func testAnyMatcherWithOther() {
+        assertPermutations(anyOf: [P.a, P.b],
+                           with: [[Q.a, R.a],
+                                  [Q.b, R.b]],
+                           expected: [[P.a, Q.a, R.a],
+                                      [P.a, Q.b, R.b],
+                                      [P.b, Q.a, R.a],
+                                      [P.b, Q.b, R.b]])
+    }
+    
+    func testAllMatcherWithOther() {
+        assertPermutations(allOf: [P.a, Q.a],
+                           with: [[R.a],
+                                  [R.b]],
+                           expected: [[P.a, Q.a, R.a],
+                                      [P.a, Q.a, R.b]])
+    }
+    
+    func testAnyAndAllMatcherWithOther() {
+        assertPermutations(anyOf: [Q.a, Q.b],
+                           allOf: [P.a],
+                           with: [[R.a],
+                                  [R.b]],
+                           expected: [[P.a, Q.a, R.a],
+                                      [P.a, Q.a, R.b],
+                                      [P.a, Q.b, R.a],
+                                      [P.a, Q.b, R.b]])
+    }
+        
+    func testAnyIgnoresTypesAlreadySpecified() {
+        assertPermutations(anyOf: [P.a],
+                           with: [[P.b, P.c, Q.a]],
+                           expected: [[P.a, Q.a]])
+    }
+    
+    func testAllIgnoresTypesAlreadySpecified() {
+        assertPermutations(allOf: [P.a],
+                           with: [[P.b, P.c, Q.a]],
+                           expected: [[P.a, Q.a]])
+    }
+    
+    func testAnyAllIgnoresTypesAlreadySpecified() {
+        assertPermutations(anyOf: [P.a],
+                           allOf: [R.a],
+                           with: [[P.b, P.c, R.b, Q.a]],
+                           expected: [[P.a, R.a, Q.a]])
+    }
+}
+
+
 extension Match: CustomStringConvertible {
     public var description: String {
         "\(matchAny), \(matchAll)"
@@ -250,6 +368,12 @@ extension MatchError: Equatable {
     public static func == (lhs: MatchError, rhs: MatchError) -> Bool {
         lhs.files.sorted() == rhs.files.sorted() &&
         lhs.lines.sorted() == rhs.lines.sorted()
+    }
+}
+
+extension Collection where Element == [any PredicateProtocol] {
+    var erasedSets: Set<Set<AnyPredicate>> {
+        Set(map { Set($0.erase()) })
     }
 }
 

@@ -282,7 +282,7 @@ struct EmptyBuilderError: Error, Equatable {
     }
 }
 
-infix operator ???
+infix operator ???: AdditionPrecedence
 
 func ???<T: Collection> (lhs: T, rhs: T) -> T {
     lhs.isEmpty ? rhs : lhs

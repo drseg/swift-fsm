@@ -44,7 +44,7 @@ class FSMNodeTests: XCTestCase {
     }
     
     var m1: Match {
-        Match(any: [1], all: ["1"])
+        Match(any: [P.a], all: [Q.a])
     }
     
     func givenNode(thenState: AnyTraceable?, actionsNode: ActionsNode) -> GivenNode {
@@ -239,7 +239,7 @@ class FSMNodeTests: XCTestCase {
     
     func assertDefaultIONodeChains(
         node: any DefaultIONode,
-        match: Match = Match(any: ["1"], all: [1]),
+        match: Match = Match(any: [P.a], all: [Q.a]),
         event: AnyTraceable = "E1",
         state: AnyTraceable = "S1",
         actionsOutput: String = "chain",
@@ -247,7 +247,7 @@ class FSMNodeTests: XCTestCase {
     ) {
         let nodeChains: [any Node<DefaultIO>] = {
             let nodes: [any DefaultIONode] =
-            [MatchNode(match: Match(any: ["1"], all: [1])),
+            [MatchNode(match: Match(any: [P.a], all: [Q.a])),
              WhenNode(events: [e1]),
              ThenNode(state: s1),
              ActionsNode(actions: [{ self.actionsOutput += "chain" }])]
@@ -472,9 +472,9 @@ final class MatchNodeTests: FSMNodeTests {
     }
     
     func testMatchNodeWithChainFinalisesCorrectly() {
-        let m = MatchNode(match: Match(any: ["2"], all: [true]))
-        assertDefaultIONodeChains(node: m, match: Match(any: ["2", "1"],
-                                                       all: [true, 1]))
+        let m = MatchNode(match: Match(any: [P.b], all: [R.a]))
+        assertDefaultIONodeChains(node: m, match: Match(any: [P.a, P.b],
+                                                        all: [Q.a, R.a]))
     }
     
     func testMatchNodeCanSetRestAfterInit() {
