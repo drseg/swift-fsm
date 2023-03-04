@@ -45,12 +45,6 @@ class BasicTests: MatchTests {
         XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1, r1),
                           Match(any: p1, p2, all: q1, r1))
     }
-    
-    func testSingleItemIsAll() {
-        let match = Match(p1)
-        XCTAssertEqual(match.matchAll, [p1.erase()])
-        XCTAssertTrue(match.matchAny.isEmpty)
-    }
 }
 
 class AdditionTests: MatchTests {
@@ -75,7 +69,7 @@ class AdditionTests: MatchTests {
     }
     
     func testAddingAllToEmpty() {
-        XCTAssertEqual(Match() + Match(p1), Match(p1))
+        XCTAssertEqual(Match() + Match(all: p1), Match(all: p1))
     }
     
     func testAddingAnyAndAllToEmpty() {
@@ -121,8 +115,8 @@ class FinalisationTests: MatchTests {
     }
 
     func testMatchFinalisesToItself() {
-        assertFinalise(Match(p1),
-                       Match(p1))
+        assertFinalise(Match(all: p1),
+                       Match(all: p1))
     }
 
     func testEmptyMatchWithNextFinalisesToNext() {
@@ -139,9 +133,9 @@ class FinalisationTests: MatchTests {
     }
     
     func testLongChain() {
-        var match = Match(p1)
+        var match = Match(all: p1)
         100 * { match = match.prepend(Match()) }
-        XCTAssertEqual(Match(p1), try! match.finalise().get())
+        XCTAssertEqual(Match(all: p1), try! match.finalise().get())
     }
 }
 
@@ -232,7 +226,7 @@ class MatchCombinationsTests: MatchTests {
         expected: [[any Predicate]],
         line: UInt = #line
     ) {
-        let match = Match(any: anyOf, all: allOf)
+        let match = Match(any: anyOf.erase(), all: allOf.erase())
         XCTAssertEqual(match.allPredicateCombinations(a.map { $0.erase() }.asSets),
                        expected.erasedSets,
                        line: line)

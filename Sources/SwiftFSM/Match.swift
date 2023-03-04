@@ -8,7 +8,7 @@ import Foundation
 
 class Match {
     typealias Result = Swift.Result<Match, MatchError>
-    typealias AnyP = any Predicate
+    typealias AnyPP = any Predicate
     
     static func + (lhs: Match, rhs: Match) -> Match {
         .init(any: lhs.matchAny + rhs.matchAny,
@@ -25,44 +25,7 @@ class Match {
     
     private var next: Match? = nil
     
-    convenience init(_ p: AnyP..., file: String = #file, line: Int = #line) {
-        self.init(any: [], all: p, file: file, line: line)
-    }
-    
-    convenience init(
-        any: AnyP,
-        _ any2: AnyP,
-        _ anyRest: AnyP...,
-        all: AnyP,
-        _ all2: AnyP,
-        _ allRest: AnyP...,
-        file: String = #file,
-        line: Int = #line
-    ) {
-        self.init(any: [any, any2] + anyRest, all: [all, all2] + allRest, file: file, line: line)
-    }
-    
-    convenience init(
-        any: AnyP,
-        _ any2: AnyP,
-        _ anyRest: AnyP...,
-        file: String = #file,
-        line: Int = #line
-    ) {
-        self.init(any: [any, any2] + anyRest, all: [], file: file, line: line)
-    }
-    
-    convenience init(
-        all: AnyP,
-        _ all2: AnyP,
-        _ allRest: AnyP...,
-        file: String = #file,
-        line: Int = #line
-    ) {
-        self.init(any: [], all: [all, all2] + allRest, file: file, line: line)
-    }
-    
-    convenience init(any: [AnyP], all: [AnyP], file: String = #file, line: Int = #line) {
+    convenience init(any: AnyPP..., all: AnyPP..., file: String = #file, line: Int = #line) {
         self.init(any: any.erase(), all: all.erase(), file: file, line: line)
     }
     
