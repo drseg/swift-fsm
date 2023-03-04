@@ -76,7 +76,7 @@ enum Syntax {
         let node: MatchNode
         
         init(_ p: any Predicate, file: String = #file, line: Int = #line) {
-            self.init(Match(any: [], all: [p.erase()]), file: file, line: line)
+            self.init(any: [], all: [p], file: file, line: line)
         }
         
         init(
@@ -121,15 +121,8 @@ enum Syntax {
             file: String = #file,
             line: Int = #line
         ) {
-            self.init(Match(any: any.erase(),
-                            all: all.erase()),
-                      file: file,
-                      line: line)
-        }
-        
-        
-        fileprivate init(_ m: Match, file: String = #file, line: Int = #line) {
-            node = MatchNode(match: m,
+            node = MatchNode(match: Match(any: any.erase(),
+                                          all: all.erase()),
                              caller: "match",
                              file: file,
                              line: line)
