@@ -73,10 +73,8 @@ extension TransitionBuilder {
 
 enum Syntax {
     struct Matching {
-        static func |<State: Hashable> (lhs: Self, rhs: When<State>) -> MatchingWhen {
-            let node = rhs.node
-            node.rest = [lhs.node]
-            return MatchingWhen(node: node)
+        static func |<State: Hashable> (lhs: Self, rhs: When<State>) -> _MatchingWhen {
+            _MatchingWhen(node: rhs.node.appending(lhs.node))
         }
         
         let node: MatchNode
@@ -127,8 +125,7 @@ enum Syntax {
             file: String = #file,
             line: Int = #line
         ) {
-            node = MatchNode(match: Match(any: any.erase(),
-                                          all: all.erase()),
+            node = MatchNode(match: Match(any: any.erase(), all: all.erase()),
                              caller: "match",
                              file: file,
                              line: line)
@@ -173,17 +170,23 @@ enum Syntax {
         }
     }
     
-    struct MatchingWhen {
-        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> MatchingWhenThen {
-            let node = rhs.node
-            node.rest = [lhs.node]
-            return MatchingWhenThen(node: node)
+    struct _MatchingWhen {
+        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MatchingWhenThen {
+            _MatchingWhenThen(node: rhs.node.appending(lhs.node))
         }
         
         let node: WhenNode
     }
     
-    struct MatchingWhenThen {
+    struct _MatchingWhenThen {
         let node: ThenNode
+    }
+}
+
+extension Node {
+    func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {
+        var this = self
+        this.rest = [other]
+        return this
     }
 }

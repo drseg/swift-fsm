@@ -110,10 +110,12 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     
     func testMatchingWhen() {
         let mw = matching(P.a) | when(1, 2); let line = #line
+        
         let whenNode = mw.node
-        let matchNode = whenNode.rest.first! as! MatchNode
+        let matchNode = whenNode.rest.first as! MatchNode
         
         XCTAssertEqual(1, whenNode.rest.count)
+        XCTAssertEqual(0, matchNode.rest.count)
         
         assertWhen(whenNode, line: line)
         assertMatching(matchNode, all: [P.a], line: line)
@@ -121,9 +123,14 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     
     func testMatchingWhenThen() {
         let mwt = matching(P.a) | when(1, 2) | then(1); let line = #line
+        
         let thenNode = mwt.node
-        let whenNode = thenNode.rest.first! as! WhenNode
-        let matchNode = whenNode.rest.first! as! MatchNode
+        let whenNode = thenNode.rest.first as! WhenNode
+        let matchNode = whenNode.rest.first as! MatchNode
+        
+        XCTAssertEqual(1, thenNode.rest.count)
+        XCTAssertEqual(1, whenNode.rest.count)
+        XCTAssertEqual(0, matchNode.rest.count)
         
         assertThen(thenNode, state: 1, testLine: line, file: #file)
         assertWhen(whenNode, line: line)
