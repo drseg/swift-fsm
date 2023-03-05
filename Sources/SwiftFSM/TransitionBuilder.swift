@@ -73,6 +73,12 @@ extension TransitionBuilder {
 
 enum Syntax {
     struct Matching {
+        static func |<State: Hashable> (lhs: Self, rhs: When<State>) -> MatchingWhen {
+            let node = rhs.node
+            node.rest = [lhs.node]
+            return MatchingWhen(node: node)
+        }
+        
         let node: MatchNode
         
         init(_ p: any Predicate, file: String = #file, line: Int = #line) {
@@ -165,5 +171,19 @@ enum Syntax {
                                                    line: line): nil
             )
         }
+    }
+    
+    struct MatchingWhen {
+        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> MatchingWhenThen {
+            let node = rhs.node
+            node.rest = [lhs.node]
+            return MatchingWhenThen(node: node)
+        }
+        
+        let node: WhenNode
+    }
+    
+    struct MatchingWhenThen {
+        let node: ThenNode
     }
 }

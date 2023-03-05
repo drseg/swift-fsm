@@ -12,26 +12,33 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     typealias State = Int
     typealias Event = Int
     
-    func testMatch() {
-        func assertMatching(
-            _ m: Syntax.Matching,
-            any: any Predicate...,
-            all: any Predicate...,
-            line: Int,
-            testLine: UInt = #line
-        ) {
-            let node = m.node
-            
-            XCTAssertTrue(node.rest.isEmpty, line: testLine)
-            
-            XCTAssertEqual(any.erase(), node.match.matchAny, line: testLine)
-            XCTAssertEqual(all.erase(), node.match.matchAll, line: testLine)
-            
-            XCTAssertEqual(#file, node.file, line: testLine)
-            XCTAssertEqual(line, node.line, line: testLine)
-            XCTAssertEqual("match", node.caller, line: testLine)
-        }
+    func assertMatching(
+        _ m: Syntax.Matching,
+        any: any Predicate...,
+        all: any Predicate...,
+        line: Int,
+        testLine: UInt = #line
+    ) {
+        XCTAssertTrue(m.node.rest.isEmpty, line: testLine)
+        assertMatching(m.node, any: any, all: all, line: line, testLine: testLine)
+    }
+    
+    func assertMatching(
+        _ node: MatchNode,
+        any: [any Predicate] = [],
+        all: [any Predicate] = [],
+        line: Int,
+        testLine: UInt = #line
+    ) {
+        XCTAssertEqual(any.erase(), node.match.matchAny, line: testLine)
+        XCTAssertEqual(all.erase(), node.match.matchAll, line: testLine)
         
+        XCTAssertEqual(#file, node.file, line: testLine)
+        XCTAssertEqual(line, node.line, line: testLine)
+        XCTAssertEqual("match", node.caller, line: testLine)
+    }
+    
+    func testMatch() {
         let m1 = matching(P.a); let l1 = #line
         let m2 = Syntax.Matching(P.a); let l2 = #line
         
@@ -57,20 +64,22 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         assertMatching(m8, any: P.a, P.b, all: Q.a, R.a, line: l8)
     }
         
+    func assertWhen<E>(_ w: Syntax.When<E>, line: Int, testLine: UInt = #line) {
+        XCTAssertTrue(w.node.rest.isEmpty, line: testLine)
+        assertWhen(w.node, line: line, testLine: testLine)
+    }
+    
+    func assertWhen(_ node: WhenNode, line: Int, testLine: UInt = #line) {
+        XCTAssertEqual([1, 2], node.events.map(\.base), line: testLine)
+        XCTAssertEqual([#file, #file], node.events.map(\.file), line: testLine)
+        XCTAssertEqual([line, line], node.events.map(\.line), line: testLine)
+        
+        XCTAssertEqual(#file, node.file, line: testLine)
+        XCTAssertEqual(line, node.line, line: testLine)
+        XCTAssertEqual("when", node.caller, line: testLine)
+    }
+    
     func testWhen() {
-        func assertWhen<E>(_ w: Syntax.When<E>, line: Int, testLine: UInt = #line) {
-            let node = w.node
-            
-            XCTAssertTrue(node.rest.isEmpty, line: testLine)
-            
-            XCTAssertEqual([1, 2], node.events.map(\.base), line: testLine)
-            XCTAssertEqual([#file, #file], node.events.map(\.file), line: testLine)
-            XCTAssertEqual([line, line], node.events.map(\.line), line: testLine)
-            
-            XCTAssertEqual(#file, node.file, line: testLine)
-            XCTAssertEqual(line, node.line, line: testLine)
-            XCTAssertEqual("when", node.caller, line: testLine)
-        }
         
         let w1 = when(1, 2); let l1 = #line
         let w2 = Syntax.When(1, 2); let l2 = #line
@@ -79,16 +88,45 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         assertWhen(w2, line: l2)
     }
     
+    func assertThen(_ n: ThenNode, state: State?, testLine: Int?, file: String? = nil, line: UInt = #line) {
+        XCTAssertEqual(state, n.state?.base as? State, line: line)
+        XCTAssertEqual(file, n.state?.file, line: line)
+        XCTAssertEqual(testLine, n.state?.line, line: line)
+    }
+    
     func testThen() {
-        let n1 = then(1).node; let line = #line
-        let n2 = then().node
+        let n1 = then(1).node; let l1 = #line
+        let n2 = Syntax.Then(1).node; let l2 = #line
         
-        XCTAssertTrue(n1.rest.isEmpty)
-        XCTAssertTrue(n2.rest.isEmpty)
-        XCTAssertNil(n2.state)
+        let n3 = then().node
+        let n4 = Syntax.Then<AnyHashable>().node
         
-        XCTAssertEqual(1, n1.state!.base)
-        XCTAssertEqual(#file, n1.state!.file)
-        XCTAssertEqual(line, n1.state!.line)
+        assertThen(n1, state: 1, testLine: l1, file: #file)
+        assertThen(n2, state: 1, testLine: l2, file: #file)
+
+        assertThen(n3, state: nil, testLine: nil)
+        assertThen(n4, state: nil, testLine: nil)
+    }
+    
+    func testMatchingWhen() {
+        let mw = matching(P.a) | when(1, 2); let line = #line
+        let whenNode = mw.node
+        let matchNode = whenNode.rest.first! as! MatchNode
+        
+        XCTAssertEqual(1, whenNode.rest.count)
+        
+        assertWhen(whenNode, line: line)
+        assertMatching(matchNode, all: [P.a], line: line)
+    }
+    
+    func testMatchingWhenThen() {
+        let mwt = matching(P.a) | when(1, 2) | then(1); let line = #line
+        let thenNode = mwt.node
+        let whenNode = thenNode.rest.first! as! WhenNode
+        let matchNode = whenNode.rest.first! as! MatchNode
+        
+        assertThen(thenNode, state: 1, testLine: line, file: #file)
+        assertWhen(whenNode, line: line)
+        assertMatching(matchNode, all: [P.a], line: line)
     }
 }
