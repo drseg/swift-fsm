@@ -71,6 +71,11 @@ extension TransitionBuilder {
     }
 }
 
+protocol SyntaxNode {
+    associatedtype NodeType: Node<DefaultIO>
+    var node: NodeType { get }
+}
+
 enum Syntax {
     struct Matching {
         static func |<State: Hashable> (lhs: Self, rhs: When<State>) -> _MatchingWhen {
@@ -133,6 +138,10 @@ enum Syntax {
     }
     
     struct When<Event: Hashable> {
+        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _WhenThen {
+            _WhenThen(node: rhs.node.appending(lhs.node))
+        }
+        
         let node: WhenNode
         
         init(
@@ -159,8 +168,8 @@ enum Syntax {
     }
     
     struct Then<State: Hashable> {
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> Syntax._ThenActions {
-            Syntax._ThenActions(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> _ThenActions {
+            _ThenActions(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
         let node: ThenNode
@@ -186,6 +195,18 @@ enum Syntax {
         let node: WhenNode
     }
     
+    struct _WhenThen {
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> _WhenThenActions {
+            _WhenThenActions(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        }
+        
+        let node: ThenNode
+    }
+    
+    struct _WhenThenActions: SyntaxNode {
+        let node: ActionsNode
+    }
+    
     struct _MatchingWhenThen {
         static func | (lhs: Self, rhs: @escaping () -> ()) -> _MatchingWhenThenActions {
             _MatchingWhenThenActions(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
@@ -194,8 +215,13 @@ enum Syntax {
         let node: ThenNode
     }
     
-    struct _MatchingWhenThenActions {
+    struct _MatchingWhenThenActions: SyntaxNode {
         let node: ActionsNode
+    }
+    
+    @resultBuilder
+    struct _MWTABuilder: ResultBuilder {
+        typealias T = any SyntaxNode
     }
 }
 
