@@ -13,19 +13,40 @@ protocol TransitionBuilder {
 
 extension TransitionBuilder {
     func define(
-        _ state: State,
+        _ s1: State,
+        _ rest: State...,
         superState: SuperState,
         entryActions: [() -> ()],
         exitActions: [() -> ()],
         file: String = #file,
         line: Int = #line
     ) -> Syntax.Define<State> {
-        Syntax.Define(state,
+        Syntax.Define([s1] + rest,
                       superState: superState,
                       entryActions: entryActions,
                       exitActions: exitActions,
                       file: file,
-                      line: line)
+                      line: line,
+                      elements: [])
+    }
+    
+    func define(
+        _ s1: State,
+        _ rest: State...,
+        superState: SuperState? = nil,
+        entryActions: [() -> ()],
+        exitActions: [() -> ()],
+        file: String = #file,
+        line: Int = #line,
+        @Syntax._MWTABuilder _ block: () -> ([any SyntaxElement])
+    ) -> Syntax.Define<State> {
+        Syntax.Define(states: [s1] + rest,
+                      superState: superState,
+                      entryActions: entryActions,
+                      exitActions: exitActions,
+                      file: file,
+                      line: line,
+                      block)
     }
     
     func matching(
@@ -87,7 +108,7 @@ extension TransitionBuilder {
     }
 }
 
-protocol SyntaxNode {
+protocol SyntaxElement {
     associatedtype NodeType: Node<DefaultIO>
     var node: NodeType { get }
 }
@@ -202,23 +223,84 @@ enum Syntax {
     struct Define<State: Hashable> {
         let node: DefineNode
         
-        init(_ state: State,
+        init(_ s1: State,
+             _ rest: State...,
              superState: SuperState,
              entryActions: [() -> ()],
              exitActions: [() -> ()],
              file: String = #file,
              line: Int = #line
         ) {
+            self.init([s1] + rest,
+                      superState: superState,
+                      entryActions: entryActions,
+                      exitActions: exitActions,
+                      file: file,
+                      line: line,
+                      elements: [])
+        }
+        
+        init(_ s1: State,
+             _ rest: State...,
+             superState: SuperState? = nil,
+             entryActions: [() -> ()],
+             exitActions: [() -> ()],
+             file: String = #file,
+             line: Int = #line,
+             @Syntax._MWTABuilder _ block: () -> ([any SyntaxElement])
+        ) {
+            self.init(states: [s1] + rest,
+                      superState: superState,
+                      entryActions: entryActions,
+                      exitActions: exitActions,
+                      file: file,
+                      line: line,
+                      block)
+        }
+        
+        fileprivate init(states: [State],
+                         superState: SuperState? = nil,
+                         entryActions: [() -> ()],
+                         exitActions: [() -> ()],
+                         file: String = #file,
+                         line: Int = #line,
+                         @Syntax._MWTABuilder _ block: () -> ([any SyntaxElement])
+        ) {
+            let elements = block()
+            
+            self.init(states,
+                      superState: elements.isEmpty ? nil : superState,
+                      entryActions: entryActions,
+                      exitActions: exitActions,
+                      file: file,
+                      line: line,
+                      elements: elements)
+        }
+        
+        fileprivate init(_ states: [State],
+                         superState: SuperState?,
+                         entryActions: [() -> ()],
+                         exitActions: [() -> ()],
+                         file: String = #file,
+                         line: Int = #line,
+                         elements: [any SyntaxElement]
+        ) {
             var dNode = DefineNode(entryActions: entryActions,
                                    exitActions: exitActions,
                                    caller: "define",
                                    file: file,
                                    line: line)
-            let gNode = GivenNode(states: [AnyTraceable(base: state,
-                                                        file: file,
-                                                        line: line)],
-                                  rest: superState.nodes)
-            dNode.rest = [gNode]
+            
+            if superState != nil || !elements.isEmpty {
+                let nodes = elements.map { $0.node as! any Node<DefaultIO> }
+                let gNode = GivenNode(states: states.map {
+                    AnyTraceable(base: $0, file: file, line: line)
+                },
+                                      rest: superState?.nodes ?? [] + nodes)
+                
+                dNode.rest = [gNode]
+            }
+            
             self.node = dNode
         }
     }
@@ -243,7 +325,7 @@ enum Syntax {
         let node: ThenNode
     }
     
-    struct _WhenThenActions: SyntaxNode {
+    struct _WhenThenActions: SyntaxElement {
         let node: ActionsNode
     }
     
@@ -255,21 +337,20 @@ enum Syntax {
         let node: ThenNode
     }
     
-    struct _MatchingWhenThenActions: SyntaxNode {
+    struct _MatchingWhenThenActions: SyntaxElement {
         let node: ActionsNode
     }
     
-    
     @resultBuilder
     struct _MWTABuilder: ResultBuilder {
-        typealias T = any SyntaxNode
+        typealias T = any SyntaxElement
     }
 }
 
 struct SuperState {
     var nodes: [any Node<DefaultIO>]
     
-    init(@Syntax._MWTABuilder _ block: () -> ([any SyntaxNode])) {
+    init(@Syntax._MWTABuilder _ block: () -> ([any SyntaxElement])) {
         nodes = block().map { $0.node as! any Node<DefaultIO> }
     }
 }

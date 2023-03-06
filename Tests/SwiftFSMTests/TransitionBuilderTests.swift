@@ -279,7 +279,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         assertWhenThenActions(wta2.node, sutLine: l2)
     }
     
-    func build(@Syntax._MWTABuilder _ block: () -> ([any SyntaxNode])) -> [any SyntaxNode] {
+    func build(@Syntax._MWTABuilder _ block: () -> ([any SyntaxElement])) -> [any SyntaxElement] {
         block()
     }
     
@@ -289,6 +289,8 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     }
     
     func testMWTABuilder() {
+        let s0 = build { }
+        
         let l1 = #line + 1; let s1 = build {
             matching(P.a) | when(1, 2) | then(1) | pass
             when(1, 2) | then(1) | pass
@@ -299,6 +301,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
             When(1, 2) | Then(1) | pass
         }
         
+        XCTAssertTrue(s0.isEmpty)
         assertResult(s1.map { $0.node as! any Node<DefaultIO> }, sutLine: l1)
         assertResult(s2.map { $0.node as! any Node<DefaultIO> }, sutLine: l2)
     }
@@ -319,22 +322,72 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     }
     
     func testDefine() {
+        func assertDefine(
+            _ d: Syntax.Define<State>,
+            sutLine: Int,
+            elementLine: Int,
+            xctLine: UInt = #line
+        ) {
+            XCTAssertEqual("define", d.node.caller, line: xctLine)
+            XCTAssertEqual(sutLine, d.node.line, line: xctLine)
+            XCTAssertEqual(#file, d.node.file, line: xctLine)
+            
+            XCTAssertEqual(1, d.node.rest.count, line: xctLine)
+            let gNode = d.node.rest.first as! GivenNode
+            XCTAssertEqual([1, 2], gNode.states.map(\.base))
+            assertResult(gNode.rest, sutLine: elementLine, xctLine: xctLine)
+        }
+        
+        func assertEmpty(_ d: Syntax.Define<State>, xctLine: UInt = #line) {
+            XCTAssertTrue(d.node.rest.isEmpty, line: xctLine)
+        }
+        
         let l0 = #line + 1; let s = SuperState {
             matching(P.a) | when(1, 2) | then(1) | pass
             when(1, 2) | then(1) | pass
         }
-        
-        let l1 = #line; let d1 = define(1,
+
+        let l1 = #line; let d1 = define(1, 2,
                                         superState: s,
                                         entryActions: [pass],
                                         exitActions: [pass])
+
+        let l2 = #line; let d2 = Syntax.Define(1, 2,
+                                               superState: s,
+                                               entryActions: [pass],
+                                               exitActions: [pass])
+
+        let l3 = #line; let d3 = define(1, 2,
+                                        entryActions: [pass],
+                                        exitActions: [pass]) {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+
+        let l4 = #line; let d4 = Syntax.Define(1, 2,
+                                               entryActions: [pass],
+                                               exitActions: [pass]) {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+
+        let d5 = define(1, 2,
+                        superState: s,
+                        entryActions: [pass],
+                        exitActions: [pass]) { }
         
-        XCTAssertEqual("define", d1.node.caller)
-        XCTAssertEqual(l1, d1.node.line)
-        XCTAssertEqual(#file, d1.node.file)
+        let d6 = Syntax.Define(1, 2,
+                               superState: s,
+                               entryActions: [pass],
+                               exitActions: [pass]) { }
         
-        XCTAssertEqual(1, d1.node.rest.count)
-        let gNode = d1.node.rest.first as! GivenNode
-        assertResult(gNode.rest, sutLine: l0)
+        assertDefine(d1, sutLine: l1, elementLine: l0)
+        assertDefine(d2, sutLine: l2, elementLine: l0)
+        assertDefine(d3, sutLine: l3, elementLine: l3 + 3)
+        assertDefine(d4, sutLine: l4, elementLine: l4 + 3)
+
+        // technically valid/non-empty but need to flag empty trailing block
+        assertEmpty(d5)
+        assertEmpty(d6)
     }
 }
