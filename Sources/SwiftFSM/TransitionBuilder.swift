@@ -159,6 +159,10 @@ enum Syntax {
     }
     
     struct Then<State: Hashable> {
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> Syntax._ThenActions {
+            Syntax._ThenActions(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        }
+        
         let node: ThenNode
         
         init(_ state: State? = nil, file: String = #file, line: Int = #line) {
@@ -170,6 +174,10 @@ enum Syntax {
         }
     }
     
+    struct _ThenActions {
+        let node: ActionsNode
+    }
+    
     struct _MatchingWhen {
         static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MatchingWhenThen {
             _MatchingWhenThen(node: rhs.node.appending(lhs.node))
@@ -179,7 +187,15 @@ enum Syntax {
     }
     
     struct _MatchingWhenThen {
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> _MatchingWhenThenActions {
+            _MatchingWhenThenActions(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        }
+        
         let node: ThenNode
+    }
+    
+    struct _MatchingWhenThenActions {
+        let node: ActionsNode
     }
 }
 
