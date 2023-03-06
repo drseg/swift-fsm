@@ -219,9 +219,18 @@ enum Syntax {
         let node: ActionsNode
     }
     
+    
     @resultBuilder
     struct _MWTABuilder: ResultBuilder {
         typealias T = any SyntaxNode
+    }
+}
+
+struct SuperState {
+    var nodes: [any SyntaxNode]
+    
+    init(@Syntax._MWTABuilder _ block: () -> ([any SyntaxNode])) {
+        nodes = block()
     }
 }
 

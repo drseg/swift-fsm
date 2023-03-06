@@ -284,31 +284,45 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         assertWhenThenActions(wta2, sutLine: l2)
     }
     
+    func build(@Syntax._MWTABuilder _ block: () -> ([any SyntaxNode])) -> [any SyntaxNode] {
+        block()
+    }
+    
+    func assertResult(_ result: [any SyntaxNode], sutLine: Int, xctLine: UInt = #line) {
+        let mwta = result[0] as! Syntax._MatchingWhenThenActions
+        let wta = result[1] as! Syntax._WhenThenActions
+        
+        assertMatchingWhenThenActions(mwta, sutLine: sutLine, xctLine: xctLine)
+        assertWhenThenActions(wta, sutLine: sutLine + 1, xctLine: xctLine)
+    }
+    
     func testMWTABuilder() {
-        func build(@Syntax._MWTABuilder _ block: () -> ([any SyntaxNode])) -> [any SyntaxNode] {
-            block()
-        }
-        
-        func assertResult(_ result: [any SyntaxNode], sutLine: Int, xctLine: UInt = #line) {
-            let mwta = result[0] as! Syntax._MatchingWhenThenActions
-            let wta = result[1] as! Syntax._WhenThenActions
-            
-            assertMatchingWhenThenActions(mwta, sutLine: sutLine, xctLine: xctLine)
-            assertWhenThenActions(wta, sutLine: sutLine + 1, xctLine: xctLine)
-        }
-        
         let l1 = #line + 1; let s1 = build {
             matching(P.a) | when(1, 2) | then(1) | pass
             when(1, 2) | then(1) | pass
         }
-        
-        assertResult(s1, sutLine: l1)
         
         let l2 = #line + 1; let s2 = build {
             Matching(P.a) | When(1, 2) | Then(1) | pass
             When(1, 2) | Then(1) | pass
         }
         
+        assertResult(s1, sutLine: l1)
         assertResult(s2, sutLine: l2)
+    }
+    
+    func testSuperState() {
+        let l1 = #line + 1; let s1 = SuperState {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+        
+        let l2 = #line + 1; let s2 = SuperState {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+            When(1, 2) | Then(1) | pass
+        }
+        
+        assertResult(s1.nodes, sutLine: l1)
+        assertResult(s2.nodes, sutLine: l2)
     }
 }
