@@ -12,9 +12,10 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     typealias State = Int
     typealias Event = Int
     
+    typealias Define = Syntax.Define<State>
     typealias Matching = Syntax.Matching
-    typealias Then = Syntax.Then
-    typealias When = Syntax.When
+    typealias Then = Syntax.Then<State>
+    typealias When = Syntax.When<Event>
     
     func assertMatching(
         _ m: Syntax.Matching,
@@ -68,7 +69,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         assertMatching(m8, any: P.a, P.b, all: Q.a, R.a, sutLine: l8)
     }
         
-    func assertWhen<E>(_ w: When<E>, sutLine: Int, xctLine: UInt = #line) {
+    func assertWhen(_ w: When, sutLine: Int, xctLine: UInt = #line) {
         XCTAssertTrue(w.node.rest.isEmpty, line: xctLine)
         assertWhen(w.node, sutLine: sutLine, xctLine: xctLine)
     }
@@ -108,7 +109,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         let n2 = Then(1).node; let l2 = #line
         
         let n3 = then().node
-        let n4 = Then<AnyHashable>().node
+        let n4 = Then().node
         
         assertThen(n1, state: 1, sutLine: l1, file: #file)
         assertThen(n2, state: 1, sutLine: l2, file: #file)
@@ -323,7 +324,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     
     func testDefine() {
         func assertDefine(
-            _ d: Syntax.Define<State>,
+            _ d: Define,
             sutLine: Int,
             elementLine: Int,
             xctLine: UInt = #line
@@ -338,56 +339,63 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
             assertResult(gNode.rest, sutLine: elementLine, xctLine: xctLine)
         }
         
-        func assertEmpty(_ d: Syntax.Define<State>, xctLine: UInt = #line) {
-            XCTAssertTrue(d.node.rest.isEmpty, line: xctLine)
+        func assertEmpty(_ d: Define, xctLine: UInt = #line) {
+            XCTAssertEqual(0, d.node.rest.count, line: xctLine)
         }
         
         let l0 = #line + 1; let s = SuperState {
             matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+                            when(1, 2) | then(1) | pass
         }
-
+        
         let l1 = #line; let d1 = define(1, 2,
                                         superState: s,
                                         entryActions: [pass],
                                         exitActions: [pass])
-
-        let l2 = #line; let d2 = Syntax.Define(1, 2,
-                                               superState: s,
-                                               entryActions: [pass],
-                                               exitActions: [pass])
-
+        
+        let l2 = #line; let d2 = Define(1, 2,
+                                        superState: s,
+                                        entryActions: [pass],
+                                        exitActions: [pass])
+        
+        assertDefine(d1, sutLine: l1, elementLine: l0)
+        assertDefine(d2, sutLine: l2, elementLine: l0)
+        
         let l3 = #line; let d3 = define(1, 2,
                                         entryActions: [pass],
                                         exitActions: [pass]) {
             matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+                            when(1, 2) | then(1) | pass
         }
-
-        let l4 = #line; let d4 = Syntax.Define(1, 2,
-                                               entryActions: [pass],
-                                               exitActions: [pass]) {
+        
+        let l4 = #line; let d4 = Define(1, 2,
+                                        entryActions: [pass],
+                                        exitActions: [pass]) {
             matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+                            when(1, 2) | then(1) | pass
         }
-
+        
+        assertDefine(d3, sutLine: l3, elementLine: l3 + 3)
+        assertDefine(d4, sutLine: l4, elementLine: l4 + 3)
+        
         let d5 = define(1, 2,
                         superState: s,
                         entryActions: [pass],
                         exitActions: [pass]) { }
         
-        let d6 = Syntax.Define(1, 2,
-                               superState: s,
-                               entryActions: [pass],
-                               exitActions: [pass]) { }
+        let d6 = Define(1, 2,
+                        superState: s,
+                        entryActions: [pass],
+                        exitActions: [pass]) { }
         
-        assertDefine(d1, sutLine: l1, elementLine: l0)
-        assertDefine(d2, sutLine: l2, elementLine: l0)
-        assertDefine(d3, sutLine: l3, elementLine: l3 + 3)
-        assertDefine(d4, sutLine: l4, elementLine: l4 + 3)
-
         // technically valid/non-empty but need to flag empty trailing block
         assertEmpty(d5)
         assertEmpty(d6)
+        
+        let d7 = define(1, 2, entryActions: [pass], exitActions: [pass]) { }
+        let d8 = Define(1, 2, entryActions: [pass], exitActions: [pass]) { }
+        
+        assertEmpty(d7)
+        assertEmpty(d8)
     }
 }
