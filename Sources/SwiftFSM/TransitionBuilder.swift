@@ -12,6 +12,22 @@ protocol TransitionBuilder {
 }
 
 extension TransitionBuilder {
+    func define(
+        _ state: State,
+        superState: SuperState,
+        entryActions: [() -> ()],
+        exitActions: [() -> ()],
+        file: String = #file,
+        line: Int = #line
+    ) -> Syntax.Define<State> {
+        Syntax.Define(state,
+                      superState: superState,
+                      entryActions: entryActions,
+                      exitActions: exitActions,
+                      file: file,
+                      line: line)
+    }
+    
     func matching(
         _ p: any Predicate,
         file: String = #file,
@@ -183,6 +199,30 @@ enum Syntax {
         }
     }
     
+    struct Define<State: Hashable> {
+        let node: DefineNode
+        
+        init(_ state: State,
+             superState: SuperState,
+             entryActions: [() -> ()],
+             exitActions: [() -> ()],
+             file: String = #file,
+             line: Int = #line
+        ) {
+            var dNode = DefineNode(entryActions: entryActions,
+                                   exitActions: exitActions,
+                                   caller: "define",
+                                   file: file,
+                                   line: line)
+            let gNode = GivenNode(states: [AnyTraceable(base: state,
+                                                        file: file,
+                                                        line: line)],
+                                  rest: superState.nodes)
+            dNode.rest = [gNode]
+            self.node = dNode
+        }
+    }
+    
     struct _ThenActions {
         let node: ActionsNode
     }
@@ -227,10 +267,10 @@ enum Syntax {
 }
 
 struct SuperState {
-    var nodes: [any SyntaxNode]
+    var nodes: [any Node<DefaultIO>]
     
     init(@Syntax._MWTABuilder _ block: () -> ([any SyntaxNode])) {
-        nodes = block()
+        nodes = block().map { $0.node as! any Node<DefaultIO> }
     }
 }
 

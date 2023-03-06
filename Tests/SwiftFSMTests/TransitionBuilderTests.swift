@@ -84,7 +84,6 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     }
     
     func testWhen() {
-        
         let w1 = when(1, 2); let l1 = #line
         let w2 = When(1, 2); let l2 = #line
         
@@ -206,12 +205,12 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     
     func pass() { output = "pass" }
     
-    func assertMatchingWhenThenActions(
-        _ mwta: Syntax._MatchingWhenThenActions,
+    func assertMatchingWhenThenActions<N>(
+        _ n: N,
         sutLine: Int,
         xctLine: UInt = #line
-    ) {
-        let actions = mwta.node
+    ) where N: Node<DefaultIO> {
+        let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
         let when = then.rest.first as! WhenNode
         let match = when.rest.first as! MatchNode
@@ -231,8 +230,8 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         let mwta1 = matching(P.a) | when(1, 2) | then(1) | pass; let l1 = #line
         let mwta2 = Matching(P.a) | When(1, 2) | Then(1) | pass; let l2 = #line
 
-        assertMatchingWhenThenActions(mwta1, sutLine: l1)
-        assertMatchingWhenThenActions(mwta2, sutLine: l2)
+        assertMatchingWhenThenActions(mwta1.node, sutLine: l1)
+        assertMatchingWhenThenActions(mwta2.node, sutLine: l2)
     }
     
     func testWhenThen() {
@@ -258,12 +257,8 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         assertWhenThen(wt2, sutLine: l2)
     }
     
-    func assertWhenThenActions(
-        _ wta: Syntax._WhenThenActions,
-        sutLine: Int,
-        xctLine: UInt = #line
-    ) {
-        let actions = wta.node
+    func assertWhenThenActions<N: Node<DefaultIO>>(_ n: N, sutLine: Int, xctLine: UInt = #line) {
+        let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
         let when = then.rest.first as! WhenNode
         
@@ -280,20 +275,17 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         let wta1 = when(1, 2) | then(1) | pass; let l1 = #line
         let wta2 = When(1, 2) | Then(1) | pass; let l2 = #line
         
-        assertWhenThenActions(wta1, sutLine: l1)
-        assertWhenThenActions(wta2, sutLine: l2)
+        assertWhenThenActions(wta1.node, sutLine: l1)
+        assertWhenThenActions(wta2.node, sutLine: l2)
     }
     
     func build(@Syntax._MWTABuilder _ block: () -> ([any SyntaxNode])) -> [any SyntaxNode] {
         block()
     }
     
-    func assertResult(_ result: [any SyntaxNode], sutLine: Int, xctLine: UInt = #line) {
-        let mwta = result[0] as! Syntax._MatchingWhenThenActions
-        let wta = result[1] as! Syntax._WhenThenActions
-        
-        assertMatchingWhenThenActions(mwta, sutLine: sutLine, xctLine: xctLine)
-        assertWhenThenActions(wta, sutLine: sutLine + 1, xctLine: xctLine)
+    func assertResult(_ result: [any Node<DefaultIO>], sutLine: Int, xctLine: UInt = #line) {
+        assertMatchingWhenThenActions(result[0], sutLine: sutLine, xctLine: xctLine)
+        assertWhenThenActions(result[1], sutLine: sutLine + 1, xctLine: xctLine)
     }
     
     func testMWTABuilder() {
@@ -307,8 +299,8 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
             When(1, 2) | Then(1) | pass
         }
         
-        assertResult(s1, sutLine: l1)
-        assertResult(s2, sutLine: l2)
+        assertResult(s1.map { $0.node as! any Node<DefaultIO> }, sutLine: l1)
+        assertResult(s2.map { $0.node as! any Node<DefaultIO> }, sutLine: l2)
     }
     
     func testSuperState() {
@@ -324,5 +316,25 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         
         assertResult(s1.nodes, sutLine: l1)
         assertResult(s2.nodes, sutLine: l2)
+    }
+    
+    func testDefine() {
+        let l0 = #line + 1; let s = SuperState {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+        
+        let l1 = #line; let d1 = define(1,
+                                        superState: s,
+                                        entryActions: [pass],
+                                        exitActions: [pass])
+        
+        XCTAssertEqual("define", d1.node.caller)
+        XCTAssertEqual(l1, d1.node.line)
+        XCTAssertEqual(#file, d1.node.file)
+        
+        XCTAssertEqual(1, d1.node.rest.count)
+        let gNode = d1.node.rest.first as! GivenNode
+        assertResult(gNode.rest, sutLine: l0)
     }
 }
