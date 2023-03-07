@@ -57,7 +57,7 @@ class ActionsNodeBase {
     let actions: [Action]
     var rest: [any Node<DefaultIO>]
     
-    init(actions: [Action], rest: [any Node<DefaultIO>] = []) {
+    init(actions: [Action] = [], rest: [any Node<DefaultIO>] = []) {
         self.actions = actions
         self.rest = rest
     }

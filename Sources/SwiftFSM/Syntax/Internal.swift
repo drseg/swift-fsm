@@ -14,7 +14,7 @@ enum Internal {
     }
     
     struct MatchingWhen {
-        static func |<State: Hashable> (lhs: Self, rhs: Syntax.Then<State>) -> MatchingWhenThen {
+        static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThen {
             .init(node: rhs.node.appending(lhs.node))
         }
         
@@ -22,8 +22,8 @@ enum Internal {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
-        static func |<State: Hashable> (lhs: Self, rhs: Syntax.Then<State>) -> MatchingWhenThenActions {
-            .init(node: ActionsNode(actions: [], rest: [rhs.node.appending(lhs.node)]))
+        static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThenActions {
+            .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
         
         let node: WhenNode
