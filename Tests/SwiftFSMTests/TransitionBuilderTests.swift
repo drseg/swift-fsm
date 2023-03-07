@@ -412,12 +412,22 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     }
     
     func testOptionalActions() {
-        let l1 = #line; let mwtas = build {
+        let l1 = #line; let mwtas1 = build {
             matching(P.a) | when(1, 2) | then(1)
                             when(1, 2) | then(1)
         }
         
-        assertResult(mwtas.nodes, output: "", sutLine: l1 + 1)
+        let l2 = #line; let mwtas2 = build {
+            Matching(P.a) | When(1, 2) | Then(1)
+                            When(1, 2) | Then(1)
+        }
+        
+        assertResult(mwtas1.nodes, output: "", sutLine: l1 + 1)
+        assertResult(mwtas2.nodes, output: "", sutLine: l2 + 1)
+    }
+    
+    func testMatchingWhenActions() {
+        
     }
     
     func testActionsBlock() {
