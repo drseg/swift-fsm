@@ -18,10 +18,10 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
     typealias Then = Syntax.Then<State>
     typealias Actions = Syntax.Actions
     
-    typealias MatchingWhenThen = Syntax._MWT
-    typealias MatchingWhen = Syntax._MW
+    typealias MatchingWhenThen = Internal.MatchingWhenThen
+    typealias MatchingWhen = Internal.MatchingWhen
     
-    typealias MWTABuilder = Syntax._SentenceBuilder
+    typealias MWTABuilder = Internal.SentenceBuilder
     
     typealias AnyNode = any Node
     
@@ -46,9 +46,18 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         XCTAssertEqual(any.erase(), node.match.matchAny, line: xctLine)
         XCTAssertEqual(all.erase(), node.match.matchAll, line: xctLine)
         
+        assertNeverEmptyNode(node, caller: "match", sutLine: sutLine, xctLine: xctLine)
+    }
+    
+    func assertNeverEmptyNode(
+        _ node: any NeverEmptyNode,
+        caller: String,
+        sutLine: Int,
+        xctLine: UInt = #line
+    ) {
         XCTAssertEqual(#file, node.file, line: xctLine)
         XCTAssertEqual(sutLine, node.line, line: xctLine)
-        XCTAssertEqual("match", node.caller, line: xctLine)
+        XCTAssertEqual(caller, node.caller, line: xctLine)
     }
     
     func testMatch() {
@@ -87,9 +96,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         XCTAssertEqual([#file, #file], node.events.map(\.file), line: xctLine)
         XCTAssertEqual([sutLine, sutLine], node.events.map(\.line), line: xctLine)
         
-        XCTAssertEqual(#file, node.file, line: xctLine)
-        XCTAssertEqual(sutLine, node.line, line: xctLine)
-        XCTAssertEqual("when", node.caller, line: xctLine)
+        assertNeverEmptyNode(node, caller: "when", sutLine: sutLine, xctLine: xctLine)
     }
     
     func testWhen() {
@@ -260,7 +267,6 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         XCTAssertEqual(0, when.rest.count, line: xctLine)
         
         assert(actions: actions.actions, expected: expectedOutput, xctLine: xctLine)
-        
         assertWhen(when, sutLine: sutLine, xctLine: xctLine)
     }
     
@@ -385,9 +391,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
             elementLine: Int,
             xctLine: UInt = #line
         ) {
-            XCTAssertEqual("define", d.node.caller, line: xctLine)
-            XCTAssertEqual(sutLine, d.node.line, line: xctLine)
-            XCTAssertEqual(#file, d.node.file, line: xctLine)
+            assertNeverEmptyNode(d.node, caller: "define", sutLine: sutLine, xctLine: xctLine)
             
             XCTAssertEqual(1, d.node.rest.count, line: xctLine)
             let gNode = d.node.rest.first as! GivenNode
@@ -477,16 +481,12 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         assertSentenceResult(mwtas2.nodes, output: "", sutLine: l2 + 1)
     }
     
-    func testMatchingWhenActions() {
-        
-    }
-    
     func testActionsBlock() {
         // (match) | when | ({})
         //  match  | then | ({})
         
         func assertSentenceActionsBlock(
-            _ b: Syntax._ActionsSentence,
+            _ b: Internal.ActionsSentence,
             expectedOutput: String = "pass",
             sutLine: Int,
             xctLine: UInt = #line
@@ -500,7 +500,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         }
         
         func assertMWAActionsBlock(
-            _ b: Syntax._MWASentence,
+            _ b: Internal.MWASentence,
             expectedOutput: String = "pass",
             sutLine: Int,
             xctLine: UInt = #line
@@ -519,10 +519,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
             sutLine: Int,
             xctLine: UInt = #line
         ) {
-            XCTAssertEqual("actions", b.caller, line: xctLine)
-            XCTAssertEqual(#file, b.file, line: xctLine)
-            XCTAssertEqual(sutLine, b.line, line: xctLine)
-            
+            assertNeverEmptyNode(b, caller: "actions", sutLine: sutLine, xctLine: xctLine)
             assert(actions: b.actions, expected: expectedOutput, xctLine: xctLine)
         }
         
