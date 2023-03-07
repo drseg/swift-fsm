@@ -204,7 +204,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         assertMatchingWhenThen(mwt2, sutLine: l2)
     }
     
-    func pass() { output = "pass" }
+    func pass() { output += "pass" }
     
     func assertMatchingWhenThenActions<N>(
         _ n: N,
@@ -337,7 +337,14 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
             let gNode = d.node.rest.first as! GivenNode
             XCTAssertEqual([1, 2], gNode.states.map(\.base))
             assertResult(gNode.rest, sutLine: elementLine, xctLine: xctLine)
+            
+            (d.node.entryActions + d.node.exitActions).executeAll()
+            XCTAssertEqual("entryexit", output, line: xctLine)
+            output = ""
         }
+        
+        func entry() { output += "entry" }
+        func exit() { output += "exit" }
         
         func assertEmpty(_ d: Define, xctLine: UInt = #line) {
             XCTAssertEqual(0, d.node.rest.count, line: xctLine)
@@ -350,27 +357,27 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         
         let l1 = #line; let d1 = define(1, 2,
                                         superState: s,
-                                        entryActions: [pass],
-                                        exitActions: [pass])
+                                        entryActions: [entry],
+                                        exitActions: [exit])
         
         let l2 = #line; let d2 = Define(1, 2,
                                         superState: s,
-                                        entryActions: [pass],
-                                        exitActions: [pass])
+                                        entryActions: [entry],
+                                        exitActions: [exit])
         
         assertDefine(d1, sutLine: l1, elementLine: l0)
         assertDefine(d2, sutLine: l2, elementLine: l0)
         
         let l3 = #line; let d3 = define(1, 2,
-                                        entryActions: [pass],
-                                        exitActions: [pass]) {
+                                        entryActions: [entry],
+                                        exitActions: [exit]) {
             matching(P.a) | when(1, 2) | then(1) | pass
                             when(1, 2) | then(1) | pass
         }
         
         let l4 = #line; let d4 = Define(1, 2,
-                                        entryActions: [pass],
-                                        exitActions: [pass]) {
+                                        entryActions: [entry],
+                                        exitActions: [exit]) {
             matching(P.a) | when(1, 2) | then(1) | pass
                             when(1, 2) | then(1) | pass
         }
@@ -380,20 +387,20 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         
         let d5 = define(1, 2,
                         superState: s,
-                        entryActions: [pass],
-                        exitActions: [pass]) { }
+                        entryActions: [entry],
+                        exitActions: [exit]) { }
         
         let d6 = Define(1, 2,
                         superState: s,
-                        entryActions: [pass],
-                        exitActions: [pass]) { }
+                        entryActions: [entry],
+                        exitActions: [exit]) { }
         
         // technically valid/non-empty but need to flag empty trailing block
         assertEmpty(d5)
         assertEmpty(d6)
         
-        let d7 = define(1, 2, entryActions: [pass], exitActions: [pass]) { }
-        let d8 = Define(1, 2, entryActions: [pass], exitActions: [pass]) { }
+        let d7 = define(1, 2, entryActions: [entry], exitActions: [exit]) { }
+        let d8 = Define(1, 2, entryActions: [entry], exitActions: [exit]) { }
         
         assertEmpty(d7)
         assertEmpty(d8)
