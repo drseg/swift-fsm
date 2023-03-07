@@ -116,6 +116,16 @@ extension TransitionBuilder {
     ) -> Syntax._ActionsSentence {
         Syntax.Actions([a1] + aRest, file: file, line: line)(block)
     }
+    
+    func actions(
+        _ a1: @escaping () -> (),
+        _ aRest: () -> ()...,
+        file: String = #file,
+        line: Int = #line,
+        @Syntax._MWABuilder _ block: () -> ([Syntax._MWA])
+    ) -> Syntax._MWASentence {
+        Syntax.Actions([a1] + aRest, file: file, line: line)(block)
+    }
 }
 
 protocol Sentence {
@@ -187,6 +197,10 @@ enum Syntax {
     struct When<Event: Hashable> {
         static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MWT {
             _MWT(node: rhs.node.appending(lhs.node))
+        }
+        
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> _MWA {
+            _MWA(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
         static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MWTA {
@@ -332,11 +346,19 @@ enum Syntax {
             _MWT(node: rhs.node.appending(lhs.node))
         }
         
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> _MWA {
+            _MWA(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        }
+        
         static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MWTA {
             _MWTA(node: ActionsNode(actions: [], rest: [rhs.node.appending(lhs.node)]))
         }
         
         let node: WhenNode
+    }
+    
+    struct _MWA {
+        let node: ActionsNode
     }
     
     struct _MWT {
@@ -371,6 +393,12 @@ enum Syntax {
         ) -> _ActionsSentence {
             _ActionsSentence(actions, file: file, line: line, block)
         }
+        
+        func callAsFunction(
+            @_MWABuilder _ block: () -> ([_MWA])
+        ) -> _MWASentence {
+            _MWASentence(actions, file: file, line: line, block)
+        }
     }
     
     struct _ActionsSentence: Sentence {
@@ -392,9 +420,33 @@ enum Syntax {
         }
     }
     
+    struct _MWASentence {
+        let node: ActionsBlockNode
+    
+        init(
+            _ actions: [() -> ()],
+            file: String = #file,
+            line: Int = #line,
+            @_MWABuilder _ block: () -> ([_MWA])
+        ) {
+            node = ActionsBlockNode(
+                actions: actions,
+                rest: block().nodes,
+                caller: "actions",
+                file: file,
+                line: line
+            )
+        }
+    }
+        
     @resultBuilder
     struct _SentenceBuilder: ResultBuilder {
         typealias T = any Sentence
+    }
+    
+    @resultBuilder
+    struct _MWABuilder: ResultBuilder {
+        typealias T = _MWA
     }
 }
 
@@ -417,5 +469,11 @@ extension Node {
 extension [Sentence] {
     var nodes: [any Node<DefaultIO>] {
         map { $0.node as! any Node<DefaultIO> }
+    }
+}
+
+extension [Syntax._MWA] {
+    var nodes: [any Node<DefaultIO>] {
+        map { $0.node }
     }
 }
