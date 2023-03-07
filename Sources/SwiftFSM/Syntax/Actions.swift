@@ -33,5 +33,11 @@ extension Syntax {
         ) -> Internal.MWASentence {
             .init(actions, file: file, line: line, block)
         }
+        
+        func callAsFunction(
+            @Internal.MTABuilder _ block: () -> ([Internal.MatchingThenActions])
+        ) -> Internal.MTASentence {
+            .init(actions, file: file, line: line, block)
+        }
     }
 }

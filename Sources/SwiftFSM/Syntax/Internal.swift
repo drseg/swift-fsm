@@ -29,7 +29,19 @@ enum Internal {
         let node: WhenNode
     }
     
+    struct MatchingThen {
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> MatchingThenActions {
+            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        }
+        
+        let node: ThenNode
+    }
+    
     struct MatchingWhenActions {
+        let node: ActionsNode
+    }
+    
+    struct MatchingThenActions {
         let node: ActionsNode
     }
     
@@ -83,6 +95,25 @@ enum Internal {
         }
     }
     
+    struct MTASentence {
+        let node: ActionsBlockNode
+        
+        init(
+            _ actions: [() -> ()],
+            file: String = #file,
+            line: Int = #line,
+            @MWABuilder _ block: () -> ([MatchingThenActions])
+        ) {
+            node = ActionsBlockNode(
+                actions: actions,
+                rest: block().nodes,
+                caller: "actions",
+                file: file,
+                line: line
+            )
+        }
+    }
+    
     @resultBuilder
     struct SentenceBuilder: ResultBuilder {
         typealias T = any Sentence
@@ -91,6 +122,11 @@ enum Internal {
     @resultBuilder
     struct MWABuilder: ResultBuilder {
         typealias T = MatchingWhenActions
+    }
+    
+    @resultBuilder
+    struct MTABuilder: ResultBuilder {
+        typealias T = MatchingThenActions
     }
 }
 
@@ -114,6 +150,12 @@ extension [Sentence] {
 }
 
 extension [Internal.MatchingWhenActions] {
+    var nodes: [any Node<DefaultIO>] {
+        map { $0.node }
+    }
+}
+
+extension [Internal.MatchingThenActions] {
     var nodes: [any Node<DefaultIO>] {
         map { $0.node }
     }

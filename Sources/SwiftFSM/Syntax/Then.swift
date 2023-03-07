@@ -12,6 +12,10 @@ extension Syntax {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> Internal.MatchingThenActions {
+            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        }
+        
         let node: ThenNode
         
         init(_ state: State? = nil, file: String = #file, line: Int = #line) {

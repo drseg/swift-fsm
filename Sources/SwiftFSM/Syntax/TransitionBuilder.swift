@@ -126,4 +126,14 @@ extension TransitionBuilder {
     ) -> Internal.MWASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line)(block)
     }
+    
+    func actions(
+        _ a1: @escaping () -> (),
+        _ aRest: () -> ()...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> ([Internal.MatchingThenActions])
+    ) -> Internal.MTASentence {
+        Syntax.Actions([a1] + aRest, file: file, line: line)(block)
+    }
 }

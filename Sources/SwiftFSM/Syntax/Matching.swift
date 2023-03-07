@@ -8,8 +8,20 @@ import Foundation
 
 extension Syntax {
     struct Matching {
-        static func |<State: Hashable> (lhs: Self, rhs: When<State>) -> Internal.MatchingWhen {
+        static func |<Event: Hashable> (lhs: Self, rhs: When<Event>) -> Internal.MatchingWhen {
             .init(node: rhs.node.appending(lhs.node))
+        }
+        
+        static func |<Event: Hashable> (lhs: Self, rhs: When<Event>) -> Internal.MatchingWhenActions {
+            .init(node: ActionsNode(actions: [], rest: [rhs.node.appending(lhs.node)]))
+        }
+        
+        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> Internal.MatchingThen {
+            .init(node: rhs.node.appending(lhs.node))
+        }
+        
+        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> Internal.MatchingThenActions {
+            .init(node: ActionsNode(actions: [], rest: [rhs.node.appending(lhs.node)]))
         }
         
         let node: MatchNode

@@ -12,12 +12,12 @@ extension Syntax {
             .init(node: rhs.node.appending(lhs.node))
         }
         
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> Internal.MatchingWhenActions {
-            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
-        }
-        
         static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> Internal.MatchingWhenThenActions {
             .init(node: ActionsNode(actions: [], rest: [rhs.node.appending(lhs.node)]))
+        }
+        
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> Internal.MatchingWhenActions {
+            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
         let node: WhenNode
