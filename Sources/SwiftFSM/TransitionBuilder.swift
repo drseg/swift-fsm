@@ -113,8 +113,8 @@ extension TransitionBuilder {
         file: String = #file,
         line: Int = #line,
         @Syntax._SentenceBuilder _ block: () -> ([any Sentence])
-    ) -> Syntax.Actions {
-        Syntax.Actions([a1] + aRest, file: file, line: line, block)
+    ) -> Syntax._ActionsSentence {
+        Syntax.Actions([a1] + aRest, file: file, line: line)(block)
     }
 }
 
@@ -351,24 +351,36 @@ enum Syntax {
         let node: ActionsNode
     }
     
-    struct Actions: Sentence {
-        let node: ActionsBlockNode
+    struct Actions {
+        let actions: [() -> ()]
+        let file: String
+        let line: Int
         
-        init(
-            _ a1: @escaping () -> (),
-            _ aRest: () -> ()...,
-            file: String = #file,
-            line: Int = #line,
-            @Syntax._SentenceBuilder _ block: () -> ([any Sentence])
-        ) {
-            self.init([a1] + aRest, file: file, line: line, block)
+        init(_ actions: @escaping () -> (), file: String = #file, line: Int = #line) {
+            self.init([actions], file: file, line: line)
         }
         
-        fileprivate init(
+        init(_ actions: [() -> ()], file: String = #file, line: Int = #line) {
+            self.actions = actions
+            self.file = file
+            self.line = line
+        }
+        
+        func callAsFunction(
+            @_SentenceBuilder _ block: () -> ([any Sentence])
+        ) -> _ActionsSentence {
+            _ActionsSentence(actions, file: file, line: line, block)
+        }
+    }
+    
+    struct _ActionsSentence: Sentence {
+        let node: ActionsBlockNode
+    
+        init(
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            @Syntax._SentenceBuilder _ block: () -> ([any Sentence])
+            @_SentenceBuilder _ block: () -> ([any Sentence])
         ) {
             node = ActionsBlockNode(
                 actions: actions,

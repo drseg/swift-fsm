@@ -435,7 +435,8 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
         //  match  | then | ({})
         
         func assertActionsBlock(
-            _ b: Syntax.Actions,
+            _ b: Syntax._ActionsSentence,
+            expectedOutput: String = "pass",
             sutLine: Int,
             xctLine: UInt = #line
         ) {
@@ -444,7 +445,7 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
             XCTAssertEqual(sutLine, b.node.line, line: xctLine)
             
             b.node.actions.executeAll()
-            XCTAssertEqual("pass", output, line: xctLine)
+            XCTAssertEqual(expectedOutput, output, line: xctLine)
             output = ""
             
             assertResult(b.node.rest, sutLine: sutLine + 1, xctLine: xctLine)
@@ -454,14 +455,25 @@ final class SyntaxBuilderTests: XCTestCase, TransitionBuilder {
             Matching(P.a) | When(1, 2) | Then(1) | pass
                             When(1, 2) | Then(1) | pass
         }
-        
+                
         let l2 = #line; let a2 = Actions(pass) {
             Matching(P.a) | When(1, 2) | Then(1) | pass
                             When(1, 2) | Then(1) | pass
         }
         
+        let l3 = #line; let a3 = Actions([pass, pass]) {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+                            When(1, 2) | Then(1) | pass
+        }
+
+//        let l4 = #line; let a4 = actions(pass) {
+//            Matching(P.a) | When(1, 2) | pass
+//                            When(1, 2) | pass
+//        }
+        
         assertActionsBlock(a1, sutLine: l1)
         assertActionsBlock(a2, sutLine: l2)
+        assertActionsBlock(a3, expectedOutput: "passpass", sutLine: l3)
     }
 }
 
