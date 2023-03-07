@@ -25,9 +25,9 @@ extension TransitionBuilder {
                       superState: superState,
                       entryActions: entryActions,
                       exitActions: exitActions,
+                      elements: [],
                       file: file,
-                      line: line,
-                      elements: [])
+                      line: line)
     }
     
     func define(
@@ -38,7 +38,7 @@ extension TransitionBuilder {
         exitActions: [() -> ()],
         file: String = #file,
         line: Int = #line,
-        @Syntax._MWTABuilder _ block: () -> ([any SyntaxElement])
+        @Syntax._SentenceBuilder _ block: () -> ([any Sentence])
     ) -> Syntax.Define<State> {
         Syntax.Define(states: [s1] + rest,
                       superState: superState,
@@ -106,17 +106,27 @@ extension TransitionBuilder {
     ) -> Syntax.Then<State> {
         .init(state, file: file, line: line)
     }
+    
+    func actions(
+        _ a1: @escaping () -> (),
+        _ aRest: () -> ()...,
+        file: String = #file,
+        line: Int = #line,
+        @Syntax._SentenceBuilder _ block: () -> ([any Sentence])
+    ) -> Syntax.Actions {
+        Syntax.Actions([a1] + aRest, file: file, line: line, block)
+    }
 }
 
-protocol SyntaxElement {
-    associatedtype NodeType: Node<DefaultIO>
-    var node: NodeType { get }
+protocol Sentence {
+    associatedtype N: Node<DefaultIO>
+    var node: N { get }
 }
 
 enum Syntax {
     struct Matching {
-        static func |<State: Hashable> (lhs: Self, rhs: When<State>) -> _MatchingWhen {
-            _MatchingWhen(node: rhs.node.appending(lhs.node))
+        static func |<State: Hashable> (lhs: Self, rhs: When<State>) -> _MW {
+            _MW(node: rhs.node.appending(lhs.node))
         }
         
         let node: MatchNode
@@ -175,8 +185,12 @@ enum Syntax {
     }
     
     struct When<Event: Hashable> {
-        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _WhenThen {
-            _WhenThen(node: rhs.node.appending(lhs.node))
+        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MWT {
+            _MWT(node: rhs.node.appending(lhs.node))
+        }
+        
+        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MWTA {
+            _MWTA(node: ActionsNode(actions: [], rest: [rhs.node.appending(lhs.node)]))
         }
         
         let node: WhenNode
@@ -205,8 +219,8 @@ enum Syntax {
     }
     
     struct Then<State: Hashable> {
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> _ThenActions {
-            _ThenActions(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> _TA {
+            _TA(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
         let node: ThenNode
@@ -235,9 +249,9 @@ enum Syntax {
                       superState: superState,
                       entryActions: entryActions,
                       exitActions: exitActions,
+                      elements: [],
                       file: file,
-                      line: line,
-                      elements: [])
+                      line: line)
         }
         
         init(_ s1: State,
@@ -247,7 +261,7 @@ enum Syntax {
              exitActions: [() -> ()],
              file: String = #file,
              line: Int = #line,
-             @Syntax._MWTABuilder _ block: () -> ([any SyntaxElement])
+             @Syntax._SentenceBuilder _ block: () -> ([any Sentence])
         ) {
             self.init(states: [s1] + rest,
                       superState: superState,
@@ -264,7 +278,7 @@ enum Syntax {
                          exitActions: [() -> ()],
                          file: String = #file,
                          line: Int = #line,
-                         @Syntax._MWTABuilder _ block: () -> ([any SyntaxElement])
+                         @Syntax._SentenceBuilder _ block: () -> ([any Sentence])
         ) {
             let elements = block()
             
@@ -272,18 +286,18 @@ enum Syntax {
                       superState: elements.isEmpty ? nil : superState,
                       entryActions: entryActions,
                       exitActions: exitActions,
+                      elements: elements,
                       file: file,
-                      line: line,
-                      elements: elements)
+                      line: line)
         }
         
         fileprivate init(_ states: [State],
                          superState: SuperState?,
                          entryActions: [() -> ()],
                          exitActions: [() -> ()],
+                         elements: [any Sentence],
                          file: String = #file,
-                         line: Int = #line,
-                         elements: [any SyntaxElement]
+                         line: Int = #line
         ) {
             var dNode = DefineNode(entryActions: entryActions,
                                    exitActions: exitActions,
@@ -291,12 +305,16 @@ enum Syntax {
                                    file: file,
                                    line: line)
             
-            if superState != nil || !elements.isEmpty {
-                let nodes = elements.map { $0.node as! any Node<DefaultIO> }
-                let gNode = GivenNode(states: states.map {
-                    AnyTraceable(base: $0, file: file, line: line)
-                },
-                                      rest: superState?.nodes ?? [] + nodes)
+            let isValid = superState != nil || !elements.isEmpty
+            
+            if isValid {
+                func eraseToAnyTraceable(_ s: State) -> AnyTraceable {
+                    AnyTraceable(base: s, file: file, line: line)
+                }
+                
+                let states = states.map(eraseToAnyTraceable)
+                let rest = superState?.nodes ?? [] + elements.nodes
+                let gNode = GivenNode(states: states, rest: rest)
                 
                 dNode.rest = [gNode]
             }
@@ -305,53 +323,74 @@ enum Syntax {
         }
     }
     
-    struct _ThenActions {
+    struct _TA {
         let node: ActionsNode
     }
     
-    struct _MatchingWhen {
-        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MatchingWhenThen {
-            _MatchingWhenThen(node: rhs.node.appending(lhs.node))
+    struct _MW {
+        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MWT {
+            _MWT(node: rhs.node.appending(lhs.node))
+        }
+        
+        static func |<State: Hashable> (lhs: Self, rhs: Then<State>) -> _MWTA {
+            _MWTA(node: ActionsNode(actions: [], rest: [rhs.node.appending(lhs.node)]))
         }
         
         let node: WhenNode
     }
     
-    struct _WhenThen {
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> _WhenThenActions {
-            _WhenThenActions(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+    struct _MWT {
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> _MWTA {
+            _MWTA(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
         let node: ThenNode
     }
     
-    struct _WhenThenActions: SyntaxElement {
+    struct _MWTA: Sentence {
         let node: ActionsNode
     }
     
-    struct _MatchingWhenThen {
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> _MatchingWhenThenActions {
-            _MatchingWhenThenActions(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+    struct Actions: Sentence {
+        let node: ActionsBlockNode
+        
+        init(
+            _ a1: @escaping () -> (),
+            _ aRest: () -> ()...,
+            file: String = #file,
+            line: Int = #line,
+            @Syntax._SentenceBuilder _ block: () -> ([any Sentence])
+        ) {
+            self.init([a1] + aRest, file: file, line: line, block)
         }
         
-        let node: ThenNode
-    }
-    
-    struct _MatchingWhenThenActions: SyntaxElement {
-        let node: ActionsNode
+        fileprivate init(
+            _ actions: [() -> ()],
+            file: String = #file,
+            line: Int = #line,
+            @Syntax._SentenceBuilder _ block: () -> ([any Sentence])
+        ) {
+            node = ActionsBlockNode(
+                actions: actions,
+                rest: block().nodes,
+                caller: "actions",
+                file: file,
+                line: line
+            )
+        }
     }
     
     @resultBuilder
-    struct _MWTABuilder: ResultBuilder {
-        typealias T = any SyntaxElement
+    struct _SentenceBuilder: ResultBuilder {
+        typealias T = any Sentence
     }
 }
 
 struct SuperState {
     var nodes: [any Node<DefaultIO>]
     
-    init(@Syntax._MWTABuilder _ block: () -> ([any SyntaxElement])) {
-        nodes = block().map { $0.node as! any Node<DefaultIO> }
+    init(@Syntax._SentenceBuilder _ block: () -> ([any Sentence])) {
+        nodes = block().nodes
     }
 }
 
@@ -360,5 +399,11 @@ extension Node {
         var this = self
         this.rest = [other]
         return this
+    }
+}
+
+extension [Sentence] {
+    var nodes: [any Node<DefaultIO>] {
+        map { $0.node as! any Node<DefaultIO> }
     }
 }
