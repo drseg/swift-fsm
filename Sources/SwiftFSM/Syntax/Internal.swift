@@ -38,11 +38,11 @@ enum Internal {
     }
     
     struct MatchingWhenActions: MWAProtocol {
-        let node: ActionsNode
+        let node: any Node<DefaultIO>
     }
     
     struct MatchingThenActions: MTAProtocol {
-        let node: ActionsNode
+        let node: any Node<DefaultIO>
     }
     
     struct MatchingWhenThen {
@@ -54,17 +54,17 @@ enum Internal {
     }
     
     struct MatchingWhenThenActions: MWTAProtocol {
-        let node: ActionsNode
+        let node: any Node<DefaultIO>
     }
     
     struct MWTASentence: MWTAProtocol {
-        let node: ActionsBlockNode
+        let node: any Node<DefaultIO>
         
         init(
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            @MWTABuilder _ block: () -> ([any MWTAProtocol])
+            _ block: () -> ([any MWTAProtocol])
         ) {
             node = ActionsBlockNode(
                 actions: actions,
@@ -77,13 +77,13 @@ enum Internal {
     }
     
     struct MWASentence: MWAProtocol {
-        let node: ActionsBlockNode
+        let node: any Node<DefaultIO>
         
         init(
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            @MWABuilder _ block: () -> ([any MWAProtocol])
+            _ block: () -> ([any MWAProtocol])
         ) {
             node = ActionsBlockNode(
                 actions: actions,
@@ -96,13 +96,13 @@ enum Internal {
     }
     
     struct MTASentence: MTAProtocol {
-        let node: ActionsBlockNode
+        let node: any Node<DefaultIO>
         
         init(
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            @MWABuilder _ block: () -> ([any MTAProtocol])
+            _ block: () -> ([any MTAProtocol])
         ) {
             node = ActionsBlockNode(
                 actions: actions,
@@ -131,8 +131,7 @@ enum Internal {
 }
 
 protocol Sentence {
-    associatedtype N: Node<DefaultIO>
-    var node: N { get }
+    var node: any Node<DefaultIO> { get }
 }
 
 protocol MWTAProtocol: Sentence { }
@@ -149,6 +148,6 @@ extension Node {
 
 extension Array {
     var nodes: [any Node<DefaultIO>] {
-        map { ($0 as! any Sentence).node as! any Node<DefaultIO> }
+        map { ($0 as! any Sentence).node }
     }
 }
