@@ -23,8 +23,8 @@ extension Syntax {
         }
         
         func callAsFunction(
-            @Internal.SentenceBuilder _ block: () -> ([any MWTAProtocol])
-        ) -> Internal.ActionsSentence {
+            @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+        ) -> Internal.MWTASentence {
             .init(actions, file: file, line: line, block)
         }
         

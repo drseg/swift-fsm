@@ -22,7 +22,7 @@ class SyntaxBuilderTestsBase: XCTestCase, TransitionBuilder {
     typealias MatchingWhenThen = Internal.MatchingWhenThen
     typealias MatchingWhen = Internal.MatchingWhen
     
-    typealias MWTABuilder = Internal.SentenceBuilder
+    typealias MWTABuilder = Internal.MWTABuilder
     
     typealias AnyNode = any Node
     
@@ -223,6 +223,48 @@ class SyntaxBuilderTestsBase: XCTestCase, TransitionBuilder {
         XCTAssertEqual(eo, output, line: xl)
         output = ""
     }
+    
+    func assertMWTAResult(
+        _ result: [AnyNode],
+        expectedOutput eo: String = "pass",
+        sutLine sl: Int,
+        xctLine xl: UInt = #line
+    ) {
+        assertMWTA(result[0], expectedOutput: eo, sutLine: sl, xctLine: xl)
+        assertWTA(result[1], expectedOutput: eo, sutLine: sl + 1, xctLine: xl)
+    }
+    
+    func assertMWAResult(
+        _ result: [AnyNode],
+        expectedOutput eo: String = "pass",
+        sutLine sl: Int,
+        xctLine xl: UInt = #line
+    ) {
+        assertMWA(result[0], expectedOutput: eo, sutLine: sl, xctLine: xl)
+        
+        if result.count == 2 {
+            assertWA(result[1],
+                     expectedOutput: eo,
+                     sutLine: sl + 1,
+                     xctLine: xl)
+        }
+    }
+    
+    func assertMTAResult(
+        _ result: [AnyNode],
+        expectedOutput eo: String = "pass",
+        sutLine sl: Int,
+        xctLine xl: UInt = #line
+    ) {
+        assertMTA(result[0], expectedOutput: eo, sutLine: sl, xctLine: xl)
+        
+        if result.count == 2 {
+            assertTA(result[1],
+                     expectedOutput: eo,
+                     sutLine: sl + 1,
+                     xctLine: xl)
+        }
+    }
 }
 
 final class SyntaxBuilderTests: SyntaxBuilderTestsBase {
@@ -370,48 +412,6 @@ class SyntaxBlockTests: SyntaxBuilderTestsBase {
     func build(@MWTABuilder _ block: () -> ([any MWTAProtocol])) -> [any MWTAProtocol] {
         block()
     }
-    
-    func assertMWTAResult(
-        _ result: [AnyNode],
-        expectedOutput eo: String = "pass",
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        assertMWTA(result[0], expectedOutput: eo, sutLine: sl, xctLine: xl)
-        assertWTA(result[1], expectedOutput: eo, sutLine: sl + 1, xctLine: xl)
-    }
-    
-    func assertMWAResult(
-        _ result: [AnyNode],
-        expectedOutput eo: String = "pass",
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        assertMWA(result[0], expectedOutput: eo, sutLine: sl, xctLine: xl)
-        
-        if result.count == 2 {
-            assertWA(result[1],
-                     expectedOutput: eo,
-                     sutLine: sl + 1,
-                     xctLine: xl)
-        }
-    }
-    
-    func assertMTAResult(
-        _ result: [AnyNode],
-        expectedOutput eo: String = "pass",
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        assertMTA(result[0], expectedOutput: eo, sutLine: sl, xctLine: xl)
-        
-        if result.count == 2 {
-            assertTA(result[1],
-                     expectedOutput: eo,
-                     sutLine: sl + 1,
-                     xctLine: xl)
-        }
-    }
         
     func testMWTABuilder() {
         let s0 = build { }
@@ -542,10 +542,12 @@ class SyntaxBlockTests: SyntaxBuilderTestsBase {
         assertMWTAResult(mwtas1.nodes, expectedOutput: "", sutLine: l1 + 1)
         assertMWTAResult(mwtas2.nodes, expectedOutput: "", sutLine: l2 + 1)
     }
-    
+}
+
+class DefaultIOBlockTests: SyntaxBuilderTestsBase {
     func testActionsBlock() {
         func assertCompoundMWTABlock(
-            _ b: Internal.ActionsSentence,
+            _ b: Internal.MWTASentence,
             expectedNodeOutput eo: String = "pass",
             sutLine sl: Int,
             xctLine xl: UInt = #line
@@ -558,7 +560,7 @@ class SyntaxBlockTests: SyntaxBuilderTestsBase {
         }
         
         func assertMWTABlock(
-            _ b: Internal.ActionsSentence,
+            _ b: Internal.MWTASentence,
             expectedNodeOutput eo: String = "pass",
             sutLine sl: Int,
             xctLine xl: UInt = #line

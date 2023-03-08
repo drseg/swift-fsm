@@ -57,14 +57,14 @@ enum Internal {
         let node: ActionsNode
     }
     
-    struct ActionsSentence: MWTAProtocol {
+    struct MWTASentence: MWTAProtocol {
         let node: ActionsBlockNode
         
         init(
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            @SentenceBuilder _ block: () -> ([any MWTAProtocol])
+            @MWTABuilder _ block: () -> ([any MWTAProtocol])
         ) {
             node = ActionsBlockNode(
                 actions: actions,
@@ -115,7 +115,7 @@ enum Internal {
     }
     
     @resultBuilder
-    struct SentenceBuilder: ResultBuilder {
+    struct MWTABuilder: ResultBuilder {
         typealias T = any MWTAProtocol
     }
     

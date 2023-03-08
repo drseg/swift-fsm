@@ -38,7 +38,7 @@ extension TransitionBuilder {
         exitActions: [() -> ()],
         file: String = #file,
         line: Int = #line,
-        @Internal.SentenceBuilder _ block: () -> ([any MWTAProtocol])
+        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
     ) -> Syntax.Define<State> {
         .init(states: [s1] + rest,
               superState: superState,
@@ -112,8 +112,8 @@ extension TransitionBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.SentenceBuilder _ block: () -> ([any MWTAProtocol])
-    ) -> Internal.ActionsSentence {
+        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+    ) -> Internal.MWTASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line)(block)
     }
     
