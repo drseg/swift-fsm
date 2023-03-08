@@ -37,11 +37,11 @@ enum Internal {
         let node: ThenNode
     }
     
-    struct MatchingWhenActions {
+    struct MatchingWhenActions: MWAProtocol {
         let node: ActionsNode
     }
     
-    struct MatchingThenActions {
+    struct MatchingThenActions: MTAProtocol {
         let node: ActionsNode
     }
     
@@ -53,18 +53,18 @@ enum Internal {
         let node: ThenNode
     }
     
-    struct MatchingWhenThenActions: Sentence {
+    struct MatchingWhenThenActions: MWTAProtocol {
         let node: ActionsNode
     }
     
-    struct ActionsSentence: Sentence {
+    struct ActionsSentence: MWTAProtocol {
         let node: ActionsBlockNode
         
         init(
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            @SentenceBuilder _ block: () -> ([any Sentence])
+            @SentenceBuilder _ block: () -> ([any MWTAProtocol])
         ) {
             node = ActionsBlockNode(
                 actions: actions,
@@ -76,14 +76,14 @@ enum Internal {
         }
     }
     
-    struct MWASentence {
+    struct MWASentence: MWAProtocol {
         let node: ActionsBlockNode
         
         init(
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            @MWABuilder _ block: () -> ([MatchingWhenActions])
+            @MWABuilder _ block: () -> ([any MWAProtocol])
         ) {
             node = ActionsBlockNode(
                 actions: actions,
@@ -95,14 +95,14 @@ enum Internal {
         }
     }
     
-    struct MTASentence {
+    struct MTASentence: MTAProtocol {
         let node: ActionsBlockNode
         
         init(
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            @MWABuilder _ block: () -> ([MatchingThenActions])
+            @MWABuilder _ block: () -> ([any MTAProtocol])
         ) {
             node = ActionsBlockNode(
                 actions: actions,
@@ -116,17 +116,17 @@ enum Internal {
     
     @resultBuilder
     struct SentenceBuilder: ResultBuilder {
-        typealias T = any Sentence
+        typealias T = any MWTAProtocol
     }
     
     @resultBuilder
     struct MWABuilder: ResultBuilder {
-        typealias T = MatchingWhenActions
+        typealias T = any MWAProtocol
     }
     
     @resultBuilder
     struct MTABuilder: ResultBuilder {
-        typealias T = MatchingThenActions
+        typealias T = any MTAProtocol
     }
 }
 
@@ -134,6 +134,10 @@ protocol Sentence {
     associatedtype N: Node<DefaultIO>
     var node: N { get }
 }
+
+protocol MWTAProtocol: Sentence { }
+protocol MWAProtocol: Sentence { }
+protocol MTAProtocol: Sentence { }
 
 extension Node {
     func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {
@@ -143,20 +147,8 @@ extension Node {
     }
 }
 
-extension [Sentence] {
+extension Array {
     var nodes: [any Node<DefaultIO>] {
-        map { $0.node as! any Node<DefaultIO> }
-    }
-}
-
-extension [Internal.MatchingWhenActions] {
-    var nodes: [any Node<DefaultIO>] {
-        map { $0.node }
-    }
-}
-
-extension [Internal.MatchingThenActions] {
-    var nodes: [any Node<DefaultIO>] {
-        map { $0.node }
+        map { ($0 as! any Sentence).node as! any Node<DefaultIO> }
     }
 }

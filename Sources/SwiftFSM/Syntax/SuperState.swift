@@ -9,7 +9,7 @@ import Foundation
 struct SuperState {
     var nodes: [any Node<DefaultIO>]
     
-    init(@Internal.SentenceBuilder _ block: () -> ([any Sentence])) {
+    init(@Internal.SentenceBuilder _ block: () -> ([any MWTAProtocol])) {
         nodes = block().nodes
     }
 }

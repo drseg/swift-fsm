@@ -38,7 +38,7 @@ extension TransitionBuilder {
         exitActions: [() -> ()],
         file: String = #file,
         line: Int = #line,
-        @Internal.SentenceBuilder _ block: () -> ([any Sentence])
+        @Internal.SentenceBuilder _ block: () -> ([any MWTAProtocol])
     ) -> Syntax.Define<State> {
         .init(states: [s1] + rest,
               superState: superState,
@@ -112,7 +112,7 @@ extension TransitionBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.SentenceBuilder _ block: () -> ([any Sentence])
+        @Internal.SentenceBuilder _ block: () -> ([any MWTAProtocol])
     ) -> Internal.ActionsSentence {
         Syntax.Actions([a1] + aRest, file: file, line: line)(block)
     }
@@ -122,7 +122,7 @@ extension TransitionBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([Internal.MatchingWhenActions])
+        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
     ) -> Internal.MWASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line)(block)
     }
@@ -132,7 +132,7 @@ extension TransitionBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([Internal.MatchingThenActions])
+        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
     ) -> Internal.MTASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line)(block)
     }
