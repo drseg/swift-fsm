@@ -89,5 +89,11 @@ extension Syntax {
         ) -> Internal.MWASentence {
             .init(node, block)
         }
+        
+        func callAsFunction(
+            @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        ) -> Internal.MTASentence {
+            .init(node, block)
+        }
     }
 }

@@ -180,6 +180,51 @@ extension TransitionBuilder {
         Syntax.Matching(any: [any, any2] + anyRest, all: [all, all2] + allRest, file: file, line: line)(block)
     }
     
+    func matching(
+        _ p: any Predicate,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+    ) -> Internal.MTASentence {
+        Syntax.Matching(p, file: file, line: line)(block)
+    }
+    
+    func matching(
+        any: any Predicate,
+        _ any2: any Predicate,
+        _ anyRest: any Predicate...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+    ) -> Internal.MTASentence {
+        Syntax.Matching(any: [any, any2] + anyRest, all: [], file: file, line: line)(block)
+    }
+
+    func matching(
+        all: any Predicate,
+        _ all2: any Predicate,
+        _ allRest: any Predicate...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+    ) -> Internal.MTASentence {
+        Syntax.Matching(any: [], all: [all, all2] + allRest, file: file, line: line)(block)
+    }
+
+    func matching(
+        any: any Predicate,
+        _ any2: any Predicate,
+        _ anyRest: any Predicate...,
+        all: any Predicate,
+        _ all2: any Predicate,
+        _ allRest: any Predicate...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+    ) -> Internal.MTASentence {
+        Syntax.Matching(any: [any, any2] + anyRest, all: [all, all2] + allRest, file: file, line: line)(block)
+    }
+    
     func when(
         _ first: Event,
         _ rest: Event...,
