@@ -546,7 +546,24 @@ class SyntaxBlockTests: SyntaxBuilderTestsBase {
     }
 }
 
-class ActionsBlockTests: SyntaxBuilderTestsBase {
+class BlockTestsBase: SyntaxBuilderTestsBase {
+    let mwtaLine = #line; @MWTABuilder var mwtaBlock: [any MWTAProtocol] {
+        Matching(P.a) | When(1, 2) | Then(1) | pass
+                        When(1, 2) | Then(1) | pass
+    }
+    
+    let mwaLine = #line; @MWABuilder var mwaBlock: [any MWAProtocol] {
+        Matching(P.a) | When(1, 2) | pass
+                        When(1, 2) | pass
+    }
+    
+    let mtaLine = #line; @MTABuilder var mtaBlock: [any MTAProtocol] {
+        Matching(P.a) | Then(1) | pass
+                        Then(1) | pass
+    }
+}
+
+class ActionsBlockTests: BlockTestsBase {
     func abnComponents(of s: Sentence) -> (ActionsBlockNode, ActionsBlockNode) {
         let a1 = abn(s.node)
         let a2 = abn(a1.rest.first!)
@@ -560,33 +577,36 @@ class ActionsBlockTests: SyntaxBuilderTestsBase {
     func assertMWTANode(
         _ b: ActionsBlockNode,
         expectedNodeOutput eo: String,
-        sutLine sl: Int,
+        nodeLine nl: Int,
+        restLine rl: Int,
         xctLine xl: UInt
     ) {
-        assertActionsBlock(b, expectedOutput: eo, sutLine: sl, xctLine: xl)
-        assertMWTAResult(b.rest, sutLine: sl + 1, xctLine: xl)
+        assertActionsBlock(b, expectedOutput: eo, sutLine: nl, xctLine: xl)
+        assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
     
     func assertMWANode(
         _ b: ActionsBlockNode,
         expectedNodeOutput eno: String,
         expectedRestOutput ero: String,
-        sutLine sl: Int,
+        nodeLine nl: Int,
+        restLine rl: Int,
         xctLine xl: UInt
     ) {
-        assertActionsBlock(b, expectedOutput: eno, sutLine: sl, xctLine: xl)
-        assertMWAResult(b.rest, expectedOutput: ero, sutLine: sl + 1, xctLine: xl)
+        assertActionsBlock(b, expectedOutput: eno, sutLine: nl, xctLine: xl)
+        assertMWAResult(b.rest, expectedOutput: ero, sutLine: rl, xctLine: xl)
     }
     
     func assertMTANode(
         _ b: ActionsBlockNode,
         expectedNodeOutput eno: String,
         expectedRestOutput ero: String,
-        sutLine sl: Int,
+        nodeLine nl: Int,
+        restLine rl: Int,
         xctLine xl: UInt
     ) {
-        assertActionsBlock(b, expectedOutput: eno, sutLine: sl, xctLine: xl)
-        assertMTAResult(b.rest, expectedOutput: ero, sutLine: sl + 1, xctLine: xl)
+        assertActionsBlock(b, expectedOutput: eno, sutLine: nl, xctLine: xl)
+        assertMTAResult(b.rest, expectedOutput: ero, sutLine: rl, xctLine: xl)
     }
     
     func assertActionsBlock(
@@ -606,23 +626,16 @@ class ActionsBlockTests: SyntaxBuilderTestsBase {
             sutLine sl: Int,
             xctLine xl: UInt = #line
         ) {
-            assertMWTANode(abn(b.node), expectedNodeOutput: eo,  sutLine: sl, xctLine: xl)
+            assertMWTANode(abn(b.node),
+                           expectedNodeOutput: eo,
+                           nodeLine: sl,
+                           restLine: mwtaLine + 1,
+                           xctLine: xl)
         }
         
-        let l1 = #line; let a1 = actions(pass) {
-            Matching(P.a) | When(1, 2) | Then(1) | pass
-            When(1, 2) | Then(1) | pass
-        }
-        
-        let l2 = #line; let a2 = Actions(pass) {
-            Matching(P.a) | When(1, 2) | Then(1) | pass
-            When(1, 2) | Then(1) | pass
-        }
-        
-        let l3 = #line; let a3 = Actions([pass, pass]) {
-            Matching(P.a) | When(1, 2) | Then(1) | pass
-            When(1, 2) | Then(1) | pass
-        }
+        let l1 = #line; let a1 = actions(pass) { mwtaBlock }
+        let l2 = #line; let a2 = Actions(pass) { mwtaBlock }
+        let l3 = #line; let a3 = Actions([pass, pass]) { mwtaBlock }
         
         assertMWTABlock(a1, sutLine: l1)
         assertMWTABlock(a2, sutLine: l2)
@@ -634,38 +647,27 @@ class ActionsBlockTests: SyntaxBuilderTestsBase {
             _ b: Internal.MWASentence,
             expectedNodeOutput eno: String = "pass",
             expectedRestOutput ero: String = "pass",
-            sutLine sl: Int,
+            nodeLine sl: Int,
+            restLine rl: Int = mwaLine + 1,
             xctLine xl: UInt = #line
         ) {
             assertMWANode(abn(b.node),
                           expectedNodeOutput: eno,
                           expectedRestOutput: ero,
-                          sutLine: sl,
+                          nodeLine: sl,
+                          restLine: rl,
                           xctLine: xl)
         }
         
-        let l1 = #line; let a1 = actions(pass) {
-            Matching(P.a) | When(1, 2) | pass
-            When(1, 2) | pass
-        }
+        let l1 = #line; let a1 = actions(pass) { mwaBlock }
+        let l2 = #line; let a2 = Actions(pass) { mwaBlock }
+        let l3 = #line; let a3 = actions(pass) { Matching(P.a) | When(1, 2) }
+        let l4 = #line; let a4 = Actions(pass) { Matching(P.a) | When(1, 2) }
         
-        let l2 = #line; let a2 = Actions(pass) {
-            Matching(P.a) | When(1, 2) | pass
-            When(1, 2) | pass
-        }
-        
-        let l3 = #line; let a3 = actions(pass) {
-            Matching(P.a) | When(1, 2)
-        }
-        
-        let l4 = #line; let a4 = Actions(pass) {
-            Matching(P.a) | When(1, 2)
-        }
-        
-        assertMWABlock(a1, sutLine: l1)
-        assertMWABlock(a2, sutLine: l2)
-        assertMWABlock(a3, expectedRestOutput: "", sutLine: l3)
-        assertMWABlock(a4, expectedRestOutput: "", sutLine: l4)
+        assertMWABlock(a1, nodeLine: l1)
+        assertMWABlock(a2, nodeLine: l2)
+        assertMWABlock(a3, expectedRestOutput: "", nodeLine: l3, restLine: l3)
+        assertMWABlock(a4, expectedRestOutput: "", nodeLine: l4, restLine: l4)
     }
     
     func testMTABlocks() {
@@ -673,38 +675,27 @@ class ActionsBlockTests: SyntaxBuilderTestsBase {
             _ b: Internal.MTASentence,
             expectedNodeOutput eno: String = "pass",
             expectedRestOutput ero: String = "pass",
-            sutLine sl: Int,
+            nodeLine nl: Int,
+            restLine rl: Int = mtaLine + 1,
             xctLine xl: UInt = #line
         ) {
             assertMTANode(abn(b.node),
                           expectedNodeOutput: eno,
                           expectedRestOutput: ero,
-                          sutLine: sl,
+                          nodeLine: nl,
+                          restLine: rl,
                           xctLine: xl)
         }
         
-        let l1 = #line; let a1 = actions(pass) {
-            Matching(P.a) | Then(1) | pass
-            Then(1) | pass
-        }
+        let l1 = #line; let a1 = actions(pass) { mtaBlock }
+        let l2 = #line; let a2 = Actions(pass) { mtaBlock }
+        let l3 = #line; let a3 = actions(pass) { Matching(P.a) | Then(1) }
+        let l4 = #line; let a4 = Actions(pass) { Matching(P.a) | Then(1) }
         
-        let l2 = #line; let a2 = Actions(pass) {
-            Matching(P.a) | Then(1) | pass
-            Then(1) | pass
-        }
-        
-        let l3 = #line; let a3 = actions(pass) {
-            Matching(P.a) | Then(1)
-        }
-        
-        let l4 = #line; let a4 = Actions(pass) {
-            Matching(P.a) | Then(1)
-        }
-        
-        assertMTABlock(a1, sutLine: l1)
-        assertMTABlock(a2, sutLine: l2)
-        assertMTABlock(a3, expectedRestOutput: "", sutLine: l3)
-        assertMTABlock(a4, expectedRestOutput: "", sutLine: l4)
+        assertMTABlock(a1, nodeLine: l1)
+        assertMTABlock(a2, nodeLine: l2)
+        assertMTABlock(a3, expectedRestOutput: "", nodeLine: l3, restLine: l3)
+        assertMTABlock(a4, expectedRestOutput: "", nodeLine: l4, restLine: l4)
     }
     
     func testCompoundMWTABlocks() {
@@ -717,22 +708,11 @@ class ActionsBlockTests: SyntaxBuilderTestsBase {
             let c = abnComponents(of: b)
             
             assertActionsBlock(c.0, expectedOutput: eo, sutLine: sl, xctLine: xl)
-            assertMWTANode(c.1, expectedNodeOutput: eo, sutLine: sl + 1, xctLine: xl)
+            assertMWTANode(c.1, expectedNodeOutput: eo, nodeLine: sl, restLine: mwtaLine + 1, xctLine: xl)
         }
         
-        let l1 = #line; let a1 = actions(pass) {
-            actions(pass) {
-                Matching(P.a) | When(1, 2) | Then(1) | pass
-                When(1, 2) | Then(1) | pass
-            }
-        }
-        
-        let l2 = #line; let a2 = Actions(pass) {
-            Actions(pass) {
-                Matching(P.a) | When(1, 2) | Then(1) | pass
-                When(1, 2) | Then(1) | pass
-            }
-        }
+        let l1 = #line; let a1 = actions(pass) { actions(pass) { mwtaBlock } }
+        let l2 = #line; let a2 = Actions(pass) { actions(pass) { mwtaBlock } }
         
         assertCompoundMWTABlock(a1, sutLine: l1)
         assertCompoundMWTABlock(a2, sutLine: l2)
@@ -752,23 +732,13 @@ class ActionsBlockTests: SyntaxBuilderTestsBase {
             assertMWANode(c.1,
                           expectedNodeOutput: eno,
                           expectedRestOutput: ero,
-                          sutLine: sl + 1,
+                          nodeLine: sl,
+                          restLine: mwaLine + 1,
                           xctLine: xl)
         }
         
-        let l1 = #line; let a1 = actions(pass) {
-            actions(pass) {
-                Matching(P.a) | When(1, 2) | pass
-                When(1, 2) | pass
-            }
-        }
-        
-        let l2 = #line; let a2 = Actions(pass) {
-            Actions(pass) {
-                Matching(P.a) | When(1, 2) | pass
-                When(1, 2) | pass
-            }
-        }
+        let l1 = #line; let a1 = actions(pass) { actions(pass) { mwaBlock } }
+        let l2 = #line; let a2 = Actions(pass) { actions(pass) { mwaBlock } }
         
         assertCompoundMWABlock(a1, sutLine: l1)
         assertCompoundMWABlock(a2, sutLine: l2)
@@ -788,30 +758,20 @@ class ActionsBlockTests: SyntaxBuilderTestsBase {
             assertMTANode(c.1,
                           expectedNodeOutput: eno,
                           expectedRestOutput: ero,
-                          sutLine: sl + 1,
+                          nodeLine: sl,
+                          restLine: mtaLine + 1,
                           xctLine: xl)
         }
         
-        let l1 = #line; let a1 = actions(pass) {
-            actions(pass) {
-                Matching(P.a) | Then(1) | pass
-                                Then(1) | pass
-            }
-        }
-        
-        let l2 = #line; let a2 = Actions(pass) {
-            Actions(pass) {
-                Matching(P.a) | Then(1) | pass
-                                Then(1) | pass
-            }
-        }
+        let l1 = #line; let a1 = actions(pass) { actions(pass) { mtaBlock } }
+        let l2 = #line; let a2 = Actions(pass) { actions(pass) { mtaBlock } }
         
         assertCompoundMTABlock(a1, sutLine: l1)
         assertCompoundMTABlock(a2, sutLine: l2)
     }
 }
 
-class MatchingBlockTests: SyntaxBuilderTestsBase {
+class MatchingBlockTests: BlockTestsBase {
     func mbnComponents(of s: Sentence) -> (MatchNode, MatchNode) {
         let a1 = mbn(s.node)
         let a2 = mbn(a1.rest.first!)
@@ -827,11 +787,11 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
         any: [any Predicate],
         all: [any Predicate],
         nodeLine nl: Int,
-        restLine rl: Int? = nil,
+        restLine rl: Int,
         xctLine xl: UInt
     ) {
         assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
-        assertMWTAResult(b.rest, sutLine: rl ?? nl + 1, xctLine: xl)
+        assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
     
     func assertMWANode(
@@ -839,11 +799,11 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
         any: [any Predicate],
         all: [any Predicate],
         nodeLine nl: Int,
-        restLine rl: Int? = nil,
+        restLine rl: Int,
         xctLine xl: UInt
     ) {
         assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
-        assertMWAResult(b.rest, sutLine: rl ?? nl + 1, xctLine: xl)
+        assertMWAResult(b.rest, sutLine: rl, xctLine: xl)
     }
     
     func assertMTANode(
@@ -851,11 +811,11 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
         any: [any Predicate],
         all: [any Predicate],
         nodeLine nl: Int,
-        restLine rl: Int? = nil,
+        restLine rl: Int,
         xctLine xl: UInt
     ) {
         assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
-        assertMTAResult(b.rest, sutLine: rl ?? nl + 1, xctLine: xl)
+        assertMTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
     
     func assertMatchBlock(
@@ -868,7 +828,7 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
         assertNeverEmptyNode(b, caller: "match", sutLine: sl, xctLine: xl)
         assertMatching(b, any: any, all: all, sutLine: sl, xctLine: xl)
     }
-    
+
     func testMWTABlocks() {
         func assertMWTABlock(
             _ b: Internal.MWTASentence,
@@ -886,32 +846,27 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
                 xctLine: xl
             )
         }
-        
-        let mwtaLine = #line; @MWTABuilder var twoLineMWTA: [any MWTAProtocol] {
-            Matching(P.a) | When(1, 2) | Then(1) | pass
-            When(1, 2) | Then(1) | pass
-        }
-
-        let l1 = #line; let m1 = matching(Q.a) { twoLineMWTA }
-        let l2 = #line; let m2 = Matching(Q.a) { twoLineMWTA }
+    
+        let l1 = #line; let m1 = matching(Q.a) { mwtaBlock }
+        let l2 = #line; let m2 = Matching(Q.a) { mwtaBlock }
         
         assertMWTABlock(m1, all: [Q.a], nodeLine: l1)
         assertMWTABlock(m2, all: [Q.a], nodeLine: l2)
         
-        let l3 = #line; let m3 = matching(all: Q.a, R.a) { twoLineMWTA }
-        let l4 = #line; let m4 = Matching(all: Q.a, R.a) { twoLineMWTA }
+        let l3 = #line; let m3 = matching(all: Q.a, R.a) { mwtaBlock }
+        let l4 = #line; let m4 = Matching(all: Q.a, R.a) { mwtaBlock }
         
         assertMWTABlock(m3, all: [Q.a, R.a], nodeLine: l3)
         assertMWTABlock(m4, all: [Q.a, R.a], nodeLine: l4)
         
-        let l5 = #line; let m5 = matching(any: Q.a, R.a) { twoLineMWTA }
-        let l6 = #line; let m6 = Matching(any: Q.a, R.a) { twoLineMWTA }
+        let l5 = #line; let m5 = matching(any: Q.a, R.a) { mwtaBlock }
+        let l6 = #line; let m6 = Matching(any: Q.a, R.a) { mwtaBlock }
         
         assertMWTABlock(m5, any: [Q.a, R.a], nodeLine: l5)
         assertMWTABlock(m6, any: [Q.a, R.a], nodeLine: l6)
         
-        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a) { twoLineMWTA }
-        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a) { twoLineMWTA }
+        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a) { mwtaBlock }
+        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a) { mwtaBlock }
         
         assertMWTABlock(m7, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l7)
         assertMWTABlock(m8, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l8)
@@ -933,31 +888,26 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
                           xctLine: xl)
         }
         
-        let mwaLine = #line; @MWABuilder var twoLineMWA: [any MWAProtocol] {
-            Matching(P.a) | When(1, 2) | pass
-            When(1, 2) | pass
-        }
-        
-        let l1 = #line; let m1 = matching(Q.a) { twoLineMWA }
-        let l2 = #line; let m2 = Matching(Q.a) { twoLineMWA }
+        let l1 = #line; let m1 = matching(Q.a) { mwaBlock }
+        let l2 = #line; let m2 = Matching(Q.a) { mwaBlock }
         
         assertMWABlock(m1, all: [Q.a], nodeLine: l1)
         assertMWABlock(m2, all: [Q.a], nodeLine: l2)
         
-        let l3 = #line; let m3 = matching(all: Q.a, R.a) { twoLineMWA }
-        let l4 = #line; let m4 = Matching(all: Q.a, R.a) { twoLineMWA }
+        let l3 = #line; let m3 = matching(all: Q.a, R.a) { mwaBlock }
+        let l4 = #line; let m4 = Matching(all: Q.a, R.a) { mwaBlock }
 
         assertMWABlock(m3, all: [Q.a, R.a], nodeLine: l3)
         assertMWABlock(m4, all: [Q.a, R.a], nodeLine: l4)
         
-        let l5 = #line; let m5 = matching(any: Q.a, R.a) { twoLineMWA }
-        let l6 = #line; let m6 = Matching(any: Q.a, R.a) { twoLineMWA }
+        let l5 = #line; let m5 = matching(any: Q.a, R.a) { mwaBlock }
+        let l6 = #line; let m6 = Matching(any: Q.a, R.a) { mwaBlock }
         
         assertMWABlock(m5, any: [Q.a, R.a], nodeLine: l5)
         assertMWABlock(m6, any: [Q.a, R.a], nodeLine: l6)
         
-        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a)  { twoLineMWA }
-        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a)  { twoLineMWA }
+        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a)  { mwaBlock }
+        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a)  { mwaBlock }
 
         assertMWABlock(m7, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l7)
         assertMWABlock(m8, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l8)
@@ -979,31 +929,26 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
                           xctLine: xl)
         }
         
-        let mtaLine = #line; @MTABuilder var twoLineMTA: [any MTAProtocol] {
-            Matching(P.a) | Then(1) | pass
-            Then(1) | pass
-        }
-        
-        let l1 = #line; let m1 = matching(Q.a) { twoLineMTA }
-        let l2 = #line; let m2 = Matching(Q.a) { twoLineMTA }
+        let l1 = #line; let m1 = matching(Q.a) { mtaBlock }
+        let l2 = #line; let m2 = Matching(Q.a) { mtaBlock }
         
         assertMTABlock(m1, all: [Q.a], nodeLine: l1)
         assertMTABlock(m2, all: [Q.a], nodeLine: l2)
         
-        let l3 = #line; let m3 = matching(all: Q.a, R.a) { twoLineMTA }
-        let l4 = #line; let m4 = Matching(all: Q.a, R.a) { twoLineMTA }
+        let l3 = #line; let m3 = matching(all: Q.a, R.a) { mtaBlock }
+        let l4 = #line; let m4 = Matching(all: Q.a, R.a) { mtaBlock }
 
         assertMTABlock(m3, all: [Q.a, R.a], nodeLine: l3)
         assertMTABlock(m4, all: [Q.a, R.a], nodeLine: l4)
         
-        let l5 = #line; let m5 = matching(any: Q.a, R.a) { twoLineMTA }
-        let l6 = #line; let m6 = Matching(any: Q.a, R.a) { twoLineMTA }
+        let l5 = #line; let m5 = matching(any: Q.a, R.a) { mtaBlock }
+        let l6 = #line; let m6 = Matching(any: Q.a, R.a) { mtaBlock }
         
         assertMTABlock(m5, any: [Q.a, R.a], nodeLine: l5)
         assertMTABlock(m6, any: [Q.a, R.a], nodeLine: l6)
         
-        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a)  { twoLineMTA }
-        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a)  { twoLineMTA }
+        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a)  { mtaBlock }
+        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a)  { mtaBlock }
 
         assertMTABlock(m7, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l7)
         assertMTABlock(m8, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l8)
@@ -1020,16 +965,16 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
             let c = mbnComponents(of: b)
 
             assertMatchBlock(c.0, any: any, all: all, sutLine: nl, xctLine: xl)
-            assertMWTANode(c.1, any: any, all: all, nodeLine: nl, restLine: mwtaLine + 1, xctLine: xl)
-        }
-        
-        let mwtaLine = #line; @MWTABuilder var twoLineMWTA: [any MWTAProtocol] {
-            Matching(P.a) | When(1, 2) | Then(1) | pass
-            When(1, 2) | Then(1) | pass
+            assertMWTANode(c.1,
+                           any: any,
+                           all: all,
+                           nodeLine: nl,
+                           restLine: mwtaLine + 1,
+                           xctLine: xl)
         }
 
-        let l1 = #line; let m1 = matching(Q.a) { matching(Q.a) { twoLineMWTA } }
-        let l2 = #line; let m2 = Matching(Q.a) { Matching(Q.a) { twoLineMWTA } }
+        let l1 = #line; let m1 = matching(Q.a) { matching(Q.a) { mwtaBlock } }
+        let l2 = #line; let m2 = Matching(Q.a) { Matching(Q.a) { mwtaBlock } }
         
         assertCompoundMWTABlock(m1, all: [Q.a], nodeLine: l1)
         assertCompoundMWTABlock(m2, all: [Q.a], nodeLine: l2)
@@ -1046,16 +991,16 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
             let c = mbnComponents(of: b)
 
             assertMatchBlock(c.0, any: any, all: all, sutLine: nl, xctLine: xl)
-            assertMWANode(c.1, any: any, all: all, nodeLine: nl, restLine: mwaLine + 1, xctLine: xl)
-        }
-        
-        let mwaLine = #line; @MWABuilder var twoLineMWA: [any MWAProtocol] {
-            Matching(P.a) | When(1, 2) | pass
-                            When(1, 2) | pass
+            assertMWANode(c.1,
+                          any: any,
+                          all: all,
+                          nodeLine: nl,
+                          restLine: mwaLine + 1,
+                          xctLine: xl)
         }
 
-        let l1 = #line; let m1 = matching(Q.a) { matching(Q.a) { twoLineMWA } }
-        let l2 = #line; let m2 = Matching(Q.a) { Matching(Q.a) { twoLineMWA } }
+        let l1 = #line; let m1 = matching(Q.a) { matching(Q.a) { mwaBlock } }
+        let l2 = #line; let m2 = Matching(Q.a) { Matching(Q.a) { mwaBlock } }
         
         assertCompoundMWABlock(m1, all: [Q.a], nodeLine: l1)
         assertCompoundMWABlock(m2, all: [Q.a], nodeLine: l2)
@@ -1072,16 +1017,16 @@ class MatchingBlockTests: SyntaxBuilderTestsBase {
             let c = mbnComponents(of: b)
 
             assertMatchBlock(c.0, any: any, all: all, sutLine: nl, xctLine: xl)
-            assertMTANode(c.1, any: any, all: all, nodeLine: nl, restLine: mtaLine + 1, xctLine: xl)
-        }
-        
-        let mtaLine = #line; @MTABuilder var twoLineMTA: [any MTAProtocol] {
-            Matching(P.a) | Then(1) | pass
-                            Then(1) | pass
+            assertMTANode(c.1,
+                          any: any,
+                          all: all,
+                          nodeLine: nl,
+                          restLine: mtaLine + 1,
+                          xctLine: xl)
         }
 
-        let l1 = #line; let m1 = matching(Q.a) { matching(Q.a) { twoLineMTA } }
-        let l2 = #line; let m2 = Matching(Q.a) { Matching(Q.a) { twoLineMTA } }
+        let l1 = #line; let m1 = matching(Q.a) { matching(Q.a) { mtaBlock } }
+        let l2 = #line; let m2 = Matching(Q.a) { Matching(Q.a) { mtaBlock } }
         
         assertCompoundMTABlock(m1, all: [Q.a], nodeLine: l1)
         assertCompoundMTABlock(m2, all: [Q.a], nodeLine: l2)
