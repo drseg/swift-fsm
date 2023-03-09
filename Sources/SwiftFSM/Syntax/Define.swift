@@ -72,7 +72,7 @@ extension Syntax {
                          file: String = #file,
                          line: Int = #line
         ) {
-            var dNode = DefineNode(entryActions: entryActions,
+            let dNode = DefineNode(entryActions: entryActions,
                                    exitActions: exitActions,
                                    caller: "define",
                                    file: file,

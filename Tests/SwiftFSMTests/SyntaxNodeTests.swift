@@ -618,7 +618,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         let m = MatchNode(match: m1, rest: [w])
         let g = GivenNode(states: [s1, s2], rest: [m])
         
-        var d = DefineNode(entryActions: [],
+        let d = DefineNode(entryActions: [],
                            exitActions: [])
         d.rest.append(g)
         
