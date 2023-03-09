@@ -583,6 +583,19 @@ final class DefineNodeTests: SyntaxNodeTests {
         )
     }
     
+    func testCompleteMatchNodeWithInvalidMatchProducesError() {
+        let invalidMatch = Match(all: P.a, P.a)
+        
+        let m = MatchNode(match: invalidMatch, rest: [WhenNode(events: [e1])])
+        let g = GivenNode(states: [s1], rest: [m])
+        let d = DefineNode(entryActions: [], exitActions: [], rest: [g])
+        
+        let result = d.finalised()
+        
+        XCTAssertEqual(1, result.1.count)
+        XCTAssertTrue(result.1.first is MatchError)
+    }
+    
     func testDefineNodeWithNoActions() {
         let d = DefineNode(entryActions: [],
                            exitActions: [],

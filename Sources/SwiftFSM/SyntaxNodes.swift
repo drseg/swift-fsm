@@ -206,9 +206,9 @@ class MatchNodeBase {
 class MatchNode: MatchNodeBase, Node { }
 
 class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
-    var caller: String
-    var file: String
-    var line: Int
+    let caller: String
+    let file: String
+    let line: Int
     
     init(
         match: Match,
@@ -248,8 +248,7 @@ struct GivenNode: Node {
     }
 }
 
-struct DefineNode: NeverEmptyNode {
-    #warning("this should have a MatchResult, not a Match?")
+final class DefineNode: NeverEmptyNode {
     typealias Output = (state: AnyTraceable,
                         match: Match,
                         event: AnyTraceable,
@@ -262,14 +261,39 @@ struct DefineNode: NeverEmptyNode {
     let exitActions: [Action]
     var rest: [any Node<GivenNode.Output>] = []
     
-    var caller = #function
-    var file = #file
-    var line = #line
+    let caller: String
+    let file: String
+    let line: Int
+        
+    private var errors: [Error] = []
+    
+    init(
+        entryActions: [Action],
+        exitActions: [Action],
+        rest: [any Node<GivenNode.Output>] = [],
+        caller: String = #function,
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.entryActions = entryActions
+        self.exitActions = exitActions
+        self.rest = rest
+        self.caller = caller
+        self.file = file
+        self.line = line
+    }
     
     func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         rest.reduce(into: [Output]()) {
+            var match = Match()
+            
+            switch $1.match.finalise() {
+            case .failure(let e): errors.append(e)
+            case .success(let m): match = m
+            }
+            
             $0.append((state: $1.state,
-                       match: $1.match,
+                       match: match,
                        event: $1.event,
                        nextState: $1.nextState,
                        actions: $1.actions,
@@ -278,6 +302,10 @@ struct DefineNode: NeverEmptyNode {
                        exitActions:
                         $1.state == $1.nextState ? [] : exitActions))
         }
+    }
+    
+    func validate() -> [Error] {
+        makeError(if: rest.isEmpty) + errors
     }
 }
 
