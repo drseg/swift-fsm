@@ -57,87 +57,34 @@ enum Internal {
         let node: any Node<DefaultIO>
     }
     
-    struct MWTASentence: MWTAProtocol {
+    class BlockSentence {
         let node: any Node<DefaultIO>
+
+        init<N: Node<DefaultIO>>(_ n: N, _ block: () -> ([any Sentence]))
+        where N.Input == N.Output {
+            var n = n
+            n.rest = block().nodes
+            node = n
+        }
         
         init(
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            _ block: () -> ([any MWTAProtocol])
+            _ block: () -> ([any Sentence])
         ) {
-            node = ActionsBlockNode(
-                actions: actions,
-                rest: block().nodes,
-                caller: "actions",
-                file: file,
-                line: line
-            )
-        }
-        
-        init(_ n: MatchBlockNode, _ block: () -> ([any MWTAProtocol])) {
-            n.rest = block().nodes
-            node = n
+            node = ActionsBlockNode(actions: actions,
+                                    rest: block().nodes,
+                                    caller: "actions",
+                                    file: file,
+                                    line: line)
+            
         }
     }
     
-    struct MWASentence: MWAProtocol {
-        let node: any Node<DefaultIO>
-        
-        init(
-            _ actions: [() -> ()],
-            file: String = #file,
-            line: Int = #line,
-            _ block: () -> ([any MWAProtocol])
-        ) {
-            node = ActionsBlockNode(
-                actions: actions,
-                rest: block().nodes,
-                caller: "actions",
-                file: file,
-                line: line
-            )
-        }
-        
-        init(_ n: MatchBlockNode, _ block: () -> ([any MWAProtocol])) {
-            n.rest = block().nodes
-            node = n
-        }
-        
-        init(_ n: ThenBlockNode, _ block: () -> ([any MWAProtocol])) {
-            n.rest = block().nodes
-            node = n
-        }
-    }
-    
-    struct MTASentence: MTAProtocol {
-        let node: any Node<DefaultIO>
-        
-        init(
-            _ actions: [() -> ()],
-            file: String = #file,
-            line: Int = #line,
-            _ block: () -> ([any MTAProtocol])
-        ) {
-            node = ActionsBlockNode(
-                actions: actions,
-                rest: block().nodes,
-                caller: "actions",
-                file: file,
-                line: line
-            )
-        }
-        
-        init(_ n: MatchBlockNode, _ block: () -> ([any MTAProtocol])) {
-            n.rest = block().nodes
-            node = n
-        }
-        
-        init(_ n: WhenBlockNode, _ block: () -> ([any MTAProtocol])) {
-            n.rest = block().nodes
-            node = n
-        }
-    }
+    final class MWTASentence: BlockSentence, MWTAProtocol { }
+    final class MWASentence:  BlockSentence, MWAProtocol  { }
+    final class MTASentence:  BlockSentence, MTAProtocol  { }
     
     @resultBuilder
     struct MWTABuilder: ResultBuilder {
@@ -162,6 +109,35 @@ protocol Sentence {
 protocol MWTAProtocol: Sentence { }
 protocol MWAProtocol: Sentence { }
 protocol MTAProtocol: Sentence { }
+
+protocol SyntaxBlock {
+    associatedtype BlockNode: Node<DefaultIO> where BlockNode.Input == BlockNode.Output
+    var blockNode: BlockNode { get }
+}
+
+protocol MWTASyntaxBlock: SyntaxBlock {}; extension MWTASyntaxBlock {
+    func callAsFunction(
+        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+    ) -> Internal.MWTASentence {
+        .init(blockNode, block)
+    }
+}
+
+protocol MWASyntaxBlock: SyntaxBlock {}; extension MWASyntaxBlock {
+    func callAsFunction(
+        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+    ) -> Internal.MWASentence {
+        .init(blockNode, block)
+    }
+}
+
+protocol MTASyntaxBlock: SyntaxBlock {}; extension MTASyntaxBlock {
+    func callAsFunction(
+        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+    ) -> Internal.MTASentence {
+        .init(blockNode, block)
+    }
+}
 
 extension Node {
     func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {
