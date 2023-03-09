@@ -809,4 +809,125 @@ class ActionsBlockTests: SyntaxBuilderTestsBase {
     }
 }
 
+class MatchingBlockTests: SyntaxBuilderTestsBase {
+    func abnComponents(of s: Sentence) -> (MatchNode, MatchNode) {
+        let a1 = mbn(s.node)
+        let a2 = mbn(a1.rest.first!)
+        return (a1, a2)
+    }
+    
+    func mbn(_ n: any Node<DefaultIO>) -> MatchNode {
+        n as! MatchNode
+    }
+    
+    func assertMWTANode(
+        _ b: MatchNode,
+        any: [any Predicate],
+        all: [any Predicate],
+        sutLine sl: Int,
+        xctLine xl: UInt
+    ) {
+        assertMatchBlock(b, any: any, all: all, sutLine: sl, xctLine: xl)
+        assertMWTAResult(b.rest, sutLine: sl + 1, xctLine: xl)
+    }
+    
+    func assertMWANode(
+        _ b: MatchNode,
+        any: [any Predicate],
+        all: [any Predicate],
+        expectedRestOutput ero: String,
+        sutLine sl: Int,
+        xctLine xl: UInt
+    ) {
+        assertMatchBlock(b, any: any, all: all, sutLine: sl, xctLine: xl)
+        assertMWAResult(b.rest, expectedOutput: ero, sutLine: sl + 1, xctLine: xl)
+    }
+    
+    func assertMTANode(
+        _ b: MatchNode,
+        any: [any Predicate],
+        all: [any Predicate],
+        expectedRestOutput ero: String,
+        sutLine sl: Int,
+        xctLine xl: UInt
+    ) {
+        assertMatchBlock(b, any: any, all: all, sutLine: sl, xctLine: xl)
+        assertMTAResult(b.rest, expectedOutput: ero, sutLine: sl + 1, xctLine: xl)
+    }
+    
+    func assertMatchBlock(
+        _ b: MatchNode,
+        any: [any Predicate],
+        all: [any Predicate],
+        sutLine sl: Int,
+        xctLine xl: UInt = #line
+    ) {
+        assertNeverEmptyNode(b, caller: "match", sutLine: sl, xctLine: xl)
+        assertMatching(b, any: any, all: all, sutLine: sl, xctLine: xl)
+    }
+    
+    func testMWTABlocks() {
+        func assertMWTABlock(
+            _ b: Internal.MWTASentence,
+            any: [any Predicate] = [],
+            all: [any Predicate] = [],
+            sutLine sl: Int,
+            xctLine xl: UInt = #line
+        ) {
+            assertMWTANode(mbn(b.node), any: any, all: all, sutLine: sl, xctLine: xl)
+        }
+
+        let l1 = #line; let m1 = matching(Q.a) {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+            When(1, 2) | Then(1) | pass
+        }
+
+        let l2 = #line; let m2 = Matching(Q.a) {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+            When(1, 2) | Then(1) | pass
+        }
+        
+        let l3 = #line; let m3 = matching(all: Q.a, R.a) {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+            When(1, 2) | Then(1) | pass
+        }
+
+        let l4 = #line; let m4 = Matching(all: Q.a, R.a) {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+            When(1, 2) | Then(1) | pass
+        }
+        
+        let l5 = #line; let m5 = matching(any: Q.a, R.a) {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+            When(1, 2) | Then(1) | pass
+        }
+
+        let l6 = #line; let m6 = Matching(any: Q.a, R.a) {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+            When(1, 2) | Then(1) | pass
+        }
+        
+        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a) {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+            When(1, 2) | Then(1) | pass
+        }
+
+        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a) {
+            Matching(P.a) | When(1, 2) | Then(1) | pass
+            When(1, 2) | Then(1) | pass
+        }
+
+        assertMWTABlock(m1, all: [Q.a], sutLine: l1)
+        assertMWTABlock(m2, all: [Q.a], sutLine: l2)
+        
+        assertMWTABlock(m3, all: [Q.a, R.a], sutLine: l3)
+        assertMWTABlock(m4, all: [Q.a, R.a], sutLine: l4)
+        
+        assertMWTABlock(m5, any: [Q.a, R.a], sutLine: l5)
+        assertMWTABlock(m6, any: [Q.a, R.a], sutLine: l6)
+        
+        assertMWTABlock(m7, any: [Q.a, R.a], all: [Q.a, R.a], sutLine: l7)
+        assertMWTABlock(m8, any: [Q.a, R.a], all: [Q.a, R.a], sutLine: l8)
+    }
+}
 

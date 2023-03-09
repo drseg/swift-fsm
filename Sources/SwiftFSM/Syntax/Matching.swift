@@ -77,5 +77,11 @@ extension Syntax {
                              file: file,
                              line: line)
         }
+        
+        func callAsFunction(
+            @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+        ) -> Internal.MWTASentence {
+            .init(node, block)
+        }
     }
 }
