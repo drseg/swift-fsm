@@ -82,7 +82,7 @@ class SyntaxNodeTests: XCTestCase {
         guard lhs.count == rhs.count else { return false }
         
         for (lhs, rhs) in zip(lhs, rhs) {
-            guard lhs.match == rhs.match &&
+            guard lhs.match.finalise() == rhs.match.finalise() &&
                     lhs.state == rhs.state &&
                     lhs.event == rhs.event &&
                     lhs.nextState == rhs.nextState else { return false }
