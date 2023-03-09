@@ -61,16 +61,18 @@ class SyntaxTestsBase: XCTestCase, TransitionBuilder {
         assertWhen(w.node, sutLine: sutLine, xctLine: xl)
     }
     
-    func assertWhen(_ node: WhenNode, sutLine sl: Int, xctLine xl: UInt = #line) {
+    func assertWhen(_ node: WhenNodeBase, sutLine sl: Int, xctLine xl: UInt = #line) {
         XCTAssertEqual([1, 2], node.events.map(\.base), line: xl)
         XCTAssertEqual([#file, #file], node.events.map(\.file), line: xl)
         XCTAssertEqual([sl, sl], node.events.map(\.line), line: xl)
         
-        assertNeverEmptyNode(node, caller: "when", sutLine: sl, xctLine: xl)
+        if let node = node as? any NeverEmptyNode {
+            assertNeverEmptyNode(node, caller: "when", sutLine: sl, xctLine: xl)
+        }
     }
     
     func assertThen(
-        _ n: ThenNode,
+        _ n: ThenNodeBase,
         state: State?,
         sutLine sl: Int?,
         file: String? = nil,
@@ -79,6 +81,10 @@ class SyntaxTestsBase: XCTestCase, TransitionBuilder {
         XCTAssertEqual(state, n.state?.base as? State, line: xl)
         XCTAssertEqual(file, n.state?.file, line: xl)
         XCTAssertEqual(sl, n.state?.line, line: xl)
+        
+        if let node = n as? ThenBlockNode {
+            assertNeverEmptyNode(node, caller: "then", sutLine: sl ?? -1, xctLine: xl)
+        }
     }
     
     func assertActionsNode(
@@ -1032,8 +1038,48 @@ class MatchingBlockTests: DefaultIOBlockTestsBase {
         
         assertCompoundMTABlock(m1, all: [Q.a], nodeLine: l1)
         assertCompoundMTABlock(m2, all: [Q.a], nodeLine: l2)
-        
-        print(m1.node.finalised())
+    }
+}
+
+class WhenBlockTests: DefaultIOBlockTestsBase {
+    func assertMTANode(
+        _ b: Internal.MTASentence,
+        nodeLine nl: Int,
+        restLine rl: Int,
+        xctLine xl: UInt = #line
+    ) {
+        let node = b.node as! WhenBlockNode
+        assertWhen(node, sutLine: nl, xctLine: xl)
+        assertMTAResult(node.rest, sutLine: rl + 1, xctLine: xl)
+    }
+    
+    func testWhenBlock() {
+        let l1 = #line; let w1 = when(1, 2) { mtaBlock }
+        let l2 = #line; let w2 = When(1, 2) { mtaBlock }
+
+        assertMTANode(w1, nodeLine: l1, restLine: mtaLine)
+        assertMTANode(w2, nodeLine: l2, restLine: mtaLine)
+    }
+}
+
+class ThenBlockTests: DefaultIOBlockTestsBase {
+    func assertMWANode(
+        _ b: Internal.MWASentence,
+        nodeLine nl: Int,
+        restLine rl: Int,
+        xctLine xl: UInt = #line
+    ) {
+        let node = b.node as! ThenBlockNode
+        assertThen(node, state: 1, sutLine: nl, file: #file, xctLine: xl)
+        assertMWAResult(node.rest, sutLine: rl + 1, xctLine: xl)
+    }
+    
+    func testThenBlock() {
+        let l1 = #line; let t1 = then(1) { mwaBlock }
+        let l2 = #line; let t2 = Then(1) { mwaBlock }
+
+        assertMWANode(t1, nodeLine: l1, restLine: mwaLine)
+        assertMWANode(t2, nodeLine: l2, restLine: mwaLine)
     }
 }
 

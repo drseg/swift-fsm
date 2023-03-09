@@ -103,6 +103,11 @@ enum Internal {
             n.rest = block().nodes
             node = n
         }
+        
+        init(_ n: ThenBlockNode, _ block: () -> ([any MWAProtocol])) {
+            n.rest = block().nodes
+            node = n
+        }
     }
     
     struct MTASentence: MTAProtocol {
@@ -124,6 +129,11 @@ enum Internal {
         }
         
         init(_ n: MatchBlockNode, _ block: () -> ([any MTAProtocol])) {
+            n.rest = block().nodes
+            node = n
+        }
+        
+        init(_ n: WhenBlockNode, _ block: () -> ([any MTAProtocol])) {
             n.rest = block().nodes
             node = n
         }

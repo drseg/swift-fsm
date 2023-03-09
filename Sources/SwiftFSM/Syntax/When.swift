@@ -22,6 +22,13 @@ extension Syntax {
         
         let node: WhenNode
         
+        var blockNode: WhenBlockNode {
+            WhenBlockNode(events: node.events,
+                          caller: node.caller,
+                          file: node.file,
+                          line: node.line)
+        }
+        
         init(
             _ first: Event,
             _ rest: Event...,
@@ -42,6 +49,12 @@ extension Syntax {
                 file: file,
                 line: line
             )
+        }
+        
+        func callAsFunction(
+            @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        ) -> Internal.MTASentence {
+            .init(blockNode, block)
         }
     }
 }

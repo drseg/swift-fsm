@@ -234,12 +234,31 @@ extension TransitionBuilder {
         .init([first] + rest, file: file, line: line)
     }
     
+    func when(
+        _ first: Event,
+        _ rest: Event...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+    ) -> Internal.MTASentence {
+        Syntax.When.init([first] + rest, file: file, line: line)(block)
+    }
+    
     func then(
         _ state: State? = nil,
         file: String = #file,
         line: Int = #line
     ) -> Syntax.Then<State> {
         .init(state, file: file, line: line)
+    }
+    
+    func then(
+        _ state: State? = nil,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+    ) -> Internal.MWASentence {
+        Syntax.Then(state, file: file, line: line)(block)
     }
     
     func actions(

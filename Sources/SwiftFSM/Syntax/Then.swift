@@ -17,6 +17,16 @@ extension Syntax {
         }
         
         let node: ThenNode
+        let file: String
+        let line: Int
+        
+        var blockNode: ThenBlockNode {
+            ThenBlockNode(state: node.state,
+                          rest: node.rest,
+                          caller: "then",
+                          file: file,
+                          line: line)
+        }
         
         init(_ state: State? = nil, file: String = #file, line: Int = #line) {
             node = ThenNode(
@@ -24,6 +34,14 @@ extension Syntax {
                                                    file: file,
                                                    line: line): nil
             )
+            self.file = file
+            self.line = line
+        }
+        
+        func callAsFunction(
+            @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        ) -> Internal.MWASentence {
+            .init(blockNode, block)
         }
     }
 }

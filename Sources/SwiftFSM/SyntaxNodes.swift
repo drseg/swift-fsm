@@ -62,6 +62,7 @@ class ActionsNodeBase {
         self.rest = rest
     }
     
+    #warning("why does this have a special 'isEmpty ? []' check unlike any others?")
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         actions.isEmpty ? [] : rest.reduce(into: [DefaultIO]()) {
             $0.append((match: $1.match,
@@ -121,7 +122,7 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
     let line: Int
     
     init(
-        state: AnyTraceable,
+        state: AnyTraceable?,
         rest: [any Node<Input>],
         caller: String = #function,
         file: String = #file,
@@ -248,6 +249,7 @@ struct GivenNode: Node {
 }
 
 struct DefineNode: NeverEmptyNode {
+    #warning("this should have a MatchResult, not a Match?")
     typealias Output = (state: AnyTraceable,
                         match: Match,
                         event: AnyTraceable,
