@@ -75,7 +75,7 @@ enum Internal {
             )
         }
         
-        init(_ n: MatchNode, _ block: () -> ([any MWTAProtocol])) {
+        init(_ n: MatchBlockNode, _ block: () -> ([any MWTAProtocol])) {
             n.rest = block().nodes
             node = n
         }
@@ -99,7 +99,7 @@ enum Internal {
             )
         }
         
-        init(_ n: MatchNode, _ block: () -> ([any MWAProtocol])) {
+        init(_ n: MatchBlockNode, _ block: () -> ([any MWAProtocol])) {
             n.rest = block().nodes
             node = n
         }
@@ -123,7 +123,7 @@ enum Internal {
             )
         }
         
-        init(_ n: MatchNode, _ block: () -> ([any MTAProtocol])) {
+        init(_ n: MatchBlockNode, _ block: () -> ([any MTAProtocol])) {
             n.rest = block().nodes
             node = n
         }

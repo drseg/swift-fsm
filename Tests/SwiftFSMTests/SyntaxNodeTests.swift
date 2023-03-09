@@ -56,8 +56,8 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func assertEqual(
-        _ lhs: MatchNode.Output,
-        _ rhs: MatchNode.Output,
+        _ lhs: DefaultIO,
+        _ rhs: DefaultIO,
         line: UInt = #line
     ) {
         XCTAssertTrue(lhs.match == rhs.match &&
@@ -456,12 +456,12 @@ final class WhenNodeTests: SyntaxNodeTests {
 }
 
 final class MatchNodeTests: SyntaxNodeTests {
-    func testEmptyMatchNodeIsError() {
-        assertEmptyNodeWithError(MatchNode(match: Match(),
-                                           rest: [],
-                                           caller: "caller",
-                                           file: "file",
-                                           line: 10))
+    func testEmptyMatchNodeIsNotError() {
+        XCTAssertEqual(0, MatchNode(match: Match(), rest: []).finalised().1.count)
+    }
+    
+    func testEmptyMatchBlockNodeIsError() {
+        assertEmptyNodeWithError(MatchBlockNode(match: Match(), rest: []))
     }
     
     func testMatchNodeFinalisesCorrectly() {
@@ -694,9 +694,7 @@ extension WhenNode: DefaultIONode {
 
 extension MatchNode: DefaultIONode {
     func copy() -> Self {
-        MatchNode(
-            match: match, rest: rest, caller: caller, file: file, line: line
-        ) as! Self
+        MatchNode(match: match, rest: rest) as! Self
     }
 }
 

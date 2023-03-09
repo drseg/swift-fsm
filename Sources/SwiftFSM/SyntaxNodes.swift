@@ -181,10 +181,30 @@ class WhenBlockNode: WhenNodeBase, NeverEmptyNode {
     }
 }
 
-class MatchNode: NeverEmptyNode {
+class MatchNodeBase {
     let match: Match
-    var rest: [any Node<Input>]
+    var rest: [any Node<DefaultIO>]
     
+    init(match: Match, rest: [any Node<DefaultIO>] = []) {
+        self.match = match
+        self.rest = rest
+    }
+    
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        rest.reduce(into: [DefaultIO]()) {
+            $0.append(
+                (match: $1.match.prepend(match),
+                 event: $1.event,
+                 state: $1.state,
+                 actions: $1.actions)
+            )
+        } ??? [(match: match, event: nil, state: nil, actions: [])]
+    }
+}
+
+class MatchNode: MatchNodeBase, Node { }
+
+class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
     var caller: String
     var file: String
     var line: Int
@@ -196,22 +216,11 @@ class MatchNode: NeverEmptyNode {
         file: String = #file,
         line: Int = #line
     ) {
-        self.match = match
-        self.rest = rest
         self.caller = caller
         self.file = file
         self.line = line
-    }
-    
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        rest.reduce(into: [Output]()) {
-            $0.append(
-                (match: $1.match.prepend(match),
-                 event: $1.event,
-                 state: $1.state,
-                 actions: $1.actions)
-            )
-        } ??? [(match: match, event: nil, state: nil, actions: [])]
+        
+        super.init(match: match, rest: rest)
     }
 }
 

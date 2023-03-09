@@ -25,6 +25,16 @@ extension Syntax {
         }
         
         let node: MatchNode
+        let file: String
+        let line: Int
+        
+        var blockNode: MatchBlockNode {
+            MatchBlockNode(match: node.match,
+                           rest: node.rest,
+                           caller: "match",
+                           file: file,
+                           line: line)
+        }
         
         init(_ p: any Predicate, file: String = #file, line: Int = #line) {
             self.init(any: [], all: [p], file: file, line: line)
@@ -72,28 +82,27 @@ extension Syntax {
             file: String = #file,
             line: Int = #line
         ) {
-            node = MatchNode(match: Match(any: any.erase(), all: all.erase()),
-                             caller: "match",
-                             file: file,
-                             line: line)
+            node = MatchNode(match: Match(any: any.erase(), all: all.erase()), rest: [])
+            self.file = file
+            self.line = line
         }
         
         func callAsFunction(
             @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
         ) -> Internal.MWTASentence {
-            .init(node, block)
+            .init(blockNode, block)
         }
         
         func callAsFunction(
             @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
         ) -> Internal.MWASentence {
-            .init(node, block)
+            .init(blockNode, block)
         }
         
         func callAsFunction(
             @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
         ) -> Internal.MTASentence {
-            .init(node, block)
+            .init(blockNode, block)
         }
     }
 }

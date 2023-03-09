@@ -8,7 +8,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-class SyntaxBuilderTestsBase: XCTestCase, TransitionBuilder {
+class SyntaxTestsBase: XCTestCase, TransitionBuilder {
     typealias State = Int
     typealias Event = Int
     
@@ -42,7 +42,7 @@ class SyntaxBuilderTestsBase: XCTestCase, TransitionBuilder {
     }
     
     func assertMatching(
-        _ node: MatchNode,
+        _ node: MatchNodeBase,
         any: [any Predicate] = [],
         all: [any Predicate] = [],
         sutLine sl: Int,
@@ -51,7 +51,9 @@ class SyntaxBuilderTestsBase: XCTestCase, TransitionBuilder {
         XCTAssertEqual(any.erase(), node.match.matchAny, line: xl)
         XCTAssertEqual(all.erase(), node.match.matchAll, line: xl)
         
-        assertNeverEmptyNode(node, caller: "match", sutLine: sl, xctLine: xl)
+        if let node = node as? MatchBlockNode {
+            assertNeverEmptyNode(node, caller: "match", sutLine: sl, xctLine: xl)
+        }
     }
     
     func assertWhen(_ w: When, sutLine: Int, xctLine xl: UInt = #line) {
@@ -269,8 +271,8 @@ class SyntaxBuilderTestsBase: XCTestCase, TransitionBuilder {
     }
 }
 
-final class SyntaxBuilderTests: SyntaxBuilderTestsBase {
-    func testMatch() {
+final class ComponentTests: SyntaxTestsBase {
+    func testMatching() {
         let m1 = matching(P.a); let l1 = #line
         let m2 = Matching(P.a); let l2 = #line
         
@@ -410,7 +412,7 @@ final class SyntaxBuilderTests: SyntaxBuilderTestsBase {
     }
 }
 
-class SyntaxBlockTests: SyntaxBuilderTestsBase {
+class BlockComponentTests: SyntaxTestsBase {
     func buildMWTA(@MWTABuilder _ block: () -> ([any MWTAProtocol])) -> [any MWTAProtocol] {
         block()
     }
@@ -546,7 +548,7 @@ class SyntaxBlockTests: SyntaxBuilderTestsBase {
     }
 }
 
-class BlockTestsBase: SyntaxBuilderTestsBase {
+class DefaultIOBlockTestsBase: SyntaxTestsBase {
     let mwtaLine = #line; @MWTABuilder var mwtaBlock: [any MWTAProtocol] {
         Matching(P.a) | When(1, 2) | Then(1) | pass
                         When(1, 2) | Then(1) | pass
@@ -563,7 +565,7 @@ class BlockTestsBase: SyntaxBuilderTestsBase {
     }
 }
 
-class ActionsBlockTests: BlockTestsBase {
+class ActionsBlockTests: DefaultIOBlockTestsBase {
     func abnComponents(of s: Sentence) -> (ActionsBlockNode, ActionsBlockNode) {
         let a1 = abn(s.node)
         let a2 = abn(a1.rest.first!)
@@ -771,19 +773,19 @@ class ActionsBlockTests: BlockTestsBase {
     }
 }
 
-class MatchingBlockTests: BlockTestsBase {
-    func mbnComponents(of s: Sentence) -> (MatchNode, MatchNode) {
+class MatchingBlockTests: DefaultIOBlockTestsBase {
+    func mbnComponents(of s: Sentence) -> (MatchBlockNode, MatchBlockNode) {
         let a1 = mbn(s.node)
         let a2 = mbn(a1.rest.first!)
         return (a1, a2)
     }
     
-    func mbn(_ n: any Node<DefaultIO>) -> MatchNode {
-        n as! MatchNode
+    func mbn(_ n: any Node<DefaultIO>) -> MatchBlockNode {
+        n as! MatchBlockNode
     }
     
     func assertMWTANode(
-        _ b: MatchNode,
+        _ b: MatchBlockNode,
         any: [any Predicate],
         all: [any Predicate],
         nodeLine nl: Int,
@@ -795,7 +797,7 @@ class MatchingBlockTests: BlockTestsBase {
     }
     
     func assertMWANode(
-        _ b: MatchNode,
+        _ b: MatchBlockNode,
         any: [any Predicate],
         all: [any Predicate],
         nodeLine nl: Int,
@@ -807,7 +809,7 @@ class MatchingBlockTests: BlockTestsBase {
     }
     
     func assertMTANode(
-        _ b: MatchNode,
+        _ b: MatchBlockNode,
         any: [any Predicate],
         all: [any Predicate],
         nodeLine nl: Int,
@@ -819,7 +821,7 @@ class MatchingBlockTests: BlockTestsBase {
     }
     
     func assertMatchBlock(
-        _ b: MatchNode,
+        _ b: MatchBlockNode,
         any: [any Predicate],
         all: [any Predicate],
         sutLine sl: Int,
@@ -1030,6 +1032,8 @@ class MatchingBlockTests: BlockTestsBase {
         
         assertCompoundMTABlock(m1, all: [Q.a], nodeLine: l1)
         assertCompoundMTABlock(m2, all: [Q.a], nodeLine: l2)
+        
+        print(m1.node.finalised())
     }
 }
 
