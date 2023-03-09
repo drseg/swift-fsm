@@ -10,6 +10,8 @@ protocol NodeBase {
     associatedtype Input
     associatedtype Output
     
+    typealias Result = (output: [Output], errors: [Error])
+    
     func validate() -> [Error]
     func combinedWithRest(_ rest: [Input]) -> [Output]
 }
@@ -20,17 +22,17 @@ extension NodeBase {
 
 protocol UnsafeNode: NodeBase {
     var rest: [any UnsafeNode] { get set }
-    func finalised() throws -> ([Output], [Error])
+    func finalised() throws -> Result
 }
 
 @available(macOS 13, iOS 16, *)
 protocol Node<Output>: NodeBase {
     var rest: [any Node<Input>] { get set }
-    func finalised() -> ([Output], [Error])
+    func finalised() -> Result
 }
 
 extension UnsafeNode {
-    func finalised() throws -> ([Output], [Error]) {
+    func finalised() throws -> Result {
         var output = [Input]()
         var errors = [Error]()
         
@@ -52,7 +54,7 @@ Error: \(type(of: try $0.finalised().0)) must equal Array<\(Input.self)>
 
 @available(macOS 13, iOS 16, *)
 extension Node {
-    func finalised() -> ([Output], [Error]) {
+    func finalised() -> Result {
         var output = [Input]()
         var errors = [Error]()
         

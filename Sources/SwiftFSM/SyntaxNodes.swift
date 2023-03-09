@@ -285,15 +285,8 @@ final class DefineNode: NeverEmptyNode {
     
     func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         rest.reduce(into: [Output]()) {
-            var match = Match()
-            
-            switch $1.match.finalise() {
-            case .failure(let e): errors.append(e)
-            case .success(let m): match = m
-            }
-            
             $0.append((state: $1.state,
-                       match: match,
+                       match: finalised($1.match),
                        event: $1.event,
                        nextState: $1.nextState,
                        actions: $1.actions,
@@ -301,6 +294,13 @@ final class DefineNode: NeverEmptyNode {
                         $1.state == $1.nextState ? [] : entryActions,
                        exitActions:
                         $1.state == $1.nextState ? [] : exitActions))
+        }
+    }
+    
+    private func finalised(_ m: Match) -> Match {
+        switch m.finalise() {
+        case .failure(let e): errors.append(e); return Match()
+        case .success(let m): return m
         }
     }
     

@@ -132,15 +132,12 @@ class SyntaxNodeTests: XCTestCase {
     func assertEmptyNodeWithoutError(_ n: some Node, line: UInt = #line) {
         let f = n.finalised()
         
-        XCTAssertTrue(f.0.isEmpty, "Not empty: \(f.0)", line: line)
-        XCTAssertTrue(f.1.isEmpty, "Not empty: \(f.1)", line: line)
+        XCTAssertTrue(f.output.isEmpty, "Output: \(f.0)", line: line)
+        XCTAssertTrue(f.errors.isEmpty, "Errors: \(f.1)", line: line)
     }
     
     func assertEmptyNodeWithError(_ n: some NeverEmptyNode, line: UInt = #line) {
-        let finalised = n.finalised()
-        let errors = finalised.1
-        
-        XCTAssertEqual(errors as? [EmptyBuilderError],
+        XCTAssertEqual(n.finalised().errors as? [EmptyBuilderError],
                        [EmptyBuilderError(caller: n.caller,
                                           file: n.file,
                                           line: n.line)],
@@ -341,9 +338,9 @@ final class ActionsNodeTests: SyntaxNodeTests {
     
     func testActionsFinalisesCorrectly() {
         let n = actionsNode
-        n.finalised().0.executeAll()
+        n.finalised().output.executeAll()
         XCTAssertEqual("12", actionsOutput)
-        XCTAssertTrue(n.finalised().1.isEmpty)
+        XCTAssertTrue(n.finalised().errors.isEmpty)
     }
     
     func testActionsPlusChainFinalisesCorrectly() {
@@ -457,7 +454,7 @@ final class WhenNodeTests: SyntaxNodeTests {
 
 final class MatchNodeTests: SyntaxNodeTests {
     func testEmptyMatchNodeIsNotError() {
-        XCTAssertEqual(0, MatchNode(match: Match(), rest: []).finalised().1.count)
+        XCTAssertEqual(0, MatchNode(match: Match(), rest: []).finalised().errors.count)
     }
     
     func testEmptyMatchBlockNodeIsError() {
@@ -592,8 +589,8 @@ final class DefineNodeTests: SyntaxNodeTests {
         
         let result = d.finalised()
         
-        XCTAssertEqual(1, result.1.count)
-        XCTAssertTrue(result.1.first is MatchError)
+        XCTAssertEqual(1, result.errors.count)
+        XCTAssertTrue(result.errors.first is MatchError)
     }
     
     func testDefineNodeWithNoActions() {
