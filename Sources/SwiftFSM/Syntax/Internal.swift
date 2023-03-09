@@ -101,6 +101,14 @@ enum Internal {
                 line: line
             )
         }
+        
+        init(
+            _ n: MatchNode,
+            _ block: () -> ([any MWAProtocol])
+        ) {
+            n.rest = block().nodes
+            node = n
+        }
     }
     
     struct MTASentence: MTAProtocol {

@@ -83,5 +83,11 @@ extension Syntax {
         ) -> Internal.MWTASentence {
             .init(node, block)
         }
+        
+        func callAsFunction(
+            @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        ) -> Internal.MWASentence {
+            .init(node, block)
+        }
     }
 }
