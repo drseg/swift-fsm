@@ -224,56 +224,66 @@ class MatchCombinationsTests: MatchTests {
         allOf: [any Predicate] = [],
         with a: [[any Predicate]] = [],
         expected: [[any Predicate]],
+        rank: Int,
         line: UInt = #line
     ) {
         let match = Match(any: anyOf.erase(), all: allOf.erase())
-        XCTAssertEqual(match.allPredicateCombinations(a.map { $0.erase() }.asSets),
-                       expected.erasedSets,
-                       line: line)
+        let additions = a.map { $0.erase() }.asSets
+        
+        let allCombinations = match.allPredicateCombinations(additions)
+        let allRanks = allCombinations.map(\.rank)
+        let allPredicates = Set(allCombinations.map(\.predicates))
+        
+        XCTAssertEqual(allPredicates, expected.erasedSets, line: line)
+        XCTAssertTrue(allRanks.allSatisfy { $0 == rank }, "\(allRanks)", line: line)
     }
     
     func testEmptyMatcher() {
-        assertCombinations(expected: [])
+        assertCombinations(expected: [], rank: 0)
     }
     
     func testAnyOfSinglePredicate() {
-        assertCombinations(anyOf: [P.a], expected: [[P.a]])
+        assertCombinations(anyOf: [P.a], expected: [[P.a]], rank: 1)
     }
     
     func testAnyOfMultiPredicate() {
-        assertCombinations(anyOf: [P.a, P.b], expected: [[P.a], [P.b]])
+        assertCombinations(anyOf: [P.a, P.b], expected: [[P.a], [P.b]], rank: 1)
     }
     
     func testAllOfSingleType() {
-        assertCombinations(allOf: [P.a], expected: [[P.a]])
+        assertCombinations(allOf: [P.a], expected: [[P.a]], rank: 1)
     }
     
     func testAllOfMultiTypeM() {
-        assertCombinations(allOf: [P.a, Q.a], expected: [[P.a, Q.a]])
+        assertCombinations(allOf: [P.a, Q.a], expected: [[P.a, Q.a]], rank: 2)
     }
     
     func testCombinedAnyAndAll() {
         assertCombinations(anyOf: [R.a, R.b],
                            allOf: [P.a, Q.a],
                            expected: [[P.a, Q.a, R.a],
-                                      [P.a, Q.a, R.b]])
+                                      [P.a, Q.a, R.b]],
+                           rank: 3)
     }
     
     func testEmptyMatcherWithSingleOther() {
         assertCombinations(with: [[P.a]],
-                           expected: [[P.a]])
+                           expected: [[P.a]],
+                           rank: 0)
     }
     
     func testEmptyMatcherWithMultiOther() {
         assertCombinations(with: [[P.a, Q.a]],
-                           expected: [[P.a, Q.a]])
+                           expected: [[P.a, Q.a]],
+                           rank: 0)
     }
     
     func testEmptyMatcherWithMultiMultiOther() {
         assertCombinations(with: [[P.a, Q.a],
                                   [P.a, Q.b]],
                            expected: [[P.a, Q.a],
-                                      [P.a, Q.b]])
+                                      [P.a, Q.b]],
+                           rank: 0)
     }
     
     func testAnyMatcherWithOther() {
@@ -283,7 +293,8 @@ class MatchCombinationsTests: MatchTests {
                            expected: [[P.a, Q.a, R.a],
                                       [P.a, Q.b, R.b],
                                       [P.b, Q.a, R.a],
-                                      [P.b, Q.b, R.b]])
+                                      [P.b, Q.b, R.b]],
+                           rank: 1)
     }
     
     func testAllMatcherWithOther() {
@@ -291,7 +302,8 @@ class MatchCombinationsTests: MatchTests {
                            with: [[R.a],
                                   [R.b]],
                            expected: [[P.a, Q.a, R.a],
-                                      [P.a, Q.a, R.b]])
+                                      [P.a, Q.a, R.b]],
+                           rank: 2)
     }
     
     func testAnyAndAllMatcherWithOther() {
@@ -302,26 +314,30 @@ class MatchCombinationsTests: MatchTests {
                            expected: [[P.a, Q.a, R.a],
                                       [P.a, Q.a, R.b],
                                       [P.a, Q.b, R.a],
-                                      [P.a, Q.b, R.b]])
+                                      [P.a, Q.b, R.b]],
+                           rank: 2)
     }
         
     func testAnyIgnoresTypesAlreadySpecified() {
         assertCombinations(anyOf: [P.a],
                            with: [[P.b, P.c, Q.a]],
-                           expected: [[P.a, Q.a]])
+                           expected: [[P.a, Q.a]],
+                           rank: 1)
     }
     
     func testAllIgnoresTypesAlreadySpecified() {
         assertCombinations(allOf: [P.a],
                            with: [[P.b, P.c, Q.a]],
-                           expected: [[P.a, Q.a]])
+                           expected: [[P.a, Q.a]],
+                           rank: 1)
     }
     
     func testAnyAllIgnoresTypesAlreadySpecified() {
         assertCombinations(anyOf: [P.a],
                            allOf: [R.a],
                            with: [[P.b, P.c, R.b, Q.a]],
-                           expected: [[P.a, R.a, Q.a]])
+                           expected: [[P.a, R.a, Q.a]],
+                           rank: 2)
     }
 }
 

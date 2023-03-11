@@ -132,8 +132,8 @@ class SyntaxNodeTests: XCTestCase {
     func assertEmptyNodeWithoutError(_ n: some Node, line: UInt = #line) {
         let f = n.finalised()
         
-        XCTAssertTrue(f.output.isEmpty, "Output: \(f.0)", line: line)
-        XCTAssertTrue(f.errors.isEmpty, "Errors: \(f.1)", line: line)
+        XCTAssertTrue(f.output.isEmpty, "Output not empty: \(f.0)", line: line)
+        XCTAssertTrue(f.errors.isEmpty, "Errors not empty: \(f.1)", line: line)
     }
     
     func assertEmptyNodeWithError(_ n: some NeverEmptyNode, line: UInt = #line) {

@@ -88,8 +88,11 @@ class Match {
         return .success(self)
     }
     
-    
-    func allPredicateCombinations(_ ps: PredicateSets) -> PredicateSets {
+    func allPredicateCombinations(_ ps: PredicateSets) -> Set<PredicateResult> {
+        func makeResult(_ p: PredicateSet) -> PredicateResult {
+            .init(predicates: p, rank: anyAndAll.first?.count ?? 0)
+        }
+        
         var emptySets: PredicateSets { Set(arrayLiteral: Set([AnyPredicate]())) }
         
         let anyAndAll = matchAny.reduce(into: emptySets) {
@@ -97,14 +100,31 @@ class Match {
         }.removingEmpties ??? [matchAll].asSets
         
         let includedTypes = (matchAny + matchAll).uniqueElementTypes
-        return ps.reduce(into: emptySets) { result, p in
+        return ps.reduce(into: Set<PredicateResult>()) { result, p in
             var filtered = p
             while let existing = filtered.first(where: { includedTypes.contains($0.type) }) {
                 filtered.remove(existing)
             }
-            anyAndAll.forEach { result.insert(filtered + $0) }
-        }.removingEmpties ??? ps ??? anyAndAll
+            anyAndAll.forEach {
+                result.insert(makeResult(filtered + $0))
+            }
+        }.removingEmpties ??? Set(ps.map(makeResult)) ??? Set(anyAndAll.map(makeResult))
     }
+}
+
+struct PredicateResult: Collection, Hashable {
+    typealias Element = PredicateSet.Element
+    
+    let predicates: PredicateSet
+    let rank: Int
+    
+    var startIndex: Set<Element>.Index { predicates.startIndex  }
+    var endIndex: Set<Element>.Index { predicates.endIndex }
+    
+    func makeIterator() -> PredicateSet.Iterator { predicates.makeIterator() }
+    func index(after i: Set<Element>.Index) -> Set<Element>.Index { predicates.index(after: i) }
+    
+    subscript(position: Set<Element>.Index) -> Element { predicates[position]  }
 }
 
 class MatchError: Error {
