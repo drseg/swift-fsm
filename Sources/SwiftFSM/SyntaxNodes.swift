@@ -318,24 +318,70 @@ typealias TableNodeOutput = (state: AnyTraceable,
                              exitActions: [Action])
  
 final class PreemptiveTableNode: Node {
-    var rest: [any Node<Input>] = []
+    typealias PossibleDuplicate = (AnyTraceable,
+                                   PredicateResult,
+                                   Match,
+                                   AnyTraceable,
+                                   AnyTraceable)
+    
+    var rest: [any Node<Input>]
+    private var errors: [Error] = []
+    
+    init(rest: [any Node<Input>] = []) {
+        self.rest = rest
+    }
     
     func combinedWithRest(_ rest: [DefineNode.Output]) -> [TableNodeOutput] {
-        rest.reduce(into: [Output]()) { result, dno in
-            let allPredicateCombinations = dno.match.allPredicateCombinations([])
-            allPredicateCombinations.forEach {
-                result.append(
-                    (state: dno.state,
-                     predicates: $0,
-                     event: dno.event,
-                     nextState: dno.nextState,
-                     actions: dno.actions,
-                     entryActions: dno.entryActions,
-                     exitActions: dno.exitActions)
-                )
+        let matches = rest.map(\.match)
+        let alls = matches.map(\.matchAll)
+        let anys = matches.map(\.matchAny)
+        let combined = (alls + anys).flattened
+        let combinations = combined.combinationsOfAllCases
+        
+        var checked = [PossibleDuplicate]()
+        var duplicates = [PossibleDuplicate]()
+
+        let output = rest.reduce(into: [Output]()) { result, dno in
+            dno.match.allPredicateCombinations(combinations).forEach {
+                let tno = (state: dno.state,
+                           predicates: $0,
+                           event: dno.event,
+                           nextState: dno.nextState,
+                           actions: dno.actions,
+                           entryActions: dno.entryActions,
+                           exitActions: dno.exitActions)
+                
+                func isEqual(_ lhs: PossibleDuplicate, _ rhs: PossibleDuplicate) -> Bool {
+                    lhs.0 == rhs.0 &&
+                    lhs.1 == rhs.1 &&
+                    lhs.3 == rhs.3 &&
+                    lhs.4 == rhs.4
+                }
+                
+                let duplicateCandidate = (tno.state, tno.predicates, dno.match, tno.event, tno.nextState)
+                if let existingCandidate = checked.first(where: { isEqual($0, duplicateCandidate) }) {
+                    duplicates.append(duplicateCandidate)
+                    duplicates.append(existingCandidate)
+                }
+                checked.append(duplicateCandidate)
+                result.append(tno)
             }
         }
+        
+        if !duplicates.isEmpty {
+            errors.append(DuplicatesError(duplicates: duplicates))
+        }
+        
+        return output
     }
+    
+    func validate() -> [Error] {
+        errors
+    }
+}
+
+struct DuplicatesError: Error {
+    let duplicates: [PreemptiveTableNode.PossibleDuplicate]
 }
 
 struct EmptyBuilderError: Error, Equatable {
