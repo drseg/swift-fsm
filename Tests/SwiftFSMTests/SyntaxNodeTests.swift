@@ -670,6 +670,78 @@ final class DefineNodeTests: SyntaxNodeTests {
     }
 }
 
+final class TableNodeTests: SyntaxNodeTests {
+    // PreemptiveTableNode
+    
+    typealias ExpectedTableNodeOutput = (state: AnyTraceable,
+                                         predicates: PredicateResult,
+                                         event: AnyTraceable,
+                                         nextState: AnyTraceable,
+                                         actionsOutput: String,
+                                         entryActionsOutput: String,
+                                         exitActionsOutput: String)
+    
+    func assertEqual(
+        _ lhs: ExpectedTableNodeOutput,
+        _ rhs: TableNodeOutput,
+        xctLine xl: UInt = #line
+    ) {
+        XCTAssertEqual(lhs.state, rhs.state, line: xl)
+        XCTAssertEqual(lhs.predicates, rhs.predicates, line: xl)
+        XCTAssertEqual(lhs.event, rhs.event, line: xl)
+        XCTAssertEqual(lhs.nextState, rhs.nextState, line: xl)
+        
+        rhs.actions.executeAll()
+        XCTAssertEqual(lhs.actionsOutput, actionsOutput, line: xl)
+        actionsOutput = ""
+        
+        rhs.entryActions.executeAll()
+        XCTAssertEqual(lhs.entryActionsOutput, actionsOutput, line: xl)
+        actionsOutput = ""
+        
+        rhs.exitActions.executeAll()
+        XCTAssertEqual(lhs.exitActionsOutput, actionsOutput, line: xl)
+        actionsOutput = ""
+    }
+    
+    func testEmptyNode() {
+        let node = PreemptiveTableNode()
+        XCTAssertEqual(0, node.finalised().errors.count)
+        XCTAssertEqual(0, node.finalised().output.count)
+    }
+    
+    func testNodeWithSingleDefineSinglePredicate() {
+        let node = PreemptiveTableNode()
+        let actions = ActionsNode(actions: actions)
+        let then = ThenNode(state: s2, rest: [actions])
+        let when = WhenNode(events: [e1], rest: [then])
+        let match = MatchNode(match: Match(any: P.a), rest: [when])
+        let given = GivenNode(states: [s1], rest: [match])
+        let define = DefineNode(entryActions: entryActions,
+                                exitActions: exitActions,
+                                rest: [given])
+        node.rest = [define]
+
+        let result = node.finalised()
+        XCTAssertEqual(0, result.errors.count)
+        XCTAssertEqual(1, result.output.count)
+        
+        let pr = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
+        
+        let expected = (state: s1,
+                        predicates: pr,
+                        event: e1,
+                        nextState: s2,
+                        actionsOutput: "12",
+                        entryActionsOutput: "<<",
+                        exitActionsOutput: ">>")
+        
+        assertEqual(expected, result.output.first!)
+    }
+    
+    // LazyTableNode
+}
+
 extension Collection {
     func executeAll() where Element == DefaultIO {
         map(\.actions).flattened.forEach { $0() }

@@ -156,14 +156,6 @@ extension Collection where Element == AnyPredicate {
     }
 }
 
-protocol Filterable {
-    var isEmpty: Bool { get }
-}
-
-extension Set: Filterable { }
-extension PredicateResult: Filterable {
-    var isEmpty: Bool { predicates.isEmpty }
-}
 
 extension Collection where Element: Collection & Hashable, Element.Element: Hashable {
     var asSets: Set<Set<Element.Element>> {
@@ -171,7 +163,16 @@ extension Collection where Element: Collection & Hashable, Element.Element: Hash
     }
 }
 
-extension Collection where Element: Filterable & Hashable {
+protocol PossiblyEmpty {
+    var isEmpty: Bool { get }
+}
+
+extension Set: PossiblyEmpty { }
+extension PredicateResult: PossiblyEmpty {
+    var isEmpty: Bool { predicates.isEmpty }
+}
+
+extension Collection where Element: PossiblyEmpty & Hashable {
     var removingEmpties: Set<Element> {
         Set(filter { !$0.isEmpty })
     }

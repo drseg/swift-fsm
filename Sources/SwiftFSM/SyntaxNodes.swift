@@ -309,6 +309,35 @@ final class DefineNode: NeverEmptyNode {
     }
 }
 
+typealias TableNodeOutput = (state: AnyTraceable,
+                             predicates: PredicateResult,
+                             event: AnyTraceable,
+                             nextState: AnyTraceable,
+                             actions: [Action],
+                             entryActions: [Action],
+                             exitActions: [Action])
+ 
+final class PreemptiveTableNode: Node {
+    var rest: [any Node<Input>] = []
+    
+    func combinedWithRest(_ rest: [DefineNode.Output]) -> [TableNodeOutput] {
+        rest.reduce(into: [Output]()) { result, dno in
+            let allPredicateCombinations = dno.match.allPredicateCombinations([])
+            allPredicateCombinations.forEach {
+                result.append(
+                    (state: dno.state,
+                     predicates: $0,
+                     event: dno.event,
+                     nextState: dno.nextState,
+                     actions: dno.actions,
+                     entryActions: dno.entryActions,
+                     exitActions: dno.exitActions)
+                )
+            }
+        }
+    }
+}
+
 struct EmptyBuilderError: Error, Equatable {
     let caller: String
     let file: String
