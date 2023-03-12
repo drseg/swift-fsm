@@ -18,7 +18,6 @@ class SyntaxTestsBase: XCTestCase, TransitionBuilder {
     typealias Then = Syntax.Then<State>
     typealias Actions = Syntax.Actions
     
-    typealias ThenActions = Internal.ThenActions
     typealias MatchingWhenThen = Internal.MatchingWhenThen
     typealias MatchingWhen = Internal.MatchingWhen
     
@@ -324,30 +323,6 @@ final class ComponentTests: SyntaxTestsBase {
 
         assertThen(n3, state: nil, sutLine: nil)
         assertThen(n4, state: nil, sutLine: nil)
-    }
-    
-    func testThenActions() {
-        func action() {
-            output = "pass"
-        }
-        
-        let n1: ThenActions = then(1) | { self.output = "pass" }; let l1 = #line
-        let n2: ThenActions = Then(1) | { self.output = "pass" }; let l2 = #line
-         
-        assertActionsNode(n1.node, expectedOutput: "pass", state: 1, sutLine: l1)
-        assertActionsNode(n2.node, expectedOutput: "pass", state: 1, sutLine: l2)
-        
-        let n3: ThenActions = then(1, line: -1) | { }
-        let n4: ThenActions = Then(1, line: -1) | { }
-        
-        assertActionsNode(n3.node, expectedOutput: "", state: 1, sutLine: -1)
-        assertActionsNode(n4.node, expectedOutput: "", state: 1, sutLine: -1)
-        
-        let n5: ThenActions = then(1, line: -1) | action
-        let n6: ThenActions = Then(1, line: -1) | action
-        
-        assertActionsNode(n5.node, expectedOutput: "pass", state: 1, sutLine: -1)
-        assertActionsNode(n6.node, expectedOutput: "pass", state: 1, sutLine: -1)
     }
     
     func testMatchingWhen() {
@@ -1042,6 +1017,22 @@ class MatchingBlockTests: DefaultIOBlockTestsBase {
 }
 
 class WhenBlockTests: DefaultIOBlockTestsBase {
+    /*
+     then(1) {
+         Matching(P.a) | When(1, 2)        // √√
+         Matching(P.a) | When(1, 2) | pass // √√
+                         When(1, 2) | pass // √√
+     }
+     
+     missing cases with no matching and no action?
+     
+     when(1, 2) {
+         Matching(P.a) | Then(1)           // √√
+         Matching(P.a) | Then(1)    | pass // √√
+                         Then(1)    | pass // Do we allow this?
+     }
+     */
+    
     func assertMTANode(
         _ b: Internal.MTASentence,
         nodeLine nl: Int,

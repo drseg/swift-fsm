@@ -8,10 +8,6 @@ import Foundation
 
 extension Syntax {
     struct Then<State: Hashable>: MWASyntaxBlock {
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> Internal.ThenActions {
-            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
-        }
-        
         static func | (lhs: Self, rhs: @escaping () -> ()) -> Internal.MatchingThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }

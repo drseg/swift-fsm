@@ -9,10 +9,6 @@ import Foundation
 enum Syntax { }
 
 enum Internal {
-    struct ThenActions {
-        let node: ActionsNode
-    }
-    
     struct MatchingWhen {
         static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThen {
             .init(node: rhs.node.appending(lhs.node))
