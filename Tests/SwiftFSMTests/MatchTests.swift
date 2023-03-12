@@ -341,7 +341,6 @@ class MatchCombinationsTests: MatchTests {
     }
 }
 
-
 extension Match: CustomStringConvertible {
     public var description: String {
         "\(matchAny), \(matchAll)"

@@ -112,19 +112,9 @@ class Match {
     }
 }
 
-struct PredicateResult: Collection, Hashable {
-    typealias Element = PredicateSet.Element
-    
+struct PredicateResult: Hashable {
     let predicates: PredicateSet
     let rank: Int
-    
-    var startIndex: Set<Element>.Index { predicates.startIndex  }
-    var endIndex: Set<Element>.Index { predicates.endIndex }
-    
-    func makeIterator() -> PredicateSet.Iterator { predicates.makeIterator() }
-    func index(after i: Set<Element>.Index) -> Set<Element>.Index { predicates.index(after: i) }
-    
-    subscript(position: Set<Element>.Index) -> Element { predicates[position]  }
 }
 
 class MatchError: Error {
@@ -166,11 +156,22 @@ extension Collection where Element == AnyPredicate {
     }
 }
 
+protocol Filterable {
+    var isEmpty: Bool { get }
+}
+
+extension Set: Filterable { }
+extension PredicateResult: Filterable {
+    var isEmpty: Bool { predicates.isEmpty }
+}
+
 extension Collection where Element: Collection & Hashable, Element.Element: Hashable {
     var asSets: Set<Set<Element.Element>> {
         Set(map(Set.init)).removingEmpties
     }
-    
+}
+
+extension Collection where Element: Filterable & Hashable {
     var removingEmpties: Set<Element> {
         Set(filter { !$0.isEmpty })
     }
