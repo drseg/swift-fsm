@@ -738,6 +738,7 @@ final class TableNodeTests: SyntaxNodeTests {
     }
     
     typealias TableNodeResult = (output: [PreemptiveTableNode.Output], errors: [Error])
+    typealias Key = PreemptiveTableNode.ErrorKey
     
     func firstDuplicatesError(in result: TableNodeResult) -> DuplicatesError? {
         firstError(ofType: DuplicatesError.self, in: result)
@@ -812,12 +813,15 @@ final class TableNodeTests: SyntaxNodeTests {
             errorAssertionFailure(in: result); return
         }
         
+        let duplicates = error.duplicates[Key(state: s1, predicates: pr, event: e1)] ?? []
+        
         guard assertCount(actual: result.errors.count, expected: 1)    else { return }
-        guard assertCount(actual: error.duplicates.count, expected: 3) else { return }
+        guard assertCount(actual: error.duplicates.count, expected: 1) else { return }
+        guard assertCount(actual: duplicates.count, expected: 3)       else { return }
                 
-        assertDupe(error.duplicates[0], expected: (s1, pr, Match(any: P.a), e1, s2))
-        assertDupe(error.duplicates[1], expected: (s1, pr, Match(any: P.a), e1, s2))
-        assertDupe(error.duplicates[2], expected: (s1, pr, Match(any: P.a), e1, s2))
+        assertDupe(duplicates[0], expected: (s1, pr, Match(any: P.a), e1, s2))
+        assertDupe(duplicates[1], expected: (s1, pr, Match(any: P.a), e1, s2))
+        assertDupe(duplicates[2], expected: (s1, pr, Match(any: P.a), e1, s2))
     }
     
     func testNodeWithLogicalClash() {
@@ -828,12 +832,15 @@ final class TableNodeTests: SyntaxNodeTests {
         guard let error = firstLogicalClashError(in: result) else {
             errorAssertionFailure(in: result); return
         }
+                
+        let clashes = error.clashes[Key(state: s1, predicates: pr, event: e1)] ?? []
         
         guard assertCount(actual: result.errors.count, expected: 1) else { return }
-        guard assertCount(actual: error.clashes.count, expected: 2) else { return }
+        guard assertCount(actual: error.clashes.count, expected: 1) else { return }
+        guard assertCount(actual: clashes.count, expected: 2)       else { return }
         
-        assertDupe(error.clashes[0], expected: (s1, pr, Match(any: P.a), e1, s2))
-        assertDupe(error.clashes[1], expected: (s1, pr, Match(any: P.a), e1, s1))
+        assertDupe(clashes[0], expected: (s1, pr, Match(any: P.a), e1, s2))
+        assertDupe(clashes[1], expected: (s1, pr, Match(any: P.a), e1, s1))
     }
 
     func testNodeWithImplicitMatchDuplicate() {
@@ -845,13 +852,16 @@ final class TableNodeTests: SyntaxNodeTests {
             errorAssertionFailure(in: result); return
         }
         
-        guard assertCount(actual: result.errors.count, expected: 1)    else { return }
-        guard assertCount(actual: error.duplicates.count, expected: 2) else { return }
-        
-        let firstDupe = error.duplicates.first { $0.2 == Match(any: P.a) }
-        let secondDupe = error.duplicates.first { $0.2 == Match(any: Q.a) }
-        
         let pr = PredicateResult(predicates: Set([P.a, Q.a].erase()), rank: 1)
+        let duplicates = error.duplicates[Key(state: s1, predicates: pr, event: e1)] ?? []
+        
+        guard assertCount(actual: result.errors.count, expected: 1)    else { return }
+        guard assertCount(actual: error.duplicates.count, expected: 1) else { return }
+        guard assertCount(actual: duplicates.count, expected: 2)       else { return }
+        
+        let firstDupe = duplicates.first { $0.2 == Match(any: P.a) }
+        let secondDupe = duplicates.first { $0.2 == Match(any: Q.a) }
+        
         
         assertDupe(firstDupe, expected: (s1, pr, Match(any: P.a), e1, s2))
         assertDupe(secondDupe, expected: (s1, pr, Match(any: Q.a), e1, s2))
@@ -901,7 +911,7 @@ final class TableNodeTests: SyntaxNodeTests {
     }
     
     // TODO: Match rank clashes
-    // TODO: Dupes and clashes not grouped together yet
+    // TODO: Error messages
     // TODO: LazyTableNode
 }
 

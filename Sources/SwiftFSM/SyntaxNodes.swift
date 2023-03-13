@@ -316,8 +316,14 @@ typealias TableNodeOutput = (state: AnyTraceable,
                              actions: [Action],
                              entryActions: [Action],
                              exitActions: [Action])
- 
+
 final class PreemptiveTableNode: Node {
+    struct ErrorKey: Hashable {
+        let state: AnyTraceable,
+            predicates: PredicateResult,
+            event: AnyTraceable
+    }
+    
     typealias PossibleError = (AnyTraceable, PredicateResult, Match, AnyTraceable, AnyTraceable)
     
     var rest: [any Node<Input>]
@@ -330,10 +336,10 @@ final class PreemptiveTableNode: Node {
     func combinedWithRest(_ rest: [DefineNode.Output]) -> [TableNodeOutput] {
         var checked = [PossibleError]()
         
-        var duplicates = [PossibleError]()
-        var lowRankDuplicates = [PossibleError]()
-        var clashes = [PossibleError]()
-        
+        var duplicates = [ErrorKey: [PossibleError]]()
+        var clashes = [ErrorKey: [PossibleError]]()
+        var rankedDuplicates = [ErrorKey: [PossibleError]]()
+
         let combinations = {
             let matches = rest.map(\.match)
             let anys = matches.map(\.matchAny)
@@ -371,6 +377,9 @@ final class PreemptiveTableNode: Node {
                            exitActions: dno.exitActions)
                 
                 let possibleError = (tno.0, tno.1, dno.match, tno.2, tno.3)
+                let key = ErrorKey(state: tno.0,
+                                   predicates: tno.1,
+                                   event: tno.2)
                 
                 func isDuplicate(_ lhs: PossibleError) -> Bool {
                     areDuplicates(lhs, possibleError)
@@ -386,13 +395,13 @@ final class PreemptiveTableNode: Node {
                 
                 func addErrorCandidate(
                     existing: PossibleError,
-                    to collection: inout [PossibleError],
+                    to collection: inout [ErrorKey: [PossibleError]],
                     if predicate: (PossibleError) -> Bool
                 ) {
-                    if !collection.contains(where: predicate) {
-                        collection.append(existing)
+                    if collection[key] == nil {
+                        collection[key] = [existing]
                     }
-                    collection.append(possibleError)
+                    collection[key]! += [possibleError]
                 }
                 
                 if let existing = checked.first(where: isDuplicate) {
@@ -404,8 +413,10 @@ final class PreemptiveTableNode: Node {
                 }
                 
                 else if let existing = checked.first(where: isRankedDuplicate) {
-                    lowRankDuplicates.append(
-                        existing.1.rank > possibleError.1.rank ? possibleError : existing
+                    rankedDuplicates[key] = rankedDuplicates[key] ?? [] + (
+                        existing.1.rank > possibleError.1.rank
+                        ? [possibleError]
+                        : [existing]
                     )
                 }
                 
@@ -415,24 +426,23 @@ final class PreemptiveTableNode: Node {
         }
         
         if !duplicates.isEmpty { errors.append(DuplicatesError(duplicates: duplicates)) }
-        if !clashes.isEmpty    { errors.append(LogicalClashError(clashes: clashes))     }
+        if !clashes.isEmpty { errors.append(LogicalClashError(clashes: clashes)) }
         
+        let allRankedDuplicates = rankedDuplicates.values.flattened
         return output.filter { tno in
-            !lowRankDuplicates.contains { areDuplicates($0, tno) }
+            !allRankedDuplicates.contains { areDuplicates($0, tno) }
         }
     }
     
-    func validate() -> [Error] {
-        errors
-    }
+    func validate() -> [Error] { errors }
 }
 
 struct LogicalClashError: Error {
-    let clashes: [PreemptiveTableNode.PossibleError]
+    let clashes: [PreemptiveTableNode.ErrorKey: [PreemptiveTableNode.PossibleError]]
 }
 
 struct DuplicatesError: Error {
-    let duplicates: [PreemptiveTableNode.PossibleError]
+    let duplicates: [PreemptiveTableNode.ErrorKey: [PreemptiveTableNode.PossibleError]]
 }
 
 struct EmptyBuilderError: Error, Equatable {
