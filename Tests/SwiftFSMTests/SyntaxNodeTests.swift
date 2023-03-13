@@ -685,29 +685,29 @@ final class TableNodeTests: SyntaxNodeTests {
                                          exitActionsOutput: String)
     
     func assertEqual(
-        _ lhs: ExpectedTableNodeOutput,
-        _ rhs: TableNodeOutput,
+        _ lhs: ExpectedTableNodeOutput?,
+        _ rhs: TableNodeOutput?,
         xctLine xl: UInt = #line
     ) {
-        XCTAssertEqual(lhs.state, rhs.state, line: xl)
-        XCTAssertEqual(lhs.predicates, rhs.predicates, line: xl)
-        XCTAssertEqual(lhs.event, rhs.event, line: xl)
-        XCTAssertEqual(lhs.nextState, rhs.nextState, line: xl)
+        XCTAssertEqual(lhs?.state, rhs?.state, line: xl)
+        XCTAssertEqual(lhs?.predicates, rhs?.predicates, line: xl)
+        XCTAssertEqual(lhs?.event, rhs?.event, line: xl)
+        XCTAssertEqual(lhs?.nextState, rhs?.nextState, line: xl)
         
-        rhs.actions.executeAll()
-        XCTAssertEqual(lhs.actionsOutput, actionsOutput, line: xl)
+        rhs?.actions.executeAll()
+        XCTAssertEqual(lhs?.actionsOutput, actionsOutput, line: xl)
         actionsOutput = ""
         
-        rhs.entryActions.executeAll()
-        XCTAssertEqual(lhs.entryActionsOutput, actionsOutput, line: xl)
+        rhs?.entryActions.executeAll()
+        XCTAssertEqual(lhs?.entryActionsOutput, actionsOutput, line: xl)
         actionsOutput = ""
         
-        rhs.exitActions.executeAll()
-        XCTAssertEqual(lhs.exitActionsOutput, actionsOutput, line: xl)
+        rhs?.exitActions.executeAll()
+        XCTAssertEqual(lhs?.exitActionsOutput, actionsOutput, line: xl)
         actionsOutput = ""
     }
     
-    func makeExpectedOutput(
+    func makeOutput(
         state: AnyTraceable,
         predicates: PredicateResult,
         event: AnyTraceable,
@@ -726,14 +726,18 @@ final class TableNodeTests: SyntaxNodeTests {
     }
     
     func assertDupe(
-        _ dupe: PreemptiveTableNode.PossibleError,
-        expected: PreemptiveTableNode.PossibleError,
+        _ dupe: PreemptiveTableNode.PossibleError?,
+        expected: PreemptiveTableNode.PossibleError?,
         xctLine xl: UInt = #line
     ) {
-        XCTAssertTrue(expected == dupe, "\(dupe) does not equal \(expected)", line: xl)
+        let message = "\(String(describing: dupe)) does not equal \(String(describing: expected))"
+        
+        guard let dupe, let expected else { XCTFail(message); return }
+        
+        XCTAssertTrue(expected == dupe, message, line: xl)
     }
     
-    typealias TableNodeResult = ([PreemptiveTableNode.Output], [Error])
+    typealias TableNodeResult = (output: [PreemptiveTableNode.Output], errors: [Error])
     
     func firstDuplicatesError(in result: TableNodeResult) -> DuplicatesError? {
         firstError(ofType: DuplicatesError.self, in: result)
@@ -757,10 +761,7 @@ final class TableNodeTests: SyntaxNodeTests {
         when: AnyTraceable,
         then: AnyTraceable
     ) -> PreemptiveTableNode {
-        let node = PreemptiveTableNode()
-        let define = defineNode(given: given, match: match, when: when, then: then)
-        node.rest = [define]
-        return node
+        .init(rest: [defineNode(given: given, match: match, when: when, then: then)])
     }
     
     func defineNode(
@@ -774,9 +775,7 @@ final class TableNodeTests: SyntaxNodeTests {
         let when = WhenNode(events: [when], rest: [then])
         let match = MatchNode(match: match, rest: [when])
         let given = GivenNode(states: [given], rest: [match])
-        return DefineNode(entryActions: entryActions,
-                          exitActions: exitActions,
-                          rest: [given])
+        return .init(entryActions: entryActions, exitActions: exitActions, rest: [given])
     }
     
     func testEmptyNode() {
@@ -801,11 +800,7 @@ final class TableNodeTests: SyntaxNodeTests {
         
         guard assertCount(actual: result.output.count, expected: 1) else { return }
         
-        let expected = makeExpectedOutput(state: s1,
-                                          predicates: pr,
-                                          event: e1,
-                                          nextState: s2)
-        
+        let expected = makeOutput(state: s1, predicates: pr, event: e1, nextState: s2)
         assertEqual(expected, result.output[0])
     }
     
@@ -853,8 +848,8 @@ final class TableNodeTests: SyntaxNodeTests {
         guard assertCount(actual: result.errors.count, expected: 1)    else { return }
         guard assertCount(actual: error.duplicates.count, expected: 2) else { return }
         
-        let firstDupe = error.duplicates.first { $0.2 == Match(any: P.a) }!
-        let secondDupe = error.duplicates.first { $0.2 == Match(any: Q.a) }!
+        let firstDupe = error.duplicates.first { $0.2 == Match(any: P.a) }
+        let secondDupe = error.duplicates.first { $0.2 == Match(any: Q.a) }
         
         let pr = PredicateResult(predicates: Set([P.a, Q.a].erase()), rank: 1)
         
@@ -863,28 +858,30 @@ final class TableNodeTests: SyntaxNodeTests {
     }
     
     func testNodeWithImplicitMatchRemovesDuplicateWithLowerRank() {
+        func assertRemovesLowRankDuplicate(
+            subnodes: [any Node<PreemptiveTableNode.Input>],
+            xctLine xl: UInt = #line
+        ) {
+            let tnr = PreemptiveTableNode(rest: subnodes).finalised()
+            
+            guard assertCount(actual: tnr.errors.count, expected: 0, line: xl) else { return }
+            guard assertCount(actual: tnr.output.count, expected: 2, line: xl) else { return }
+            
+            let pr1 = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
+            let pr2 = PredicateResult(predicates: Set([P.b].erase()), rank: 0)
+            
+            let expected1 = makeOutput(state: s1, predicates: pr1, event: e1, nextState: s2)
+            let expected2 = makeOutput(state: s1, predicates: pr2, event: e1, nextState: s2)
+            
+            assertEqual(expected1, tnr.output.first { $0.predicates == pr1 }, xctLine: xl)
+            assertEqual(expected2, tnr.output.first { $0.predicates == pr2 }, xctLine: xl)
+        }
+        
         let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
         let d2 = defineNode(given: s1, match: Match(), when: e1, then: s2)
-        let result = PreemptiveTableNode(rest: [d1, d2]).finalised()
-        
-        guard assertCount(actual: result.errors.count, expected: 0) else { return }
-        guard assertCount(actual: result.output.count, expected: 2) else { return }
-        
-        let pr1 = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
-        let pr2 = PredicateResult(predicates: Set([P.b].erase()), rank: 0)
-        
-        let expected1 = makeExpectedOutput(state: s1,
-                                           predicates: pr1,
-                                           event: e1,
-                                           nextState: s2)
-        
-        let expected2 = makeExpectedOutput(state: s1,
-                                           predicates: pr2,
-                                           event: e1,
-                                           nextState: s2)
-        
-        assertEqual(expected1, result.output[0])
-        assertEqual(expected2, result.output[1])
+
+        assertRemovesLowRankDuplicate(subnodes: [d1, d2])
+        assertRemovesLowRankDuplicate(subnodes: [d2, d1])
     }
     
     func testNodeWithUniqueDefines() {
