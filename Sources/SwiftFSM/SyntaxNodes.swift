@@ -339,11 +339,19 @@ final class PreemptiveTableNode: Node {
         let combinations = combined.combinationsOfAllCases
         
         var checkedForDuplicates = [PossibleError]()
+        var checkedForRankedDuplicates = [PossibleError]()
         var checkedForClashes = [PossibleError]()
+        
         var duplicates = [PossibleError]()
+        var lowRankDuplicates = [PossibleError]()
         var clashes = [PossibleError]()
 
-        let output = rest.reduce(into: [Output]()) { result, dno in
+        func areDuplicates(_ lhs: PossibleError, _ rhs: Output) -> Bool {
+            (lhs.0, lhs.1, lhs.3, lhs.4) ==
+            (rhs.0, rhs.1, rhs.2, rhs.3)
+        }
+        
+        var output = rest.reduce(into: [Output]()) { result, dno in
             dno.match.allPredicateCombinations(combinations).forEach {
                 let tno = (state: dno.state,
                            predicates: $0,
@@ -358,9 +366,16 @@ final class PreemptiveTableNode: Node {
                                      dno.match,
                                      tno.event,
                                      tno.nextState)
-                
+
                 func areDuplicates(_ lhs: PossibleError, _ rhs: PossibleError) -> Bool {
-                    (lhs.0, lhs.1, lhs.3, lhs.4) == (rhs.0, rhs.1, rhs.3, rhs.4)
+                    (lhs.0, lhs.1, lhs.3, lhs.4) ==
+                    (rhs.0, rhs.1, rhs.3, rhs.4)
+                }
+                
+                func areRankedDuplicates(_ lhs: PossibleError, _ rhs: PossibleError) -> Bool {
+                    (lhs.0, lhs.1.predicates, lhs.3, lhs.4) ==
+                    (rhs.0, rhs.1.predicates, rhs.3, rhs.4) &&
+                    lhs.1 != rhs.1
                 }
                 
                 func areClashes(_ lhs: PossibleError, _ rhs: PossibleError) -> Bool {
@@ -369,6 +384,10 @@ final class PreemptiveTableNode: Node {
                 
                 func isDuplicate(_ lhs: PossibleError) -> Bool {
                     areDuplicates(lhs, possibleError)
+                }
+                
+                func isRankedDuplicate(_ lhs: PossibleError) -> Bool {
+                    areRankedDuplicates(lhs, possibleError)
                 }
                 
                 func isClash(_ lhs: PossibleError) -> Bool {
@@ -390,9 +409,14 @@ final class PreemptiveTableNode: Node {
                     addErrorCandidate(existing: existing, to: &duplicates, if: isDuplicate)
                 } else if let existing = checkedForClashes.first(where: isClash) {
                     addErrorCandidate(existing: existing, to: &clashes, if: isClash)
+                } else if let existing = checkedForRankedDuplicates.first(where: isRankedDuplicate) {
+                    lowRankDuplicates.append(
+                        existing.1.rank > possibleError.1.rank ? possibleError : existing
+                    )
                 }
                 
                 checkedForDuplicates.append(possibleError)
+                checkedForRankedDuplicates.append(possibleError)
                 checkedForClashes.append(possibleError)
                 
                 result.append(tno)
@@ -407,7 +431,9 @@ final class PreemptiveTableNode: Node {
             errors.append(LogicalClashError(clashes: clashes))
         }
         
-        return output
+        return output.filter { tno in
+            !lowRankDuplicates.contains { areDuplicates($0, tno) }
+        }
     }
     
     func validate() -> [Error] {
