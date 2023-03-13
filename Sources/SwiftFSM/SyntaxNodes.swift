@@ -317,13 +317,27 @@ typealias TableNodeOutput = (state: AnyTraceable,
                              entryActions: [Action],
                              exitActions: [Action])
 
-final class PreemptiveTableNode: Node {
+class TableNode {
     struct ErrorKey: Hashable {
         let state: AnyTraceable, predicates: PredicateResult, event: AnyTraceable
     }
     
     typealias PossibleError = (AnyTraceable, PredicateResult, Match, AnyTraceable, AnyTraceable)
+}
+
+final class LazyTableNode: TableNode, Node {
+    var rest: [any Node<Input>]
+
+    init(rest: [any Node<Input>] = []) {
+        self.rest = rest
+    }
     
+    func combinedWithRest(_ rest: [DefineNode.Output]) -> [TableNodeOutput] {
+        []
+    }
+}
+
+final class PreemptiveTableNode: TableNode, Node {
     var rest: [any Node<Input>]
     private var errors: [Error] = []
     
@@ -432,17 +446,17 @@ final class PreemptiveTableNode: Node {
 }
 
 struct LogicalClashError: Error {
-    let clashes: [PreemptiveTableNode.ErrorKey: [PreemptiveTableNode.PossibleError]]
+    let clashes: [TableNode.ErrorKey: [TableNode.PossibleError]]
     
-    init(_ clashes: [PreemptiveTableNode.ErrorKey : [PreemptiveTableNode.PossibleError]]) {
+    init(_ clashes: [TableNode.ErrorKey: [TableNode.PossibleError]]) {
         self.clashes = clashes
     }
 }
 
 struct DuplicatesError: Error {
-    let duplicates: [PreemptiveTableNode.ErrorKey: [PreemptiveTableNode.PossibleError]]
+    let duplicates: [TableNode.ErrorKey: [TableNode.PossibleError]]
     
-    init(_ duplicates: [PreemptiveTableNode.ErrorKey : [PreemptiveTableNode.PossibleError]]) {
+    init(_ duplicates: [TableNode.ErrorKey: [TableNode.PossibleError]]) {
         self.duplicates = duplicates
     }
 }

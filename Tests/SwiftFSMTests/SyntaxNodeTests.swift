@@ -665,12 +665,7 @@ final class DefineNodeTests: SyntaxNodeTests {
     }
 }
 
-final class TableNodeTests: SyntaxNodeTests {
-    // PreemptiveTableNode
-    
-    enum P: Predicate { case a, b }
-    enum Q: Predicate { case a, b }
-    
+class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput {
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
                                          predicates: PredicateResult,
                                          event: AnyTraceable,
@@ -678,6 +673,14 @@ final class TableNodeTests: SyntaxNodeTests {
                                          actionsOutput: String,
                                          entryActionsOutput: String,
                                          exitActionsOutput: String)
+    
+    typealias TableNodeResult = (output: [TableNodeOutput], errors: [Error])
+    typealias Key = TableNode.ErrorKey
+    
+    enum P: Predicate { case a, b }
+    enum Q: Predicate { case a, b }
+    
+    let pr = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
     
     func assertEqual(
         _ lhs: ExpectedTableNodeOutput?,
@@ -720,9 +723,70 @@ final class TableNodeTests: SyntaxNodeTests {
          exitActionsOutput: exitActionsOutput)
     }
     
+    func defineNode(
+        given: AnyTraceable,
+        match: Match,
+        when: AnyTraceable,
+        then: AnyTraceable
+    ) -> DefineNode {
+        let actions = ActionsNode(actions: actions)
+        let then = ThenNode(state: then, rest: [actions])
+        let when = WhenNode(events: [when], rest: [then])
+        let match = MatchNode(match: match, rest: [when])
+        let given = GivenNode(states: [given], rest: [match])
+        return .init(entryActions: entryActions, exitActions: exitActions, rest: [given])
+    }
+    
+    func tableNode(given: AnyTraceable, match: Match, when: AnyTraceable, then: AnyTraceable) -> N {
+        fatalError("subclasses must implement")
+    }
+    
+    func tableNode(rest: [any Node<DefineNode.Output>]) -> N {
+        fatalError("subclasses must implement")
+    }
+    
+    func testEmptyNode() {
+        let node = tableNode(rest: [])
+        
+        XCTAssertEqual(0, node.finalised().errors.count)
+        XCTAssertEqual(0, node.finalised().output.count)
+    }
+}
+
+final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
+    // TODO: Error messages
+    
+    override func tableNode(
+        given: AnyTraceable,
+        match: Match,
+        when: AnyTraceable,
+        then: AnyTraceable
+    ) -> LazyTableNode {
+        .init(rest: [defineNode(given: given, match: match, when: when, then: then)])
+    }
+    
+    override func tableNode(rest: [any Node<DefineNode.Output>]) -> LazyTableNode {
+        .init(rest: rest)
+    }
+}
+
+final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
+    override func tableNode(
+        given: AnyTraceable,
+        match: Match,
+        when: AnyTraceable,
+        then: AnyTraceable
+    ) -> PreemptiveTableNode {
+        .init(rest: [defineNode(given: given, match: match, when: when, then: then)])
+    }
+    
+    override func tableNode(rest: [any Node<DefineNode.Output>]) -> PreemptiveTableNode {
+        .init(rest: rest)
+    }
+    
     func assertDupe(
-        _ dupe: PreemptiveTableNode.PossibleError?,
-        expected: PreemptiveTableNode.PossibleError?,
+        _ dupe: TableNode.PossibleError?,
+        expected: TableNode.PossibleError?,
         xctLine xl: UInt = #line
     ) {
         let message = "\(String(describing: dupe)) does not equal \(String(describing: expected))"
@@ -731,9 +795,6 @@ final class TableNodeTests: SyntaxNodeTests {
         
         XCTAssertTrue(expected == dupe, message, line: xl)
     }
-    
-    typealias TableNodeResult = (output: [PreemptiveTableNode.Output], errors: [Error])
-    typealias Key = PreemptiveTableNode.ErrorKey
     
     func firstDuplicatesError(in result: TableNodeResult) -> DuplicatesError? {
         firstError(ofType: DuplicatesError.self, in: result)
@@ -751,36 +812,6 @@ final class TableNodeTests: SyntaxNodeTests {
         XCTFail("Unexpected error \(String(describing: result.1.first))", line: xl)
     }
     
-    func tableNode(
-        given: AnyTraceable,
-        match: Match,
-        when: AnyTraceable,
-        then: AnyTraceable
-    ) -> PreemptiveTableNode {
-        .init(rest: [defineNode(given: given, match: match, when: when, then: then)])
-    }
-    
-    func defineNode(
-        given: AnyTraceable,
-        match: Match,
-        when: AnyTraceable,
-        then: AnyTraceable
-    ) -> DefineNode {
-        let actions = ActionsNode(actions: actions)
-        let then = ThenNode(state: then, rest: [actions])
-        let when = WhenNode(events: [when], rest: [then])
-        let match = MatchNode(match: match, rest: [when])
-        let given = GivenNode(states: [given], rest: [match])
-        return .init(entryActions: entryActions, exitActions: exitActions, rest: [given])
-    }
-    
-    func testEmptyNode() {
-        let node = PreemptiveTableNode()
-        
-        XCTAssertEqual(0, node.finalised().errors.count)
-        XCTAssertEqual(0, node.finalised().output.count)
-    }
-    
     func testNodeWithSingleDefineSingleInvalidPredicate() {
         let node = tableNode(given: s1, match: Match(any: P.a, P.a), when: e1, then: s2)
         let result = node.finalised()
@@ -788,8 +819,6 @@ final class TableNodeTests: SyntaxNodeTests {
         XCTAssertEqual(1, result.errors.count)
         XCTAssertTrue(result.errors.first is MatchError)
     }
-    
-    let pr = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
     
     func testNodeWithSingleDefineSingleValidPredicate() {
         let node = tableNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
@@ -804,7 +833,7 @@ final class TableNodeTests: SyntaxNodeTests {
     
     func testNodeWithDuplicateDefines() {
         let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
-        let result = PreemptiveTableNode(rest: [d1, d1, d1]).finalised()
+        let result = tableNode(rest: [d1, d1, d1]).finalised()
         
         guard let error = firstDuplicatesError(in: result) else {
             errorAssertionFailure(in: result); return
@@ -824,7 +853,7 @@ final class TableNodeTests: SyntaxNodeTests {
     func testNodeWithLogicalClash() {
         let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
         let d2 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s1)
-        let result = PreemptiveTableNode(rest: [d1, d2]).finalised()
+        let result = tableNode(rest: [d1, d2]).finalised()
         
         guard let error = firstLogicalClashError(in: result) else {
             errorAssertionFailure(in: result); return
@@ -843,7 +872,7 @@ final class TableNodeTests: SyntaxNodeTests {
     func testNodeWithImplicitMatchDuplicate() {
         let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
         let d2 = defineNode(given: s1, match: Match(any: Q.a), when: e1, then: s2)
-        let result = PreemptiveTableNode(rest: [d1, d2]).finalised()
+        let result = tableNode(rest: [d1, d2]).finalised()
         
         guard let error = firstDuplicatesError(in: result) else {
             errorAssertionFailure(in: result); return
@@ -868,7 +897,7 @@ final class TableNodeTests: SyntaxNodeTests {
             subnodes: [any Node<PreemptiveTableNode.Input>],
             xctLine xl: UInt = #line
         ) {
-            let tnr = PreemptiveTableNode(rest: subnodes).finalised()
+            let tnr = tableNode(rest: subnodes).finalised()
             
             guard assertCount(tnr.errors, expected: 0, line: xl) else { return }
             guard assertCount(tnr.output, expected: 2, line: xl) else { return }
@@ -894,7 +923,7 @@ final class TableNodeTests: SyntaxNodeTests {
         let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
         let d2 = defineNode(given: s2, match: Match(any: Q.a), when: e1, then: s2)
         
-        let result = PreemptiveTableNode(rest: [d1, d2]).finalised()
+        let result = tableNode(rest: [d1, d2]).finalised()
         
         guard assertCount(result.errors, expected: 0) else { return }
         guard assertCount(result.output, expected: 4) else { return }
@@ -903,12 +932,8 @@ final class TableNodeTests: SyntaxNodeTests {
         let lastTwo = result.output.suffix(2).map(\.predicates)
         
         XCTAssert(firstTwo.allSatisfy { $0.predicates.contains(P.a.erase()) })
-        XCTAssert(lastTwo.allSatisfy { $0.predicates.contains(Q.a.erase()) })
+        XCTAssert(lastTwo.allSatisfy  { $0.predicates.contains(Q.a.erase()) })
     }
-    
-    // TODO: Match rank clashes
-    // TODO: Error messages
-    // TODO: LazyTableNode
 }
 
 extension Collection {
