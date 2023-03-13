@@ -319,9 +319,7 @@ typealias TableNodeOutput = (state: AnyTraceable,
 
 final class PreemptiveTableNode: Node {
     struct ErrorKey: Hashable {
-        let state: AnyTraceable,
-            predicates: PredicateResult,
-            event: AnyTraceable
+        let state: AnyTraceable, predicates: PredicateResult, event: AnyTraceable
     }
     
     typealias PossibleError = (AnyTraceable, PredicateResult, Match, AnyTraceable, AnyTraceable)
@@ -377,9 +375,7 @@ final class PreemptiveTableNode: Node {
                            exitActions: dno.exitActions)
                 
                 let possibleError = (tno.0, tno.1, dno.match, tno.2, tno.3)
-                let key = ErrorKey(state: tno.0,
-                                   predicates: tno.1,
-                                   event: tno.2)
+                let key = ErrorKey(state: tno.0, predicates: tno.1, event: tno.2)
                 
                 func isDuplicate(_ lhs: PossibleError) -> Bool {
                     areDuplicates(lhs, possibleError)
@@ -398,9 +394,7 @@ final class PreemptiveTableNode: Node {
                     to collection: inout [ErrorKey: [PossibleError]],
                     if predicate: (PossibleError) -> Bool
                 ) {
-                    if collection[key] == nil {
-                        collection[key] = [existing]
-                    }
+                    if collection[key] == nil { collection[key] = [existing] }
                     collection[key]! += [possibleError]
                 }
                 
@@ -425,8 +419,8 @@ final class PreemptiveTableNode: Node {
             }
         }
         
-        if !duplicates.isEmpty { errors.append(DuplicatesError(duplicates: duplicates)) }
-        if !clashes.isEmpty { errors.append(LogicalClashError(clashes: clashes)) }
+        if !duplicates.isEmpty { errors.append(DuplicatesError(duplicates)) }
+        if !clashes.isEmpty    { errors.append(LogicalClashError(clashes))  }
         
         let allRankedDuplicates = rankedDuplicates.values.flattened
         return output.filter { tno in
@@ -439,10 +433,18 @@ final class PreemptiveTableNode: Node {
 
 struct LogicalClashError: Error {
     let clashes: [PreemptiveTableNode.ErrorKey: [PreemptiveTableNode.PossibleError]]
+    
+    init(_ clashes: [PreemptiveTableNode.ErrorKey : [PreemptiveTableNode.PossibleError]]) {
+        self.clashes = clashes
+    }
 }
 
 struct DuplicatesError: Error {
     let duplicates: [PreemptiveTableNode.ErrorKey: [PreemptiveTableNode.PossibleError]]
+    
+    init(_ duplicates: [PreemptiveTableNode.ErrorKey : [PreemptiveTableNode.PossibleError]]) {
+        self.duplicates = duplicates
+    }
 }
 
 struct EmptyBuilderError: Error, Equatable {

@@ -105,9 +105,7 @@ class SyntaxNodeTests: XCTestCase {
         let result = finalised.0
         let errors = finalised.1
         
-        guard assertCount(actual: result.count, expected: 1, line: line) else {
-            return
-        }
+        guard assertCount(result, expected: 1, line: line) else { return }
         
         XCTAssertTrue(errors.isEmpty, line: line)
         XCTAssertEqual(thenState, result[0].state, line: line)
@@ -167,10 +165,9 @@ class SyntaxNodeTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty, line: line)
     }
     
-    func assertCount(actual: Int, expected: Int, line: UInt = #line) -> Bool {
-        guard actual == expected else {
-            XCTFail("Incorrect count: \(actual) instead of \(expected)",
-                    line: line)
+    func assertCount(_ actual: any Collection, expected: Int, line: UInt = #line) -> Bool {
+        guard actual.count == expected else {
+            XCTFail("Incorrect count: \(actual) instead of \(expected)", line: line)
             return false
         }
         return true
@@ -270,9 +267,7 @@ class SyntaxNodeTests: XCTestCase {
             let output = node.finalised()
             let results = output.0
                         
-            guard assertCount(actual: results.count, expected: 1, line: line) else {
-                return
-            }
+            guard assertCount(results, expected: 1, line: line) else { return }
             
             let result = results[0]
             
@@ -781,6 +776,7 @@ final class TableNodeTests: SyntaxNodeTests {
     
     func testEmptyNode() {
         let node = PreemptiveTableNode()
+        
         XCTAssertEqual(0, node.finalised().errors.count)
         XCTAssertEqual(0, node.finalised().output.count)
     }
@@ -788,6 +784,7 @@ final class TableNodeTests: SyntaxNodeTests {
     func testNodeWithSingleDefineSingleInvalidPredicate() {
         let node = tableNode(given: s1, match: Match(any: P.a, P.a), when: e1, then: s2)
         let result = node.finalised()
+        
         XCTAssertEqual(1, result.errors.count)
         XCTAssertTrue(result.errors.first is MatchError)
     }
@@ -797,9 +794,9 @@ final class TableNodeTests: SyntaxNodeTests {
     func testNodeWithSingleDefineSingleValidPredicate() {
         let node = tableNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
         let result = node.finalised()
-        XCTAssertEqual(0, result.errors.count)
         
-        guard assertCount(actual: result.output.count, expected: 1) else { return }
+        guard assertCount(result.errors, expected: 0) else { return }
+        guard assertCount(result.output, expected: 1) else { return }
         
         let expected = makeOutput(state: s1, predicates: pr, event: e1, nextState: s2)
         assertEqual(expected, result.output[0])
@@ -815,9 +812,9 @@ final class TableNodeTests: SyntaxNodeTests {
         
         let duplicates = error.duplicates[Key(state: s1, predicates: pr, event: e1)] ?? []
         
-        guard assertCount(actual: result.errors.count, expected: 1)    else { return }
-        guard assertCount(actual: error.duplicates.count, expected: 1) else { return }
-        guard assertCount(actual: duplicates.count, expected: 3)       else { return }
+        guard assertCount(result.errors,    expected: 1) else { return }
+        guard assertCount(error.duplicates, expected: 1) else { return }
+        guard assertCount(duplicates,       expected: 3) else { return }
                 
         assertDupe(duplicates[0], expected: (s1, pr, Match(any: P.a), e1, s2))
         assertDupe(duplicates[1], expected: (s1, pr, Match(any: P.a), e1, s2))
@@ -835,9 +832,9 @@ final class TableNodeTests: SyntaxNodeTests {
                 
         let clashes = error.clashes[Key(state: s1, predicates: pr, event: e1)] ?? []
         
-        guard assertCount(actual: result.errors.count, expected: 1) else { return }
-        guard assertCount(actual: error.clashes.count, expected: 1) else { return }
-        guard assertCount(actual: clashes.count, expected: 2)       else { return }
+        guard assertCount(result.errors, expected: 1) else { return }
+        guard assertCount(error.clashes, expected: 1) else { return }
+        guard assertCount(clashes,       expected: 2) else { return }
         
         assertDupe(clashes[0], expected: (s1, pr, Match(any: P.a), e1, s2))
         assertDupe(clashes[1], expected: (s1, pr, Match(any: P.a), e1, s1))
@@ -855,13 +852,12 @@ final class TableNodeTests: SyntaxNodeTests {
         let pr = PredicateResult(predicates: Set([P.a, Q.a].erase()), rank: 1)
         let duplicates = error.duplicates[Key(state: s1, predicates: pr, event: e1)] ?? []
         
-        guard assertCount(actual: result.errors.count, expected: 1)    else { return }
-        guard assertCount(actual: error.duplicates.count, expected: 1) else { return }
-        guard assertCount(actual: duplicates.count, expected: 2)       else { return }
+        guard assertCount(result.errors,    expected: 1) else { return }
+        guard assertCount(error.duplicates, expected: 1) else { return }
+        guard assertCount(duplicates,       expected: 2) else { return }
         
-        let firstDupe = duplicates.first { $0.2 == Match(any: P.a) }
+        let firstDupe = duplicates.first  { $0.2 == Match(any: P.a) }
         let secondDupe = duplicates.first { $0.2 == Match(any: Q.a) }
-        
         
         assertDupe(firstDupe, expected: (s1, pr, Match(any: P.a), e1, s2))
         assertDupe(secondDupe, expected: (s1, pr, Match(any: Q.a), e1, s2))
@@ -874,8 +870,8 @@ final class TableNodeTests: SyntaxNodeTests {
         ) {
             let tnr = PreemptiveTableNode(rest: subnodes).finalised()
             
-            guard assertCount(actual: tnr.errors.count, expected: 0, line: xl) else { return }
-            guard assertCount(actual: tnr.output.count, expected: 2, line: xl) else { return }
+            guard assertCount(tnr.errors, expected: 0, line: xl) else { return }
+            guard assertCount(tnr.output, expected: 2, line: xl) else { return }
             
             let pr1 = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
             let pr2 = PredicateResult(predicates: Set([P.b].erase()), rank: 0)
@@ -900,8 +896,8 @@ final class TableNodeTests: SyntaxNodeTests {
         
         let result = PreemptiveTableNode(rest: [d1, d2]).finalised()
         
-        guard assertCount(actual: result.errors.count, expected: 0) else { return }
-        guard assertCount(actual: result.output.count, expected: 4) else { return }
+        guard assertCount(result.errors, expected: 0) else { return }
+        guard assertCount(result.output, expected: 4) else { return }
         
         let firstTwo = result.output.prefix(2).map(\.predicates)
         let lastTwo = result.output.suffix(2).map(\.predicates)
