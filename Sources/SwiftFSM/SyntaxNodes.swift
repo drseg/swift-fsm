@@ -318,11 +318,11 @@ typealias TableNodeOutput = (state: AnyTraceable,
                              exitActions: [Action])
  
 final class PreemptiveTableNode: Node {
-    typealias PossibleDuplicate = (AnyTraceable,
-                                   PredicateResult,
-                                   Match,
-                                   AnyTraceable,
-                                   AnyTraceable)
+    typealias PossibleError = (AnyTraceable,
+                               PredicateResult,
+                               Match,
+                               AnyTraceable,
+                               AnyTraceable)
     
     var rest: [any Node<Input>]
     private var errors: [Error] = []
@@ -333,13 +333,15 @@ final class PreemptiveTableNode: Node {
     
     func combinedWithRest(_ rest: [DefineNode.Output]) -> [TableNodeOutput] {
         let matches = rest.map(\.match)
-        let alls = matches.map(\.matchAll)
         let anys = matches.map(\.matchAny)
+        let alls = matches.map(\.matchAll)
         let combined = (alls + anys).flattened
         let combinations = combined.combinationsOfAllCases
         
-        var checked = [PossibleDuplicate]()
-        var duplicates = [PossibleDuplicate]()
+        var checkedForDuplicates = [PossibleError]()
+        var checkedForClashes = [PossibleError]()
+        var duplicates = [PossibleError]()
+        var clashes = [PossibleError]()
 
         let output = rest.reduce(into: [Output]()) { result, dno in
             dno.match.allPredicateCombinations(combinations).forEach {
@@ -351,25 +353,58 @@ final class PreemptiveTableNode: Node {
                            entryActions: dno.entryActions,
                            exitActions: dno.exitActions)
                 
-                func isEqual(_ lhs: PossibleDuplicate, _ rhs: PossibleDuplicate) -> Bool {
-                    lhs.0 == rhs.0 &&
-                    lhs.1 == rhs.1 &&
-                    lhs.3 == rhs.3 &&
-                    lhs.4 == rhs.4
+                let possibleError = (tno.state,
+                                     tno.predicates,
+                                     dno.match,
+                                     tno.event,
+                                     tno.nextState)
+                
+                func areDuplicates(_ lhs: PossibleError, _ rhs: PossibleError) -> Bool {
+                    (lhs.0, lhs.1, lhs.3, lhs.4) == (rhs.0, rhs.1, rhs.3, rhs.4)
                 }
                 
-                let duplicateCandidate = (tno.state, tno.predicates, dno.match, tno.event, tno.nextState)
-                if let existingCandidate = checked.first(where: { isEqual($0, duplicateCandidate) }) {
-                    duplicates.append(duplicateCandidate)
-                    duplicates.append(existingCandidate)
+                func areClashes(_ lhs: PossibleError, _ rhs: PossibleError) -> Bool {
+                    (lhs.0, lhs.1, lhs.3) == (rhs.0, rhs.1, rhs.3)
                 }
-                checked.append(duplicateCandidate)
+                
+                func isDuplicate(_ lhs: PossibleError) -> Bool {
+                    areDuplicates(lhs, possibleError)
+                }
+                
+                func isClash(_ lhs: PossibleError) -> Bool {
+                    areClashes(lhs, possibleError)
+                }
+                
+                func addErrorCandidate(
+                    existing: PossibleError,
+                    to collection: inout [PossibleError],
+                    if predicate: (PossibleError) -> Bool
+                ) {
+                    if !collection.contains(where: predicate) {
+                        collection.append(existing)
+                    }
+                    collection.append(possibleError)
+                }
+                
+                if let existing = checkedForDuplicates.first(where: isDuplicate) {
+                    addErrorCandidate(existing: existing, to: &duplicates, if: isDuplicate)
+                } else if let existing = checkedForClashes.first(where: isClash) {
+                    addErrorCandidate(existing: existing, to: &clashes, if: isClash)
+                }
+                
+                checkedForDuplicates.append(possibleError)
+                checkedForClashes.append(possibleError)
+                
                 result.append(tno)
             }
         }
         
         if !duplicates.isEmpty {
             errors.append(DuplicatesError(duplicates: duplicates))
+        }
+        
+        if !clashes.isEmpty {
+            errors.append(LogicalClashError(clashes: clashes))
         }
         
         return output
@@ -380,8 +415,12 @@ final class PreemptiveTableNode: Node {
     }
 }
 
+struct LogicalClashError: Error {
+    let clashes: [PreemptiveTableNode.PossibleError]
+}
+
 struct DuplicatesError: Error {
-    let duplicates: [PreemptiveTableNode.PossibleDuplicate]
+    let duplicates: [PreemptiveTableNode.PossibleError]
 }
 
 struct EmptyBuilderError: Error, Equatable {

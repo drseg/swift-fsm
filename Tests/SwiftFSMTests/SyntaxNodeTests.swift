@@ -707,6 +707,32 @@ final class TableNodeTests: SyntaxNodeTests {
         actionsOutput = ""
     }
     
+    func assertDupe(
+        _ dupe: PreemptiveTableNode.PossibleError,
+        expected: PreemptiveTableNode.PossibleError,
+        xctLine xl: UInt = #line
+    ) {
+        XCTAssertTrue(expected == dupe, "\(dupe) does not equal \(expected)", line: xl)
+    }
+    
+    typealias TableNodeResult = ([PreemptiveTableNode.Output], [Error])
+    
+    func firstDuplicatesError(in result: TableNodeResult) -> DuplicatesError? {
+        firstError(ofType: DuplicatesError.self, in: result)
+    }
+    
+    func firstLogicalClashError(in result: TableNodeResult) -> LogicalClashError? {
+        firstError(ofType: LogicalClashError.self, in: result)
+    }
+    
+    func firstError<T>(ofType t: T.Type, in result: TableNodeResult) -> T? {
+        result.1.first(where: { $0 is T }) as? T
+    }
+    
+    func errorAssertionFailure(in result: TableNodeResult, xctLine xl: UInt = #line) {
+        XCTFail("Unexpected error \(String(describing: result.1.first))", line: xl)
+    }
+    
     func tableNode(
         given: AnyTraceable,
         match: Match,
@@ -748,15 +774,15 @@ final class TableNodeTests: SyntaxNodeTests {
         XCTAssertTrue(result.errors.first is MatchError)
     }
     
+    let pr = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
+    
     func testNodeWithSingleDefineSingleValidPredicate() {
         let node = tableNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
         let result = node.finalised()
         XCTAssertEqual(0, result.errors.count)
         
         guard assertCount(actual: result.output.count, expected: 1) else { return }
-        
-        let pr = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
-        
+                
         let expected = (state: s1,
                         predicates: pr,
                         event: e1,
@@ -770,36 +796,50 @@ final class TableNodeTests: SyntaxNodeTests {
     
     func testNodeWithDuplicateDefines() {
         let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
-        let d2 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
-
-        let node = PreemptiveTableNode(rest: [d1, d2])
-        let result = node.finalised()
-        XCTAssertEqual(1, result.errors.count)
+        let result = PreemptiveTableNode(rest: [d1, d1, d1]).finalised()
+        
+        guard let error = firstDuplicatesError(in: result) else {
+            errorAssertionFailure(in: result); return
+        }
+        
+        guard assertCount(actual: result.errors.count, expected: 1)    else { return }
+        guard assertCount(actual: error.duplicates.count, expected: 3) else { return }
+                
+        assertDupe(error.duplicates[0], expected: (s1, pr, Match(any: P.a), e1, s2))
+        assertDupe(error.duplicates[1], expected: (s1, pr, Match(any: P.a), e1, s2))
+        assertDupe(error.duplicates[2], expected: (s1, pr, Match(any: P.a), e1, s2))
     }
     
+    func testNodeWithLogicalClash() {
+        let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
+        let d2 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s1)
+        let result = PreemptiveTableNode(rest: [d1, d2]).finalised()
+        
+        guard let error = firstLogicalClashError(in: result) else {
+            errorAssertionFailure(in: result); return
+        }
+        
+        guard assertCount(actual: result.errors.count, expected: 1) else { return }
+        guard assertCount(actual: error.clashes.count, expected: 2) else { return }
+        
+        assertDupe(error.clashes[0], expected: (s1, pr, Match(any: P.a), e1, s2))
+        assertDupe(error.clashes[1], expected: (s1, pr, Match(any: P.a), e1, s1))
+    }
+
     func testNodeWithImplicitMatchDuplicate() {
         let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
         let d2 = defineNode(given: s1, match: Match(any: Q.a), when: e1, then: s2)
-
-        let node = PreemptiveTableNode(rest: [d1, d2])
-        let result = node.finalised()
-        XCTAssertEqual(1, result.errors.count)
+        let result = PreemptiveTableNode(rest: [d1, d2]).finalised()
         
-        let error = result.errors.first as! DuplicatesError
-        let firstDupe = error.duplicates.first { $0.2 == Match(any: P.a) }
-        let secondDupe = error.duplicates.first { $0.2 == Match(any: Q.a) }
-        
-        func assertDupe(
-            _ dupe: PreemptiveTableNode.PossibleDuplicate?,
-            expected: PreemptiveTableNode.PossibleDuplicate,
-            xctLine xl: UInt = #line
-        ) {
-            XCTAssertEqual(expected.0, dupe?.0, line: xl)
-            XCTAssertEqual(expected.1, dupe?.1, line: xl)
-            XCTAssertEqual(expected.2, dupe?.2, line: xl)
-            XCTAssertEqual(expected.3, dupe?.3, line: xl)
-            XCTAssertEqual(expected.4, dupe?.4, line: xl)
+        guard let error = firstDuplicatesError(in: result) else {
+            errorAssertionFailure(in: result); return
         }
+        
+        guard assertCount(actual: result.errors.count, expected: 1)    else { return }
+        guard assertCount(actual: error.duplicates.count, expected: 2) else { return }
+        
+        let firstDupe = error.duplicates.first { $0.2 == Match(any: P.a) }!
+        let secondDupe = error.duplicates.first { $0.2 == Match(any: Q.a) }!
         
         let pr = PredicateResult(predicates: Set([P.a, Q.a].erase()), rank: 1)
         
@@ -811,10 +851,9 @@ final class TableNodeTests: SyntaxNodeTests {
         let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
         let d2 = defineNode(given: s2, match: Match(any: Q.a), when: e1, then: s2)
         
-        let node = PreemptiveTableNode(rest: [d1, d2])
-        let result = node.finalised()
-        XCTAssertEqual(0, result.errors.count)
-
+        let result = PreemptiveTableNode(rest: [d1, d2]).finalised()
+        
+        guard assertCount(actual: result.errors.count, expected: 0) else { return }
         guard assertCount(actual: result.output.count, expected: 4) else { return }
         
         let firstTwo = result.output.prefix(2).map(\.predicates)
