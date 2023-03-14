@@ -318,6 +318,13 @@ typealias TableNodeOutput = (state: AnyTraceable,
                              exitActions: [Action])
 
 class TableNode {
+    fileprivate var errors: [Error] = []
+    var rest: [any Node<DefineNode.Output>]
+
+    init(rest: [any Node<DefineNode.Output>] = []) {
+        self.rest = rest
+    }
+    
     struct ErrorKey: Hashable {
         let state: AnyTraceable, predicates: PredicateResult, event: AnyTraceable
     }
@@ -326,25 +333,102 @@ class TableNode {
 }
 
 final class LazyTableNode: TableNode, Node {
-    var rest: [any Node<Input>]
-
-    init(rest: [any Node<Input>] = []) {
-        self.rest = rest
+    func areDuplicates(_ lhs: PossibleError, _ rhs: PossibleError) -> Bool {
+        if (lhs.0, lhs.1, lhs.3, lhs.4) == (rhs.0, rhs.1, rhs.3, rhs.4) {
+            return true
+        }
+        
+        else if (lhs.0, lhs.3, lhs.4) == (rhs.0, rhs.3, rhs.4) {
+            func sort(lhs: AnyPredicate, rhs: AnyPredicate) -> Bool {
+                String(describing: lhs) > String(describing: rhs)
+            }
+            
+            let lhsPredicates = lhs.1.predicates.sorted(by: sort)
+            let rhsPredicates = rhs.1.predicates.sorted(by: sort)
+            
+            guard lhsPredicates.count == rhsPredicates.count else { return false }
+            
+            var haveOnlyDifferingTypes: Bool {
+                Set(lhsPredicates.map(\.type)).intersection(Set(rhsPredicates.map(\.type))).isEmpty
+            }
+            
+            var haveDuplicateValues: Bool {
+                !Set(lhsPredicates).intersection(Set(rhsPredicates)).isEmpty
+            }
+            
+            if haveOnlyDifferingTypes || haveDuplicateValues {
+                return true
+            }
+        }
+        
+        return false
+        
     }
     
     func combinedWithRest(_ rest: [DefineNode.Output]) -> [TableNodeOutput] {
-        []
+        var checked = [PossibleError]()
+        
+        var duplicates = [ErrorKey: [PossibleError]]()
+        var clashes = [ErrorKey: [PossibleError]]()
+        
+        
+        func areClashes(_ lhs: PossibleError, _ rhs: PossibleError) -> Bool {
+            (lhs.0, lhs.1, lhs.3) == (rhs.0, rhs.1, rhs.3)
+        }
+        
+        let output = rest.reduce(into: [Output]()) { result, dno in
+            dno.match.allPredicateCombinations([]).forEach {
+                let tno = (state: dno.state,
+                           predicates: $0,
+                           event: dno.event,
+                           nextState: dno.nextState,
+                           actions: dno.actions,
+                           entryActions: dno.entryActions,
+                           exitActions: dno.exitActions)
+                
+                let possibleError = (tno.0, tno.1, dno.match, tno.2, tno.3)
+                let key = ErrorKey(state: tno.0, predicates: tno.1, event: tno.2)
+                
+                func isDuplicate(_ lhs: PossibleError) -> Bool {
+                    areDuplicates(lhs, possibleError)
+                }
+                
+                func isClash(_ lhs: PossibleError) -> Bool {
+                    areClashes(lhs, possibleError)
+                }
+                
+                func addErrorCandidate(
+                    existing: PossibleError,
+                    to collection: inout [ErrorKey: [PossibleError]],
+                    if predicate: (PossibleError) -> Bool
+                ) {
+                    if collection[key] == nil { collection[key] = [existing] }
+                    collection[key]! += [possibleError]
+                }
+                
+                if let existing = checked.first(where: isDuplicate) {
+                    addErrorCandidate(existing: existing, to: &duplicates, if: isDuplicate)
+                }
+                
+                else if let existing = checked.first(where: isClash) {
+                    addErrorCandidate(existing: existing, to: &clashes, if: isClash)
+                }
+                
+                checked.append(possibleError)
+                result.append(tno)
+            }
+        }
+        
+        if !duplicates.isEmpty { errors.append(DuplicatesError(duplicates)) }
+        if !clashes.isEmpty    { errors.append(LogicalClashError(clashes))  }
+        
+        return output
     }
+    
+    func validate() -> [Error] { errors }
 }
 
 final class PreemptiveTableNode: TableNode, Node {
-    var rest: [any Node<Input>]
-    private var errors: [Error] = []
-    
-    init(rest: [any Node<Input>] = []) {
-        self.rest = rest
-    }
-    
     func combinedWithRest(_ rest: [DefineNode.Output]) -> [TableNodeOutput] {
         var checked = [PossibleError]()
         
