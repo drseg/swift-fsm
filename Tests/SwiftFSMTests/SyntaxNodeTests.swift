@@ -56,14 +56,14 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func assertEqual(
-        _ lhs: DefaultIO,
-        _ rhs: DefaultIO,
+        _ lhs: DefaultIO?,
+        _ rhs: DefaultIO?,
         line: UInt = #line
     ) {
-        XCTAssertTrue(lhs.match == rhs.match &&
-                      lhs.event == rhs.event &&
-                      lhs.state == rhs.state,
-                      "\(lhs) does not equal \(rhs)",
+        XCTAssertTrue(lhs?.match == rhs?.match &&
+                      lhs?.event == rhs?.event &&
+                      lhs?.state == rhs?.state,
+                      "\(String(describing: lhs)) does not equal \(String(describing: rhs))",
                       line: line)
     }
     
@@ -165,6 +165,7 @@ class SyntaxNodeTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty, line: line)
     }
     
+    @discardableResult
     func assertCount(_ actual: any Collection, expected: Int, line: UInt = #line) -> Bool {
         guard actual.count == expected else {
             XCTFail("Incorrect count: \(actual) instead of \(expected)", line: line)
@@ -324,7 +325,13 @@ final class ErrorTests: SyntaxNodeTests {
 
 final class ActionsNodeTests: SyntaxNodeTests {
     func testEmptyActions() {
-        assertEmptyNodeWithoutError(ActionsNode(actions: [], rest: []))
+        let finalised = ActionsNode(actions: [], rest: []).finalised()
+        let output = finalised.output
+        let errors = finalised.errors
+        
+        XCTAssertTrue(errors.isEmpty)
+        guard assertCount(output, expected: 1) else { return }
+        assertEqual((match: Match(), event: nil, state: nil, actions: actions), output.first)
     }
     
     func testEmptyActionsBlock() {
@@ -667,7 +674,7 @@ final class DefineNodeTests: SyntaxNodeTests {
 
 class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput {
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
-                                         predicates: PredicateResult,
+                                         pr: PredicateResult,
                                          event: AnyTraceable,
                                          nextState: AnyTraceable,
                                          actionsOutput: String,
@@ -675,16 +682,34 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
                                          exitActionsOutput: String)
     
     typealias TableNodeResult = (output: [TableNodeOutput], errors: [Error])
-    typealias PossibleError = TableNode.PossibleError
-    typealias Key = TableNode.ErrorKey
+    typealias PossibleError = TableNodeProtocol.PossibleError
+    typealias Key = TableNodeErrorKey
     
     enum P: Predicate { case a, b }
     enum Q: Predicate { case a, b }
     
-    let pr = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
+    let pr = PredicateResult(predicates: Set([P.a].erased()), rank: 1)
+    
+    func tableNode(g: AnyTraceable, m: Match, w: AnyTraceable, t: AnyTraceable) -> N {
+        fatalError("subclasses must implement")
+    }
+    
+    func tableNode(rest: [any Node<DefineNode.Output>]) -> N {
+        fatalError("subclasses must implement")
+    }
     
     func predicateResult(_ ps: any Predicate..., rank: Int) -> PredicateResult {
-        PredicateResult(predicates: Set(ps.erase()), rank: rank)
+        predicateResult(ps, rank: rank)
+    }
+    
+    func predicateResult(_ ps: [any Predicate], rank: Int) -> PredicateResult {
+        PredicateResult(predicates: Set(ps.erased()), rank: rank)
+    }
+    
+    func assertActions(_ actions: [() -> ()]?, expectedOutput: String?, line: UInt = #line) {
+        actions?.executeAll()
+        XCTAssertEqual(actionsOutput, expectedOutput, line: line)
+        actionsOutput = ""
     }
     
     func assertEqual(
@@ -693,21 +718,32 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
         xctLine xl: UInt = #line
     ) {
         XCTAssertEqual(lhs?.state, rhs?.state, line: xl)
-        XCTAssertEqual(lhs?.predicates, rhs?.predicates, line: xl)
+        XCTAssertEqual(lhs?.pr, rhs?.pr, line: xl)
         XCTAssertEqual(lhs?.event, rhs?.event, line: xl)
         XCTAssertEqual(lhs?.nextState, rhs?.nextState, line: xl)
         
-        rhs?.actions.executeAll()
-        XCTAssertEqual(lhs?.actionsOutput, actionsOutput, line: xl)
-        actionsOutput = ""
-        
-        rhs?.entryActions.executeAll()
-        XCTAssertEqual(lhs?.entryActionsOutput, actionsOutput, line: xl)
-        actionsOutput = ""
-        
-        rhs?.exitActions.executeAll()
-        XCTAssertEqual(lhs?.exitActionsOutput, actionsOutput, line: xl)
-        actionsOutput = ""
+        assertActions(rhs?.actions, expectedOutput: lhs?.actionsOutput)
+        assertActions(rhs?.entryActions, expectedOutput: lhs?.entryActionsOutput)
+        assertActions(rhs?.exitActions, expectedOutput: lhs?.exitActionsOutput)
+    }
+    
+    func makeOutput(
+        state: AnyTraceable,
+        predicates: any Predicate...,
+        rank: Int,
+        event: AnyTraceable,
+        nextState: AnyTraceable,
+        actionsOutput: String = "12",
+        entryActionsOutput: String = "<<",
+        exitActionsOutput: String = ">>"
+    ) -> ExpectedTableNodeOutput {
+        (state: state,
+         pr: predicateResult(predicates, rank: rank),
+         event: event,
+         nextState: nextState,
+         actionsOutput: actionsOutput,
+         entryActionsOutput: entryActionsOutput,
+         exitActionsOutput: exitActionsOutput)
     }
     
     func makeOutput(
@@ -720,7 +756,7 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
         exitActionsOutput: String = ">>"
     ) -> ExpectedTableNodeOutput {
         (state: state,
-         predicates: predicates,
+         pr: predicates,
          event: event,
          nextState: nextState,
          actionsOutput: actionsOutput,
@@ -735,14 +771,6 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
         let match = MatchNode(match: m, rest: [when])
         let given = GivenNode(states: [g], rest: [match])
         return .init(entryActions: entryActions, exitActions: exitActions, rest: [given])
-    }
-    
-    func tableNode(g: AnyTraceable, m: Match, w: AnyTraceable, t: AnyTraceable) -> N {
-        fatalError("subclasses must implement")
-    }
-    
-    func tableNode(rest: [any Node<DefineNode.Output>]) -> N {
-        fatalError("subclasses must implement")
     }
     
     func assertDupe(
@@ -806,7 +834,7 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
             errorAssertionFailure(in: result); return
         }
         
-        let duplicates = error.duplicates[Key(state: s1, predicates: pr, event: e1)] ?? []
+        let duplicates = error.duplicates[Key(state: s1, pr: pr, event: e1)] ?? []
         
         guard assertCount(result.errors,    expected: 1) else { return }
         guard assertCount(error.duplicates, expected: 1) else { return }
@@ -826,7 +854,7 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
             errorAssertionFailure(in: result); return
         }
                 
-        let clashes = error.clashes[Key(state: s1, predicates: pr, event: e1)] ?? []
+        let clashes = error.clashes[Key(state: s1, pr: pr, event: e1)] ?? []
         
         guard assertCount(result.errors, expected: 1) else { return }
         guard assertCount(error.clashes, expected: 1) else { return }
@@ -838,8 +866,6 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
 }
 
 final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
-    // TODO: Error messages
-    
     override func tableNode(
         g: AnyTraceable,
         m: Match,
@@ -860,7 +886,7 @@ final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
             e: AnyTraceable,
             ns: AnyTraceable
         ) -> PossibleError {
-            (state: s, predicates: p, match: Match(), event: e, nextState: ns)
+            (state: s, pr: p, match: Match(), event: e, nextState: ns)
         }
         
         func assertDuplicates(_ lhs: PossibleError, _ rhs: PossibleError, line: UInt = #line) {
@@ -913,9 +939,9 @@ final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
 
         let duplicates = error.duplicates.first?.value ?? []
         
-        guard assertCount(result.errors,    expected: 1) else { return }
-        guard assertCount(error.duplicates, expected: 1) else { return }
-        guard assertCount(duplicates,       expected: 2) else { return }
+        assertCount(result.errors,    expected: 1)
+        assertCount(error.duplicates, expected: 1)
+        assertCount(duplicates,       expected: 2)
         
         let firstDupe = duplicates.first  { $0.2 == Match(any: P.a) }
         let secondDupe = duplicates.first { $0.2 == Match(any: Q.a) }
@@ -933,11 +959,8 @@ final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
         guard assertCount(result.errors, expected: 0) else { return }
         guard assertCount(result.output, expected: 2) else { return }
         
-        let pr1 = predicateResult(P.a, rank: 1)
-        let pr2 = predicateResult(Q.a, rank: 1)
-        
-        let expected1 = makeOutput(state: s1, predicates: pr1, event: e1, nextState: s2)
-        let expected2 = makeOutput(state: s2, predicates: pr2, event: e1, nextState: s3)
+        let expected1 = makeOutput(state: s1, predicates: P.a, rank: 1, event: e1, nextState: s2)
+        let expected2 = makeOutput(state: s2, predicates: Q.a, rank: 1, event: e1, nextState: s3)
 
         assertEqual(expected1, result.output[0])
         assertEqual(expected2, result.output[1])
@@ -968,11 +991,11 @@ final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
         }
         
         let pr = predicateResult(P.a, Q.a, rank: 1)
-        let duplicates = error.duplicates[Key(state: s1, predicates: pr, event: e1)] ?? []
+        let duplicates = error.duplicates[Key(state: s1, pr: pr, event: e1)] ?? []
         
-        guard assertCount(result.errors,    expected: 1) else { return }
-        guard assertCount(error.duplicates, expected: 1) else { return }
-        guard assertCount(duplicates,       expected: 2) else { return }
+        assertCount(result.errors,    expected: 1)
+        assertCount(error.duplicates, expected: 1)
+        assertCount(duplicates,       expected: 2)
         
         let firstDupe = duplicates.first  { $0.2 == Match(any: P.a) }
         let secondDupe = duplicates.first { $0.2 == Match(any: Q.a) }
@@ -988,8 +1011,8 @@ final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
         ) {
             let tnr = tableNode(rest: subnodes).finalised()
             
-            guard assertCount(tnr.errors, expected: 0, line: xl) else { return }
-            guard assertCount(tnr.output, expected: 2, line: xl) else { return }
+            assertCount(tnr.errors, expected: 0, line: xl)
+            assertCount(tnr.output, expected: 2, line: xl)
             
             let pr1 = predicateResult(P.a, rank: 1)
             let pr2 = predicateResult(P.b, rank: 0)
@@ -997,8 +1020,8 @@ final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
             let expected1 = makeOutput(state: s1, predicates: pr1, event: e1, nextState: s2)
             let expected2 = makeOutput(state: s1, predicates: pr2, event: e1, nextState: s2)
             
-            assertEqual(expected1, tnr.output.first { $0.predicates == pr1 }, xctLine: xl)
-            assertEqual(expected2, tnr.output.first { $0.predicates == pr2 }, xctLine: xl)
+            assertEqual(expected1, tnr.output.first { $0.pr == pr1 }, xctLine: xl)
+            assertEqual(expected2, tnr.output.first { $0.pr == pr2 }, xctLine: xl)
         }
         
         let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
@@ -1014,11 +1037,11 @@ final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
         
         let result = tableNode(rest: [d1, d2]).finalised()
         
-        guard assertCount(result.errors, expected: 0) else { return }
-        guard assertCount(result.output, expected: 4) else { return }
+        assertCount(result.errors, expected: 0)
+        assertCount(result.output, expected: 4)
         
-        let firstTwo = result.output.prefix(2).map(\.predicates)
-        let lastTwo = result.output.suffix(2).map(\.predicates)
+        let firstTwo = result.output.prefix(2).map(\.pr)
+        let lastTwo = result.output.suffix(2).map(\.pr)
         
         XCTAssert(firstTwo.allSatisfy { $0.predicates.contains(P.a.erase()) })
         XCTAssert(lastTwo.allSatisfy  { $0.predicates.contains(Q.a.erase()) })

@@ -38,17 +38,21 @@ extension UnsafeNode {
         
         try rest.forEach {
             guard let finalised = try $0.finalised() as? ([Input], [Error]) else {
-                throw """
-Error: \(type(of: try $0.finalised().0)) must equal Array<\(Input.self)>
-    Self: \(type(of: self))
-    Rest: \(rest.isEmpty ? "nil" : String(describing: type(of: rest.first!)))
-"""
+                throw errorMessage($0)
             }
             output.append(contentsOf: finalised.0)
             errors.append(contentsOf: finalised.1)
         }
         
         return (combinedWithRest(output), validate() + errors)
+    }
+    
+    func errorMessage(_ n: any UnsafeNode) -> String {
+        """
+        Error: \(type(of: try? n.finalised().0)) must equal Array<\(Input.self)>
+            Self: \(type(of: self))
+            Rest: \(rest.isEmpty ? "nil" : String(describing: type(of: rest.first!)))
+        """
     }
 }
 

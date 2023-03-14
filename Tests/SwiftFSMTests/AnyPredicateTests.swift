@@ -87,8 +87,8 @@ final class AnyPredicateTests: XCTestCase {
     }
     
     func testAllCases() {
-        XCTAssertEqual(P.a.allCases.erase(), P.allCases.erase())
-        XCTAssertEqual(P.a.erase().allCases, P.allCases.erase())
+        XCTAssertEqual(P.a.allCases.erased(), P.allCases.erased())
+        XCTAssertEqual(P.a.erase().allCases, P.allCases.erased())
     }
 }
 
@@ -98,7 +98,7 @@ final class PredicateCombinationsTests: XCTestCase {
         enum Q: Predicate { case a, b }
         enum R: Predicate { case a, b }
         
-        let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erase()
+        let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erased()
         
         let expected = [[P.a, Q.a, R.a],
                         [P.b, Q.a, R.a],
@@ -117,7 +117,7 @@ final class PredicateCombinationsTests: XCTestCase {
         enum Q: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
         enum R: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
         
-        let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erase()
+        let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erased()
         
         XCTAssertEqual(P.allCases.count * Q.allCases.count * R.allCases.count,
                        predicates.combinationsOfAllCases.count)

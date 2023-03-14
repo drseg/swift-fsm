@@ -227,8 +227,8 @@ class MatchCombinationsTests: MatchTests {
         rank: Int,
         line: UInt = #line
     ) {
-        let match = Match(any: anyOf.erase(), all: allOf.erase())
-        let additions = a.map { $0.erase() }.asSets
+        let match = Match(any: anyOf.erased(), all: allOf.erased())
+        let additions = a.map { $0.erased() }.asSets
         
         let allCombinations = match.allPredicateCombinations(additions)
         let allRanks = allCombinations.map(\.rank)
@@ -382,7 +382,7 @@ extension MatchError: Equatable {
 
 extension Collection where Element == [any Predicate] {
     var erasedSets: Set<Set<AnyPredicate>> {
-        Set(map { Set($0.erase()) })
+        Set(map { Set($0.erased()) })
     }
 }
 

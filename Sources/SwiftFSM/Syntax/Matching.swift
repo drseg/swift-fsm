@@ -82,7 +82,7 @@ extension Syntax {
             file: String = #file,
             line: Int = #line
         ) {
-            node = MatchNode(match: Match(any: any.erase(), all: all.erase()), rest: [])
+            node = MatchNode(match: Match(any: any.erased(), all: all.erased()), rest: [])
             self.file = file
             self.line = line
         }

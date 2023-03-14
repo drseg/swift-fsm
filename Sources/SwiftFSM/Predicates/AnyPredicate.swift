@@ -34,7 +34,7 @@ struct AnyPredicate: CustomStringConvertible, Hashable {
     }
     
     var allCases: [Self] {
-        (base as! any Predicate).allCases.erase()
+        (base as! any Predicate).allCases.erased()
     }
     
     var description: String {
@@ -47,17 +47,17 @@ struct AnyPredicate: CustomStringConvertible, Hashable {
 }
 
 extension Array {
-    func erase() -> [AnyPredicate] where Element: Predicate       { _erase() }
-    func erase() -> [AnyPredicate] where Element == any Predicate { _erase() }
+    func erased() -> [AnyPredicate] where Element: Predicate       { _erased() }
+    func erased() -> [AnyPredicate] where Element == any Predicate { _erased() }
     
-    private func _erase() -> [AnyPredicate] {
+    private func _erased() -> [AnyPredicate] {
         map { ($0 as! any Predicate).erase() }
     }
 }
 
 extension Collection where Element == AnyPredicate {
     var combinationsOfAllCases: PredicateSets {
-        let uniqueTypes = uniqueTypes
+        let uniqueTypes = uniqueTypes()
         
         return Set(uniqueTypes
             .allPossibleCases
@@ -67,7 +67,7 @@ extension Collection where Element == AnyPredicate {
         )
     }
     
-    var uniqueTypes: [AnyPredicate] {
+    func uniqueTypes() -> [AnyPredicate] {
         uniqueElementTypes.reduce(into: [AnyPredicate]()) { predicates, type in
             predicates.append(first { $0.type == type }!)
         }

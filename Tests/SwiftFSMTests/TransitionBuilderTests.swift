@@ -47,8 +47,8 @@ class SyntaxTestsBase: XCTestCase, TransitionBuilder {
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
-        XCTAssertEqual(any.erase(), node.match.matchAny, line: xl)
-        XCTAssertEqual(all.erase(), node.match.matchAll, line: xl)
+        XCTAssertEqual(any.erased(), node.match.matchAny, line: xl)
+        XCTAssertEqual(all.erased(), node.match.matchAll, line: xl)
         
         if let node = node as? MatchBlockNode {
             assertNeverEmptyNode(node, caller: "match", sutLine: sl, xctLine: xl)

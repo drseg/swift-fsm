@@ -26,7 +26,7 @@ class Match {
     private var next: Match? = nil
     
     convenience init(any: AnyPP..., all: AnyPP..., file: String = #file, line: Int = #line) {
-        self.init(any: any.erase(), all: all.erase(), file: file, line: line)
+        self.init(any: any.erased(), all: all.erased(), file: file, line: line)
     }
     
     init(any: [AnyPredicate], all: [AnyPredicate], file: String = #file, line: Int = #line) {
@@ -67,9 +67,13 @@ class Match {
             predicates: C,
             type: MatchError.Type
         ) -> Result where C.Element == AnyPredicate {
-            .failure(type.init(message: predicates.formattedDescription(),
-                               files: [file],
-                               lines: [line]))
+            .failure(
+                type.init(
+                    message: predicates.formattedDescription(),
+                    files: [file],
+                    lines: [line]
+                )
+            )
         }
         
         guard matchAll.elementsAreUniquelyTyped else {
@@ -93,22 +97,32 @@ class Match {
             .init(predicates: p, rank: anyAndAll.first?.count ?? 0)
         }
         
-        var emptySets: PredicateSets { Set(arrayLiteral: Set([AnyPredicate]())) }
-        
-        let anyAndAll = matchAny.reduce(into: emptySets) {
-            $0.insert(Set(matchAll) + [$1])
-        }.removingEmpties ??? [matchAll].asSets
-        
-        let includedTypes = (matchAny + matchAll).uniqueElementTypes
+        let anyAndAll = combineAnyAndAll()
         return ps.reduce(into: Set<PredicateResult>()) { result, p in
-            var filtered = p
-            while let existing = filtered.first(where: { includedTypes.contains($0.type) }) {
-                filtered.remove(existing)
+            let filtered = removeDuplicates(p)
+            if anyAndAll.isEmpty {
+                result.insert(makeResult(filtered))
+            } else {
+                anyAndAll.forEach {
+                    result.insert(makeResult(filtered.union($0)))
+                }
             }
-            anyAndAll.forEach {
-                result.insert(makeResult(filtered + $0))
-            }
-        }.removingEmpties ??? Set(ps.map(makeResult)) ??? Set(anyAndAll.map(makeResult))
+        }.removingEmpties ??? Set(anyAndAll.map(makeResult))
+    }
+    
+    func combineAnyAndAll() -> PredicateSets {
+        matchAny.reduce(into: [[AnyPredicate]]()) {
+           $0.append(matchAll + [$1])
+       }.asSets ??? [matchAll].asSets
+    }
+    
+    func removeDuplicates(_ p: PredicateSet) -> PredicateSet {
+        var filtered = p
+        let includedTypes = (matchAny + matchAll).uniqueElementTypes
+        while let existing = filtered.first(where: { includedTypes.contains($0.type) }) {
+            filtered.remove(existing)
+        }
+        return filtered
     }
 }
 
@@ -116,27 +130,6 @@ struct PredicateResult: Hashable {
     let predicates: PredicateSet
     let rank: Int
 }
-
-class MatchError: Error {
-    let message: String
-    let files: [String]
-    let lines: [Int]
-    
-    required init(message: String, files: [String], lines: [Int]) {
-        self.message = message
-        self.files = files
-        self.lines = lines
-    }
-    
-    func append(files: [String], lines: [Int]) -> Self {
-        .init(message: message,
-              files: self.files + files,
-              lines: self.lines + lines)
-    }
-}
-
-class DuplicateTypes: MatchError {}
-class DuplicateValues: MatchError {}
 
 extension Match.Result {
     func appending(file: String, line: Int) -> Self {
@@ -156,7 +149,6 @@ extension Collection where Element == AnyPredicate {
     }
 }
 
-
 extension Collection where Element: Collection & Hashable, Element.Element: Hashable {
     var asSets: Set<Set<Element.Element>> {
         Set(map(Set.init)).removingEmpties
@@ -175,11 +167,5 @@ extension PredicateResult: PossiblyEmpty {
 extension Collection where Element: PossiblyEmpty & Hashable {
     var removingEmpties: Set<Element> {
         Set(filter { !$0.isEmpty })
-    }
-}
-
-extension Set {
-    static func + (lhs: Self, rhs: Self) -> Self {
-        lhs.union(rhs)
     }
 }
