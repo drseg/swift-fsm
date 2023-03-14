@@ -338,13 +338,17 @@ final class LazyTableNode: TableNode, Node {
             return true
         }
         
-        else if (lhs.0, lhs.3, lhs.4) == (rhs.0, rhs.3, rhs.4) {
+        if (lhs.0, lhs.3, lhs.4) == (rhs.0, rhs.3, rhs.4) {
+            func sortedPredicates(_ pe: PossibleError) -> [AnyPredicate] {
+                pe.1.predicates.sorted(by: sort)
+            }
+            
             func sort(lhs: AnyPredicate, rhs: AnyPredicate) -> Bool {
                 String(describing: lhs) > String(describing: rhs)
             }
             
-            let lhsPredicates = lhs.1.predicates.sorted(by: sort)
-            let rhsPredicates = rhs.1.predicates.sorted(by: sort)
+            let lhsPredicates = sortedPredicates(lhs)
+            let rhsPredicates = sortedPredicates(rhs)
             
             guard lhsPredicates.count == rhsPredicates.count else { return false }
             
@@ -362,7 +366,6 @@ final class LazyTableNode: TableNode, Node {
         }
         
         return false
-        
     }
     
     func combinedWithRest(_ rest: [DefineNode.Output]) -> [TableNodeOutput] {

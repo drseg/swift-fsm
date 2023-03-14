@@ -666,7 +666,6 @@ final class DefineNodeTests: SyntaxNodeTests {
 }
 
 class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput {
-    #warning("predicate order effects not tested")
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
                                          predicates: PredicateResult,
                                          event: AnyTraceable,
@@ -676,6 +675,7 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
                                          exitActionsOutput: String)
     
     typealias TableNodeResult = (output: [TableNodeOutput], errors: [Error])
+    typealias PossibleError = TableNode.PossibleError
     typealias Key = TableNode.ErrorKey
     
     enum P: Predicate { case a, b }
@@ -683,7 +683,7 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
     
     let pr = PredicateResult(predicates: Set([P.a].erase()), rank: 1)
     
-    func predicateResult(_ ps: [any Predicate], rank: Int) -> PredicateResult {
+    func predicateResult(_ ps: any Predicate..., rank: Int) -> PredicateResult {
         PredicateResult(predicates: Set(ps.erase()), rank: rank)
     }
     
@@ -728,21 +728,16 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
          exitActionsOutput: exitActionsOutput)
     }
     
-    func defineNode(
-        given: AnyTraceable,
-        match: Match,
-        when: AnyTraceable,
-        then: AnyTraceable
-    ) -> DefineNode {
+    func defineNode(g: AnyTraceable, m: Match, w: AnyTraceable, t: AnyTraceable) -> DefineNode {
         let actions = ActionsNode(actions: actions)
-        let then = ThenNode(state: then, rest: [actions])
-        let when = WhenNode(events: [when], rest: [then])
-        let match = MatchNode(match: match, rest: [when])
-        let given = GivenNode(states: [given], rest: [match])
+        let then = ThenNode(state: t, rest: [actions])
+        let when = WhenNode(events: [w], rest: [then])
+        let match = MatchNode(match: m, rest: [when])
+        let given = GivenNode(states: [g], rest: [match])
         return .init(entryActions: entryActions, exitActions: exitActions, rest: [given])
     }
     
-    func tableNode(given: AnyTraceable, match: Match, when: AnyTraceable, then: AnyTraceable) -> N {
+    func tableNode(g: AnyTraceable, m: Match, w: AnyTraceable, t: AnyTraceable) -> N {
         fatalError("subclasses must implement")
     }
     
@@ -751,8 +746,8 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
     }
     
     func assertDupe(
-        _ dupe: TableNode.PossibleError?,
-        expected: TableNode.PossibleError?,
+        _ dupe: PossibleError?,
+        expected: PossibleError?,
         xctLine xl: UInt = #line
     ) {
         let message = "\(String(describing: dupe)) does not equal \(String(describing: expected))"
@@ -785,7 +780,7 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
     }
     
     func testNodeWithSingleDefineSingleInvalidPredicate() {
-        let node = tableNode(given: s1, match: Match(any: P.a, P.a), when: e1, then: s2)
+        let node = tableNode(g: s1, m: Match(any: P.a, P.a), w: e1, t: s2)
         let result = node.finalised()
         
         XCTAssertEqual(1, result.errors.count)
@@ -793,7 +788,7 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
     }
     
     func testNodeWithSingleDefineSingleValidPredicate() {
-        let node = tableNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
+        let node = tableNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
         let result = node.finalised()
         
         guard assertCount(result.errors, expected: 0) else { return }
@@ -804,7 +799,7 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
     }
     
     func testNodeWithDuplicateDefines() {
-        let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
+        let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
         let result = tableNode(rest: [d1, d1, d1]).finalised()
         
         guard let error = firstDuplicatesError(in: result) else {
@@ -823,8 +818,8 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
     }
     
     func testNodeWithLogicalClash() {
-        let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
-        let d2 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s1)
+        let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
+        let d2 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s1)
         let result = tableNode(rest: [d1, d2]).finalised()
         
         guard let error = firstLogicalClashError(in: result) else {
@@ -846,12 +841,12 @@ final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
     // TODO: Error messages
     
     override func tableNode(
-        given: AnyTraceable,
-        match: Match,
-        when: AnyTraceable,
-        then: AnyTraceable
+        g: AnyTraceable,
+        m: Match,
+        w: AnyTraceable,
+        t: AnyTraceable
     ) -> LazyTableNode {
-        .init(rest: [defineNode(given: given, match: match, when: when, then: then)])
+        .init(rest: [defineNode(g: g, m: m, w: w, t: t)])
     }
     
     override func tableNode(rest: [any Node<DefineNode.Output>]) -> LazyTableNode {
@@ -859,57 +854,87 @@ final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
     }
     
     func testDuplicateDetection() {
-        func makePossibleError(
-            state: AnyTraceable,
-            predicates: PredicateResult,
-            event: AnyTraceable,
-            nextState: AnyTraceable
-        ) -> TableNode.PossibleError {
-            (state: state,
-             predicates: predicates,
-             match: Match(),
-             event: event,
-             nextState: nextState)
+        func makePE(
+            s: AnyTraceable,
+            p: PredicateResult,
+            e: AnyTraceable,
+            ns: AnyTraceable
+        ) -> PossibleError {
+            (state: s, predicates: p, match: Match(), event: e, nextState: ns)
         }
         
-        let sut = LazyTableNode()
-        let pr2 = predicateResult([Q.a], rank: 1)
+        func assertDuplicates(_ lhs: PossibleError, _ rhs: PossibleError, line: UInt = #line) {
+            XCTAssertTrue(LazyTableNode().areDuplicates(lhs, rhs), line: line)
+        }
         
-        let pe1 = makePossibleError(state: s1,  predicates: pr, event: e1, nextState: s2)
-        let pe2 = makePossibleError(state: s1,  predicates: pr2, event: e1, nextState: s2)
+        func assertNotDuplicates(_ lhs: PossibleError, _ rhs: PossibleError, line: UInt = #line) {
+            XCTAssertFalse(LazyTableNode().areDuplicates(lhs, rhs), line: line)
+        }
         
-        XCTAssertTrue(sut.areDuplicates(pe1, pe1))
-        XCTAssertTrue(sut.areDuplicates(pe1, pe2))
+        let pr2 = predicateResult(Q.a, rank: 1)
         
-        let pr3 = predicateResult([P.a, Q.a], rank: 1)
-        let pr4 = predicateResult([P.a, R.a], rank: 1)
+        let pe1 = makePE(s: s1, p: pr,  e: e1, ns: s2)
+        let pe2 = makePE(s: s1, p: pr2, e: e1, ns: s2)
         
-        let pe3 = makePossibleError(state: s1,  predicates: pr3, event: e1, nextState: s2)
-        let pe4 = makePossibleError(state: s1,  predicates: pr4, event: e1, nextState: s2)
+        assertDuplicates(pe1, pe1)
+        assertDuplicates(pe1, pe2)
         
-        XCTAssertTrue(sut.areDuplicates(pe3, pe4))
+        let pr3 = predicateResult(P.a, Q.a, rank: 1)
+        let pr4 = predicateResult(P.a, R.a, rank: 1)
+        
+        let pe3 = makePE(s: s1, p: pr3, e: e1, ns: s2)
+        let pe4 = makePE(s: s1, p: pr4, e: e1, ns: s2)
+        
+        assertDuplicates(pe3, pe4)
 
-        let pe11 = makePossibleError(state: s2,  predicates: pr, event: e1, nextState: s2)
-        let pe12 = makePossibleError(state: s1,  predicates: pr, event: e2, nextState: s2)
-        let pe13 = makePossibleError(state: s1,  predicates: pr, event: e1, nextState: s3)
+        let pe11 = makePE(s: s2, p: pr, e: e1, ns: s2)
+        let pe12 = makePE(s: s1, p: pr, e: e2, ns: s2)
+        let pe13 = makePE(s: s1, p: pr, e: e1, ns: s3)
+        let pe14 = makePE(s: s2, p: pr, e: e1, ns: s3)
         
-        XCTAssertFalse(sut.areDuplicates(pe1, pe4))
-        XCTAssertFalse(sut.areDuplicates(pe1, pe11))
-        XCTAssertFalse(sut.areDuplicates(pe1, pe12))
-        XCTAssertFalse(sut.areDuplicates(pe1, pe13))
+        assertNotDuplicates(pe1, pe4)
+        assertNotDuplicates(pe1, pe11)
+        assertNotDuplicates(pe1, pe12)
+        assertNotDuplicates(pe1, pe13)
+        assertNotDuplicates(pe1, pe14)
+    }
+    
+    func testNodeWithImplicitMatchDuplicate() {
+        let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
+        let d2 = defineNode(g: s1, m: Match(any: Q.a), w: e1, t: s2)
+        let result = tableNode(rest: [d1, d2]).finalised()
+        
+        guard let error = firstDuplicatesError(in: result) else {
+            errorAssertionFailure(in: result); return
+        }
+        
+        let pr1 = predicateResult(P.a, rank: 1)
+        let pr2 = predicateResult(Q.a, rank: 1)
+
+        let duplicates = error.duplicates.first?.value ?? []
+        
+        guard assertCount(result.errors,    expected: 1) else { return }
+        guard assertCount(error.duplicates, expected: 1) else { return }
+        guard assertCount(duplicates,       expected: 2) else { return }
+        
+        let firstDupe = duplicates.first  { $0.2 == Match(any: P.a) }
+        let secondDupe = duplicates.first { $0.2 == Match(any: Q.a) }
+        
+        assertDupe(firstDupe, expected: (s1, pr1, Match(any: P.a), e1, s2))
+        assertDupe(secondDupe, expected: (s1, pr2, Match(any: Q.a), e1, s2))
     }
     
     func testNodeWithUniqueDefines() {
-        let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
-        let d2 = defineNode(given: s2, match: Match(any: Q.a), when: e1, then: s3)
+        let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
+        let d2 = defineNode(g: s2, m: Match(any: Q.a), w: e1, t: s3)
         
         let result = tableNode(rest: [d1, d2]).finalised()
         
         guard assertCount(result.errors, expected: 0) else { return }
         guard assertCount(result.output, expected: 2) else { return }
         
-        let pr1 = predicateResult([P.a], rank: 1)
-        let pr2 = predicateResult([Q.a], rank: 1)
+        let pr1 = predicateResult(P.a, rank: 1)
+        let pr2 = predicateResult(Q.a, rank: 1)
         
         let expected1 = makeOutput(state: s1, predicates: pr1, event: e1, nextState: s2)
         let expected2 = makeOutput(state: s2, predicates: pr2, event: e1, nextState: s3)
@@ -921,12 +946,12 @@ final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
 
 final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
     override func tableNode(
-        given: AnyTraceable,
-        match: Match,
-        when: AnyTraceable,
-        then: AnyTraceable
+        g: AnyTraceable,
+        m: Match,
+        w: AnyTraceable,
+        t: AnyTraceable
     ) -> PreemptiveTableNode {
-        .init(rest: [defineNode(given: given, match: match, when: when, then: then)])
+        .init(rest: [defineNode(g: g, m: m, w: w, t: t)])
     }
     
     override func tableNode(rest: [any Node<DefineNode.Output>]) -> PreemptiveTableNode {
@@ -934,15 +959,15 @@ final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
     }
 
     func testNodeWithImplicitMatchDuplicate() {
-        let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
-        let d2 = defineNode(given: s1, match: Match(any: Q.a), when: e1, then: s2)
+        let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
+        let d2 = defineNode(g: s1, m: Match(any: Q.a), w: e1, t: s2)
         let result = tableNode(rest: [d1, d2]).finalised()
         
         guard let error = firstDuplicatesError(in: result) else {
             errorAssertionFailure(in: result); return
         }
         
-        let pr = predicateResult([P.a, Q.a], rank: 1)
+        let pr = predicateResult(P.a, Q.a, rank: 1)
         let duplicates = error.duplicates[Key(state: s1, predicates: pr, event: e1)] ?? []
         
         guard assertCount(result.errors,    expected: 1) else { return }
@@ -966,8 +991,8 @@ final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
             guard assertCount(tnr.errors, expected: 0, line: xl) else { return }
             guard assertCount(tnr.output, expected: 2, line: xl) else { return }
             
-            let pr1 = predicateResult([P.a], rank: 1)
-            let pr2 = predicateResult([P.b], rank: 0)
+            let pr1 = predicateResult(P.a, rank: 1)
+            let pr2 = predicateResult(P.b, rank: 0)
             
             let expected1 = makeOutput(state: s1, predicates: pr1, event: e1, nextState: s2)
             let expected2 = makeOutput(state: s1, predicates: pr2, event: e1, nextState: s2)
@@ -976,16 +1001,16 @@ final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
             assertEqual(expected2, tnr.output.first { $0.predicates == pr2 }, xctLine: xl)
         }
         
-        let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
-        let d2 = defineNode(given: s1, match: Match(), when: e1, then: s2)
+        let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
+        let d2 = defineNode(g: s1, m: Match(), w: e1, t: s2)
 
         assertRemovesLowRankDuplicate(subnodes: [d1, d2])
         assertRemovesLowRankDuplicate(subnodes: [d2, d1])
     }
     
     func testNodeWithUniqueDefines() {
-        let d1 = defineNode(given: s1, match: Match(any: P.a), when: e1, then: s2)
-        let d2 = defineNode(given: s2, match: Match(any: Q.a), when: e1, then: s3)
+        let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
+        let d2 = defineNode(g: s2, m: Match(any: Q.a), w: e1, t: s3)
         
         let result = tableNode(rest: [d1, d2]).finalised()
         
