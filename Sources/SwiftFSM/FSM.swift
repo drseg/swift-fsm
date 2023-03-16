@@ -8,15 +8,20 @@ import Foundation
 import ReflectiveEquality
 
 class FSM<State: Hashable, Event: Hashable> {
-    private (set) var state: AnyHashable
+    @resultBuilder
+    struct TableBuilder: ResultBuilder {
+        typealias T = Syntax.Define<State>
+    }
     
-    init(initialState: State) throws {
-        if State.self == Event.self && State.self != AnyHashable.self  {
-            throw StateEventClash()
-        }
-        
+    var state: AnyHashable
+    
+    init(initialState: State) {
         state = initialState
     }
+    
+    func buildTable(@TableBuilder _ table: () -> ([Syntax.Define<State>])) throws {
+        let finalised = table().map(\.node).map { $0.finalised() }
+        let errors = finalised.map(\.errors).flattened
+        if !errors.isEmpty { throw CompoundError(errors: errors) }
+    }
 }
-
-struct StateEventClash: Error {}

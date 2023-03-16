@@ -55,3 +55,7 @@ struct EmptyBuilderError: Error, Equatable {
         self.line = line
     }
 }
+
+struct CompoundError: Error {
+    let errors: [Error]
+}

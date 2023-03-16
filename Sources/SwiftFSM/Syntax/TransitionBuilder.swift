@@ -34,8 +34,8 @@ extension TransitionBuilder {
         _ s1: State,
         _ rest: State...,
         superState: SuperState? = nil,
-        entryActions: [() -> ()],
-        exitActions: [() -> ()],
+        entryActions: [() -> ()] = [],
+        exitActions: [() -> ()] = [],
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
