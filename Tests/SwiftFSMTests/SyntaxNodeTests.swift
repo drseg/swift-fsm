@@ -672,16 +672,71 @@ final class DefineNodeTests: SyntaxNodeTests {
     }
 }
 
-class TransitionNodeTests: SyntaxNodeTests {
+class DefineConsumer: SyntaxNodeTests {
+    func defineNode(g: AnyTraceable, m: Match, w: AnyTraceable, t: AnyTraceable) -> DefineNode {
+        let actions = ActionsNode(actions: actions)
+        let then = ThenNode(state: t, rest: [actions])
+        let when = WhenNode(events: [w], rest: [then])
+        let match = MatchNode(match: m, rest: [when])
+        let given = GivenNode(states: [g], rest: [match])
+        return .init(entryActions: entryActions, exitActions: exitActions, rest: [given])
+    }
+}
+
+class TransitionNodeTests: DefineConsumer {
     func testEmptyNode() {
         let node = TransitionNode()
         let finalised = node.finalised()
         XCTAssertTrue(finalised.output.isEmpty)
         XCTAssertTrue(finalised.errors.isEmpty)
     }
+    
+    
+    func assertNode(
+        g: AnyTraceable,
+        m: Match,
+        w: AnyTraceable,
+        t: AnyTraceable,
+        output: String,
+        line: UInt = #line
+    ) {
+        let node = TransitionNode(rest: [defineNode(g: g, m: m, w: w, t: t)])
+        let finalised = node.finalised()
+        XCTAssertTrue(finalised.errors.isEmpty, line: line)
+        guard assertCount(finalised.output, expected: 1, line: line) else { return }
+        
+        let result = finalised.output[0]
+        assertResult(result, g, m, w, t, output, line)
+    }
+    
+    func assertResult(
+        _ result: TransitionNode.Output,
+        _ g: AnyTraceable,
+        _ m: Match,
+        _ w: AnyTraceable,
+        _ t: AnyTraceable,
+        _ output: String,
+        _ line: UInt = #line
+    ) {
+        XCTAssertEqual(result.state, g, line: line)
+        XCTAssertEqual(result.match, m, line: line)
+        XCTAssertEqual(result.event, w, line: line)
+        XCTAssertEqual(result.nextState, t, line: line)
+        
+        result.actions.executeAll()
+        XCTAssertEqual(output, actionsOutput, line: line)
+    }
+    
+    func testDoesNotAddExitActionsWithoutStateChange() {
+        assertNode(g: s1, m: Match(), w: e1, t: s1, output: "12")
+    }
+    
+    func testAddsExitActionsForStateChange() {
+        assertNode(g: s1, m: Match(), w: e1, t: s2, output: "12>>")
+    }
 }
 
-class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput {
+class TableNodeTests<N: Node>: DefineConsumer where N.Output == TableNodeOutput {
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
                                          pr: PredicateResult,
                                          event: AnyTraceable,
@@ -760,16 +815,7 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
          nextState: nextState,
          actionsOutput: actionsOutput)
     }
-    
-    func defineNode(g: AnyTraceable, m: Match, w: AnyTraceable, t: AnyTraceable) -> DefineNode {
-        let actions = ActionsNode(actions: actions)
-        let then = ThenNode(state: t, rest: [actions])
-        let when = WhenNode(events: [w], rest: [then])
-        let match = MatchNode(match: m, rest: [when])
-        let given = GivenNode(states: [g], rest: [match])
-        return .init(entryActions: entryActions, exitActions: exitActions, rest: [given])
-    }
-    
+
     func assertDupe(
         _ dupe: PossibleError?,
         expected: PossibleError?,
