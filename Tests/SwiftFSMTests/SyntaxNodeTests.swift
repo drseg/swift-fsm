@@ -775,7 +775,7 @@ class TransitionNodeTests: DefineConsumer {
     }
 }
 
-class TableNodeTests<N: TableNodeProtocol>: DefineConsumer where N.Output == TableNodeOutput {
+class TableNodeTests<N: TableNodeProtocol>: DefineConsumer {
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
                                          pr: PredicateResult,
                                          event: AnyTraceable,

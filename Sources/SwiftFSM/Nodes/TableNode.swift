@@ -16,7 +16,7 @@ typealias TableNodeOutput = (state: AnyTraceable,
                              nextState: AnyTraceable,
                              actions: [Action])
 
-protocol TableNodeProtocol: AnyObject, Node {
+protocol TableNodeProtocol: AnyObject, Node where Output == TableNodeOutput {
     typealias ErrorDictionary = [TableNodeErrorKey: [PossibleError]]
     typealias PossibleError = (state: AnyTraceable,
                                pr: PredicateResult,
