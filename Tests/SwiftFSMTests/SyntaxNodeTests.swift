@@ -673,13 +673,28 @@ final class DefineNodeTests: SyntaxNodeTests {
 }
 
 class DefineConsumer: SyntaxNodeTests {
-    func defineNode(g: AnyTraceable, m: Match, w: AnyTraceable, t: AnyTraceable) -> DefineNode {
+    func defineNode(
+        g: AnyTraceable,
+        m: Match,
+        w: AnyTraceable,
+        t: AnyTraceable,
+        entry: [() -> ()]? = nil,
+        exit: [() -> ()]? = nil
+    ) -> DefineNode {
         let actions = ActionsNode(actions: actions)
         let then = ThenNode(state: t, rest: [actions])
         let when = WhenNode(events: [w], rest: [then])
         let match = MatchNode(match: m, rest: [when])
         let given = GivenNode(states: [g], rest: [match])
-        return .init(entryActions: entryActions, exitActions: exitActions, rest: [given])
+        return .init(entryActions: entry ?? entryActions,
+                     exitActions: exit ?? exitActions,
+                     rest: [given])
+    }
+    
+    func assertActions(_ actions: [() -> ()]?, expectedOutput: String?, line: UInt = #line) {
+        actions?.executeAll()
+        XCTAssertEqual(actionsOutput, expectedOutput, line: line)
+        actionsOutput = ""
     }
 }
 
@@ -690,7 +705,6 @@ class TransitionNodeTests: DefineConsumer {
         XCTAssertTrue(finalised.output.isEmpty)
         XCTAssertTrue(finalised.errors.isEmpty)
     }
-    
     
     func assertNode(
         g: AnyTraceable,
@@ -723,16 +737,41 @@ class TransitionNodeTests: DefineConsumer {
         XCTAssertEqual(result.event, w, line: line)
         XCTAssertEqual(result.nextState, t, line: line)
         
-        result.actions.executeAll()
-        XCTAssertEqual(output, actionsOutput, line: line)
+        assertActions(result.actions, expectedOutput: output)
     }
     
+    let m = Match()
+    
     func testDoesNotAddExitActionsWithoutStateChange() {
-        assertNode(g: s1, m: Match(), w: e1, t: s1, output: "12")
+        assertNode(g: s1, m: m, w: e1, t: s1, output: "12")
     }
     
     func testAddsExitActionsForStateChange() {
-        assertNode(g: s1, m: Match(), w: e1, t: s2, output: "12>>")
+        assertNode(g: s1, m: m, w: e1, t: s2, output: "12>>")
+    }
+    
+    func testdoesNotAddEntryActionsWithoutStateChange() {
+        let d1 = defineNode(g: s1, m: m, w: e1, t: s1, entry: [], exit: [])
+        let d2 = defineNode(g: s2, m: m, w: e1, t: s3, entry: entryActions, exit: [])
+        let result = TransitionNode(rest: [d1, d2]).finalised()
+        
+        XCTAssertTrue(result.errors.isEmpty)
+        guard assertCount(result.output, expected: 2) else { return }
+        
+        assertResult(result.output[0], s1, m, e1, s1, "12")
+        assertResult(result.output[1], s2, m, e1, s3, "12")
+    }
+    
+    func testAddsEntryActionsForStateChange() {
+        let d1 = defineNode(g: s1, m: m, w: e1, t: s2, entry: [], exit: [])
+        let d2 = defineNode(g: s2, m: m, w: e1, t: s3, entry: entryActions, exit: [])
+        let result = TransitionNode(rest: [d1, d2]).finalised()
+        
+        XCTAssertTrue(result.errors.isEmpty)
+        guard assertCount(result.output, expected: 2) else { return }
+        
+        assertResult(result.output[0], s1, m, e1, s2, "12<<")
+        assertResult(result.output[1], s2, m, e1, s3, "12")
     }
 }
 
@@ -766,12 +805,6 @@ class TableNodeTests<N: Node>: DefineConsumer where N.Output == TableNodeOutput 
     
     func predicateResult(_ ps: [any Predicate], rank: Int) -> PredicateResult {
         PredicateResult(predicates: Set(ps.erased()), rank: rank)
-    }
-    
-    func assertActions(_ actions: [() -> ()]?, expectedOutput: String?, line: UInt = #line) {
-        actions?.executeAll()
-        XCTAssertEqual(actionsOutput, expectedOutput, line: line)
-        actionsOutput = ""
     }
     
     func assertEqual(
