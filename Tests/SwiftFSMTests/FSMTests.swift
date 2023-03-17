@@ -20,14 +20,27 @@ final class FSMTests: XCTestCase, TransitionBuilder {
         XCTAssertEqual(1, fsm.state)
     }
     
+    func assertThrowsError<T: Error>(
+        _ type: T.Type,
+        line: UInt = #line,
+        block: () throws -> ()
+    ) {
+        XCTAssertThrowsError(try block()) {
+            let errors = ($0 as? CompoundError)?.errors
+            XCTAssertEqual(1, errors?.count, line: line)
+            XCTAssertTrue(errors?.first is T, String(describing: errors), line: line)
+        }
+    }
+    
     func testBuildEmptyTable() throws {
-        XCTAssertThrowsError(
+        assertThrowsError(EmptyTableError.self) {
+            try fsm.buildTable { }
+        }
+    }
+    
+    func testThrowsErrorsFromNodes() throws {
+        assertThrowsError(EmptyBuilderError.self) {
             try fsm.buildTable { define(1) { } }
-        ) {
-            let error = $0 as? CompoundError
-            XCTAssertNotNil(error)
-            XCTAssertEqual(1, error?.errors.count)
-            XCTAssertTrue(error?.errors.first is EmptyBuilderError)
         }
     }
 }

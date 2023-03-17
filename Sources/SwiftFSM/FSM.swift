@@ -20,8 +20,19 @@ class FSM<State: Hashable, Event: Hashable> {
     }
     
     func buildTable(@TableBuilder _ table: () -> ([Syntax.Define<State>])) throws {
-        let finalised = table().map(\.node).map { $0.finalised() }
-        let errors = finalised.map(\.errors).flattened
-        if !errors.isEmpty { throw CompoundError(errors: errors) }
+        let tableNode = PreemptiveTableNode(rest: table().map(\.node))
+        let finalised = tableNode.finalised()
+        
+        try checkForErrors(finalised)
+    }
+    
+    func checkForErrors(_ finalised: (output: [TableNodeOutput], errors: [Error])) throws {
+        if !finalised.errors.isEmpty {
+            throw CompoundError(errors: finalised.errors)
+        }
+        
+        if finalised.output.isEmpty {
+            throw CompoundError(errors: [EmptyTableError()])
+        }
     }
 }

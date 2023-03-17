@@ -26,6 +26,7 @@ class MatchError: Error {
 }
 
 class DuplicateTypes: MatchError {}
+
 class DuplicateValues: MatchError {}
 
 struct LogicalClashError: Error {
@@ -58,4 +59,8 @@ struct EmptyBuilderError: Error, Equatable {
 
 struct CompoundError: Error {
     let errors: [Error]
+}
+
+struct EmptyTableError: Error {
+    
 }
