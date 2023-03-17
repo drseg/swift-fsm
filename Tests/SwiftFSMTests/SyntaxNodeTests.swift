@@ -686,8 +686,8 @@ class DefineConsumer: SyntaxNodeTests {
         let when = WhenNode(events: [w], rest: [then])
         let match = MatchNode(match: m, rest: [when])
         let given = GivenNode(states: [g], rest: [match])
-        return .init(entryActions: entry ?? entryActions,
-                     exitActions: exit ?? exitActions,
+        return .init(entryActions: entry ?? [],
+                     exitActions: exit ?? [],
                      rest: [given])
     }
     
@@ -714,7 +714,7 @@ class TransitionNodeTests: DefineConsumer {
         output: String,
         line: UInt = #line
     ) {
-        let node = TransitionNode(rest: [defineNode(g: g, m: m, w: w, t: t)])
+        let node = TransitionNode(rest: [defineNode(g: g, m: m, w: w, t: t, exit: exitActions)])
         let finalised = node.finalised()
         XCTAssertTrue(finalised.errors.isEmpty, line: line)
         guard assertCount(finalised.output, expected: 1, line: line) else { return }
@@ -737,7 +737,7 @@ class TransitionNodeTests: DefineConsumer {
         XCTAssertEqual(result.event, w, line: line)
         XCTAssertEqual(result.nextState, t, line: line)
         
-        assertActions(result.actions, expectedOutput: output)
+        assertActions(result.actions, expectedOutput: output, line: line)
     }
     
     let m = Match()
@@ -763,8 +763,8 @@ class TransitionNodeTests: DefineConsumer {
     }
     
     func testAddsEntryActionsForStateChange() {
-        let d1 = defineNode(g: s1, m: m, w: e1, t: s2, entry: [], exit: [])
-        let d2 = defineNode(g: s2, m: m, w: e1, t: s3, entry: entryActions, exit: [])
+        let d1 = defineNode(g: s1, m: m, w: e1, t: s2)
+        let d2 = defineNode(g: s2, m: m, w: e1, t: s3, entry: entryActions)
         let result = TransitionNode(rest: [d1, d2]).finalised()
         
         XCTAssertTrue(result.errors.isEmpty)
@@ -775,7 +775,7 @@ class TransitionNodeTests: DefineConsumer {
     }
 }
 
-class TableNodeTests<N: Node>: DefineConsumer where N.Output == TableNodeOutput {
+class TableNodeTests<N: TableNodeProtocol>: DefineConsumer where N.Output == TableNodeOutput {
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
                                          pr: PredicateResult,
                                          event: AnyTraceable,
@@ -792,11 +792,11 @@ class TableNodeTests<N: Node>: DefineConsumer where N.Output == TableNodeOutput 
     let pr = PredicateResult(predicates: Set([P.a].erased()), rank: 1)
     
     func tableNode(g: AnyTraceable, m: Match, w: AnyTraceable, t: AnyTraceable) -> N {
-        fatalError("subclasses must implement")
+        .init(rest: [TransitionNode(rest: [defineNode(g: g, m: m, w: w, t: t)])])
     }
     
     func tableNode(rest: [any Node<DefineNode.Output>]) -> N {
-        fatalError("subclasses must implement")
+        .init(rest: [TransitionNode(rest: rest)])
     }
     
     func predicateResult(_ ps: any Predicate..., rank: Int) -> PredicateResult {
@@ -817,7 +817,7 @@ class TableNodeTests<N: Node>: DefineConsumer where N.Output == TableNodeOutput 
         XCTAssertEqual(lhs?.event, rhs?.event, line: xl)
         XCTAssertEqual(lhs?.nextState, rhs?.nextState, line: xl)
         
-        assertActions(rhs?.actions, expectedOutput: lhs?.actionsOutput)
+        assertActions(rhs?.actions, expectedOutput: lhs?.actionsOutput, line: xl)
     }
     
     func makeOutput(
@@ -953,19 +953,6 @@ class TableNodeTests<N: Node>: DefineConsumer where N.Output == TableNodeOutput 
 }
 
 final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
-    override func tableNode(
-        g: AnyTraceable,
-        m: Match,
-        w: AnyTraceable,
-        t: AnyTraceable
-    ) -> LazyTableNode {
-        .init(rest: [defineNode(g: g, m: m, w: w, t: t)])
-    }
-    
-    override func tableNode(rest: [any Node<DefineNode.Output>]) -> LazyTableNode {
-        .init(rest: rest)
-    }
-    
     func testDuplicateDetection() {
         func makePE(
             s: AnyTraceable,
@@ -1055,19 +1042,6 @@ final class LazyTableNodeTests: TableNodeTests<LazyTableNode> {
 }
 
 final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
-    override func tableNode(
-        g: AnyTraceable,
-        m: Match,
-        w: AnyTraceable,
-        t: AnyTraceable
-    ) -> PreemptiveTableNode {
-        .init(rest: [defineNode(g: g, m: m, w: w, t: t)])
-    }
-    
-    override func tableNode(rest: [any Node<DefineNode.Output>]) -> PreemptiveTableNode {
-        .init(rest: rest)
-    }
-
     func testNodeWithImplicitMatchDuplicate() {
         let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
         let d2 = defineNode(g: s1, m: Match(any: Q.a), w: e1, t: s2)
@@ -1093,7 +1067,7 @@ final class PreemptiveTableNodeTests: TableNodeTests<PreemptiveTableNode> {
     
     func testNodeWithImplicitMatchRemovesDuplicateWithLowerRank() {
         func assertRemovesLowRankDuplicate(
-            subnodes: [any Node<PreemptiveTableNode.Input>],
+            subnodes: [any Node<DefineNode.Output>],
             xctLine xl: UInt = #line
         ) {
             let tnr = tableNode(rest: subnodes).finalised()

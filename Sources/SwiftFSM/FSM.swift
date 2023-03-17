@@ -18,10 +18,7 @@ class FSM<State: Hashable, Event: Hashable> {
             predicates: Set<AnyPredicate>,
             event: AnyHashable
         
-        init(state: AnyHashable,
-             predicates: Set<AnyPredicate>,
-             event: AnyHashable
-        ) {
+        init(state: AnyHashable, predicates: Set<AnyPredicate>, event: AnyHashable ) {
             self.state = state
             self.predicates = predicates
             self.event = event
@@ -50,7 +47,8 @@ class FSM<State: Hashable, Event: Hashable> {
     }
     
     func buildTable(@TableBuilder _ table: () -> ([Syntax.Define<State>])) throws {
-        let tableNode = PreemptiveTableNode(rest: table().map(\.node))
+        let transitionNode = TransitionNode(rest: table().map(\.node))
+        let tableNode = PreemptiveTableNode(rest: [transitionNode])
         let finalised = tableNode.finalised()
         
         try checkForErrors(finalised)

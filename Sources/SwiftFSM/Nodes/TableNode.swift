@@ -24,11 +24,13 @@ protocol TableNodeProtocol: AnyObject, Node {
                                event: AnyTraceable,
                                nextState: AnyTraceable)
     
-    var rest: [any Node<DefineNode.Output>] { get }
+    var rest: [any Node<TransitionNode.Output>] { get }
     var errors: [Error] { get set }
     
+    init(rest: [any Node<TransitionNode.Output>])
+    
     func _combinedWithRest(
-        _ rest: [DefineNode.Output],
+        _ rest: [TransitionNode.Output],
         duplicates: inout ErrorDictionary,
         clashes: inout ErrorDictionary
     ) -> [TableNodeOutput]
@@ -44,7 +46,7 @@ extension TableNodeProtocol {
     typealias OutputTuple = (output: TableNodeOutput, candidate: PossibleError, key: TableNodeErrorKey)
     
     func outputComponents(
-        _ dno: DefineNode.Output,
+        _ dno: TransitionNode.Output,
         pr: PredicateResult
     ) -> OutputTuple {
         let tno = (state: dno.state,
@@ -70,7 +72,7 @@ extension TableNodeProtocol {
         collection[key] = (collection[key] ?? [existing]) + [current]
     }
     
-    func combinedWithRest(_ rest: [DefineNode.Output]) -> [TableNodeOutput] {
+    func combinedWithRest(_ rest: [TransitionNode.Output]) -> [TableNodeOutput] {
         var duplicates = ErrorDictionary()
         var clashes = ErrorDictionary()
         
@@ -108,10 +110,10 @@ extension TableNodeProtocol {
 }
 
 final class LazyTableNode: TableNodeProtocol {
-    var rest: [any Node<DefineNode.Output>]
+    var rest: [any Node<TransitionNode.Output>]
     var errors: [Error] = []
     
-    init(rest: [any Node<DefineNode.Output>] = []) {
+    init(rest: [any Node<TransitionNode.Output>] = []) {
         self.rest = rest
     }
     
@@ -153,12 +155,12 @@ final class LazyTableNode: TableNodeProtocol {
     
     
     func _combinedWithRest(
-        _ rest: [DefineNode.Output],
+        _ rest: [TransitionNode.Output],
         duplicates: inout ErrorDictionary,
         clashes: inout ErrorDictionary
     ) -> [Output] {
         func checkAndAppend(
-            _ dno: DefineNode.Output,
+            _ dno: TransitionNode.Output,
             pr: PredicateResult,
             result: inout [TableNodeOutput]
         ) {
@@ -189,10 +191,10 @@ final class LazyTableNode: TableNodeProtocol {
 }
 
 final class PreemptiveTableNode: TableNodeProtocol {
-    var rest: [any Node<DefineNode.Output>]
+    var rest: [any Node<TransitionNode.Output>]
     var errors: [Error] = []
     
-    init(rest: [any Node<DefineNode.Output>] = []) {
+    init(rest: [any Node<TransitionNode.Output>] = []) {
         self.rest = rest
     }
     
@@ -202,7 +204,7 @@ final class PreemptiveTableNode: TableNodeProtocol {
     }
     
     func _combinedWithRest(
-        _ rest: [DefineNode.Output],
+        _ rest: [TransitionNode.Output],
         duplicates: inout ErrorDictionary,
         clashes: inout ErrorDictionary
     ) -> [Output] {
@@ -228,7 +230,7 @@ final class PreemptiveTableNode: TableNodeProtocol {
         }()
         
         func checkAndAppend(
-            _ dno: DefineNode.Output,
+            _ dno: TransitionNode.Output,
             pr: PredicateResult,
             result: inout [TableNodeOutput],
             check: (OutputTuple) -> ()
