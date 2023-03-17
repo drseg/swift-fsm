@@ -22,12 +22,13 @@ final class FSMTests: XCTestCase, TransitionBuilder {
     
     func assertThrowsError<T: Error>(
         _ type: T.Type,
+        count: Int = 1,
         line: UInt = #line,
         block: () throws -> ()
     ) {
         XCTAssertThrowsError(try block()) {
             let errors = ($0 as? CompoundError)?.errors
-            XCTAssertEqual(1, errors?.count, line: line)
+            XCTAssertEqual(count, errors?.count, line: line)
             XCTAssertTrue(errors?.first is T, String(describing: errors), line: line)
         }
     }
@@ -41,6 +42,23 @@ final class FSMTests: XCTestCase, TransitionBuilder {
     func testThrowsErrorsFromNodes() throws {
         assertThrowsError(EmptyBuilderError.self) {
             try fsm.buildTable { define(1) { } }
+        }
+    }
+    
+    func testThrowsNSObjectError() throws {
+        let fsm1 = FSM<NSObject, Int>(initialState: NSObject())
+        let fsm2 = FSM<Int, NSObject>(initialState: 1)
+        
+        assertThrowsError(NSObjectError.self) {
+            try fsm1.buildTable {
+                Syntax.Define(NSObject()) { Syntax.When(1) | Syntax.Then(NSObject()) }
+            }
+        }
+        
+        assertThrowsError(NSObjectError.self) {
+            try fsm2.buildTable {
+                Syntax.Define(1) { Syntax.When(NSObject()) | Syntax.Then(2) }
+            }
         }
     }
 }

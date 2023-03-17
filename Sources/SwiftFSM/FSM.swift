@@ -34,5 +34,16 @@ class FSM<State: Hashable, Event: Hashable> {
         if finalised.output.isEmpty {
             throw CompoundError(errors: [EmptyTableError()])
         }
+        
+        let firstState = finalised.output.first!.state
+        let firstEvent = finalised.output.first!.event
+        
+        if deepDescription((firstState, firstEvent)).contains("NSObject") {
+            throw CompoundError(errors: [NSObjectError()])
+        }
     }
+}
+
+struct NSObjectError: Error {
+    
 }

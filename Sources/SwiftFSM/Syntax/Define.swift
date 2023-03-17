@@ -30,8 +30,8 @@ extension Syntax {
         init(_ s1: State,
              _ rest: State...,
              superState: SuperState? = nil,
-             entryActions: [() -> ()],
-             exitActions: [() -> ()],
+             entryActions: [() -> ()] = [],
+             exitActions: [() -> ()] = [],
              file: String = #file,
              line: Int = #line,
              @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
@@ -65,12 +65,12 @@ extension Syntax {
         }
         
         init(_ states: [State],
-                         superState: SuperState?,
-                         entryActions: [() -> ()],
-                         exitActions: [() -> ()],
-                         elements: [any MWTAProtocol],
-                         file: String = #file,
-                         line: Int = #line
+             superState: SuperState?,
+             entryActions: [() -> ()],
+             exitActions: [() -> ()],
+             elements: [any MWTAProtocol],
+             file: String = #file,
+             line: Int = #line
         ) {
             let dNode = DefineNode(entryActions: entryActions,
                                    exitActions: exitActions,

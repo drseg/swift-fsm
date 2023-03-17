@@ -826,6 +826,17 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
         assertEqual(expected, result.output[0])
     }
     
+    func testNodeWithSingleDefineSingleEmptyPredicate() {
+        let node = tableNode(g: s1, m: Match(), w: e1, t: s2)
+        let result = node.finalised()
+        
+        guard assertCount(result.errors, expected: 0) else { return }
+        guard assertCount(result.output, expected: 1) else { return }
+        
+        assertEqual(makeOutput(state: s1, predicates: PredicateResult(), event: e1, nextState: s2),
+                    result.output[0])
+    }
+    
     func testNodeWithDuplicateDefines() {
         let d1 = defineNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
         let result = tableNode(rest: [d1, d1, d1]).finalised()

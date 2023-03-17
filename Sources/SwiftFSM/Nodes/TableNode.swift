@@ -43,10 +43,12 @@ extension TableNodeProtocol {
         (lhs.0, lhs.1, lhs.3) == (rhs.0, rhs.1, rhs.3)
     }
     
+    typealias OutputTuple = (output: TableNodeOutput, candidate: PossibleError, key: TableNodeErrorKey)
+    
     func outputComponents(
         _ dno: DefineNode.Output,
         pr: PredicateResult
-    ) -> (output: TableNodeOutput, candidate: PossibleError, key: TableNodeErrorKey) {
+    ) -> OutputTuple {
         let tno = (state: dno.state,
                    pr: pr,
                    event: dno.event,
@@ -87,9 +89,9 @@ extension TableNodeProtocol {
     @discardableResult
     func check(
         _ candidate: PossibleError,
-        checked: [PossibleError],
-        duplicates: inout ErrorDictionary,
-        clashes: inout ErrorDictionary
+        _ checked: [PossibleError],
+        _ duplicates: inout ErrorDictionary,
+        _ clashes: inout ErrorDictionary
     ) -> Bool {
         if let existing = checked.first(where: { areDuplicates($0, candidate) }) {
             addErrorCandidate(existing: existing, current: candidate, to: &duplicates)
@@ -153,22 +155,36 @@ final class LazyTableNode: TableNodeProtocol {
         return false
     }
     
+    
     func _combinedWithRest(
         _ rest: [DefineNode.Output],
         duplicates: inout ErrorDictionary,
         clashes: inout ErrorDictionary
     ) -> [Output] {
+        func checkAndAppend(
+            _ dno: DefineNode.Output,
+            pr: PredicateResult,
+            result: inout [TableNodeOutput]
+        ) {
+            let outputTuple = outputComponents(dno, pr: pr)
+            let candidate = outputTuple.candidate
+            check(candidate, checked, &duplicates, &clashes)
+            checked.append(candidate)
+            result.append(outputTuple.output)
+        }
+        
         var checked = [PossibleError]()
         
         let output = rest.reduce(into: [Output]()) { result, dno in
-            dno.match.allPredicateCombinations([]).forEach {
-                let outputTuple = outputComponents(dno, pr: $0)
-                let candidate = outputTuple.candidate
-                
-                check(candidate, checked: checked, duplicates: &duplicates, clashes: &clashes)
-                
-                checked.append(candidate)
-                result.append(outputTuple.output)
+            let allPredicateCombinations = dno.match.allPredicateCombinations([])
+            
+            guard !allPredicateCombinations.isEmpty else {
+                checkAndAppend(dno, pr: PredicateResult(), result: &result)
+                return
+            }
+           
+            allPredicateCombinations.forEach {
+                checkAndAppend(dno, pr: $0, result: &result)
             }
         }
         
@@ -215,24 +231,45 @@ final class PreemptiveTableNode: TableNodeProtocol {
             return (alls + anys).flattened.combinationsOfAllCases
         }()
         
+        func checkAndAppend(
+            _ dno: DefineNode.Output,
+            pr: PredicateResult,
+            result: inout [TableNodeOutput],
+            check: (OutputTuple) -> ()
+        ) {
+            let outputTuple = outputComponents(dno, pr: pr)
+            check(outputTuple)
+            checked.append(outputTuple.candidate)
+            result.append(outputTuple.output)
+        }
+        
         let output = rest.reduce(into: [Output]()) { result, dno in
-            dno.match.allPredicateCombinations(combinations).forEach {
-                let outputTuple = outputComponents(dno, pr: $0)
-                let candidate = outputTuple.candidate
-                
-                if check(candidate, checked: checked, duplicates: &duplicates, clashes: &clashes) {
-                    if let existing = checked.first(where: { areRankedDuplicates($0, candidate)}) {
-                        let key = outputTuple.key
-                        rankedDuplicates[key] = rankedDuplicates[key] ?? [] + (
-                            existing.pr.rank > candidate.pr.rank
-                            ? [candidate]
-                            : [existing]
-                        )
-                    }
+            let allPredicateCombinations = dno.match.allPredicateCombinations(combinations)
+            
+            guard !allPredicateCombinations.isEmpty else {
+                checkAndAppend(dno, pr: PredicateResult(), result: &result) {
+                    check($0.candidate, checked, &duplicates, &clashes)
                 }
-                
-                checked.append(candidate)
-                result.append(outputTuple.output)
+                return
+            }
+            
+            allPredicateCombinations.forEach {
+                checkAndAppend(dno, pr: $0, result: &result) { tuple in
+                    let candidate = tuple.candidate
+                    
+                    guard
+                        check(candidate, checked, &duplicates, &clashes),
+                        let existing = checked.first(
+                            where: { areRankedDuplicates($0, candidate) }
+                        )
+                    else { return }
+                    
+                    rankedDuplicates[tuple.key] = rankedDuplicates[tuple.key] ?? [] + (
+                        existing.pr.rank > candidate.pr.rank
+                        ? [candidate]
+                        : [existing]
+                    )
+                }
             }
         }
         
@@ -241,5 +278,12 @@ final class PreemptiveTableNode: TableNodeProtocol {
                 areDuplicates($0, tno)
             }
         }
+    }
+}
+
+extension PredicateResult {
+    init() {
+        predicates = []
+        rank = 0
     }
 }
