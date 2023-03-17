@@ -49,8 +49,8 @@ final class DefineNode: NeverEmptyNode {
                  event: $1.event,
                  nextState: $1.nextState,
                  actions: $1.actions,
-                 entryActions: $1.state == $1.nextState ? [] : entryActions,
-                 exitActions: $1.state == $1.nextState ? [] : exitActions)
+                 entryActions: entryActions,
+                 exitActions: exitActions)
             )
         }
     }

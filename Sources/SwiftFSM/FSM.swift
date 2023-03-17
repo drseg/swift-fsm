@@ -13,6 +13,36 @@ class FSM<State: Hashable, Event: Hashable> {
         typealias T = Syntax.Define<State>
     }
     
+    struct Key: Hashable {
+        let state: AnyHashable,
+            predicates: Set<AnyPredicate>,
+            event: AnyHashable
+        
+        init(state: AnyHashable,
+             predicates: Set<AnyPredicate>,
+             event: AnyHashable
+        ) {
+            self.state = state
+            self.predicates = predicates
+            self.event = event
+        }
+        
+        init(_ value: Value) {
+            state = value.state
+            predicates = value.predicates
+            event = value.event
+        }
+    }
+    
+    struct Value {
+        let state: AnyHashable,
+            predicates: Set<AnyPredicate>,
+            event: AnyHashable,
+            nextState: AnyHashable,
+            actions: [() -> ()]
+    }
+    
+    var table: [Key: Value] = [:]
     var state: AnyHashable
     
     init(initialState: State) {
@@ -24,6 +54,7 @@ class FSM<State: Hashable, Event: Hashable> {
         let finalised = tableNode.finalised()
         
         try checkForErrors(finalised)
+        makeTable(finalised.output)
     }
     
     func checkForErrors(_ finalised: (output: [TableNodeOutput], errors: [Error])) throws {
@@ -35,6 +66,15 @@ class FSM<State: Hashable, Event: Hashable> {
             throw CompoundError(errors: [EmptyTableError()])
         }
         
+        if State.self == Event.self {
+            throw CompoundError(errors: [TypeClashError()])
+        }
+        
+        let predicates = finalised.output.map(\.pr).map(\.predicates).flattened
+        if predicates.contains(where: { $0.base.base is State || $0.base.base is Event }) {
+            throw CompoundError(errors: [TypeClashError()])
+        }
+        
         let firstState = finalised.output.first!.state
         let firstEvent = finalised.output.first!.event
         
@@ -42,8 +82,22 @@ class FSM<State: Hashable, Event: Hashable> {
             throw CompoundError(errors: [NSObjectError()])
         }
     }
-}
-
-struct NSObjectError: Error {
     
+    func makeTable(_ output: [TableNodeOutput]) {
+        output.forEach {
+            let value = Value(state: $0.state.base,
+                              predicates: $0.pr.predicates,
+                              event: $0.event.base,
+                              nextState: $0.nextState.base,
+                              actions: $0.actions)
+            table[Key(value)] = value
+        }
+    }
+    
+    func handleEvent(_ event: Event) {
+        if let transition = table[Key(state: state, predicates: [], event: event)] {
+            state = transition.nextState
+            transition.actions.forEach { $0() }
+        }
+    }
 }

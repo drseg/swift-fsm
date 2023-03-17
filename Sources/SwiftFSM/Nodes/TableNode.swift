@@ -14,9 +14,7 @@ typealias TableNodeOutput = (state: AnyTraceable,
                              pr: PredicateResult,
                              event: AnyTraceable,
                              nextState: AnyTraceable,
-                             actions: [Action],
-                             entryActions: [Action],
-                             exitActions: [Action])
+                             actions: [Action])
 
 protocol TableNodeProtocol: AnyObject, Node {
     typealias ErrorDictionary = [TableNodeErrorKey: [PossibleError]]
@@ -53,9 +51,7 @@ extension TableNodeProtocol {
                    pr: pr,
                    event: dno.event,
                    nextState: dno.nextState,
-                   actions: dno.actions,
-                   entryActions: dno.entryActions,
-                   exitActions: dno.exitActions)
+                   actions: dno.actions)
         
         let possibleError = (tno.state, tno.pr, dno.match, tno.event, tno.nextState)
         let key = TableNodeErrorKey(state: tno.state, pr: tno.pr, event: tno.event)

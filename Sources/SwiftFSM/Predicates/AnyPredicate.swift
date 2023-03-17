@@ -23,7 +23,7 @@ extension Predicate {
 }
 
 struct AnyPredicate: CustomStringConvertible, Hashable {
-    private let base: AnyHashable
+    let base: AnyHashable
     
     init<P: Predicate>(base: P) {
         self.base = AnyHashable(base)

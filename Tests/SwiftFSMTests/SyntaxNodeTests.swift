@@ -672,14 +672,21 @@ final class DefineNodeTests: SyntaxNodeTests {
     }
 }
 
+class TransitionNodeTests: SyntaxNodeTests {
+    func testEmptyNode() {
+        let node = TransitionNode()
+        let finalised = node.finalised()
+        XCTAssertTrue(finalised.output.isEmpty)
+        XCTAssertTrue(finalised.errors.isEmpty)
+    }
+}
+
 class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput {
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
                                          pr: PredicateResult,
                                          event: AnyTraceable,
                                          nextState: AnyTraceable,
-                                         actionsOutput: String,
-                                         entryActionsOutput: String,
-                                         exitActionsOutput: String)
+                                         actionsOutput: String)
     
     typealias TableNodeResult = (output: [TableNodeOutput], errors: [Error])
     typealias PossibleError = TableNodeProtocol.PossibleError
@@ -723,8 +730,6 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
         XCTAssertEqual(lhs?.nextState, rhs?.nextState, line: xl)
         
         assertActions(rhs?.actions, expectedOutput: lhs?.actionsOutput)
-        assertActions(rhs?.entryActions, expectedOutput: lhs?.entryActionsOutput)
-        assertActions(rhs?.exitActions, expectedOutput: lhs?.exitActionsOutput)
     }
     
     func makeOutput(
@@ -733,17 +738,13 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
         rank: Int,
         event: AnyTraceable,
         nextState: AnyTraceable,
-        actionsOutput: String = "12",
-        entryActionsOutput: String = "<<",
-        exitActionsOutput: String = ">>"
+        actionsOutput: String = "12"
     ) -> ExpectedTableNodeOutput {
         (state: state,
          pr: predicateResult(predicates, rank: rank),
          event: event,
          nextState: nextState,
-         actionsOutput: actionsOutput,
-         entryActionsOutput: entryActionsOutput,
-         exitActionsOutput: exitActionsOutput)
+         actionsOutput: actionsOutput)
     }
     
     func makeOutput(
@@ -751,17 +752,13 @@ class TableNodeTests<N: Node>: SyntaxNodeTests where N.Output == TableNodeOutput
         predicates: PredicateResult,
         event: AnyTraceable,
         nextState: AnyTraceable,
-        actionsOutput: String = "12",
-        entryActionsOutput: String = "<<",
-        exitActionsOutput: String = ">>"
+        actionsOutput: String = "12"
     ) -> ExpectedTableNodeOutput {
         (state: state,
          pr: predicates,
          event: event,
          nextState: nextState,
-         actionsOutput: actionsOutput,
-         entryActionsOutput: entryActionsOutput,
-         exitActionsOutput: exitActionsOutput)
+         actionsOutput: actionsOutput)
     }
     
     func defineNode(g: AnyTraceable, m: Match, w: AnyTraceable, t: AnyTraceable) -> DefineNode {

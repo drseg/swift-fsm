@@ -64,3 +64,11 @@ struct CompoundError: Error {
 struct EmptyTableError: Error {
     
 }
+
+struct NSObjectError: Error {
+    
+}
+
+struct TypeClashError: Error {
+    
+}
