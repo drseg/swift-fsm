@@ -29,22 +29,6 @@ class DuplicateTypes: MatchError {}
 
 class DuplicateValues: MatchError {}
 
-struct LogicalClashError: Error {
-    let clashes: TableNodeProtocol.ErrorDictionary
-    
-    init(_ clashes: TableNodeProtocol.ErrorDictionary) {
-        self.clashes = clashes
-    }
-}
-
-struct DuplicatesError: Error {
-    let duplicates: TableNodeProtocol.ErrorDictionary
-    
-    init(_ duplicates: TableNodeProtocol.ErrorDictionary) {
-        self.duplicates = duplicates
-    }
-}
-
 struct EmptyBuilderError: Error, Equatable {
     let caller: String
     let file: String

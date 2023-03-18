@@ -131,7 +131,7 @@ class SemanticValidationNode: Node {
             errors.append(MatchClashError(clashes: matchClashes))
         }
         
-        return output
+        return errors.isEmpty ? output : []
     }
     
     func validate() -> [Error] {

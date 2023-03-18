@@ -55,7 +55,7 @@ class FSM<State: Hashable, Event: Hashable> {
         makeTable(finalised.output)
     }
     
-    func checkForErrors(_ finalised: (output: [TableNodeOutput], errors: [Error])) throws {
+    func checkForErrors(_ finalised: (output: [PreemptiveTableNode.Output], errors: [Error])) throws {
         if !finalised.errors.isEmpty {
             throw CompoundError(errors: finalised.errors)
         }
@@ -68,7 +68,7 @@ class FSM<State: Hashable, Event: Hashable> {
             throw CompoundError(errors: [TypeClashError()])
         }
         
-        let predicates = finalised.output.map(\.pr).map(\.predicates).flattened
+        let predicates = finalised.output.map(\.predicates).flattened
         if predicates.contains(where: { $0.base.base is State || $0.base.base is Event }) {
             throw CompoundError(errors: [TypeClashError()])
         }
@@ -81,10 +81,10 @@ class FSM<State: Hashable, Event: Hashable> {
         }
     }
     
-    func makeTable(_ output: [TableNodeOutput]) {
+    func makeTable(_ output: [PreemptiveTableNode.Output]) {
         output.forEach {
             let value = Value(state: $0.state.base,
-                              predicates: $0.pr.predicates,
+                              predicates: $0.predicates,
                               event: $0.event.base,
                               nextState: $0.nextState.base,
                               actions: $0.actions)

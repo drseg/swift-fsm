@@ -11,12 +11,12 @@ final class SemanticValidationNodeTests: DefineConsumer {
     typealias SVN = SemanticValidationNode
     
     func transitionNode(
-        g: AnyTraceable,
-        m: Match,
-        w: AnyTraceable,
-        t: AnyTraceable
+        _ g: AnyTraceable,
+        _ m: Match,
+        _ w: AnyTraceable,
+        _ t: AnyTraceable
     ) -> TransitionNode {
-        TransitionNode(rest: [defineNode(g: g, m: m, w: w, t: t)])
+        TransitionNode(rest: [defineNode(g, m, w, t)])
     }
     
     func assertEqual(_ lhs: SVN.Output?, _ rhs: SVN.Output?, line: UInt = #line) {
@@ -52,10 +52,11 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testDuplicate() {
-        let t = transitionNode(g: s1, m: Match(), w: e1, t: s2)
+        let t = transitionNode(s1, Match(), e1, s2)
         let finalised = SVN(rest: [t, t]).finalised()
         
         guard assertCount(finalised.errors, expected: 1) else { return }
+        guard assertCount(finalised.output, expected: 0) else { return }
         
         let duplicates = firstDuplicates(in: finalised)
         let expected = t.finalised().output[0]
@@ -66,12 +67,13 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testClash() {
-        let t1 = transitionNode(g: s1, m: Match(), w: e1, t: s2)
-        let t2 = transitionNode(g: s1, m: Match(), w: e1, t: s3)
+        let t1 = transitionNode(s1, Match(), e1, s2)
+        let t2 = transitionNode(s1, Match(), e1, s3)
 
         let finalised = SVN(rest: [t1, t2]).finalised()
         
         guard assertCount(finalised.errors, expected: 1) else { return }
+        guard assertCount(finalised.output, expected: 0) else { return }
 
         let clashes = firstClashes(in: finalised)
             
@@ -86,12 +88,13 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testMatchClash() {
-        let t1 = transitionNode(g: s1, m: Match(any: P.a), w: e1, t: s2)
-        let t2 = transitionNode(g: s1, m: Match(any: P.b), w: e1, t: s2)
+        let t1 = transitionNode(s1, Match(any: P.a), e1, s2)
+        let t2 = transitionNode(s1, Match(any: P.b), e1, s2)
 
         let finalised = SVN(rest: [t1, t2]).finalised()
         
         guard assertCount(finalised.errors, expected: 1) else { return }
+        guard assertCount(finalised.output, expected: 0) else { return }
 
         let clashes = firstMatchClashes(in: finalised)
             
@@ -106,8 +109,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testNoError() {
-        let t1 = transitionNode(g: s1, m: Match(), w: e1, t: s2)
-        let t2 = transitionNode(g: s1, m: Match(), w: e2, t: s3)
+        let t1 = transitionNode(s1, Match(), e1, s2)
+        let t2 = transitionNode(s1, Match(), e2, s3)
         
         let finalised = SVN(rest: [t1, t2]).finalised()
 
@@ -118,6 +121,9 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let secondExpected = t2.finalised().output[0]
         
         assertEqual(firstExpected, finalised.output[0])
+        assertActions(finalised.output[0].actions, expectedOutput: "12")
+        
         assertEqual(secondExpected, finalised.output[1])
+        assertActions(finalised.output[1].actions, expectedOutput: "12")
     }
 }
