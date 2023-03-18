@@ -6,6 +6,10 @@
 
 import Foundation
 
+protocol Key {
+    init(_ input: SemanticValidationNode.Input)
+}
+
 class SemanticValidationNode: Node {
     struct DuplicatesError: Error {
         let duplicates: DuplicatesDictionary
@@ -19,7 +23,7 @@ class SemanticValidationNode: Node {
         let clashes: MatchClashesDictionary
     }
     
-    struct DuplicatesKey: Hashable {
+    struct DuplicatesKey: Key, Hashable {
         let state: AnyTraceable,
             match: Match,
             event: AnyTraceable,
@@ -33,7 +37,7 @@ class SemanticValidationNode: Node {
         }
     }
     
-    struct ClashesKey: Hashable {
+    struct ClashesKey: Key, Hashable {
         let state: AnyTraceable,
             match: Match,
             event: AnyTraceable
@@ -45,7 +49,7 @@ class SemanticValidationNode: Node {
         }
     }
     
-    struct MatchClashesKey: Hashable {
+    struct MatchClashesKey: Key, Hashable {
         let state: AnyTraceable,
             event: AnyTraceable,
             nextState: AnyTraceable
@@ -82,31 +86,33 @@ class SemanticValidationNode: Node {
         var matchClashes = MatchClashesDictionary()
     
         let output = rest.reduce(into: [Output]()) { result, row in
-            func areDuplicates(_ lhs: Input) -> Bool {
+            func isDuplicate(_ lhs: Input) -> Bool {
                 DuplicatesKey(lhs) == DuplicatesKey(row)
             }
             
-            func areClashes(_ lhs: Input) -> Bool {
+            func isClash(_ lhs: Input) -> Bool {
                 ClashesKey(lhs) == ClashesKey(row)
             }
             
-            func areMatchClashes(_ lhs: Input) -> Bool {
+            func isMatchClash(_ lhs: Input) -> Bool {
                 MatchClashesKey(lhs) == MatchClashesKey(row)
             }
             
-            if let existing = checked.first(where: areDuplicates) {
-                let key = DuplicatesKey(row)
-                duplicates[key] = (duplicates[key] ?? [existing]) + [row]
+            func add<T: Key>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {
+                let key = T(row)
+                dict[key] = (dict[key] ?? [existing]) + [row]
             }
             
-            else if let existing = checked.first(where: areClashes) {
-                let key = ClashesKey(row)
-                clashes[key] = (clashes[key] ?? [existing]) + [row]
+            if let dupe = checked.first(where: isDuplicate) {
+                add(dupe, row: row, to: &duplicates)
             }
             
-            else if let existing = checked.first(where: areMatchClashes) {
-                let key = MatchClashesKey(row)
-                matchClashes[key] = (matchClashes[key] ?? [existing]) + [row]
+            else if let clash = checked.first(where: isClash) {
+                add(clash, row: row, to: &clashes)
+            }
+            
+            else if let matchClash = checked.first(where: isMatchClash) {
+                add(matchClash, row: row, to: &matchClashes)
             }
             
             checked.append(row)
