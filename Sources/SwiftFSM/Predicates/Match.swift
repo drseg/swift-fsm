@@ -126,6 +126,20 @@ class Match {
     }
 }
 
+extension Match: Hashable {
+    public static func == (lhs: Match, rhs: Match) -> Bool {
+        lhs.matchAny.count == rhs.matchAny.count &&
+        lhs.matchAll.count == rhs.matchAll.count &&
+        lhs.matchAny.allSatisfy({ rhs.matchAny.contains($0) }) &&
+        lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) })
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(matchAny)
+        hasher.combine(matchAll)
+    }
+}
+
 struct PredicateResult: Hashable {
     let predicates: PredicateSet
     let rank: Int

@@ -347,15 +347,6 @@ extension Match: CustomStringConvertible {
     }
 }
 
-extension Match: Equatable {
-    public static func == (lhs: Match, rhs: Match) -> Bool {
-        lhs.matchAny.count == rhs.matchAny.count &&
-        lhs.matchAll.count == rhs.matchAll.count &&
-        lhs.matchAny.allSatisfy({ rhs.matchAny.contains($0) }) &&
-        lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) })
-    }
-}
-
 extension MatchError: CustomStringConvertible {
     public var description: String {
         String.build {

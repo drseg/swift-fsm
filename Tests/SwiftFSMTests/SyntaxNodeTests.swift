@@ -166,9 +166,16 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     @discardableResult
-    func assertCount(_ actual: any Collection, expected: Int, line: UInt = #line) -> Bool {
+    func assertCount(
+        _ actual: any Collection,
+        expected: Int,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) -> Bool {
         guard actual.count == expected else {
-            XCTFail("Incorrect count: \(actual) instead of \(expected)", line: line)
+            XCTFail("Incorrect count: \(actual.count) instead of \(expected)",
+                    file: file,
+                    line: line)
             return false
         }
         return true
