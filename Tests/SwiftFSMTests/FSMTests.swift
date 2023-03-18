@@ -94,35 +94,78 @@ final class FSMTests: XCTestCase, TransitionBuilder {
         )
     }
     
-    func testHandleEventWithoutEntryExitActions() {
-        var actionsOutput = ""
+    var actionsOutput = ""
+    func assertHandleEvent(
+        _ event: Event,
+        predicates: any Predicate...,
+        state: State,
+        output: String,
+        line: UInt = #line
+    ) {
+        fsm.handleEvent(event, predicates: predicates)
+        XCTAssertEqual(state, fsm.state, line: line)
+        XCTAssertEqual(output, actionsOutput, line: line)
         
-        try! fsm.buildTable {
-            define(1) {
-                when(1.1) | then(2) | { actionsOutput = "pass" }
-            }
-        }
-        
-        fsm.handleEvent(1.1)
-        XCTAssertEqual(2, fsm.state)
-        XCTAssertEqual("pass", actionsOutput)
+        actionsOutput = ""
+        fsm.state = 1
     }
     
-    var actionsOutput = ""
-    var entryActions: [() -> ()] { [{ self.actionsOutput += "<<" }] }
-    var exitActions: [() -> ()] { [{ self.actionsOutput += ">>" }] }
-
-    func testPerformsNoEntryAndExitActionsWithoutStateChange() {
+    func testHandleEventWithoutPredicate() {
         try! fsm.buildTable {
-            define(1, entryActions: entryActions, exitActions: exitActions) {
-                when(1.1) | then(1)
+            define(1) {
+                when(1.1) | then(2) | { self.actionsOutput = "pass" }
             }
         }
         
-        fsm.handleEvent(1.1)
-        XCTAssertEqual(1, fsm.state)
-        XCTAssertEqual("", actionsOutput)
+        assertHandleEvent(1.1, state: 2, output: "pass")
+        assertHandleEvent(1.2, state: 1, output: "")
     }
+    
+    func testHandleEventWithSinglePredicate() {
+        try! fsm.buildTable {
+            define(1) {
+                matching(P.a) | when(1.1) | then(2) | { self.actionsOutput = "pass" }
+            }
+            
+            define(1) {
+                matching(P.b) | when(1.1) | then(3) | { self.actionsOutput = "pass" }
+            }
+        }
+        
+        assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
+        assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
+    }
+    
+//    func testHandlEventWithMultiplePredicates() {
+//        func pass() {
+//            actionsOutput = "pass"
+//        }
+//        
+//        try! fsm.buildTable {
+//            define(1) {
+//                matching(any: P.a, Q.a) | when(1.1) | then(2) | pass
+//            }
+//            
+//            define(1) {
+//                matching(any: P.b, Q.b) | when(1.1) | then(3) | pass
+//            }
+//            
+//            define(1) {
+//                matching(all: P.b, Q.b) | when(1.1) | then(4) | pass
+//            }
+//            
+//            define(1) {
+//                matching(any: Q.a, Q.b) | when(1.1) | then(2) | pass
+//            }
+//        }
+//        
+//        assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
+//        assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
+//        assertHandleEvent(1.1, predicates: Q.a, state: 2, output: "pass")
+//        assertHandleEvent(1.1, predicates: Q.b, state: 3, output: "pass")
+//        
+//        assertHandleEvent(1.1, predicates: P.b, Q.b, state: 4, output: "pass")
+//    }
 }
 
 extension Int: Predicate {

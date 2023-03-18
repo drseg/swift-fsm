@@ -40,7 +40,7 @@ protocol TableNodeProtocol: AnyObject, Node where Output == TableNodeOutput {
 
 extension TableNodeProtocol {
     func areClashes(_ lhs: PossibleError, _ rhs: PossibleError) -> Bool {
-        (lhs.0, lhs.1, lhs.3) == (rhs.0, rhs.1, rhs.3)
+        (lhs.state, lhs.pr, lhs.event) == (rhs.state, rhs.pr, rhs.event)
     }
     
     typealias OutputTuple = (output: TableNodeOutput, candidate: PossibleError, key: TableNodeErrorKey)
@@ -152,7 +152,6 @@ final class LazyTableNode: TableNodeProtocol {
         
         return false
     }
-    
     
     func _combinedWithRest(
         _ rest: [TransitionNode.Output],

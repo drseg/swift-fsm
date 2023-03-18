@@ -92,8 +92,14 @@ class FSM<State: Hashable, Event: Hashable> {
         }
     }
     
-    func handleEvent(_ event: Event) {
-        if let transition = table[Key(state: state, predicates: [], event: event)] {
+    func handleEvent(_ event: Event, predicates: any Predicate...) {
+        handleEvent(event, predicates: predicates)
+    }
+    
+    func handleEvent(_ event: Event, predicates: [any Predicate]) {
+        if let transition = table[Key(state: state,
+                                      predicates: Set(predicates.erased()),
+                                      event: event)] {
             state = transition.nextState
             transition.actions.forEach { $0() }
         }
