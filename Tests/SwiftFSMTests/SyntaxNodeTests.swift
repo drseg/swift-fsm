@@ -834,22 +834,29 @@ class PreemptiveTableNodeTests: DefineConsumer {
     
     func assertError(
         _ result: TableNodeResult,
-        expected: ExpectedTableNodeOutput,
+        expected: [ExpectedTableNodeOutput],
         line: UInt = #line
     ) {
-        let errors = result.errors
-            .compactMap { $0 as? PTN.ImplicitClashesError }
-            .map(\.clashes)
-            .map(\.values)
-            .flattened
-            .reduce(into: [PTN.Output]()) { $0.append(contentsOf: $1) }
+        guard let clashError = result.errors[0] as? PTN.ImplicitClashesError else {
+            XCTFail("unexpected error \(result.errors[0])", line: line)
+            return
+        }
         
-        assertEqual(expected, errors.first {
-            $0.state == expected.state &&
-            $0.predicates == expected.predicates &&
-            $0.event == expected.event &&
-            $0.nextState == expected.nextState
-        }, line: line)
+        let clashes = clashError.clashes
+        guard assertCount(clashes.first?.value, expected: expected.count, line: line) else {
+            return
+        }
+        
+        let errors = clashes.map(\.value).flattened
+        
+        expected.forEach { exp in
+            assertEqual(exp, errors.first {
+                $0.state == exp.state &&
+                $0.predicates == exp.predicates &&
+                $0.event == exp.event &&
+                $0.nextState == exp.nextState
+            }, line: line)
+        }
     }
     
     func assertEqual(
@@ -902,10 +909,10 @@ class PreemptiveTableNodeTests: DefineConsumer {
         }
         
         let clashes = clashError.clashes
-        
         guard assertCount(clashes.first?.value, expected: 2) else { return }
-        assertError(result, expected: makeOutput(s1, [P.a, Q.a], e1, s2))
-        assertError(result, expected: makeOutput(s1, [P.a, Q.a], e1, s3))
+        
+        assertError(result, expected: [makeOutput(s1, [P.a, Q.a], e1, s2),
+                                       makeOutput(s1, [P.a, Q.a], e1, s3)])
     }
 }
 
