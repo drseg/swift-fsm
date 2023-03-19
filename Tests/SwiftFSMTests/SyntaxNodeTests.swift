@@ -863,9 +863,8 @@ class PreemptiveTableNodeTests: DefineConsumer {
         let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
         let result = tableNode(rest: [d1, d2]).finalised()
         
-        assertCount(result.output, expected: 3)
+        assertCount(result.output, expected: 2)
         
-        assertResult(result, expected: makeOutput(s1, [Q.a], e1, s2))
         assertResult(result, expected: makeOutput(s1, [Q.b], e1, s2))
         assertResult(result, expected: makeOutput(s1, [Q.a], e1, s3))
     }

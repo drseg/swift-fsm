@@ -79,8 +79,6 @@ class SemanticValidationNode: Node {
     }
     
     func combinedWithRest(_ rest: [TransitionNode.Output]) -> [Output] {
-        var checked = [Output]()
-        
         var duplicates = DuplicatesDictionary()
         var clashes = ClashesDictionary()
         var matchClashes = MatchClashesDictionary()
@@ -103,19 +101,18 @@ class SemanticValidationNode: Node {
                 dict[key] = (dict[key] ?? [existing]) + [row]
             }
             
-            if let dupe = checked.first(where: isDuplicate) {
+            if let dupe = result.first(where: isDuplicate) {
                 add(dupe, row: row, to: &duplicates)
             }
             
-            else if let clash = checked.first(where: isClash) {
+            else if let clash = result.first(where: isClash) {
                 add(clash, row: row, to: &clashes)
             }
             
-            else if let matchClash = checked.first(where: isMatchClash) {
+            else if let matchClash = result.first(where: isMatchClash) {
                 add(matchClash, row: row, to: &matchClashes)
             }
             
-            checked.append(row)
             result.append(row)
         }
         

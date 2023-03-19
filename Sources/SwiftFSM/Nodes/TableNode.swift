@@ -13,6 +13,18 @@ final class PreemptiveTableNode: Node {
                         nextState: AnyTraceable,
                         actions: [Action])
     
+    struct _Output {
+        let state: AnyTraceable,
+            predicateResult: PredicateResult,
+            event: AnyTraceable,
+            nextState: AnyTraceable,
+            actions: [Action]
+        
+        var toOutput: Output {
+            (state, predicateResult.predicates, event, nextState, actions)
+        }
+    }
+    
     struct ImplicitClashError: Error {
         let clashes: ImplicitClashesDictionary
     }
@@ -46,29 +58,39 @@ final class PreemptiveTableNode: Node {
             return (alls + anys).flattened.combinationsOfAllCases
         }()
         
-        var checked = [Output]()
         var clashes = ImplicitClashesDictionary()
         
-        let result = rest.reduce(into: [Output]()) { result, input in
-            func appendInput(predicates: Set<AnyPredicate> = []) {
-                let output = (state: input.state,
-                              predicates: predicates,
-                              event: input.event,
-                              nextState: input.nextState,
-                              actions: input.actions)
+        let result = rest.reduce(into: [_Output]()) { result, input in
+            func appendInput(_ predicateResult: PredicateResult = PredicateResult()) {
+                let _output = _Output(state: input.state,
+                                      predicateResult: predicateResult,
+                                      event: input.event,
+                                      nextState: input.nextState,
+                                      actions: input.actions)
                 
-                func isClash(_ lhs: Output) -> Bool {
-                    ImplicitClashesKey(lhs) == ImplicitClashesKey(output)
+                func isRankedClash(_ lhs: _Output) -> Bool {
+                    isClash(lhs) && lhs.predicateResult.rank != _output.predicateResult.rank
                 }
                 
-                
-                if let clash = checked.first(where: isClash) {
-                    let key = ImplicitClashesKey(output)
-                    clashes[key] = (clashes[key] ?? [clash]) + [output]
+                func isClash(_ lhs: _Output) -> Bool {
+                    ImplicitClashesKey(lhs.toOutput) == ImplicitClashesKey(_output.toOutput)
                 }
                 
-                checked.append(output)
-                result.append(output)
+                func highestRank(_ lhs: _Output, _ rhs: _Output) -> _Output {
+                    lhs.predicateResult.rank > rhs.predicateResult.rank ? lhs : rhs
+                }
+                
+                if let rankedClashIndex = result.firstIndex(where: isRankedClash) {
+                    result[rankedClashIndex] = highestRank(result[rankedClashIndex], _output)
+                }
+                
+                else {
+                    if let clash = result.first(where: isClash) {
+                        let key = ImplicitClashesKey(_output.toOutput)
+                        clashes[key] = (clashes[key] ?? [clash.toOutput]) + [_output.toOutput]
+                    }
+                    result.append(_output)
+                }
             }
             
             let allPredicateCombinations = input.match.allPredicateCombinations(allCases)
@@ -77,7 +99,7 @@ final class PreemptiveTableNode: Node {
             }
             
             allPredicateCombinations.forEach {
-                appendInput(predicates: $0.predicates)
+                appendInput($0)
             }
         }
         
@@ -85,7 +107,7 @@ final class PreemptiveTableNode: Node {
             errors.append(ImplicitClashError(clashes: clashes))
         }
         
-        return result
+        return result.map(\.toOutput)
     }
     
     func validate() -> [Error] {
