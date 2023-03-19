@@ -14,10 +14,6 @@ final class FSMTests: XCTestCase, TransitionBuilder {
     
     var fsm: FSM<State, Event> = FSM(initialState: 1)
     
-    override func setUpWithError() throws {
-        throw XCTSkip("disabled for refactoring")
-    }
-    
     func testSuccessfulInit() throws {
         XCTAssertEqual(1, fsm.state)
     }
@@ -156,10 +152,6 @@ final class FSMTests: XCTestCase, TransitionBuilder {
             
             define(1) {
                 matching(all: P.b, Q.b) | when(1.1) | then(4) | pass
-            }
-            
-            define(1) {
-                matching(any: Q.a, Q.b) | when(1.1) | then(2) | pass
             }
         }
         
