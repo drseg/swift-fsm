@@ -13,15 +13,15 @@ extension Syntax {
         init(_ s1: State,
              _ rest: State...,
              superState: SuperState,
-             entryActions: [() -> ()],
-             exitActions: [() -> ()],
+             onEntry: [() -> ()],
+             onExit: [() -> ()],
              file: String = #file,
              line: Int = #line
         ) {
             self.init([s1] + rest,
                       superState: superState,
-                      entryActions: entryActions,
-                      exitActions: exitActions,
+                      onEntry: onEntry,
+                      onExit: onExit,
                       elements: [],
                       file: file,
                       line: line)
@@ -30,16 +30,16 @@ extension Syntax {
         init(_ s1: State,
              _ rest: State...,
              superState: SuperState? = nil,
-             entryActions: [() -> ()] = [],
-             exitActions: [() -> ()] = [],
+             onEntry: [() -> ()] = [],
+             onExit: [() -> ()] = [],
              file: String = #file,
              line: Int = #line,
              @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
         ) {
             self.init(states: [s1] + rest,
                       superState: superState,
-                      entryActions: entryActions,
-                      exitActions: exitActions,
+                      onEntry: onEntry,
+                      onExit: onExit,
                       file: file,
                       line: line,
                       block)
@@ -47,8 +47,8 @@ extension Syntax {
         
         init(states: [State],
              superState: SuperState? = nil,
-             entryActions: [() -> ()],
-             exitActions: [() -> ()],
+             onEntry: [() -> ()],
+             onExit: [() -> ()],
              file: String = #file,
              line: Int = #line,
              @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
@@ -57,8 +57,8 @@ extension Syntax {
             
             self.init(states,
                       superState: elements.isEmpty ? nil : superState,
-                      entryActions: entryActions,
-                      exitActions: exitActions,
+                      onEntry: onEntry,
+                      onExit: onExit,
                       elements: elements,
                       file: file,
                       line: line)
@@ -66,14 +66,14 @@ extension Syntax {
         
         init(_ states: [State],
              superState: SuperState?,
-             entryActions: [() -> ()],
-             exitActions: [() -> ()],
+             onEntry: [() -> ()],
+             onExit: [() -> ()],
              elements: [any MWTAProtocol],
              file: String = #file,
              line: Int = #line
         ) {
-            let dNode = DefineNode(entryActions: entryActions,
-                                   exitActions: exitActions,
+            let dNode = DefineNode(onEntry: onEntry,
+                                   onExit: onExit,
                                    caller: "define",
                                    file: file,
                                    line: line)

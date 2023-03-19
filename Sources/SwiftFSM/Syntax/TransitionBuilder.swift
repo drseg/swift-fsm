@@ -16,15 +16,15 @@ extension TransitionBuilder {
         _ s1: State,
         _ rest: State...,
         superState: SuperState,
-        entryActions: [() -> ()] = [],
-        exitActions: [() -> ()] = [],
+        onEntry: [() -> ()] = [],
+        onExit: [() -> ()] = [],
         file: String = #file,
         line: Int = #line
     ) -> Syntax.Define<State> {
         .init([s1] + rest,
               superState: superState,
-              entryActions: entryActions,
-              exitActions: exitActions,
+              onEntry: onEntry,
+              onExit: onExit,
               elements: [],
               file: file,
               line: line)
@@ -34,16 +34,16 @@ extension TransitionBuilder {
         _ s1: State,
         _ rest: State...,
         superState: SuperState? = nil,
-        entryActions: [() -> ()] = [],
-        exitActions: [() -> ()] = [],
+        onEntry: [() -> ()] = [],
+        onExit: [() -> ()] = [],
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
     ) -> Syntax.Define<State> {
         .init(states: [s1] + rest,
               superState: superState,
-              entryActions: entryActions,
-              exitActions: exitActions,
+              onEntry: onEntry,
+              onExit: onExit,
               file: file,
               line: line,
               block)

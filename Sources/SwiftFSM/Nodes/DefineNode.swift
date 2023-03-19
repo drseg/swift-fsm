@@ -12,11 +12,11 @@ final class DefineNode: NeverEmptyNode {
                         event: AnyTraceable,
                         nextState: AnyTraceable,
                         actions: [Action],
-                        entryActions: [Action],
-                        exitActions: [Action])
+                        onEntry: [Action],
+                        onExit: [Action])
     
-    let entryActions: [Action]
-    let exitActions: [Action]
+    let onEntry: [Action]
+    let onExit: [Action]
     var rest: [any Node<GivenNode.Output>] = []
     
     let caller: String
@@ -26,15 +26,15 @@ final class DefineNode: NeverEmptyNode {
     private var errors: [Error] = []
     
     init(
-        entryActions: [Action],
-        exitActions: [Action],
+        onEntry: [Action],
+        onExit: [Action],
         rest: [any Node<GivenNode.Output>] = [],
         caller: String = #function,
         file: String = #file,
         line: Int = #line
     ) {
-        self.entryActions = entryActions
-        self.exitActions = exitActions
+        self.onEntry = onEntry
+        self.onExit = onExit
         self.rest = rest
         self.caller = caller
         self.file = file
@@ -49,8 +49,8 @@ final class DefineNode: NeverEmptyNode {
                  event: $1.event,
                  nextState: $1.nextState,
                  actions: $1.actions,
-                 entryActions: entryActions,
-                 exitActions: exitActions)
+                 onEntry: onEntry,
+                 onExit: onExit)
             )
         }
     }

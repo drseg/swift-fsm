@@ -211,23 +211,18 @@ final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
                 when(.reset) | then(.locked)
             }
 
-            define(.locked, superState: resetable, entryActions: [lock]) {
+            define(.locked, superState: resetable, onEntry: [lock]) {
                 when(.coin) | then(.unlocked)
                 when(.pass) | then(.alarming)
             }
 
-            define(.unlocked, superState: resetable, entryActions: [unlock]) {
+            define(.unlocked, superState: resetable, onEntry: [unlock]) {
                 when(.coin) | then(.unlocked) | thankyou
                 when(.pass) | then(.locked)
             }
 
-            define(.alarming,
-                   superState: resetable,
-                   entryActions: [alarmOn],
-                   exitActions: [alarmOff])
+            define(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
-        
-        print(fsm.table.values)
         
         assertEventAction(.coin,  "unlock")
         assertEventAction(.pass,  "lock")
