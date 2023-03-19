@@ -513,6 +513,21 @@ class BlockComponentTests: SyntaxTestsBase {
         assertEmpty(d8)
     }
     
+    func testDefineWithAddsBlockAndSuperStateNodesTogether() {
+        let s = SuperState                { when(1) | then(1) | pass }
+        let d1 = define(1, superState: s) { when(2) | then(2) | pass }
+        let d2 = Define(1, superState: s) { when(2) | then(2) | pass }
+        
+        let given1 = d1.node.rest.first as? GivenNode
+        let given2 = d2.node.rest.first as? GivenNode
+
+        let io1 = given1?.rest
+        let io2 = given2?.rest
+        
+        XCTAssertEqual(2, io1?.count)
+        XCTAssertEqual(2, io2?.count)
+    }
+    
     func testOptionalActions() {
         let l1 = #line; let mwtas1 = buildMWTA {
             matching(P.a) | when(1, 2) | then(1)

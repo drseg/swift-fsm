@@ -16,8 +16,8 @@ extension TransitionBuilder {
         _ s1: State,
         _ rest: State...,
         superState: SuperState,
-        entryActions: [() -> ()],
-        exitActions: [() -> ()],
+        entryActions: [() -> ()] = [],
+        exitActions: [() -> ()] = [],
         file: String = #file,
         line: Int = #line
     ) -> Syntax.Define<State> {

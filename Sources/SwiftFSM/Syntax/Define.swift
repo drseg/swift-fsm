@@ -86,7 +86,7 @@ extension Syntax {
                 }
                 
                 let states = states.map(eraseToAnyTraceable)
-                let rest = superState?.nodes ?? [] + elements.nodes
+                let rest = (superState?.nodes ?? []) + elements.nodes
                 let gNode = GivenNode(states: states, rest: rest)
                 
                 dNode.rest = [gNode]
