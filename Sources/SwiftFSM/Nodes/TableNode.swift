@@ -13,6 +13,24 @@ final class PreemptiveTableNode: Node {
                         nextState: AnyTraceable,
                         actions: [Action])
     
+    struct ImplicitClashError: Error {
+        let clashes: ImplicitClashesDictionary
+    }
+    
+    struct ImplicitClashesKey: Hashable {
+        let state: AnyTraceable,
+            predicates: Set<AnyPredicate>,
+            event: AnyTraceable
+        
+        init(_ output: Output) {
+            state = output.state
+            predicates = output.predicates
+            event = output.event
+        }
+    }
+    
+    typealias ImplicitClashesDictionary = [ImplicitClashesKey: [Output]]
+
     var rest: [any Node<Input>]
     var errors: [Error] = []
     
@@ -28,18 +46,57 @@ final class PreemptiveTableNode: Node {
             return (alls + anys).flattened.combinationsOfAllCases
         }()
         
-        let output = rest.reduce(into: [Output]()) { result, input in
-            input.match.allPredicateCombinations(allCases).forEach {
-                result.append(
-                    (state: input.state,
-                     predicates: $0.predicates,
-                     event: input.event,
-                     nextState: input.nextState,
-                     actions: input.actions)
-                )
+        var checked = [Output]()
+        var clashes = ImplicitClashesDictionary()
+        
+        let result = rest.reduce(into: [Output]()) { result, input in
+            func appendInput(predicates: Set<AnyPredicate> = []) {
+                let output = (state: input.state,
+                              predicates: predicates,
+                              event: input.event,
+                              nextState: input.nextState,
+                              actions: input.actions)
+                
+                func isClash(_ lhs: Output) -> Bool {
+                    ImplicitClashesKey(lhs) == ImplicitClashesKey(output)
+                }
+                
+                
+                if let clash = checked.first(where: isClash) {
+                    let key = ImplicitClashesKey(output)
+                    clashes[key] = (clashes[key] ?? [clash]) + [output]
+                }
+                
+                checked.append(output)
+                result.append(output)
+            }
+            
+            let allPredicateCombinations = input.match.allPredicateCombinations(allCases)
+            guard !allPredicateCombinations.isEmpty else {
+                appendInput(); return
+            }
+            
+            allPredicateCombinations.forEach {
+                appendInput(predicates: $0.predicates)
             }
         }
         
-        return output
+        if !clashes.isEmpty {
+            errors.append(ImplicitClashError(clashes: clashes))
+        }
+        
+        return result
+    }
+    
+    func validate() -> [Error] {
+        errors
     }
 }
+
+extension PredicateResult {
+    init() {
+        predicates = []
+        rank = 0
+    }
+}
+

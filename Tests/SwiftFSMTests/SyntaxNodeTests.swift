@@ -820,6 +820,8 @@ class PreemptiveTableNodeTests: DefineConsumer {
         expected: ExpectedTableNodeOutput,
         line: UInt = #line
     ) {
+        assertCount(result.errors, expected: 0, line: line)
+        
         assertEqual(expected, result.output.first {
             $0.state == expected.state &&
             $0.predicates == expected.predicates &&
@@ -848,6 +850,14 @@ class PreemptiveTableNodeTests: DefineConsumer {
         assertCount(result.errors, expected: 0)
     }
     
+    func testTableWithNoMatches() {
+        let d1 = defineNode(s1, Match(), e1, s2)
+        let result = tableNode(rest: [d1]).finalised()
+
+        assertCount(result.output, expected: 1)
+        assertResult(result, expected: makeOutput(s1, [], e1, s2))
+    }
+    
     func testImplicitMatch() {
         let d1 = defineNode(s1, Match(), e1, s2)
         let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
@@ -860,9 +870,7 @@ class PreemptiveTableNodeTests: DefineConsumer {
         assertResult(result, expected: makeOutput(s1, [Q.a], e1, s3))
     }
     
-    func testNodeWithSingleImplicitMatchClash() throws {
-        throw XCTSkip("not yet")
-        
+    func testImplicitMatchClash() {
         let d1 = defineNode(s1, Match(any: P.a), e1, s2)
         let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
         let result = tableNode(rest: [d1, d2]).finalised()
