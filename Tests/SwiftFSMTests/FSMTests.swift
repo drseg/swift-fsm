@@ -164,6 +164,82 @@ final class FSMTests: XCTestCase, TransitionBuilder {
     }
 }
 
+final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
+    typealias State = TurnstileState
+    typealias Event = TurnstileEvent
+    
+    enum TurnstileState: String, CustomStringConvertible {
+        case locked, unlocked, alarming
+        
+        var description: String {
+            rawValue
+        }
+    }
+
+    enum TurnstileEvent: String, CustomStringConvertible {
+        case reset, coin, pass
+        
+        var description: String {
+            rawValue
+        }
+    }
+    
+    var actions = [String]()
+    
+    func alarmOn()  { actions.append("alarmOn")  }
+    func alarmOff() { actions.append("alarmOff") }
+    func lock()     { actions.append("lock")     }
+    func unlock()   { actions.append("unlock")   }
+    func thankyou() { actions.append("thankyou") }
+    
+    func testTurnstile() {
+        var actual = [String]()
+        func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
+            assertEventAction(e, [a], line: line)
+        }
+        
+        func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
+            actual += a
+            fsm.handleEvent(e)
+            XCTAssertEqual(actions, actual, line: line)
+        }
+        
+        let fsm = FSM<State, Event>(initialState: .locked)
+        
+        try! fsm.buildTable {
+            let resetable = SuperState {
+                when(.reset) | then(.locked)
+            }
+
+            define(.locked, superState: resetable, entryActions: [lock]) {
+                when(.coin) | then(.unlocked)
+                when(.pass) | then(.alarming)
+            }
+
+            define(.unlocked, superState: resetable, entryActions: [unlock]) {
+                when(.coin) | then(.unlocked) | thankyou
+                when(.pass) | then(.locked)
+            }
+
+            define(.alarming,
+                   superState: resetable,
+                   entryActions: [alarmOn],
+                   exitActions: [alarmOff])
+        }
+        
+        print(fsm.table.values)
+        
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.pass,  "lock")
+        assertEventAction(.pass,  "alarmOn")
+        assertEventAction(.reset, ["alarmOff", "lock"])
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.coin,  "thankyou")
+        assertEventAction(.coin,  "thankyou")
+        assertEventAction(.reset, "lock")
+    }
+}
+
 extension Int: Predicate {
     public static var allCases: [Int] { [] }
 }

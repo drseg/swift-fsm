@@ -12,6 +12,15 @@ struct AnyTraceable {
     let base: AnyHashable
     let file: String
     let line: Int
+    
+    init<H: Hashable>(base: H, file: String, line: Int) {
+        #warning("How can I test this?")
+        assert(!String(describing: base).contains("Optional"))
+        
+        self.base = base
+        self.file = file
+        self.line = line
+    }
 }
 
 extension AnyTraceable: Hashable {
