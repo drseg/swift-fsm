@@ -167,13 +167,13 @@ class SyntaxNodeTests: XCTestCase {
     
     @discardableResult
     func assertCount(
-        _ actual: any Collection,
+        _ actual: (any Collection)?,
         expected: Int,
         file: StaticString = #file,
         line: UInt = #line
     ) -> Bool {
-        guard actual.count == expected else {
-            XCTFail("Incorrect count: \(actual.count) instead of \(expected)",
+        guard actual?.count ?? -1 == expected else {
+            XCTFail("Incorrect count: \(actual?.count ?? -1) instead of \(expected)",
                     file: file,
                     line: line)
             return false
@@ -795,13 +795,15 @@ class PreemptiveTableNodeTests: DefineConsumer {
                                          actionsOutput: String)
     
     
-    typealias TableNodeResult = (output: [PreemptiveTableNode.Output], errors: [Error])
+    typealias PTN = PreemptiveTableNode
     typealias SVN = SemanticValidationNode
+    typealias Key = PreemptiveTableNode.ImplicitClashesKey
+    typealias TableNodeResult = (output: [PTN.Output], errors: [Error])
     
     enum P: Predicate { case a, b }
     enum Q: Predicate { case a, b }
     
-    func tableNode(rest: [any Node<DefineNode.Output>]) -> PreemptiveTableNode {
+    func tableNode(rest: [any Node<DefineNode.Output>]) -> PTN {
         .init(rest: [SVN(rest: [TransitionNode(rest: rest)])])
     }
     
@@ -830,9 +832,29 @@ class PreemptiveTableNodeTests: DefineConsumer {
         }, line: line)
     }
     
+    func assertError(
+        _ result: TableNodeResult,
+        expected: ExpectedTableNodeOutput,
+        line: UInt = #line
+    ) {
+        let errors = result.errors
+            .compactMap { $0 as? PTN.ImplicitClashesError }
+            .map(\.clashes)
+            .map(\.values)
+            .flattened
+            .reduce(into: [PTN.Output]()) { $0.append(contentsOf: $1) }
+        
+        assertEqual(expected, errors.first {
+            $0.state == expected.state &&
+            $0.predicates == expected.predicates &&
+            $0.event == expected.event &&
+            $0.nextState == expected.nextState
+        }, line: line)
+    }
+    
     func assertEqual(
         _ lhs: ExpectedTableNodeOutput?,
-        _ rhs: PreemptiveTableNode.Output?,
+        _ rhs: PTN.Output?,
         line: UInt = #line
     ) {
         XCTAssertEqual(lhs?.state, rhs?.state, line: line)
@@ -874,7 +896,16 @@ class PreemptiveTableNodeTests: DefineConsumer {
         let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
         let result = tableNode(rest: [d1, d2]).finalised()
 
-        assertCount(result.errors, expected: 1)
+        guard assertCount(result.errors, expected: 1) else { return }
+        guard let clashError = result.errors[0] as? PTN.ImplicitClashesError else {
+            XCTFail("unexpected error \(result.errors[0])"); return
+        }
+        
+        let clashes = clashError.clashes
+        
+        guard assertCount(clashes.first?.value, expected: 2) else { return }
+        assertError(result, expected: makeOutput(s1, [P.a, Q.a], e1, s2))
+        assertError(result, expected: makeOutput(s1, [P.a, Q.a], e1, s3))
     }
 }
 

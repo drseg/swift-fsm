@@ -13,7 +13,7 @@ final class PreemptiveTableNode: Node {
                         nextState: AnyTraceable,
                         actions: [Action])
     
-    struct _Output {
+    struct RankedOutput {
         let state: AnyTraceable,
             predicateResult: PredicateResult,
             event: AnyTraceable,
@@ -25,7 +25,7 @@ final class PreemptiveTableNode: Node {
         }
     }
     
-    struct ImplicitClashError: Error {
+    struct ImplicitClashesError: Error {
         let clashes: ImplicitClashesDictionary
     }
     
@@ -51,60 +51,51 @@ final class PreemptiveTableNode: Node {
     }
     
     func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Output] {
-        let allCases = {
-            let matches = rest.map(\.match)
-            let anys = matches.map(\.matchAny)
-            let alls = matches.map(\.matchAll)
-            return (alls + anys).flattened.combinationsOfAllCases
-        }()
-        
         var clashes = ImplicitClashesDictionary()
         
-        let result = rest.reduce(into: [_Output]()) { result, input in
+        let result = rest.reduce(into: [RankedOutput]()) { result, input in
             func appendInput(_ predicateResult: PredicateResult = PredicateResult()) {
-                let _output = _Output(state: input.state,
+                let ro = RankedOutput(state: input.state,
                                       predicateResult: predicateResult,
                                       event: input.event,
                                       nextState: input.nextState,
                                       actions: input.actions)
                 
-                func isRankedClash(_ lhs: _Output) -> Bool {
-                    isClash(lhs) && lhs.predicateResult.rank != _output.predicateResult.rank
+                func isRankedClash(_ lhs: RankedOutput) -> Bool {
+                    isClash(lhs) && lhs.predicateResult.rank != ro.predicateResult.rank
                 }
                 
-                func isClash(_ lhs: _Output) -> Bool {
-                    ImplicitClashesKey(lhs.toOutput) == ImplicitClashesKey(_output.toOutput)
+                func isClash(_ lhs: RankedOutput) -> Bool {
+                    ImplicitClashesKey(lhs.toOutput) == ImplicitClashesKey(ro.toOutput)
                 }
                 
-                func highestRank(_ lhs: _Output, _ rhs: _Output) -> _Output {
+                func highestRank(_ lhs: RankedOutput, _ rhs: RankedOutput) -> RankedOutput {
                     lhs.predicateResult.rank > rhs.predicateResult.rank ? lhs : rhs
                 }
                 
-                if let rankedClashIndex = result.firstIndex(where: isRankedClash) {
-                    result[rankedClashIndex] = highestRank(result[rankedClashIndex], _output)
+                if let i = result.firstIndex(where: isRankedClash) {
+                    result[i] = highestRank(result[i], ro)
                 }
                 
                 else {
                     if let clash = result.first(where: isClash) {
-                        let key = ImplicitClashesKey(_output.toOutput)
-                        clashes[key] = (clashes[key] ?? [clash.toOutput]) + [_output.toOutput]
+                        let key = ImplicitClashesKey(ro.toOutput)
+                        clashes[key] = (clashes[key] ?? [clash.toOutput]) + [ro.toOutput]
                     }
-                    result.append(_output)
+                    result.append(ro)
                 }
             }
             
-            let allPredicateCombinations = input.match.allPredicateCombinations(allCases)
+            let allPredicateCombinations = input.match.allPredicateCombinations(rest.allCases)
             guard !allPredicateCombinations.isEmpty else {
                 appendInput(); return
             }
             
-            allPredicateCombinations.forEach {
-                appendInput($0)
-            }
+            allPredicateCombinations.forEach(appendInput)
         }
         
         if !clashes.isEmpty {
-            errors.append(ImplicitClashError(clashes: clashes))
+            errors.append(ImplicitClashesError(clashes: clashes))
         }
         
         return result.map(\.toOutput)
@@ -119,6 +110,15 @@ extension PredicateResult {
     init() {
         predicates = []
         rank = 0
+    }
+}
+
+extension [SemanticValidationNode.Output] {
+    var allCases: PredicateSets {
+        let matches = map(\.match)
+        let anys = matches.map(\.matchAny)
+        let alls = matches.map(\.matchAll)
+        return (alls + anys).flattened.combinationsOfAllCases
     }
 }
 
