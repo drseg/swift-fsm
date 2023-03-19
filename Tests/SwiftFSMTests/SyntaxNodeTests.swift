@@ -318,6 +318,16 @@ final class TraceableTests: SyntaxNodeTests {
     func testTraceableDescription() {
         XCTAssertEqual(s1.description, "S1")
     }
+    
+    func testBangsOptionals() {
+        let c1: String? = "cat"
+        
+        let t = AnyTraceable(base: c1, file: "", line: 0)
+        let c2 = t.base
+        
+        XCTAssertTrue(String(describing: c1).contains("Optional"))
+        XCTAssertFalse(String(describing: c2).contains("Optional"))
+    }
 }
 
 final class ErrorTests: SyntaxNodeTests {
