@@ -290,7 +290,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         assertTable()
     }
     
-    func testDeduplicatedPredicateTurnstile() throws {
+    func testDeduplicatedPredicateTurnstile() {
         try! fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -315,6 +315,42 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             }
             
             define(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+        }
+        
+        assertTable()
+    }
+    
+    func testDerangedSyntaxTurnstile() {
+        typealias duck = Syntax.Define<State>
+        typealias wombat = Syntax.When<Event>
+        typealias turtle = Syntax.Then<State>
+        typealias mouse = Syntax.Matching
+        typealias cat = SuperState
+        
+        try! fsm.buildTable {
+            let cat = cat {
+                wombat(.reset) | turtle(.locked)
+            }
+            
+            duck(.locked, superState: cat, onEntry: [lock]) {
+                wombat(.pass) {
+                    mouse(EnforcementStyle.weak)   | turtle(.locked)
+                    mouse(EnforcementStyle.strong) | turtle(.alarming)
+                }
+                
+                wombat(.coin) | turtle(.unlocked)
+            }
+            
+            duck(.unlocked, superState: cat, onEntry: [unlock]) {
+                turtle(.unlocked) {
+                    mouse(RewardStyle.rewarding) | wombat(.coin) | thankyou
+                    mouse(RewardStyle.punishing) | wombat(.coin) | idiot
+                }
+                
+                wombat(.pass) | turtle(.locked)
+            }
+            
+            duck(.alarming, superState: cat, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertTable()
