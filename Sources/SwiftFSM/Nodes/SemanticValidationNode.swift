@@ -19,10 +19,6 @@ class SemanticValidationNode: Node {
         let clashes: ClashesDictionary
     }
     
-    struct MatchClashError: Error {
-        let clashes: MatchClashesDictionary
-    }
-    
     struct DuplicatesKey: Key, Hashable {
         let state: AnyTraceable,
             match: Match,
@@ -49,21 +45,8 @@ class SemanticValidationNode: Node {
         }
     }
     
-    struct MatchClashesKey: Key, Hashable {
-        let state: AnyTraceable,
-            event: AnyTraceable,
-            nextState: AnyTraceable
-        
-        init(_ input: Input) {
-            state = input.state
-            event = input.event
-            nextState = input.nextState
-        }
-    }
-    
     typealias DuplicatesDictionary = [DuplicatesKey: [Input]]
     typealias ClashesDictionary = [ClashesKey: [Input]]
-    typealias MatchClashesDictionary = [MatchClashesKey: [Input]]
     
     typealias Output = (state: AnyTraceable,
                         match: Match,
@@ -81,7 +64,6 @@ class SemanticValidationNode: Node {
     func combinedWithRest(_ rest: [TransitionNode.Output]) -> [Output] {
         var duplicates = DuplicatesDictionary()
         var clashes = ClashesDictionary()
-        var matchClashes = MatchClashesDictionary()
     
         let output = rest.reduce(into: [Output]()) { result, row in
             func isDuplicate(_ lhs: Input) -> Bool {
@@ -90,10 +72,6 @@ class SemanticValidationNode: Node {
             
             func isClash(_ lhs: Input) -> Bool {
                 ClashesKey(lhs) == ClashesKey(row)
-            }
-            
-            func isMatchClash(_ lhs: Input) -> Bool {
-                MatchClashesKey(lhs) == MatchClashesKey(row)
             }
             
             func add<T: Key>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {
@@ -109,10 +87,6 @@ class SemanticValidationNode: Node {
                 add(clash, row: row, to: &clashes)
             }
             
-            else if let matchClash = result.first(where: isMatchClash) {
-                add(matchClash, row: row, to: &matchClashes)
-            }
-            
             result.append(row)
         }
         
@@ -122,10 +96,6 @@ class SemanticValidationNode: Node {
         
         if !clashes.isEmpty {
             errors.append(ClashError(clashes: clashes))
-        }
-        
-        if !matchClashes.isEmpty {
-            errors.append(MatchClashError(clashes: matchClashes))
         }
         
         return errors.isEmpty ? output : []

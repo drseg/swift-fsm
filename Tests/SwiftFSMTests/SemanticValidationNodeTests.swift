@@ -38,12 +38,6 @@ final class SemanticValidationNodeTests: DefineConsumer {
         (finalised.errors[0] as? SVN.ClashError)?.clashes ?? [:]
     }
     
-    func firstMatchClashes(
-        in finalised: (output: [SVN.Output], errors: [Error])
-    ) -> SVN.MatchClashesDictionary {
-        (finalised.errors[0] as? SVN.MatchClashError)?.clashes ?? [:]
-    }
-    
     func testEmptyNode() {
         let finalised = SVN(rest: []).finalised()
         
@@ -87,26 +81,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
         assertEqual(secondExpected, secondClash?.last)
     }
     
-    func testMatchClash() {
-        let t1 = transitionNode(s1, Match(any: P.a), e1, s2)
-        let t2 = transitionNode(s1, Match(any: P.b), e1, s2)
-
-        let finalised = SVN(rest: [t1, t2]).finalised()
-        
-        guard assertCount(finalised.errors, expected: 1) else { return }
-        guard assertCount(finalised.output, expected: 0) else { return }
-
-        let clashes = firstMatchClashes(in: finalised)
-            
-        let firstExpected = t1.finalised().output[0]
-        let secondExpected = t2.finalised().output[0]
-        
-        let firstClash = clashes[SVN.MatchClashesKey(firstExpected)]
-        let secondClash = clashes[SVN.MatchClashesKey(secondExpected)]
-
-        assertEqual(firstExpected, firstClash?.first)
-        assertEqual(secondExpected, secondClash?.last)
-    }
+#warning("erroneous 'MatchClash' used to be here, but I'm not sure nothing needs to replace it")
     
     func testNoError() {
         let t1 = transitionNode(s1, Match(), e1, s2)

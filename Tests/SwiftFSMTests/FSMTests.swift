@@ -185,6 +185,7 @@ final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
     func lock()     { actions.append("lock")     }
     func unlock()   { actions.append("unlock")   }
     func thankyou() { actions.append("thankyou") }
+    func idiot()    { actions.append("idiot")    }
     
     func testTurnstile() {
         var actual = [String]()
@@ -225,6 +226,61 @@ final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
         assertEventAction(.coin,  "unlock")
         assertEventAction(.coin,  "thankyou")
         assertEventAction(.coin,  "thankyou")
+        assertEventAction(.reset, "lock")
+    }
+    
+    func testPredicateTurnstile() throws {
+        var actual = [String]()
+        func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
+            assertEventAction(e, [a], line: line)
+        }
+        
+        func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
+            if !(a.first?.isEmpty ?? false) {
+                actual += a
+            }
+            fsm.handleEvent(e, predicates: [EnforcementStyle.weak, RewardStyle.punishing])
+            XCTAssertEqual(actions, actual, line: line)
+        }
+        
+        enum EnforcementStyle: Predicate {
+            case strong, weak
+        }
+        
+        enum RewardStyle: Predicate {
+            case punishing, rewarding
+        }
+                
+        let fsm = FSM<State, Event>(initialState: .locked)
+        
+        try! fsm.buildTable {
+            let resetable = SuperState {
+                when(.reset) | then(.locked)
+            }
+
+            define(.locked, superState: resetable, onEntry: [lock]) {
+                matching(EnforcementStyle.weak)   | when(.pass) | then(.locked)
+                matching(EnforcementStyle.strong) | when(.pass) | then(.alarming)
+                                                    when(.coin) | then(.unlocked)
+
+            }
+
+            define(.unlocked, superState: resetable, onEntry: [unlock]) {
+                matching(RewardStyle.rewarding) | when(.coin) | then(.unlocked) | thankyou
+                matching(RewardStyle.punishing) | when(.coin) | then(.unlocked) | idiot
+                                                  when(.pass) | then(.locked)
+            }
+
+            define(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+        }
+        
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.pass,  "lock")
+        assertEventAction(.pass,  "")
+        assertEventAction(.reset, "")
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.coin,  "idiot")
+        assertEventAction(.coin,  "idiot")
         assertEventAction(.reset, "lock")
     }
 }
