@@ -240,7 +240,7 @@ extension TransitionBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
-    ) -> Internal.MTASentence {
+    ) -> Internal.MWTASentence {
         Syntax.When.init([first] + rest, file: file, line: line)(block)
     }
     
@@ -257,7 +257,7 @@ extension TransitionBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
-    ) -> Internal.MWASentence {
+    ) -> Internal.MWTASentence {
         Syntax.Then(state, file: file, line: line)(block)
     }
     

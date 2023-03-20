@@ -106,35 +106,6 @@ protocol MWTAProtocol: Sentence { }
 protocol MWAProtocol: Sentence { }
 protocol MTAProtocol: Sentence { }
 
-protocol SyntaxBlock {
-    associatedtype BlockNode: Node<DefaultIO> where BlockNode.Input == BlockNode.Output
-    var blockNode: BlockNode { get }
-}
-
-protocol MWTASyntaxBlock: SyntaxBlock {}; extension MWTASyntaxBlock {
-    func callAsFunction(
-        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
-    ) -> Internal.MWTASentence {
-        .init(blockNode, block)
-    }
-}
-
-protocol MWASyntaxBlock: SyntaxBlock {}; extension MWASyntaxBlock {
-    func callAsFunction(
-        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
-    ) -> Internal.MWASentence {
-        .init(blockNode, block)
-    }
-}
-
-protocol MTASyntaxBlock: SyntaxBlock {}; extension MTASyntaxBlock {
-    func callAsFunction(
-        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
-    ) -> Internal.MTASentence {
-        .init(blockNode, block)
-    }
-}
-
 extension Node {
     func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {
         var this = self

@@ -7,7 +7,7 @@
 import Foundation
 
 extension Syntax {
-    struct Matching: MWTASyntaxBlock, MWASyntaxBlock, MTASyntaxBlock {
+    struct Matching {
         static func |<E: Hashable> (lhs: Self, rhs: When<E>) -> Internal.MatchingWhen {
             .init(node: rhs.node.appending(lhs.node))
         }
@@ -85,6 +85,24 @@ extension Syntax {
             node = MatchNode(match: Match(any: any.erased(), all: all.erased()), rest: [])
             self.file = file
             self.line = line
+        }
+        
+        func callAsFunction(
+            @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+        ) -> Internal.MWTASentence {
+            .init(blockNode, block)
+        }
+        
+        func callAsFunction(
+            @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        ) -> Internal.MWASentence {
+            .init(blockNode, block)
+        }
+        
+        func callAsFunction(
+            @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        ) -> Internal.MTASentence {
+            .init(blockNode, block)
         }
     }
 }

@@ -1049,8 +1049,8 @@ class WhenBlockTests: DefaultIOBlockTestsBase {
      }
      */
     
-    func assertMTANode(
-        _ b: Internal.MTASentence,
+    func assert(
+        _ b: Internal.MWTASentence,
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt = #line
@@ -1063,15 +1063,15 @@ class WhenBlockTests: DefaultIOBlockTestsBase {
     func testWhenBlock() {
         let l1 = #line; let w1 = when(1, 2) { mtaBlock }
         let l2 = #line; let w2 = When(1, 2) { mtaBlock }
-
-        assertMTANode(w1, nodeLine: l1, restLine: mtaLine)
-        assertMTANode(w2, nodeLine: l2, restLine: mtaLine)
+    
+        assert(w1, nodeLine: l1, restLine: mtaLine)
+        assert(w2, nodeLine: l2, restLine: mtaLine)
     }
 }
 
 class ThenBlockTests: DefaultIOBlockTestsBase {
-    func assertMWANode(
-        _ b: Internal.MWASentence,
+    func assert(
+        _ b: Internal.MWTASentence,
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt = #line
@@ -1085,8 +1085,8 @@ class ThenBlockTests: DefaultIOBlockTestsBase {
         let l1 = #line; let t1 = then(1) { mwaBlock }
         let l2 = #line; let t2 = Then(1) { mwaBlock }
 
-        assertMWANode(t1, nodeLine: l1, restLine: mwaLine)
-        assertMWANode(t2, nodeLine: l2, restLine: mwaLine)
+        assert(t1, nodeLine: l1, restLine: mwaLine)
+        assert(t2, nodeLine: l2, restLine: mwaLine)
     }
 }
 

@@ -7,7 +7,7 @@
 import Foundation
 
 extension Syntax {
-    struct Then<State: Hashable>: MWASyntaxBlock {
+    struct Then<State: Hashable> {
         static func | (lhs: Self, rhs: @escaping () -> ()) -> Internal.MatchingThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
@@ -32,6 +32,12 @@ extension Syntax {
             )
             self.file = file
             self.line = line
+        }
+        
+        func callAsFunction(
+            @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        ) -> Internal.MWTASentence {
+            .init(blockNode, block)
         }
     }
 }

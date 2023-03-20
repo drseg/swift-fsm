@@ -7,7 +7,7 @@
 import Foundation
 
 extension Syntax {
-    struct When<Event: Hashable>: MTASyntaxBlock {
+    struct When<Event: Hashable> {
         static func |<S: Hashable> (lhs: Self, rhs: Then<S>) -> Internal.MatchingWhenThen {
             .init(node: rhs.node.appending(lhs.node))
         }
@@ -49,6 +49,12 @@ extension Syntax {
                 file: file,
                 line: line
             )
+        }
+        
+        func callAsFunction(
+            @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        ) -> Internal.MWTASentence {
+            .init(blockNode, block)
         }
     }
 }
