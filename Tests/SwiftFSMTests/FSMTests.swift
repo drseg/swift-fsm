@@ -274,13 +274,14 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             define(.locked, superState: resetable, onEntry: [lock]) {
                 matching(EnforcementStyle.weak)   | when(.pass) | then(.locked)
                 matching(EnforcementStyle.strong) | when(.pass) | then(.alarming)
-                when(.coin) | then(.unlocked)
                 
+                when(.coin) | then(.unlocked)
             }
             
             define(.unlocked, superState: resetable, onEntry: [unlock]) {
                 matching(RewardStyle.rewarding) | when(.coin) | then(.unlocked) | thankyou
                 matching(RewardStyle.punishing) | when(.coin) | then(.unlocked) | idiot
+                
                 when(.pass) | then(.locked)
             }
             
