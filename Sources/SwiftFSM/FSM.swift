@@ -15,10 +15,10 @@ class FSM<State: Hashable, Event: Hashable> {
     
     struct Key: Hashable {
         let state: AnyHashable,
-            predicates: Set<AnyPredicate>,
+            predicates: PredicateSet,
             event: AnyHashable
         
-        init(state: AnyHashable, predicates: Set<AnyPredicate>, event: AnyHashable ) {
+        init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable ) {
             self.state = state
             self.predicates = predicates
             self.event = event
@@ -33,7 +33,7 @@ class FSM<State: Hashable, Event: Hashable> {
     
     struct Value {
         let state: AnyHashable,
-            predicates: Set<AnyPredicate>,
+            predicates: PredicateSet,
             event: AnyHashable,
             nextState: AnyHashable,
             actions: [() -> ()]
@@ -46,7 +46,7 @@ class FSM<State: Hashable, Event: Hashable> {
         state = initialState
     }
     
-    func buildTable(@TableBuilder _ table: () -> ([Syntax.Define<State>])) throws {
+    func buildTable(@TableBuilder _ table: () -> [Syntax.Define<State>]) throws {
         let transitionNode = TransitionNode(rest: table().map(\.node))
         let validationNode = SemanticValidationNode(rest: [transitionNode])
         let tableNode = PreemptiveTableNode(rest: [validationNode])
@@ -56,7 +56,9 @@ class FSM<State: Hashable, Event: Hashable> {
         makeTable(finalised.output)
     }
     
-    func checkForErrors(_ finalised: (output: [PreemptiveTableNode.Output], errors: [Error])) throws {
+    func checkForErrors(
+        _ finalised: (output: [PreemptiveTableNode.Output], errors: [Error])
+    ) throws {
         if !finalised.errors.isEmpty {
             throw CompoundError(errors: finalised.errors)
         }

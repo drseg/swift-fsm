@@ -799,7 +799,7 @@ class TransitionNodeTests: DefineConsumer {
 
 class PreemptiveTableNodeTests: DefineConsumer {
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
-                                         predicates: Set<AnyPredicate>,
+                                         predicates: PredicateSet,
                                          event: AnyTraceable,
                                          nextState: AnyTraceable,
                                          actionsOutput: String)

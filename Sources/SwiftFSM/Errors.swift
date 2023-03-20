@@ -25,9 +25,9 @@ class MatchError: Error {
     }
 }
 
-class DuplicateTypes: MatchError {}
+class DuplicateMatchTypes: MatchError {}
 
-class DuplicateValues: MatchError {}
+class DuplicateMatchValues: MatchError {}
 
 struct EmptyBuilderError: Error, Equatable {
     let caller: String

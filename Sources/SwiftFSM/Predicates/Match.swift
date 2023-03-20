@@ -77,16 +77,16 @@ class Match {
         }
         
         guard matchAll.elementsAreUniquelyTyped else {
-            return failure(predicates: matchAll, type: DuplicateTypes.self)
+            return failure(predicates: matchAll, type: DuplicateMatchTypes.self)
         }
         
         guard matchAny.elementsAreUnique else {
-            return failure(predicates: matchAny, type: DuplicateValues.self)
+            return failure(predicates: matchAny, type: DuplicateMatchValues.self)
         }
                 
         let intersection = matchAll.filter { matchAny.contains($0) }
         guard intersection.isEmpty else {
-            return failure(predicates: intersection, type: DuplicateValues.self)
+            return failure(predicates: intersection, type: DuplicateMatchValues.self)
         }
         
         return .success(self)

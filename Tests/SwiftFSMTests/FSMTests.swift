@@ -14,10 +14,6 @@ final class FSMTests: XCTestCase, TransitionBuilder {
     
     var fsm: FSM<State, Event> = FSM(initialState: 1)
     
-    func testSuccessfulInit() throws {
-        XCTAssertEqual(1, fsm.state)
-    }
-    
     func assertThrowsError<T: Error>(
         _ type: T.Type,
         count: Int = 1,
@@ -31,19 +27,23 @@ final class FSMTests: XCTestCase, TransitionBuilder {
         }
     }
     
-    func testBuildEmptyTable() throws {
+    func testSuccessfulInit() {
+        XCTAssertEqual(1, fsm.state)
+    }
+    
+    func testBuildEmptyTable() {
         assertThrowsError(EmptyTableError.self) {
             try fsm.buildTable { }
         }
     }
     
-    func testThrowsErrorsFromNodes() throws {
+    func testThrowsErrorsFromNodes() {
         assertThrowsError(EmptyBuilderError.self) {
             try fsm.buildTable { define(1) { } }
         }
     }
     
-    func testThrowsNSObjectError() throws {
+    func testThrowsNSObjectError()  {
         let fsm1 = FSM<NSObject, Int>(initialState: NSObject())
         let fsm2 = FSM<Int, NSObject>(initialState: 1)
         
@@ -60,7 +60,7 @@ final class FSMTests: XCTestCase, TransitionBuilder {
         }
     }
     
-    func testThrowsStateEventTypeClash() throws {
+    func testThrowsStateEventTypeClash() {
         assertThrowsError(TypeClashError.self) {
             try FSM<Int, Int>(initialState: 1).buildTable {
                 Syntax.Define(1) { Syntax.When(1) | Syntax.Then(2) }
@@ -68,7 +68,7 @@ final class FSMTests: XCTestCase, TransitionBuilder {
         }
     }
     
-    func testThrowsPredicateEventTypeClash() throws {
+    func testThrowsPredicateEventTypeClash() {
         assertThrowsError(TypeClashError.self) {
             try fsm.buildTable {
                 Syntax.Define(1) {
@@ -86,7 +86,7 @@ final class FSMTests: XCTestCase, TransitionBuilder {
         }
     }
     
-    func testValidTableDoesNotThrow() throws {
+    func testValidTableDoesNotThrow() {
         XCTAssertNoThrow(
             try fsm.buildTable {
                 define(1) { when(1.1) | then(2) }
@@ -170,18 +170,12 @@ final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
     
     enum TurnstileState: String, CustomStringConvertible {
         case locked, unlocked, alarming
-        
-        var description: String {
-            rawValue
-        }
+        var description: String { rawValue  }
     }
 
     enum TurnstileEvent: String, CustomStringConvertible {
         case reset, coin, pass
-        
-        var description: String {
-            rawValue
-        }
+        var description: String { rawValue }
     }
     
     var actions = [String]()

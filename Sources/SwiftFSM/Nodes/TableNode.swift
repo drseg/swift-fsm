@@ -8,7 +8,7 @@ import Foundation
 
 final class PreemptiveTableNode: Node {
     typealias Output = (state: AnyTraceable,
-                        predicates: Set<AnyPredicate>,
+                        predicates: PredicateSet,
                         event: AnyTraceable,
                         nextState: AnyTraceable,
                         actions: [Action])
@@ -31,7 +31,7 @@ final class PreemptiveTableNode: Node {
     
     struct ImplicitClashesKey: Hashable {
         let state: AnyTraceable,
-            predicates: Set<AnyPredicate>,
+            predicates: PredicateSet,
             event: AnyTraceable
         
         init(_ output: Output) {

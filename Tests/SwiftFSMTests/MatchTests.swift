@@ -150,7 +150,7 @@ class ValidationTests: MatchTests {
     }
     
     func assertHasDuplicateTypes(_ m1: Match, line: UInt = #line) {
-        let error = DuplicateTypes(message: "p1, p2",
+        let error = DuplicateMatchTypes(message: "p1, p2",
                                    files: [m1.file],
                                    lines: [m1.line])
         assert(match: m1, is: error, line: line)
@@ -166,7 +166,7 @@ class ValidationTests: MatchTests {
     }
     
     func assertDuplicateTypesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
-        let error = DuplicateTypes(message: "p1, p2",
+        let error = DuplicateMatchTypes(message: "p1, p2",
                                    files: [m1.file, m2.file],
                                    lines: [m1.line, m2.line])
         
@@ -184,7 +184,7 @@ class ValidationTests: MatchTests {
     }
     
     func assertHasDuplicateValues(_ m: Match, line: UInt = #line) {
-        let error =  DuplicateValues(message: "p1",
+        let error =  DuplicateMatchValues(message: "p1",
                                      files: [m.file],
                                      lines: [m.line])
         
@@ -196,7 +196,7 @@ class ValidationTests: MatchTests {
     }
     
     func assertDuplicateValuesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
-        let error =  DuplicateValues(message: "p1, p2",
+        let error =  DuplicateMatchValues(message: "p1, p2",
                                      files: [m1.file, m2.file],
                                      lines: [m1.line, m2.line])
         
@@ -372,7 +372,7 @@ extension MatchError: Equatable {
 }
 
 extension Collection where Element == [any Predicate] {
-    var erasedSets: Set<Set<AnyPredicate>> {
+    var erasedSets: PredicateSets {
         Set(map { Set($0.erased()) })
     }
 }
