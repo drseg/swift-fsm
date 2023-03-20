@@ -164,7 +164,7 @@ final class FSMTests: XCTestCase, TransitionBuilder {
     }
 }
 
-final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
+class FSMIntegrationTests: XCTestCase, TransitionBuilder {
     typealias State = TurnstileState
     typealias Event = TurnstileEvent
     
@@ -185,11 +185,12 @@ final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
     func lock()     { actions.append("lock")     }
     func unlock()   { actions.append("unlock")   }
     func thankyou() { actions.append("thankyou") }
-    func idiot()    { actions.append("idiot")    }
     
     let fsm = FSM<State, Event>(initialState: .locked)
     var actual = [String]()
-    
+}
+
+final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     func testTurnstile() {
         func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
             assertEventAction(e, [a], line: line)
@@ -228,6 +229,10 @@ final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
         assertEventAction(.coin,  "thankyou")
         assertEventAction(.reset, "lock")
     }
+}
+
+final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
+    func idiot() { actions.append("idiot")    }
     
     enum EnforcementStyle: Predicate {
         case strong, weak
@@ -237,19 +242,30 @@ final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
         case punishing, rewarding
     }
     
+    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
+        assertEventAction(e, [a], line: line)
+    }
+    
+    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
+        if !(a.first?.isEmpty ?? false) {
+            actual += a
+        }
+        fsm.handleEvent(e, predicates: [EnforcementStyle.weak, RewardStyle.punishing])
+        XCTAssertEqual(actions, actual, line: line)
+    }
+    
+    func assertTable() {
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.pass,  "lock")
+        assertEventAction(.pass,  "")
+        assertEventAction(.reset, "")
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.coin,  "idiot")
+        assertEventAction(.coin,  "idiot")
+        assertEventAction(.reset, "lock")
+    }
+    
     func testPredicateTurnstile() throws {
-        func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
-            assertEventAction(e, [a], line: line)
-        }
-        
-        func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
-            if !(a.first?.isEmpty ?? false) {
-                actual += a
-            }
-            fsm.handleEvent(e, predicates: [EnforcementStyle.weak, RewardStyle.punishing])
-            XCTAssertEqual(actions, actual, line: line)
-        }
-                        
         try! fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -271,29 +287,10 @@ final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
             define(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.pass,  "lock")
-        assertEventAction(.pass,  "")
-        assertEventAction(.reset, "")
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.coin,  "idiot")
-        assertEventAction(.coin,  "idiot")
-        assertEventAction(.reset, "lock")
+        assertTable()
     }
     
     func testDeduplicatedPredicateTurnstile() throws {
-        func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
-            assertEventAction(e, [a], line: line)
-        }
-        
-        func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
-            if !(a.first?.isEmpty ?? false) {
-                actual += a
-            }
-            fsm.handleEvent(e, predicates: [EnforcementStyle.weak, RewardStyle.punishing])
-            XCTAssertEqual(actions, actual, line: line)
-        }
-                        
         try! fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -320,14 +317,7 @@ final class FSMIntegrationTests_Turnstile: XCTestCase, TransitionBuilder {
             define(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.pass,  "lock")
-        assertEventAction(.pass,  "")
-        assertEventAction(.reset, "")
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.coin,  "idiot")
-        assertEventAction(.coin,  "idiot")
-        assertEventAction(.reset, "lock")
+        assertTable()
     }
 }
 
