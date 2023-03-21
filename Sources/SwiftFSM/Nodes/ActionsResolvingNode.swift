@@ -1,12 +1,12 @@
 //
-//  TransitionNode.swift
+//  ActionsResolvingNode.swift
 //
 //  Created by Daniel Segall on 17/03/2023.
 //
 
 import Foundation
 
-struct TransitionNode: Node {
+struct ActionsResolvingNode: Node {
     typealias Output = (state: AnyTraceable,
                         match: Match,
                         event: AnyTraceable,

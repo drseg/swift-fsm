@@ -61,7 +61,7 @@ class SemanticValidationNode: Node {
         self.rest = rest
     }
     
-    func combinedWithRest(_ rest: [TransitionNode.Output]) -> [Output] {
+    func combinedWithRest(_ rest: [ActionsResolvingNode.Output]) -> [Output] {
         var duplicates = DuplicatesDictionary()
         var clashes = ClashesDictionary()
     

@@ -35,7 +35,7 @@ extension Syntax {
         }
         
         func callAsFunction(
-            @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+            @Internal.MWABuilder _ block: () -> ([any MWA])
         ) -> Internal.MWTASentence {
             .init(blockNode, block)
         }

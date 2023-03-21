@@ -88,19 +88,19 @@ extension Syntax {
         }
         
         func callAsFunction(
-            @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+            @Internal.MWTABuilder _ block: () -> ([any MWTA])
         ) -> Internal.MWTASentence {
             .init(blockNode, block)
         }
         
         func callAsFunction(
-            @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+            @Internal.MWABuilder _ block: () -> ([any MWA])
         ) -> Internal.MWASentence {
             .init(blockNode, block)
         }
         
         func callAsFunction(
-            @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+            @Internal.MTABuilder _ block: () -> ([any MTA])
         ) -> Internal.MTASentence {
             .init(blockNode, block)
         }

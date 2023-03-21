@@ -47,7 +47,7 @@ class FSM<State: Hashable, Event: Hashable> {
     }
     
     func buildTable(@TableBuilder _ table: () -> [Syntax.Define<State>]) throws {
-        let transitionNode = TransitionNode(rest: table().map(\.node))
+        let transitionNode = ActionsResolvingNode(rest: table().map(\.node))
         let validationNode = SemanticValidationNode(rest: [transitionNode])
         let tableNode = PreemptiveTableNode(rest: [validationNode])
         let finalised = tableNode.finalised()

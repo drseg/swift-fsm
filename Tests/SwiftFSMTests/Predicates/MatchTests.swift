@@ -167,8 +167,8 @@ class ValidationTests: MatchTests {
     
     func assertDuplicateTypesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
         let error = DuplicateMatchTypes(message: "p1, p2",
-                                   files: [m1.file, m2.file],
-                                   lines: [m1.line, m2.line])
+                                        files: [m1.file, m2.file],
+                                        lines: [m1.line, m2.line])
         
         assert(match: m1.prepend(m2), is: error, line: line)
     }
@@ -185,8 +185,8 @@ class ValidationTests: MatchTests {
     
     func assertHasDuplicateValues(_ m: Match, line: UInt = #line) {
         let error =  DuplicateMatchValues(message: "p1",
-                                     files: [m.file],
-                                     lines: [m.line])
+                                          files: [m.file],
+                                          lines: [m.line])
         
         assert(match: m, is: error, line: line)
     }
@@ -197,8 +197,8 @@ class ValidationTests: MatchTests {
     
     func assertDuplicateValuesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
         let error =  DuplicateMatchValues(message: "p1, p2",
-                                     files: [m1.file, m2.file],
-                                     lines: [m1.line, m2.line])
+                                          files: [m1.file, m2.file],
+                                          lines: [m1.line, m2.line])
         
         assert(match: m1.prepend(m2), is: error, line: line)
     }

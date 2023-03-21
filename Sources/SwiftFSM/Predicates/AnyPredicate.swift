@@ -13,7 +13,7 @@ typealias PredicateSet = Set<AnyPredicate>
 protocol Predicate: CaseIterable, Hashable { }
 
 extension Predicate {
-    func erase() -> AnyPredicate {
+    func erased() -> AnyPredicate {
         AnyPredicate(base: self)
     }
     
@@ -51,7 +51,7 @@ extension Array {
     func erased() -> [AnyPredicate] where Element == any Predicate { _erased() }
     
     private func _erased() -> [AnyPredicate] {
-        map { ($0 as! any Predicate).erase() }
+        map { ($0 as! any Predicate).erased() }
     }
 }
 

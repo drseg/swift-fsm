@@ -1,17 +1,17 @@
 //
-//  TransitionBuilder.swift
+//  TableBuilder.swift
 //
 //  Created by Daniel Segall on 03/03/2023.
 //
 
 import Foundation
 
-protocol TransitionBuilder {
+protocol TableBuilder {
     associatedtype State: Hashable
     associatedtype Event: Hashable
 }
 
-extension TransitionBuilder {
+extension TableBuilder {
     func define(
         _ s1: State,
         _ rest: State...,
@@ -38,7 +38,7 @@ extension TransitionBuilder {
         onExit: [() -> ()] = [],
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+        @Internal.MWTABuilder _ block: () -> ([any MWTA])
     ) -> Syntax.Define<State> {
         .init(states: [s1] + rest,
               superState: superState,
@@ -94,9 +94,9 @@ extension TransitionBuilder {
         _ p: any Predicate,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+        @Internal.MWTABuilder _ block: () -> ([any MWTA])
     ) -> Internal.MWTASentence {
-        Syntax.Matching(p, file: file, line: line)(block)
+        Syntax.Matching(p, file: file, line: line).callAsFunction(block)
     }
     
     func matching(
@@ -105,9 +105,13 @@ extension TransitionBuilder {
         _ anyRest: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+        @Internal.MWTABuilder _ block: () -> ([any MWTA])
     ) -> Internal.MWTASentence {
-        Syntax.Matching(any: [any, any2] + anyRest, all: [], file: file, line: line)(block)
+        Syntax.Matching(any: [any, any2] + anyRest,
+                        all: [],
+                        file: file,
+                        line: line
+        ).callAsFunction(block)
     }
 
     func matching(
@@ -116,9 +120,14 @@ extension TransitionBuilder {
         _ allRest: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+        @Internal.MWTABuilder _ block: () -> ([any MWTA])
     ) -> Internal.MWTASentence {
-        Syntax.Matching(any: [], all: [all, all2] + allRest, file: file, line: line)(block)
+        Syntax.Matching(
+            any: [],
+            all: [all, all2] + allRest,
+            file: file,
+            line: line
+        ).callAsFunction(block)
     }
 
     func matching(
@@ -130,18 +139,23 @@ extension TransitionBuilder {
         _ allRest: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+        @Internal.MWTABuilder _ block: () -> ([any MWTA])
     ) -> Internal.MWTASentence {
-        Syntax.Matching(any: [any, any2] + anyRest, all: [all, all2] + allRest, file: file, line: line)(block)
+        Syntax.Matching(
+            any: [any, any2] + anyRest,
+            all: [all, all2] + allRest,
+            file: file,
+            line: line
+        ).callAsFunction(block)
     }
     
     func matching(
         _ p: any Predicate,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        @Internal.MWABuilder _ block: () -> ([any MWA])
     ) -> Internal.MWASentence {
-        Syntax.Matching(p, file: file, line: line)(block)
+        Syntax.Matching(p, file: file, line: line).callAsFunction(block)
     }
     
     func matching(
@@ -150,9 +164,14 @@ extension TransitionBuilder {
         _ anyRest: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        @Internal.MWABuilder _ block: () -> ([any MWA])
     ) -> Internal.MWASentence {
-        Syntax.Matching(any: [any, any2] + anyRest, all: [], file: file, line: line)(block)
+        Syntax.Matching(
+            any: [any, any2] + anyRest,
+            all: [],
+            file: file,
+            line: line
+        ).callAsFunction(block)
     }
 
     func matching(
@@ -161,9 +180,14 @@ extension TransitionBuilder {
         _ allRest: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        @Internal.MWABuilder _ block: () -> ([any MWA])
     ) -> Internal.MWASentence {
-        Syntax.Matching(any: [], all: [all, all2] + allRest, file: file, line: line)(block)
+        Syntax.Matching(
+            any: [],
+            all: [all, all2] + allRest,
+            file: file,
+            line: line
+        ).callAsFunction(block)
     }
 
     func matching(
@@ -175,18 +199,23 @@ extension TransitionBuilder {
         _ allRest: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        @Internal.MWABuilder _ block: () -> ([any MWA])
     ) -> Internal.MWASentence {
-        Syntax.Matching(any: [any, any2] + anyRest, all: [all, all2] + allRest, file: file, line: line)(block)
+        Syntax.Matching(
+            any: [any, any2] + anyRest,
+            all: [all, all2] + allRest,
+            file: file,
+            line: line
+        ).callAsFunction(block)
     }
     
     func matching(
         _ p: any Predicate,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        @Internal.MTABuilder _ block: () -> ([any MTA])
     ) -> Internal.MTASentence {
-        Syntax.Matching(p, file: file, line: line)(block)
+        Syntax.Matching(p, file: file, line: line).callAsFunction(block)
     }
     
     func matching(
@@ -195,9 +224,14 @@ extension TransitionBuilder {
         _ anyRest: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        @Internal.MTABuilder _ block: () -> ([any MTA])
     ) -> Internal.MTASentence {
-        Syntax.Matching(any: [any, any2] + anyRest, all: [], file: file, line: line)(block)
+        Syntax.Matching(
+            any: [any, any2] + anyRest,
+            all: [],
+            file: file,
+            line: line
+        ).callAsFunction(block)
     }
 
     func matching(
@@ -206,9 +240,14 @@ extension TransitionBuilder {
         _ allRest: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        @Internal.MTABuilder _ block: () -> ([any MTA])
     ) -> Internal.MTASentence {
-        Syntax.Matching(any: [], all: [all, all2] + allRest, file: file, line: line)(block)
+        Syntax.Matching(
+            any: [],
+            all: [all, all2] + allRest,
+            file: file,
+            line: line
+        ).callAsFunction(block)
     }
 
     func matching(
@@ -220,9 +259,14 @@ extension TransitionBuilder {
         _ allRest: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        @Internal.MTABuilder _ block: () -> ([any MTA])
     ) -> Internal.MTASentence {
-        Syntax.Matching(any: [any, any2] + anyRest, all: [all, all2] + allRest, file: file, line: line)(block)
+        Syntax.Matching(
+            any: [any, any2] + anyRest,
+            all: [all, all2] + allRest,
+            file: file,
+            line: line
+        ).callAsFunction(block)
     }
     
     func when(
@@ -239,9 +283,9 @@ extension TransitionBuilder {
         _ rest: Event...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        @Internal.MTABuilder _ block: () -> ([any MTA])
     ) -> Internal.MWTASentence {
-        Syntax.When.init([first] + rest, file: file, line: line)(block)
+        Syntax.When.init([first] + rest, file: file, line: line).callAsFunction(block)
     }
     
     func then(
@@ -256,9 +300,9 @@ extension TransitionBuilder {
         _ state: State? = nil,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        @Internal.MWABuilder _ block: () -> ([any MWA])
     ) -> Internal.MWTASentence {
-        Syntax.Then(state, file: file, line: line)(block)
+        Syntax.Then(state, file: file, line: line).callAsFunction(block)
     }
     
     func actions(
@@ -266,9 +310,9 @@ extension TransitionBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTAProtocol])
+        @Internal.MWTABuilder _ block: () -> ([any MWTA])
     ) -> Internal.MWTASentence {
-        Syntax.Actions([a1] + aRest, file: file, line: line)(block)
+        Syntax.Actions([a1] + aRest, file: file, line: line).callAsFunction(block)
     }
     
     func actions(
@@ -276,9 +320,9 @@ extension TransitionBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWAProtocol])
+        @Internal.MWABuilder _ block: () -> ([any MWA])
     ) -> Internal.MWASentence {
-        Syntax.Actions([a1] + aRest, file: file, line: line)(block)
+        Syntax.Actions([a1] + aRest, file: file, line: line).callAsFunction(block)
     }
     
     func actions(
@@ -286,8 +330,8 @@ extension TransitionBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+        @Internal.MTABuilder _ block: () -> ([any MTA])
     ) -> Internal.MTASentence {
-        Syntax.Actions([a1] + aRest, file: file, line: line)(block)
+        Syntax.Actions([a1] + aRest, file: file, line: line).callAsFunction(block)
     }
 }

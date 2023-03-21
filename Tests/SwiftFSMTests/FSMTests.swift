@@ -8,7 +8,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-final class FSMTests: XCTestCase, TransitionBuilder {
+final class FSMTests: XCTestCase, TableBuilder {
     typealias State = Int
     typealias Event = Double
     
@@ -164,7 +164,7 @@ final class FSMTests: XCTestCase, TransitionBuilder {
     }
 }
 
-class FSMIntegrationTests: XCTestCase, TransitionBuilder {
+class FSMIntegrationTests: XCTestCase, TableBuilder {
     typealias State = TurnstileState
     typealias Event = TurnstileEvent
     
@@ -321,37 +321,37 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         assertTable()
     }
     
-    func testDerangedSyntaxTurnstile() {
-        typealias duck = Syntax.Define<State>
-        typealias wombat = Syntax.When<Event>
-        typealias turtle = Syntax.Then<State>
-        typealias mouse = Syntax.Matching
-        typealias cat = SuperState
+    func testTypealiasSyntaxTurnstile() {
+        typealias D = Syntax.Define<State>
+        typealias W = Syntax.When<Event>
+        typealias T = Syntax.Then<State>
+        typealias M = Syntax.Matching
+        typealias SS = SuperState
         
         try! fsm.buildTable {
-            let cat = cat {
-                wombat(.reset) | turtle(.locked)
+            let resetable = SS {
+                W(.reset) | T(.locked)
             }
             
-            duck(.locked, superState: cat, onEntry: [lock]) {
-                wombat(.pass) {
-                    mouse(EnforcementStyle.weak)   | turtle(.locked)
-                    mouse(EnforcementStyle.strong) | turtle(.alarming)
+            D(.locked, superState: resetable, onEntry: [lock]) {
+                W(.pass) {
+                    M(EnforcementStyle.weak)   | T(.locked)
+                    M(EnforcementStyle.strong) | T(.alarming)
                 }
                 
-                wombat(.coin) | turtle(.unlocked)
+                W(.coin) | T(.unlocked)
             }
             
-            duck(.unlocked, superState: cat, onEntry: [unlock]) {
-                turtle(.unlocked) {
-                    mouse(RewardStyle.rewarding) | wombat(.coin) | thankyou
-                    mouse(RewardStyle.punishing) | wombat(.coin) | idiot
+            D(.unlocked, superState: resetable, onEntry: [unlock]) {
+                T(.unlocked) {
+                    M(RewardStyle.rewarding) | W(.coin) | thankyou
+                    M(RewardStyle.punishing) | W(.coin) | idiot
                 }
                 
-                wombat(.pass) | turtle(.locked)
+                W(.pass) | T(.locked)
             }
             
-            duck(.alarming, superState: cat, onEntry: [alarmOn], onExit: [alarmOff])
+            D(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertTable()

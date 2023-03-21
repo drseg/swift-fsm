@@ -1,259 +1,55 @@
 //
-//  TransitionBuilderTests.swift
-//
-//  Created by Daniel Segall on 03/03/2023.
+//  BlockComponentTests.swift
+//  
+//  Created by Daniel Segall on 20/03/2023.
 //
 
-import Foundation
 import XCTest
 @testable import SwiftFSM
 
-class SyntaxTestsBase: XCTestCase, TransitionBuilder {
-    typealias State = Int
-    typealias Event = Int
-    
-    typealias Define = Syntax.Define<State>
-    typealias Matching = Syntax.Matching
-    typealias When = Syntax.When<Event>
-    typealias Then = Syntax.Then<State>
-    typealias Actions = Syntax.Actions
-    
-    typealias MatchingWhenThen = Internal.MatchingWhenThen
-    typealias MatchingWhen = Internal.MatchingWhen
-    
+class BlockTests: SyntaxTestsBase {
     typealias MWTABuilder = Internal.MWTABuilder
     typealias MWABuilder = Internal.MWABuilder
     typealias MTABuilder = Internal.MTABuilder
     
-    typealias AnyNode = any Node
-    
-    var output = ""
-    
-    func assertMatching(
-        _ m: Matching,
-        any: any Predicate...,
-        all: any Predicate...,
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        XCTAssertTrue(m.node.rest.isEmpty, line: xl)
-        assertMatching(m.node, any: any, all: all, sutLine: sl, xctLine: xl)
-    }
-    
-    func assertMatching(
-        _ node: MatchNodeBase,
-        any: [any Predicate] = [],
-        all: [any Predicate] = [],
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        XCTAssertEqual(any.erased(), node.match.matchAny, line: xl)
-        XCTAssertEqual(all.erased(), node.match.matchAll, line: xl)
-        
-        if let node = node as? MatchBlockNode {
-            assertNeverEmptyNode(node, caller: "match", sutLine: sl, xctLine: xl)
-        }
-    }
-    
-    func assertWhen(_ w: When, sutLine: Int, xctLine xl: UInt = #line) {
-        XCTAssertTrue(w.node.rest.isEmpty, line: xl)
-        assertWhen(w.node, sutLine: sutLine, xctLine: xl)
-    }
-    
-    func assertWhen(_ node: WhenNodeBase, sutLine sl: Int, xctLine xl: UInt = #line) {
-        XCTAssertEqual([1, 2], node.events.map(\.base), line: xl)
-        XCTAssertEqual([#file, #file], node.events.map(\.file), line: xl)
-        XCTAssertEqual([sl, sl], node.events.map(\.line), line: xl)
-        
-        if let node = node as? any NeverEmptyNode {
-            assertNeverEmptyNode(node, caller: "when", sutLine: sl, xctLine: xl)
-        }
-    }
-    
-    func assertThen(
-        _ n: ThenNodeBase,
-        state: State?,
-        sutLine sl: Int?,
-        file: String? = nil,
-        xctLine xl: UInt = #line
-    ) {
-        XCTAssertEqual(state, n.state?.base as? State, line: xl)
-        XCTAssertEqual(file, n.state?.file, line: xl)
-        XCTAssertEqual(sl, n.state?.line, line: xl)
-        
-        if let node = n as? ThenBlockNode {
-            assertNeverEmptyNode(node, caller: "then", sutLine: sl ?? -1, xctLine: xl)
-        }
-    }
-    
-    func assertActionsNode(
-        _ n: ActionsNodeBase,
-        expectedOutput eo: String,
-        state: State?,
-        file: String? = #file,
-        sutLine sl: Int?,
-        xctLine xl: UInt = #line
-    ) {
-        let thenNode = n.rest.first as! ThenNode
-        assertThen(thenNode, state: state, sutLine: sl, file: file, xctLine: xl)
-        assertActions(n.actions, expectedOutput: eo, xctLine: xl)
-    }
-    
-    func assertNeverEmptyNode(
-        _ node: any NeverEmptyNode,
-        caller: String,
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        XCTAssertEqual(#file, node.file, line: xl)
-        XCTAssertEqual(sl, node.line, line: xl)
-        XCTAssertEqual(caller, node.caller, line: xl)
-    }
-    
-    func pass() { output += "pass" }
-    
-    func assertMWTA(
-        _ n: AnyNode,
-        expectedOutput eo: String = "pass",
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        let actions = n as! ActionsNode
-        let then = actions.rest.first as! ThenNode
-        let when = then.rest.first as! WhenNode
-        let match = when.rest.first as! MatchNode
-        
-        XCTAssertEqual(1, actions.rest.count, line: xl)
-        XCTAssertEqual(1, then.rest.count, line: xl)
-        XCTAssertEqual(1, when.rest.count, line: xl)
-        XCTAssertEqual(0, match.rest.count, line: xl)
-        
-        assertActionsNode(actions, expectedOutput: eo, state: 1, sutLine: sl, xctLine: xl)
-        assertThen(then, state: 1, sutLine: sl, file: #file, xctLine: xl)
-        assertWhen(when, sutLine: sl, xctLine: xl)
-        assertMatching(match, all: [P.a], sutLine: sl, xctLine: xl)
-    }
-    
-    func assertMWA(
-        _ n: AnyNode,
-        expectedOutput eo: String = "pass",
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        let actions = n as! ActionsNode
-        let when = actions.rest.first as! WhenNode
-        let match = when.rest.first as! MatchNode
-        
-        XCTAssertEqual(1, actions.rest.count, line: xl)
-        XCTAssertEqual(1, when.rest.count, line: xl)
-        XCTAssertEqual(0, match.rest.count, line: xl)
-        
-        assertActions(actions.actions, expectedOutput: eo, xctLine: xl)
-        assertWhen(when, sutLine: sl, xctLine: xl)
-        assertMatching(match, all: [P.a], sutLine: sl, xctLine: xl)
-    }
-    
-    func assertMTA(
-        _ n: AnyNode,
-        expectedOutput eo: String = "pass",
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        let actions = n as! ActionsNode
-        let then = actions.rest.first as! ThenNode
-        let match = then.rest.first as! MatchNode
-        
-        XCTAssertEqual(1, actions.rest.count, line: xl)
-        XCTAssertEqual(1, then.rest.count, line: xl)
-        XCTAssertEqual(0, match.rest.count, line: xl)
-        
-        assertActions(actions.actions, expectedOutput: eo, xctLine: xl)
-        assertThen(then, state: 1, sutLine: sl, file: #file, xctLine: xl)
-        assertMatching(match, all: [P.a], sutLine: sl, xctLine: xl)
-    }
-    
-    func assertWTA(
-        _ n: AnyNode,
-        expectedOutput eo: String = "pass",
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        let actions = n as! ActionsNode
-        let then = actions.rest.first as! ThenNode
-        let when = then.rest.first as! WhenNode
-        
-        XCTAssertEqual(1, actions.rest.count, line: xl)
-        XCTAssertEqual(1, then.rest.count, line: xl)
-        XCTAssertEqual(0, when.rest.count, line: xl)
-        
-        assertActionsNode(actions, expectedOutput: eo, state: 1, sutLine: sl, xctLine: xl)
-        assertThen(then, state: 1, sutLine: sl, file: #file, xctLine: xl)
-        assertWhen(when, sutLine: sl, xctLine: xl)
-    }
-    
-    func assertWA(
-        _ n: AnyNode,
-        expectedOutput eo: String = "pass",
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        let actions = n as! ActionsNode
-        let when = actions.rest.first as! WhenNode
-        
-        XCTAssertEqual(1, actions.rest.count, line: xl)
-        XCTAssertEqual(0, when.rest.count, line: xl)
-        
-        assertActions(actions.actions, expectedOutput: eo, xctLine: xl)
-        assertWhen(when, sutLine: sl, xctLine: xl)
-    }
-    
-    func assertTA(
-        _ n: AnyNode,
-        expectedOutput eo: String = "pass",
-        sutLine sl: Int,
-        xctLine xl: UInt = #line
-    ) {
-        let actions = n as! ActionsNode
-        let then = actions.rest.first as! ThenNode
-        
-        XCTAssertEqual(1, actions.rest.count, line: xl)
-        XCTAssertEqual(0, then.rest.count, line: xl)
-        
-        assertActions(actions.actions, expectedOutput: eo, xctLine: xl)
-        assertThen(then, state: 1, sutLine: sl, file: #file, xctLine: xl)
-    }
-    
-    func assertActions(
-        _ actions: [() -> ()],
-        expectedOutput eo: String,
-        xctLine xl: UInt = #line
-    ) {
-        actions.executeAll()
-        XCTAssertEqual(eo, output, line: xl)
-        output = ""
-    }
-    
     func assertMWTAResult(
         _ result: [AnyNode],
         expectedOutput eo: String = "pass",
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
-        assertMWTA(result[0], expectedOutput: eo, sutLine: sl, xctLine: xl)
-        assertWTA(result[1], expectedOutput: eo, sutLine: sl + 1, xctLine: xl)
+        assertMWTA(result[0],
+                   expectedOutput: eo,
+                   sutFile: sf,
+                   xctFile: xf,
+                   sutLine: sl,
+                   xctLine: xl)
+        
+        assertWTA(result[1],
+                  expectedOutput: eo,
+                  sutFile: sf,
+                  xctFile: xf,
+                  sutLine: sl + 1,
+                  xctLine: xl)
     }
     
     func assertMWAResult(
         _ result: [AnyNode],
         expectedOutput eo: String = "pass",
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
-        assertMWA(result[0], expectedOutput: eo, sutLine: sl, xctLine: xl)
+        assertMWA(result[0], expectedOutput: eo, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
         
         if result.count == 2 {
             assertWA(result[1],
                      expectedOutput: eo,
+                     sutFile: sf,
+                     xctFile: xf,
                      sutLine: sl + 1,
                      xctLine: xl)
         }
@@ -262,139 +58,26 @@ class SyntaxTestsBase: XCTestCase, TransitionBuilder {
     func assertMTAResult(
         _ result: [AnyNode],
         expectedOutput eo: String = "pass",
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
-        assertMTA(result[0], expectedOutput: eo, sutLine: sl, xctLine: xl)
+        assertMTA(result[0], expectedOutput: eo, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
         
         if result.count == 2 {
             assertTA(result[1],
                      expectedOutput: eo,
+                     sutFile: sf,
+                     xctFile: xf,
                      sutLine: sl + 1,
                      xctLine: xl)
         }
     }
 }
 
-final class ComponentTests: SyntaxTestsBase {
-    func testMatching() {
-        let m1 = matching(P.a); let l1 = #line
-        let m2 = Matching(P.a); let l2 = #line
-        
-        assertMatching(m1, all: P.a, sutLine: l1)
-        assertMatching(m2, all: P.a, sutLine: l2)
-        
-        let m3 = matching(any: P.a, P.b, line: -1)
-        let m4 = Matching(any: P.a, P.b, line: -1)
-
-        assertMatching(m3, any: P.a, P.b, sutLine: -1)
-        assertMatching(m4, any: P.a, P.b, sutLine: -1)
-        
-        let m5 = matching(all: P.a, Q.a, line: -1)
-        let m6 = Matching(all: P.a, Q.a, line: -1)
-        
-        assertMatching(m5, all: P.a, Q.a, sutLine: -1)
-        assertMatching(m6, all: P.a, Q.a, sutLine: -1)
-        
-        let m7 = matching(any: P.a, P.b, all: Q.a, R.a, line: -1)
-        let m8 = Matching(any: P.a, P.b, all: Q.a, R.a, line: -1)
-        
-        assertMatching(m7, any: P.a, P.b, all: Q.a, R.a, sutLine: -1)
-        assertMatching(m8, any: P.a, P.b, all: Q.a, R.a, sutLine: -1)
-    }
-            
-    func testWhen() {
-        let w1 = when(1, 2); let l1 = #line
-        let w2 = When(1, 2); let l2 = #line
-        
-        assertWhen(w1, sutLine: l1)
-        assertWhen(w2, sutLine: l2)
-    }
-    
-    func testThen() {
-        let n1 = then(1).node; let l1 = #line
-        let n2 = Then(1).node; let l2 = #line
-        
-        let n3 = then().node
-        let n4 = Then().node
-        
-        assertThen(n1, state: 1, sutLine: l1, file: #file)
-        assertThen(n2, state: 1, sutLine: l2, file: #file)
-
-        assertThen(n3, state: nil, sutLine: nil)
-        assertThen(n4, state: nil, sutLine: nil)
-    }
-    
-    func testMatchingWhen() {
-        func assertMW(_ mw: MatchingWhen, sutLine sl: Int, xctLine xl: UInt = #line) {
-            let whenNode = mw.node
-            let matchNode = whenNode.rest.first as! MatchNode
-            
-            XCTAssertEqual(1, whenNode.rest.count, line: xl)
-            XCTAssertEqual(0, matchNode.rest.count, line: xl)
-            
-            assertWhen(whenNode, sutLine: sl, xctLine: xl)
-            assertMatching(matchNode, all: [P.a], sutLine: sl, xctLine: xl)
-        }
-
-        assertMW(matching(P.a) | when(1, 2), sutLine: #line)
-        assertMW(Matching(P.a) | When(1, 2), sutLine: #line)
-    }
-    
-    func testMatchingWhenThen() {
-        func assertMWT(_ mwt: MatchingWhenThen, sutLine sl: Int, xctLine xl: UInt = #line) {
-            let then = mwt.node
-            let when = then.rest.first as! WhenNode
-            let match = when.rest.first as! MatchNode
-            
-            XCTAssertEqual(1, then.rest.count, line: xl)
-            XCTAssertEqual(1, when.rest.count, line: xl)
-            XCTAssertEqual(0, match.rest.count, line: xl)
-            
-            assertThen(then, state: 1, sutLine: sl, file: #file, xctLine: xl)
-            assertWhen(when, sutLine: sl, xctLine: xl)
-            assertMatching(match, all: [P.a], sutLine: sl, xctLine: xl)
-        }
-        
-        assertMWT(matching(P.a) | when(1, 2) | then(1), sutLine: #line)
-        assertMWT(Matching(P.a) | When(1, 2) | Then(1), sutLine: #line)
-    }
-    
-    func testMatchingWhenThenActions() {
-        let mwta1 = matching(P.a) | when(1, 2) | then(1) | pass; let l1 = #line
-        let mwta2 = Matching(P.a) | When(1, 2) | Then(1) | pass; let l2 = #line
-
-        assertMWTA(mwta1.node, sutLine: l1)
-        assertMWTA(mwta2.node, sutLine: l2)
-    }
-    
-    func testWhenThen() {
-        func assertWT(_ wt: MatchingWhenThen, sutLine sl: Int, xctLine xl: UInt = #line) {
-            let then = wt.node
-            let when = then.rest.first as! WhenNode
-
-            XCTAssertEqual(1, then.rest.count, line: xl)
-            XCTAssertEqual(0, when.rest.count, line: xl)
-
-            assertThen(then, state: 1, sutLine: sl, file: #file, xctLine: xl)
-            assertWhen(when, sutLine: sl, xctLine: xl)
-        }
-
-        assertWT(when(1, 2) | then(1), sutLine: #line)
-        assertWT(When(1, 2) | Then(1), sutLine: #line)
-    }
-    
-    func testWhenThenActions() {
-        let wta1 = when(1, 2) | then(1) | pass; let l1 = #line
-        let wta2 = When(1, 2) | Then(1) | pass; let l2 = #line
-        
-        assertWTA(wta1.node, sutLine: l1)
-        assertWTA(wta2.node, sutLine: l2)
-    }
-}
-
-class BlockComponentTests: SyntaxTestsBase {
-    func buildMWTA(@MWTABuilder _ block: () -> ([any MWTAProtocol])) -> [any MWTAProtocol] {
+class BlockComponentTests: BlockTests {
+    func buildMWTA(@MWTABuilder _ block: () -> ([any MWTA])) -> [any MWTA] {
         block()
     }
     
@@ -443,11 +126,9 @@ class BlockComponentTests: SyntaxTestsBase {
             XCTAssertEqual(1, d.node.rest.count, line: xl)
             let gNode = d.node.rest.first as! GivenNode
             XCTAssertEqual([1, 2], gNode.states.map(\.base))
-            assertMWTAResult(gNode.rest, sutLine: el, xctLine: xl)
             
-            assertActions(d.node.onEntry + d.node.onExit,
-                          expectedOutput: "entryexit",
-                          xctLine: xl)
+            assertMWTAResult(gNode.rest, sutLine: el, xctLine: xl)
+            assertActions(d.node.onEntry + d.node.onExit, expectedOutput: "entryexit", xctLine: xl)
         }
         
         func entry() { output += "entry" }
@@ -462,45 +143,27 @@ class BlockComponentTests: SyntaxTestsBase {
                             when(1, 2) | then(1) | pass
         }
         
-        let l1 = #line; let d1 = define(1, 2,
-                                        superState: s,
-                                        onEntry: [entry],
-                                        onExit: [exit])
-        
-        let l2 = #line; let d2 = Define(1, 2,
-                                        superState: s,
-                                        onEntry: [entry],
-                                        onExit: [exit])
+        let l1 = #line; let d1 = define(1, 2, superState: s, onEntry: [entry], onExit: [exit])
+        let l2 = #line; let d2 = Define(1, 2, superState: s, onEntry: [entry], onExit: [exit])
         
         assertDefine(d1, sutLine: l1, elementLine: l0)
         assertDefine(d2, sutLine: l2, elementLine: l0)
         
-        let l3 = #line; let d3 = define(1, 2,
-                                        onEntry: [entry],
-                                        onExit: [exit]) {
+        let l3 = #line; let d3 = define(1, 2, onEntry: [entry], onExit: [exit]) {
             matching(P.a) | when(1, 2) | then(1) | pass
                             when(1, 2) | then(1) | pass
         }
         
-        let l4 = #line; let d4 = Define(1, 2,
-                                        onEntry: [entry],
-                                        onExit: [exit]) {
+        let l4 = #line; let d4 = Define(1, 2, onEntry: [entry], onExit: [exit]) {
             matching(P.a) | when(1, 2) | then(1) | pass
                             when(1, 2) | then(1) | pass
         }
         
-        assertDefine(d3, sutLine: l3, elementLine: l3 + 3)
-        assertDefine(d4, sutLine: l4, elementLine: l4 + 3)
+        assertDefine(d3, sutLine: l3, elementLine: l3 + 1)
+        assertDefine(d4, sutLine: l4, elementLine: l4 + 1)
         
-        let d5 = define(1, 2,
-                        superState: s,
-                        onEntry: [entry],
-                        onExit: [exit]) { }
-        
-        let d6 = Define(1, 2,
-                        superState: s,
-                        onEntry: [entry],
-                        onExit: [exit]) { }
+        let d5 = define(1, 2,superState: s, onEntry: [entry],  onExit: [exit]) { }
+        let d6 = Define(1, 2, superState: s, onEntry: [entry], onExit: [exit]) { }
         
         // technically valid/non-empty but need to flag empty trailing block
         assertEmpty(d5)
@@ -513,7 +176,7 @@ class BlockComponentTests: SyntaxTestsBase {
         assertEmpty(d8)
     }
     
-    func testDefineWithAddsBlockAndSuperStateNodesTogether() {
+    func testDefineAddsBlockAndSuperStateNodesTogether() {
         #warning("This test is not sufficient")
         let s = SuperState                { when(1) | then(1) | pass }
         let d1 = define(1, superState: s) { when(2) | then(2) | pass }
@@ -545,24 +208,24 @@ class BlockComponentTests: SyntaxTestsBase {
     }
 }
 
-class DefaultIOBlockTestsBase: SyntaxTestsBase {
-    let mwtaLine = #line; @MWTABuilder var mwtaBlock: [any MWTAProtocol] {
+class DefaultIOBlockTests: BlockTests {
+    let mwtaLine = #line; @MWTABuilder var mwtaBlock: [any MWTA] {
         Matching(P.a) | When(1, 2) | Then(1) | pass
                         When(1, 2) | Then(1) | pass
     }
     
-    let mwaLine = #line; @MWABuilder var mwaBlock: [any MWAProtocol] {
+    let mwaLine = #line; @MWABuilder var mwaBlock: [any MWA] {
         Matching(P.a) | When(1, 2) | pass
                         When(1, 2) | pass
     }
     
-    let mtaLine = #line; @MTABuilder var mtaBlock: [any MTAProtocol] {
+    let mtaLine = #line; @MTABuilder var mtaBlock: [any MTA] {
         Matching(P.a) | Then(1) | pass
                         Then(1) | pass
     }
 }
 
-class ActionsBlockTests: DefaultIOBlockTestsBase {
+class ActionsBlockTests: DefaultIOBlockTests {
     func abnComponents(of s: Sentence) -> (ActionsBlockNode, ActionsBlockNode) {
         let a1 = abn(s.node)
         let a2 = abn(a1.rest.first!)
@@ -707,7 +370,11 @@ class ActionsBlockTests: DefaultIOBlockTestsBase {
             let c = abnComponents(of: b)
             
             assertActionsBlock(c.0, expectedOutput: eo, sutLine: sl, xctLine: xl)
-            assertMWTANode(c.1, expectedNodeOutput: eo, nodeLine: sl, restLine: mwtaLine + 1, xctLine: xl)
+            assertMWTANode(c.1,
+                           expectedNodeOutput: eo,
+                           nodeLine: sl,
+                           restLine: mwtaLine + 1,
+                           xctLine: xl)
         }
         
         let l1 = #line; let a1 = actions(pass) { actions(pass) { mwtaBlock } }
@@ -770,7 +437,7 @@ class ActionsBlockTests: DefaultIOBlockTestsBase {
     }
 }
 
-class MatchingBlockTests: DefaultIOBlockTestsBase {
+class MatchingBlockTests: DefaultIOBlockTests {
     func mbnComponents(of s: Sentence) -> (MatchBlockNode, MatchBlockNode) {
         let a1 = mbn(s.node)
         let a2 = mbn(a1.rest.first!)
@@ -825,7 +492,7 @@ class MatchingBlockTests: DefaultIOBlockTestsBase {
         xctLine xl: UInt = #line
     ) {
         assertNeverEmptyNode(b, caller: "match", sutLine: sl, xctLine: xl)
-        assertMatching(b, any: any, all: all, sutLine: sl, xctLine: xl)
+        assertMatchNode(b, any: any, all: all, sutLine: sl, xctLine: xl)
     }
 
     func testMWTABlocks() {
@@ -1032,23 +699,7 @@ class MatchingBlockTests: DefaultIOBlockTestsBase {
     }
 }
 
-class WhenBlockTests: DefaultIOBlockTestsBase {
-    /*
-     then(1) {
-         Matching(P.a) | When(1, 2)        // √√
-         Matching(P.a) | When(1, 2) | pass // √√
-                         When(1, 2) | pass // √√
-     }
-     
-     missing cases with no matching and no action?
-     
-     when(1, 2) {
-         Matching(P.a) | Then(1)           // √√
-         Matching(P.a) | Then(1)    | pass // √√
-                         Then(1)    | pass // Do we allow this?
-     }
-     */
-    
+class WhenBlockTests: DefaultIOBlockTests {
     func assert(
         _ b: Internal.MWTASentence,
         nodeLine nl: Int,
@@ -1056,7 +707,7 @@ class WhenBlockTests: DefaultIOBlockTestsBase {
         xctLine xl: UInt = #line
     ) {
         let node = b.node as! WhenBlockNode
-        assertWhen(node, sutLine: nl, xctLine: xl)
+        assertWhenNode(node, sutLine: nl, xctLine: xl)
         assertMTAResult(node.rest, sutLine: rl + 1, xctLine: xl)
     }
     
@@ -1069,7 +720,7 @@ class WhenBlockTests: DefaultIOBlockTestsBase {
     }
 }
 
-class ThenBlockTests: DefaultIOBlockTestsBase {
+class ThenBlockTests: DefaultIOBlockTests {
     func assert(
         _ b: Internal.MWTASentence,
         nodeLine nl: Int,
@@ -1077,7 +728,7 @@ class ThenBlockTests: DefaultIOBlockTestsBase {
         xctLine xl: UInt = #line
     ) {
         let node = b.node as! ThenBlockNode
-        assertThen(node, state: 1, sutLine: nl, file: #file, xctLine: xl)
+        assertThenNode(node, state: 1, sutFile: #file, sutLine: nl, xctLine: xl)
         assertMWAResult(node.rest, sutLine: rl + 1, xctLine: xl)
     }
     
@@ -1089,4 +740,3 @@ class ThenBlockTests: DefaultIOBlockTestsBase {
         assert(t2, nodeLine: l2, restLine: mwaLine)
     }
 }
-

@@ -64,12 +64,12 @@ class Match {
     
     private func validate() -> Result {
         func failure<C: Collection>(
-            predicates: C,
+            duplicates: C,
             type: MatchError.Type
         ) -> Result where C.Element == AnyPredicate {
             .failure(
                 type.init(
-                    message: predicates.formattedDescription(),
+                    message: duplicates.formattedDescription(),
                     files: [file],
                     lines: [line]
                 )
@@ -77,16 +77,16 @@ class Match {
         }
         
         guard matchAll.elementsAreUniquelyTyped else {
-            return failure(predicates: matchAll, type: DuplicateMatchTypes.self)
+            return failure(duplicates: matchAll, type: DuplicateMatchTypes.self)
         }
         
         guard matchAny.elementsAreUnique else {
-            return failure(predicates: matchAny, type: DuplicateMatchValues.self)
+            return failure(duplicates: matchAny, type: DuplicateMatchValues.self)
         }
                 
-        let intersection = matchAll.filter { matchAny.contains($0) }
-        guard intersection.isEmpty else {
-            return failure(predicates: intersection, type: DuplicateMatchValues.self)
+        let duplicates = matchAll.filter { matchAny.contains($0) }
+        guard duplicates.isEmpty else {
+            return failure(duplicates: duplicates, type: DuplicateMatchValues.self)
         }
         
         return .success(self)

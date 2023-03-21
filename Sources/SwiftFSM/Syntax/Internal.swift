@@ -33,11 +33,11 @@ enum Internal {
         let node: ThenNode
     }
     
-    struct MatchingWhenActions: MWAProtocol {
+    struct MatchingWhenActions: MWA {
         let node: any Node<DefaultIO>
     }
     
-    struct MatchingThenActions: MTAProtocol {
+    struct MatchingThenActions: MTA {
         let node: any Node<DefaultIO>
     }
     
@@ -49,15 +49,15 @@ enum Internal {
         let node: ThenNode
     }
     
-    struct MatchingWhenThenActions: MWTAProtocol {
+    struct MatchingWhenThenActions: MWTA {
         let node: any Node<DefaultIO>
     }
     
     class BlockSentence {
         let node: any Node<DefaultIO>
 
-        init<N: Node<DefaultIO>>(_ n: N, _ block: () -> ([any Sentence]))
-        where N.Input == N.Output {
+        init<N: Node>(_ n: N, _ block: () -> ([any Sentence]))
+        where N.Input == DefaultIO, N.Input == N.Output {
             var n = n
             n.rest = block().nodes
             node = n
@@ -78,23 +78,23 @@ enum Internal {
         }
     }
     
-    final class MWTASentence: BlockSentence, MWTAProtocol { }
-    final class MWASentence:  BlockSentence, MWAProtocol  { }
-    final class MTASentence:  BlockSentence, MTAProtocol  { }
+    final class MWTASentence: BlockSentence, MWTA { }
+    final class MWASentence:  BlockSentence, MWA  { }
+    final class MTASentence:  BlockSentence, MTA  { }
     
     @resultBuilder
     struct MWTABuilder: ResultBuilder {
-        typealias T = any MWTAProtocol
+        typealias T = any MWTA
     }
     
     @resultBuilder
     struct MWABuilder: ResultBuilder {
-        typealias T = any MWAProtocol
+        typealias T = any MWA
     }
     
     @resultBuilder
     struct MTABuilder: ResultBuilder {
-        typealias T = any MTAProtocol
+        typealias T = any MTA
     }
 }
 
@@ -102,9 +102,9 @@ protocol Sentence {
     var node: any Node<DefaultIO> { get }
 }
 
-protocol MWTAProtocol: Sentence { }
-protocol MWAProtocol: Sentence { }
-protocol MTAProtocol: Sentence { }
+protocol MWTA: Sentence { }
+protocol MWA: Sentence { }
+protocol MTA: Sentence { }
 
 extension Node {
     func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {

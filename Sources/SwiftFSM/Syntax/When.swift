@@ -52,7 +52,7 @@ extension Syntax {
         }
         
         func callAsFunction(
-            @Internal.MTABuilder _ block: () -> ([any MTAProtocol])
+            @Internal.MTABuilder _ block: () -> ([any MTA])
         ) -> Internal.MWTASentence {
             .init(blockNode, block)
         }

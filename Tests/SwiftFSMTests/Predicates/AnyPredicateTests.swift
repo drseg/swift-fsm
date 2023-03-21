@@ -20,41 +20,41 @@ final class AnyPredicateTests: XCTestCase {
     enum AlwaysEqualPredicate: Predicate, AlwaysEqual { case a }
     
     func testDescription() {
-        XCTAssertEqual(NeverEqualPredicate.a.erase().description,
+        XCTAssertEqual(NeverEqualPredicate.a.erased().description,
                        "NeverEqualPredicate.a")
     }
 
     func testPredicateInequality() {
-        let p1 = NeverEqualPredicate.a.erase()
-        let p2 = NeverEqualPredicate.a.erase()
+        let p1 = NeverEqualPredicate.a.erased()
+        let p2 = NeverEqualPredicate.a.erased()
 
         XCTAssertNotEqual(p1, p2)
     }
 
     func testPredicateEquality() {
-        let p1 = AlwaysEqualPredicate.a.erase()
-        let p2 = AlwaysEqualPredicate.a.erase()
+        let p1 = AlwaysEqualPredicate.a.erased()
+        let p2 = AlwaysEqualPredicate.a.erased()
 
         XCTAssertEqual(p1, p2)
     }
 
     func testPredicateFalseSet() {
-        let p1 = NeverEqualPredicate.a.erase()
-        let p2 = NeverEqualPredicate.a.erase()
+        let p1 = NeverEqualPredicate.a.erased()
+        let p2 = NeverEqualPredicate.a.erased()
 
         XCTAssertEqual(2, Set([p1, p2]).count)
     }
 
     func testPredicateTrueSet() {
-        let p1 = AlwaysEqualPredicate.a.erase()
-        let p2 = AlwaysEqualPredicate.a.erase()
+        let p1 = AlwaysEqualPredicate.a.erased()
+        let p2 = AlwaysEqualPredicate.a.erased()
 
         XCTAssertEqual(1, Set([p1, p2]).count)
     }
 
     func testPredicateDictionaryLookup() {
-        let p1 = AlwaysEqualPredicate.a.erase()
-        let p2 = NeverEqualPredicate.a.erase()
+        let p1 = AlwaysEqualPredicate.a.erased()
+        let p2 = NeverEqualPredicate.a.erased()
 
         let a = [p1: "Pass"]
         let b = [p2: "Pass"]
@@ -74,13 +74,13 @@ final class AnyPredicateTests: XCTestCase {
         }
 
         let e = expectation(description: "hash")
-        let anyPredicate = Spy(fulfill: e.fulfill).erase()
+        let anyPredicate = Spy(fulfill: e.fulfill).erased()
         let _ = [anyPredicate: "Pass"]
         waitForExpectations(timeout: 0.1)
     }
         
     func testBasePreservesType() {
-        let a1 = P.a.erase().unwrap(to: P.self)
+        let a1 = P.a.erased().unwrap(to: P.self)
         let a2 = P.a
         
         XCTAssertEqual(a1, a2)
@@ -88,7 +88,7 @@ final class AnyPredicateTests: XCTestCase {
     
     func testAllCases() {
         XCTAssertEqual(P.a.allCases.erased(), P.allCases.erased())
-        XCTAssertEqual(P.a.erase().allCases, P.allCases.erased())
+        XCTAssertEqual(P.a.erased().allCases, P.allCases.erased())
     }
 }
 
@@ -113,13 +113,13 @@ final class PredicateCombinationsTests: XCTestCase {
     }
     
     func testLargeCombinations() {
-        enum P: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
-        enum Q: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
-        enum R: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n }
+        enum P: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n } // 10
+        enum Q: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n } // 10
+        enum R: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n } // 10
         
         let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erased()
         
-        XCTAssertEqual(P.allCases.count * Q.allCases.count * R.allCases.count,
+        XCTAssertEqual(P.allCases.count * Q.allCases.count * R.allCases.count, // 1000, O(m*n)
                        predicates.combinationsOfAllCases.count)
     }
 }
