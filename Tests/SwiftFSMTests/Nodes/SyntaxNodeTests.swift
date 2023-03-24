@@ -81,7 +81,7 @@ class SyntaxNodeTests: XCTestCase {
         guard lhs.count == rhs.count else { return false }
         
         for (lhs, rhs) in zip(lhs, rhs) {
-            guard lhs.match.finalise() == rhs.match.finalise() &&
+            guard lhs.match.finalised() == rhs.match.finalised() &&
                     lhs.state == rhs.state &&
                     lhs.event == rhs.event &&
                     lhs.nextState == rhs.nextState else { return false }
@@ -298,8 +298,8 @@ class SyntaxNodeTests: XCTestCase {
             
             let result = results[0]
             
-            let actualPredicates = result.match.finalise()
-            let expectedPredicates = match.finalise()
+            let actualPredicates = result.match.finalised()
+            let expectedPredicates = match.finalised()
             
             XCTAssertEqual(expectedPredicates, actualPredicates, file: file, line: line)
             XCTAssertEqual(event, result.event, file: file, line: line)

@@ -25,6 +25,7 @@ class MatchNodeBase {
             )
         } ??? defaultIOOutput(match: match)
     }
+#warning("will crash when rest empty (true of all block nodes owing to nil event!/state!")
 }
 
 class MatchNode: MatchNodeBase, Node { }

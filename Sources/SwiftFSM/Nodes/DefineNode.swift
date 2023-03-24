@@ -56,7 +56,7 @@ final class DefineNode: NeverEmptyNode {
     }
     
     private func finalised(_ m: Match) -> Match {
-        switch m.finalise() {
+        switch m.finalised() {
         case .failure(let e): errors.append(e); return Match()
         case .success(let m): return m
         }

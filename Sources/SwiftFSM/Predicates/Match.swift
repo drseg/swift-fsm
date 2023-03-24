@@ -41,11 +41,11 @@ class Match {
         return m
     }
     
-    func finalise() -> Result {
+    func finalised() -> Result {
         guard let next else { return self.validate() }
         
         let firstResult = self.validate()
-        let restResult = next.finalise()
+        let restResult = next.finalised()
         
         switch (firstResult, restResult) {
         case (.success, .success(let rest)):

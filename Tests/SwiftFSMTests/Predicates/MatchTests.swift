@@ -111,7 +111,7 @@ class AdditionTests: MatchTests {
 
 class FinalisationTests: MatchTests {
     func assertFinalise(_ m: Match, _ e: Match, line: UInt = #line) {
-        XCTAssertEqual(e, try! m.finalise().get(), line: line)
+        XCTAssertEqual(e, try! m.finalised().get(), line: line)
     }
 
     func testMatchFinalisesToItself() {
@@ -135,13 +135,13 @@ class FinalisationTests: MatchTests {
     func testLongChain() {
         var match = Match(all: p1)
         100 * { match = match.prepend(Match()) }
-        XCTAssertEqual(Match(all: p1), try! match.finalise().get())
+        XCTAssertEqual(Match(all: p1), try! match.finalised().get())
     }
 }
 
 class ValidationTests: MatchTests {
     func assert(match m: Match, is e: MatchError, line: UInt = #line) {
-        XCTAssertThrowsError(try m.finalise().get(), line: line) {
+        XCTAssertThrowsError(try m.finalised().get(), line: line) {
             XCTAssertEqual(String(describing: type(of: $0)),
                            String(describing: type(of: e)),
                            line: line)
