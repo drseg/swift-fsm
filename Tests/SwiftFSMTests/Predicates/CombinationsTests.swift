@@ -13,9 +13,9 @@ final class CombinationsTests: XCTestCase {
     }
     
     func testCombinations() {
-        let empty: [[Int]] = [[]]
-        
-        assertCombinations(of: empty, expected: [])
+        assertCombinations(of: [], expected: [])
+        assertCombinations(of: [[]], expected: [])
+        assertCombinations(of: [[], []], expected: [])
         assertCombinations(of: [[1]], expected: [[1]])
         assertCombinations(of: [[1, 2]], expected: [[1], [2]])
         assertCombinations(of: [[1], [2]], expected: [[1, 2]])
