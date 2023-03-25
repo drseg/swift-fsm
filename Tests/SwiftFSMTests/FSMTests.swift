@@ -141,7 +141,7 @@ final class FSMTests: XCTestCase, TableBuilder {
             actionsOutput = "pass"
         }
         
-        try! fsm.buildTable {
+        try? fsm.buildTable {
             define(1) {
                 matching(any: P.a, Q.a) | when(1.1) | then(2) | pass
             }

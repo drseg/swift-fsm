@@ -492,7 +492,7 @@ class MatchingBlockTests: DefaultIOBlockTests {
         xctLine xl: UInt = #line
     ) {
         assertNeverEmptyNode(b, caller: "match", sutLine: sl, xctLine: xl)
-        assertMatchNode(b, any: any, all: all, sutLine: sl, xctLine: xl)
+        assertMatchNode(b, any: [any], all: all, sutLine: sl, xctLine: xl)
     }
 
     func testMWTABlocks() {

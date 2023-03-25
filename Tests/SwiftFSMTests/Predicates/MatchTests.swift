@@ -81,7 +81,7 @@ class AdditionTests: MatchTests {
         let m1 = Match(any: p1, p2)
         let m2 = Match(any: q1, q2)
         
-        XCTAssertEqual(m1 + m2, Match(any: p1, p2, q1, q2))
+        XCTAssertEqual(m1 + m2, Match(any: [[p1, p2], [q1, q2]]))
     }
     
     func testAddingAlltoAny() {
@@ -96,7 +96,7 @@ class AdditionTests: MatchTests {
         let m1 = Match(any: q1, q2)
         let m2 = Match(any: r1, r2, all: p1, p2)
         
-        XCTAssertEqual(m1 + m2, Match(any: q1, q2, r1, r2,
+        XCTAssertEqual(m1 + m2, Match(any: [[q1, q2], [r1, r2]],
                                       all: p1, p2))
     }
     
@@ -104,7 +104,7 @@ class AdditionTests: MatchTests {
         let m1 = Match(any: p1, p2, all: q1, q2)
         let m2 = Match(any: r1, r2, all: s1, s2)
         
-        XCTAssertEqual(m1 + m2, Match(any: p1, p2, r1, r2,
+        XCTAssertEqual(m1 + m2, Match(any: [[p1, p2], [r1, r2]],
                                       all: q1, q2, s1, s2))
     }
 }
@@ -128,7 +128,7 @@ class FinalisationTests: MatchTests {
         assertFinalise(Match(any: p1, p2,
                              all: q1, r1).prepend(Match(any: s1, s2,
                                                         all: t1, u1)),
-                       Match(any: p1, p2, s1, s2,
+                       Match(any: [[p1, p2], [s1, s2]],
                              all: q1, r1, t1, u1))
     }
     
@@ -339,6 +339,8 @@ class MatchCombinationsTests: MatchTests {
                            expected: [[P.a, R.a, Q.a]],
                            rank: 2)
     }
+    
+    #warning("no test for new anyOf with more than one element")
 }
 
 extension Match: CustomStringConvertible {

@@ -17,7 +17,7 @@ class Match {
               line: lhs.line)
     }
     
-    let matchAny: [AnyPredicate]
+    let matchAny: [[AnyPredicate]]
     let matchAll: [AnyPredicate]
     
     let file: String
@@ -29,7 +29,18 @@ class Match {
         self.init(any: any.erased(), all: all.erased(), file: file, line: line)
     }
     
+    convenience init(any: [[AnyPP]], all: AnyPP..., file: String = #file, line: Int = #line) {
+        self.init(any: any.map { $0.erased() }, all: all.erased(), file: file, line: line)
+    }
+    
     init(any: [AnyPredicate], all: [AnyPredicate], file: String = #file, line: Int = #line) {
+        self.matchAny = [any].filter { !$0.isEmpty }
+        self.matchAll = all
+        self.file = file
+        self.line = line
+    }
+    
+    init(any: [[AnyPredicate]], all: [AnyPredicate], file: String = #file, line: Int = #line) {
         self.matchAny = any
         self.matchAll = all
         self.file = file
@@ -80,11 +91,11 @@ class Match {
             return failure(duplicates: matchAll, type: DuplicateMatchTypes.self)
         }
         
-        guard matchAny.elementsAreUnique else {
-            return failure(duplicates: matchAny, type: DuplicateMatchValues.self)
+        guard matchAny.flattened.elementsAreUnique else {
+            return failure(duplicates: matchAny.flattened, type: DuplicateMatchValues.self)
         }
                 
-        let duplicates = matchAll.filter { matchAny.contains($0) }
+        let duplicates = matchAll.filter { matchAny.flattened.contains($0) }
         guard duplicates.isEmpty else {
             return failure(duplicates: duplicates, type: DuplicateMatchValues.self)
         }
@@ -111,14 +122,14 @@ class Match {
     }
     
     func combineAnyAndAll() -> PredicateSets {
-        matchAny.reduce(into: [[AnyPredicate]]()) {
-           $0.append(matchAll + [$1])
+        matchAny.combinations().reduce(into: [[AnyPredicate]]()) {
+           $0.append(matchAll + $1)
        }.asSets ??? [matchAll].asSets
     }
     
     func removeDuplicates(_ p: PredicateSet) -> PredicateSet {
         var filtered = p
-        let includedTypes = (matchAny + matchAll).uniqueElementTypes
+        let includedTypes = (matchAny.flattened + matchAll).uniqueElementTypes
         while let existing = filtered.first(where: { includedTypes.contains($0.type) }) {
             filtered.remove(existing)
         }
@@ -128,9 +139,20 @@ class Match {
 
 extension Match: Hashable {
     public static func == (lhs: Match, rhs: Match) -> Bool {
-        lhs.matchAny.count == rhs.matchAny.count &&
+        func sort(_ any: [[AnyPredicate]]) -> [[AnyPredicate]] {
+            any.map { $0.sorted(by: sort) }
+        }
+        
+        func sort(_ p1: AnyPredicate, _ p2: AnyPredicate) -> Bool {
+            String(describing: p1) > String(describing: p2)
+        }
+        
+        let lhsAny = sort(lhs.matchAny)
+        let rhsAny = sort(rhs.matchAny)
+        
+        return lhs.matchAny.count == rhs.matchAny.count &&
         lhs.matchAll.count == rhs.matchAll.count &&
-        lhs.matchAny.allSatisfy({ rhs.matchAny.contains($0) }) &&
+        lhsAny.allSatisfy({ rhsAny.contains($0) }) &&
         lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) })
     }
     

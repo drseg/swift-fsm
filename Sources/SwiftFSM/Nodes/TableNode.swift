@@ -118,7 +118,7 @@ extension [SemanticValidationNode.Output] {
         let matches = map(\.match)
         let anys = matches.map(\.matchAny)
         let alls = matches.map(\.matchAll)
-        return (alls + anys).flattened.combinationsOfAllCases
+        return (alls + anys.flattened).flattened.combinationsOfAllCases
     }
 }
 

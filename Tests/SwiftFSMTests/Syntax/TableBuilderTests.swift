@@ -31,28 +31,42 @@ class SyntaxTestsBase: XCTestCase, TableBuilder {
         _ m: Matching,
         any: any Predicate...,
         all: any Predicate...,
-        file: StaticString = #file,
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
-        XCTAssertTrue(m.node.rest.isEmpty, file: file, line: xl)
-        assertMatchNode(m.node, any: any, all: all, sutLine: sl, xctLine: xl)
+        XCTAssertTrue(m.node.rest.isEmpty, file: xf, line: xl)
+        assertMatchNode(m.node,
+                        any: [any],
+                        all: all,
+                        sutFile: sf,
+                        xctFile: xf,
+                        sutLine: sl,
+                        xctLine: xl)
     }
     
     func assertMatchNode(
         _ node: MatchNodeBase,
-        any: [any Predicate] = [],
+        any: [[any Predicate]] = [],
         all: [any Predicate] = [],
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
-        XCTAssertEqual(any.erased(), node.match.matchAny, file: xf, line: xl)
+        let any = any.map { $0.erased() }.filter { !$0.isEmpty }
+        
+        XCTAssertEqual(any, node.match.matchAny, file: xf, line: xl)
         XCTAssertEqual(all.erased(), node.match.matchAll, file: xf, line: xl)
         
         if let node = node as? MatchBlockNode {
-            assertNeverEmptyNode(node, caller: "match", sutFile: sf, sutLine: sl, xctLine: xl)
+            assertNeverEmptyNode(node,
+                                 caller: "match",
+                                 sutFile: sf,
+                                 xctFile: xf,
+                                 sutLine: sl,
+                                 xctLine: xl)
         }
     }
     
