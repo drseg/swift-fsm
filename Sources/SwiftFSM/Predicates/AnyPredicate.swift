@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import Algorithms
 
 typealias PredicateSets = Set<PredicateSet>
 typealias PredicateSet = Set<AnyPredicate>
@@ -57,13 +56,10 @@ extension Array {
 
 extension Collection where Element == AnyPredicate {
     var combinationsOfAllCases: PredicateSets {
-        let uniqueTypes = uniqueTypes()
-        
-        return Set(uniqueTypes
-            .allPossibleCases
-            .combinations(ofCount: uniqueTypes.count)
+        Set(uniqueTypes()
+            .map(\.allCases)
+            .combinations()
             .map(Set.init)
-            .filter(\.elementsAreUniquelyTyped)
         )
     }
     
@@ -71,10 +67,6 @@ extension Collection where Element == AnyPredicate {
         uniqueElementTypes.reduce(into: [AnyPredicate]()) { predicates, type in
             predicates.append(first { $0.type == type }!)
         }
-    }
-    
-    var allPossibleCases: [AnyPredicate] {
-        map(\.allCases).flattened
     }
     
     var elementsAreUnique: Bool {

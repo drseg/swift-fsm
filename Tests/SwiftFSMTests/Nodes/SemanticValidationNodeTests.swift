@@ -81,8 +81,6 @@ final class SemanticValidationNodeTests: DefineConsumer {
         assertEqual(secondExpected, secondClash?.last)
     }
     
-#warning("erroneous 'MatchClash' used to be here, but I'm not sure nothing needs to replace it")
-    
     func testNoError() {
         let t1 = transitionNode(s1, Match(), e1, s2)
         let t2 = transitionNode(s1, Match(), e2, s3)
