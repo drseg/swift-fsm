@@ -73,11 +73,28 @@ extension Collection where Element == AnyPredicate {
         Set(self).count == count
     }
     
-    var elementsAreUniquelyTyped: Bool {
+    var areUniquelyTyped: Bool {
         uniqueElementTypes.count == count
     }
     
     var uniqueElementTypes: Set<String> {
         Set(map(\.type))
+    }
+}
+
+extension [[AnyPredicate]] {
+    var hasNoDuplicateTypes: Bool {
+        var anyOf = map { $0.map(\.type) }
+        
+        while anyOf.count > 1 {
+            for type in anyOf.first! {
+                if anyOf.dropFirst().flattened.contains(type) {
+                    return false
+                }
+            }
+            anyOf = anyOf.suffix(from: 1).map { $0 }
+        }
+        
+        return true
     }
 }

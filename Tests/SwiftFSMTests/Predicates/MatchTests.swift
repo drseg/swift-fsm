@@ -15,7 +15,7 @@ enum T: Predicate { case a, b, c }
 enum U: Predicate { case a, b, c }
 
 class MatchTests: XCTestCase {
-    let p1 = P.a, p2 = P.b
+    let p1 = P.a, p2 = P.b, p3 = P.c
     let q1 = Q.a, q2 = Q.b
     let r1 = R.a, r2 = R.b
     let s1 = S.a, s2 = S.b
@@ -156,6 +156,10 @@ class ValidationTests: MatchTests {
         assert(match: m1, is: error, line: line)
     }
     
+    func testEmptyMatch() {
+        XCTAssertEqual(Match().finalised(), .success(Match()))
+    }
+    
     func testAll_WithDuplicateTypes() {
         assertHasDuplicateTypes(Match(all: p1, p2))
     }
@@ -211,6 +215,14 @@ class ValidationTests: MatchTests {
     func testAny_AddingAny_FormingDuplicateValues() {
         assertDuplicateValuesWhenAdded(Match(any: p1, p2),
                                        Match(any: p1, p2))
+    }
+    
+    func testAnyAndAny_FormingDuplicateTypes() {
+        let match = Match(any: [[p1], [p2], [p3]])
+
+        assert(match: match, is: DuplicateMatchTypes(message: "p1, p2, p3",
+                                                     files: [match.file],
+                                                     lines: [match.line]))
     }
 }
 
