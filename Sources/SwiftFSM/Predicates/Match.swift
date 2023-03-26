@@ -91,10 +91,12 @@ class Match {
             return failure(duplicates: matchAll, type: DuplicateMatchTypes.self)
         }
         
+        #warning("flattened")
         guard matchAny.flattened.elementsAreUnique else {
             return failure(duplicates: matchAny.flattened, type: DuplicateMatchValues.self)
         }
-                
+            
+        #warning("flattened")
         let duplicates = matchAll.filter { matchAny.flattened.contains($0) }
         guard duplicates.isEmpty else {
             return failure(duplicates: duplicates, type: DuplicateMatchValues.self)
