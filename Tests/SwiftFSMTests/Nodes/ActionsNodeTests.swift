@@ -18,8 +18,12 @@ final class ActionsNodeTests: SyntaxNodeTests {
         assertEqual((match: Match(), event: nil, state: nil, actions: actions), output.first)
     }
     
-    func testEmptyActionsBlock() {
+    func testEmptyActionsBlockIsError() {
         assertEmptyNodeWithError(ActionsBlockNode(actions: [], rest: []))
+    }
+    
+    func testEmptyActionsBlockHasNoOutput() {
+        assertCount(ActionsBlockNode(actions: [], rest: []).finalised().output, expected: 0)
     }
     
     func testActionsFinalisesCorrectly() {

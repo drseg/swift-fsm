@@ -111,7 +111,7 @@ final class FSMTests: XCTestCase, TableBuilder {
     }
     
     func testHandleEventWithoutPredicate() {
-        try! fsm.buildTable {
+        try? fsm.buildTable {
             define(1) {
                 when(1.1) | then(2) | { self.actionsOutput = "pass" }
             }
@@ -122,7 +122,7 @@ final class FSMTests: XCTestCase, TableBuilder {
     }
     
     func testHandleEventWithSinglePredicate() {
-        try! fsm.buildTable {
+        try? fsm.buildTable {
             define(1) {
                 matching(P.a) | when(1.1) | then(2) | { self.actionsOutput = "pass" }
             }
@@ -202,7 +202,7 @@ final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             XCTAssertEqual(actions, actual, line: line)
         }
                 
-        try! fsm.buildTable {
+        try? fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
             }
@@ -266,7 +266,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     }
     
     func testPredicateTurnstile() throws {
-        try! fsm.buildTable {
+        try? fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
             }
@@ -292,7 +292,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     }
     
     func testDeduplicatedPredicateTurnstile() {
-        try! fsm.buildTable {
+        try? fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
             }
@@ -328,7 +328,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         typealias M = Syntax.Matching
         typealias SS = SuperState
         
-        try! fsm.buildTable {
+        try? fsm.buildTable {
             let resetable = SS {
                 W(.reset) | T(.locked)
             }
@@ -355,6 +355,72 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         }
         
         assertTable()
+    }
+    
+    // TODO: add syntax:
+    // when() -> MWA with empty match and actions
+    // onEntry/onExit: () -> ()... allowing varargs in both functions and classes
+    
+    func testActionsBlockSyntax() {
+        try? fsm.buildTable {
+            let resetable = SuperState {
+                when(.reset) | then(.locked)
+            }
+            
+            define(.locked, superState: resetable, onEntry: [lock]) {
+                when(.pass) {
+                    matching(EnforcementStyle.weak)   | then(.locked)
+                    matching(EnforcementStyle.strong) | then(.alarming)
+                }
+                
+                when(.coin) | then(.unlocked)
+            }
+            
+            define(.unlocked, superState: resetable, onEntry: [unlock]) {
+                then(.unlocked) {
+                    actions(thankyou) {
+                        matching(RewardStyle.rewarding) | when(.coin)
+                    }
+                    
+                    actions(idiot) {
+                        matching(RewardStyle.punishing) | when(.coin)
+                    }
+                }
+                
+                when(.pass) | then(.locked)
+            }
+            
+            define(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+        }
+        
+        assertTable()
+    }
+}
+
+final class FSMIntegrationTests_Predicates: FSMIntegrationTests {
+    func testMultiplePredicateBlocks() throws {
+        try? fsm.buildTable {
+            define(.locked) {
+                matching(any: P.a, P.b) {
+                    matching(Q.a) {
+                        matching(all: R.a, S.a) {
+                            matching(all: T.a, U.a) {
+                                when(.coin) | then(.locked) | thankyou
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a)
+        XCTAssertEqual(["thankyou"], actions)
+        
+        fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a)
+        XCTAssertEqual(["thankyou", "thankyou"], actions)
+        
+        fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a)
+        XCTAssertEqual(["thankyou", "thankyou"], actions)
     }
 }
 

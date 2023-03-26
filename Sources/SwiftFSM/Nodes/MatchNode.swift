@@ -15,7 +15,7 @@ class MatchNodeBase {
         self.rest = rest
     }
     
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: [DefaultIO]()) {
             $0.append(
                 (match: $1.match.prepend(match),
@@ -23,12 +23,15 @@ class MatchNodeBase {
                  state: $1.state,
                  actions: $1.actions)
             )
-        } ??? defaultIOOutput(match: match)
+        }
     }
-#warning("will crash when rest empty (true of all block nodes owing to nil event!/state!")
 }
 
-class MatchNode: MatchNodeBase, Node { }
+class MatchNode: MatchNodeBase, Node {
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        makeOutput(rest) ??? defaultIOOutput(match: match)
+    }
+}
 
 class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
     let caller: String
@@ -47,5 +50,9 @@ class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
         self.line = line
         
         super.init(match: match, rest: rest)
+    }
+    
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        makeOutput(rest)
     }
 }

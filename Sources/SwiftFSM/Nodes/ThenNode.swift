@@ -15,17 +15,21 @@ class ThenNodeBase {
         self.rest = rest
     }
     
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: [DefaultIO]()) {
             $0.append((match: $1.match,
                        event: $1.event,
                        state: state,
                        actions: $1.actions))
-        } ??? defaultIOOutput(state: state)
+        }
     }
 }
 
-class ThenNode: ThenNodeBase, Node { }
+class ThenNode: ThenNodeBase, Node {
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        makeOutput(rest) ??? defaultIOOutput(state: state)
+    }
+}
 
 class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
     let caller: String
@@ -44,5 +48,9 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
         self.line = line
         
         super.init(state: state, rest: rest)
+    }
+    
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        makeOutput(rest)
     }
 }

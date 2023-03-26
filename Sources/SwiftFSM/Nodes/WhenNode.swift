@@ -28,27 +28,37 @@ class WhenNodeBase {
         self.line = line
     }
     
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        events.reduce(into: [DefaultIO]()) { output, event in
-            output.append(contentsOf: rest.reduce(into: [DefaultIO]()) {
-                $0.append(
-                    (match: $1.match,
-                     event: event,
-                     state: $1.state,
-                     actions: $1.actions)
-                )
-            } ??? defaultIOOutput(event: event))
+    func makeOutput(_ rest: [DefaultIO], _ event: AnyTraceable) -> [DefaultIO] {
+        rest.reduce(into: [DefaultIO]()) {
+            $0.append(
+                (match: $1.match,
+                 event: event,
+                 state: $1.state,
+                 actions: $1.actions)
+            )
         }
     }
 }
 
 class WhenNode: WhenNodeBase, NeverEmptyNode {
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        events.reduce(into: [DefaultIO]()) { output, event in
+            output.append(contentsOf: makeOutput(rest, event) ??? defaultIOOutput(event: event))
+        }
+    }
+    
     func validate() -> [Error] {
         makeError(if: events.isEmpty)
     }
 }
 
 class WhenBlockNode: WhenNodeBase, NeverEmptyNode {
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        events.reduce(into: [DefaultIO]()) { output, event in
+            output.append(contentsOf: makeOutput(rest, event))
+        }
+    }
+    
     func validate() -> [Error] {
         makeError(if: events.isEmpty || rest.isEmpty)
     }

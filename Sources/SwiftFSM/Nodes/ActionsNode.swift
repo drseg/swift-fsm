@@ -15,7 +15,7 @@ class ActionsNodeBase {
         self.rest = rest
     }
     
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: [DefaultIO]()) {
             $0.append(
                 (match: $1.match,
@@ -23,11 +23,15 @@ class ActionsNodeBase {
                  state: $1.state,
                  actions: actions + $1.actions)
             )
-        } ??? defaultIOOutput(actions: actions)
+        }
     }
 }
 
-class ActionsNode: ActionsNodeBase, Node { }
+class ActionsNode: ActionsNodeBase, Node {
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        makeOutput(rest) ??? defaultIOOutput(actions: actions)
+    }
+}
 
 class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
     let caller: String
@@ -46,5 +50,9 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
         self.line = line
         
         super.init(actions: actions, rest: rest)
+    }
+    
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+        makeOutput(rest)
     }
 }

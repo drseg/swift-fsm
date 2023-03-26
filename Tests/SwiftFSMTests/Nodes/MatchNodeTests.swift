@@ -16,6 +16,10 @@ final class MatchNodeTests: SyntaxNodeTests {
         assertEmptyNodeWithError(MatchBlockNode(match: Match(), rest: []))
     }
     
+    func testEmptyMatchBlockNodeHasNoOutput() {
+        assertCount(MatchBlockNode(match: Match(), rest: []).finalised().output, expected: 0)
+    }
+    
     func testMatchNodeFinalisesCorrectly() {
         assertMatch(MatchNode(match: Match(), rest: [whenNode]))
     }

@@ -20,6 +20,10 @@ final class WhenNodeTests: SyntaxNodeTests {
         assertEmptyNodeWithError(WhenBlockNode(events: [e1]))
     }
     
+    func testEmptyWhenBlockNodeHasNoOutput() {
+        assertCount(WhenBlockNode(events: [e1]).finalised().output, expected: 0)
+    }
+    
     func testWhenNodeWithEmptyRest() {
         assertWhen(state: nil,
                    actionsCount: 0,

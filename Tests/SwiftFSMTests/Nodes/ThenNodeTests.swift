@@ -28,8 +28,12 @@ final class ThenNodeTests: SyntaxNodeTests {
         )
     }
     
-    func testEmptyThenBlockNode() {
+    func testEmptyThenBlockNodeIsError() {
         assertEmptyNodeWithError(ThenBlockNode(state: s1, rest: []))
+    }
+    
+    func testEmptyThenBlockNodeHasNoOutput() {
+        assertCount(ThenBlockNode(state: s1, rest: []).finalised().output, expected: 0)
     }
     
     func testThenNodeFinalisesCorrectly() {

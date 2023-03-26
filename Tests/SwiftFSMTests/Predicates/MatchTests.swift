@@ -13,6 +13,8 @@ enum R: Predicate { case a, b, c }
 enum S: Predicate { case a, b, c }
 enum T: Predicate { case a, b, c }
 enum U: Predicate { case a, b, c }
+enum V: Predicate { case a, b, c }
+enum W: Predicate { case a, b, c }
 
 class MatchTests: XCTestCase {
     let p1 = P.a, p2 = P.b, p3 = P.c
