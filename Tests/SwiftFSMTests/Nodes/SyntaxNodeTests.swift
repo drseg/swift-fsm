@@ -259,9 +259,9 @@ class SyntaxNodeTests: XCTestCase {
     
     func assertDefaultIONodeChains(
         node: any DefaultIONode,
-        match: Match = Match(any: P.a, all: Q.a),
-        event: AnyTraceable = "E1",
-        state: AnyTraceable = "S1",
+        expectedMatch: Match = Match(any: P.a, all: Q.a),
+        expectedEvent: AnyTraceable = "E1",
+        expectedState: AnyTraceable = "S1",
         expectedOutput: String = "chain",
         file: StaticString = #file,
         line: UInt = #line
@@ -298,12 +298,13 @@ class SyntaxNodeTests: XCTestCase {
             
             let result = results[0]
             
+#warning("calling finalised() depends on Match code tested elsewhere - is it necessary?")
             let actualPredicates = result.match.finalised()
-            let expectedPredicates = match.finalised()
+            let expectedPredicates = expectedMatch.finalised()
             
             XCTAssertEqual(expectedPredicates, actualPredicates, file: file, line: line)
-            XCTAssertEqual(event, result.event, file: file, line: line)
-            XCTAssertEqual(state, result.state, file: file, line: line)
+            XCTAssertEqual(expectedEvent, result.event, file: file, line: line)
+            XCTAssertEqual(expectedState, result.state, file: file, line: line)
             
             assertActions(result.actions, expectedOutput: expectedOutput, file: file, line: line)
         }

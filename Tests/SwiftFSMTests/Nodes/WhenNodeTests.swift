@@ -48,7 +48,7 @@ final class WhenNodeTests: SyntaxNodeTests {
     
     func testWhenNodeWithChainFinalisesCorrectly() {
         let w = WhenNode(events: [e3])
-        assertDefaultIONodeChains(node: w, event: e3)
+        assertDefaultIONodeChains(node: w, expectedEvent: e3)
     }
     
     func testWhenNodeCanSetRestAfterInit() {

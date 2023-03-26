@@ -41,7 +41,7 @@ final class ThenNodeTests: SyntaxNodeTests {
     
     func testThenNodePlusChainFinalisesCorrectly() {
         let t = ThenNode(state: s2)
-        assertDefaultIONodeChains(node: t, state: s2)
+        assertDefaultIONodeChains(node: t, expectedState: s2)
     }
     
     func testThenNodeCanSetRestAfterInit() {

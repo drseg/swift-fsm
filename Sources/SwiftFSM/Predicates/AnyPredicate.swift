@@ -87,12 +87,15 @@ extension [[AnyPredicate]] {
         var anyOf = map { $0.map(\.type) }
         
         while anyOf.count > 1 {
-            for type in anyOf.first! {
-                if anyOf.dropFirst().flattened.contains(type) {
+            let first = anyOf.first!
+            let rest = anyOf.dropFirst()
+            
+            for type in first {
+                if rest.flattened.contains(type) {
                     return false
                 }
             }
-            anyOf = anyOf.suffix(from: 1).map { $0 }
+            anyOf = rest.map { $0 }
         }
         
         return true

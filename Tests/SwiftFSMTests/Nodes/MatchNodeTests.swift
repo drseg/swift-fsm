@@ -22,7 +22,7 @@ final class MatchNodeTests: SyntaxNodeTests {
     
     func testMatchNodeWithChainFinalisesCorrectly() {
         let m = MatchNode(match: Match(any: S.b, all: R.a))
-        assertDefaultIONodeChains(node: m, match: Match(any: [[P.a], [S.b]],
+        assertDefaultIONodeChains(node: m, expectedMatch: Match(any: [[P.a], [S.b]],
                                                         all: Q.a, R.a))
     }
     
