@@ -110,8 +110,8 @@ final class FSMTests: XCTestCase, TableBuilder {
         fsm.state = 1
     }
     
-    func testHandleEventWithoutPredicate() {
-        try? fsm.buildTable {
+    func testHandleEventWithoutPredicate() throws {
+        try fsm.buildTable {
             define(1) {
                 when(1.1) | then(2) | { self.actionsOutput = "pass" }
             }
@@ -121,8 +121,8 @@ final class FSMTests: XCTestCase, TableBuilder {
         assertHandleEvent(1.2, state: 1, output: "")
     }
     
-    func testHandleEventWithSinglePredicate() {
-        try? fsm.buildTable {
+    func testHandleEventWithSinglePredicate() throws {
+        try fsm.buildTable {
             define(1) {
                 matching(P.a) | when(1.1) | then(2) | { self.actionsOutput = "pass" }
             }
@@ -136,12 +136,12 @@ final class FSMTests: XCTestCase, TableBuilder {
         assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
     }
     
-    func testHandlEventWithMultiplePredicates() {
+    func testHandlEventWithMultiplePredicates() throws {
         func pass() {
             actionsOutput = "pass"
         }
         
-        try? fsm.buildTable {
+        try fsm.buildTable {
             define(1) {
                 matching(any: P.a, Q.a) | when(1.1) | then(2) | pass
             }
@@ -191,7 +191,7 @@ class FSMIntegrationTests: XCTestCase, TableBuilder {
 }
 
 final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
-    func testTurnstile() {
+    func testTurnstile() throws {
         func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
             assertEventAction(e, [a], line: line)
         }
@@ -202,7 +202,7 @@ final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             XCTAssertEqual(actions, actual, line: line)
         }
                 
-        try? fsm.buildTable {
+        try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
             }
@@ -266,7 +266,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     }
     
     func testPredicateTurnstile() throws {
-        try? fsm.buildTable {
+        try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
             }
@@ -291,8 +291,8 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         assertTable()
     }
     
-    func testDeduplicatedPredicateTurnstile() {
-        try? fsm.buildTable {
+    func testDeduplicatedPredicateTurnstile() throws {
+        try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
             }
@@ -321,14 +321,14 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         assertTable()
     }
     
-    func testTypealiasSyntaxTurnstile() {
+    func testTypealiasSyntaxTurnstile() throws {
         typealias D = Syntax.Define<State>
         typealias W = Syntax.When<Event>
         typealias T = Syntax.Then<State>
         typealias M = Syntax.Matching
         typealias SS = SuperState
         
-        try? fsm.buildTable {
+        try fsm.buildTable {
             let resetable = SS {
                 W(.reset) | T(.locked)
             }
@@ -361,8 +361,8 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     // when() -> MWA with empty match and actions
     // onEntry/onExit: () -> ()... allowing varargs in both functions and classes
     
-    func testActionsBlockSyntax() {
-        try? fsm.buildTable {
+    func testActionsBlockSyntax() throws {
+        try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
             }
@@ -397,9 +397,9 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     }
 }
 
-final class FSMIntegrationTests_Predicates: FSMIntegrationTests {
+final class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
     func testMultiplePredicateBlocks() throws {
-        try? fsm.buildTable {
+        try fsm.buildTable {
             define(.locked) {
                 matching(any: P.a, P.b) {
                     matching(Q.a) {
@@ -419,8 +419,24 @@ final class FSMIntegrationTests_Predicates: FSMIntegrationTests {
         fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a)
         XCTAssertEqual(["thankyou", "thankyou"], actions)
         
+        actions = []
         fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a)
-        XCTAssertEqual(["thankyou", "thankyou"], actions)
+        XCTAssertEqual([], actions)
+    }
+    
+    func testMultiplActionsBlocks() throws {
+        try fsm.buildTable {
+            define(.locked) {
+                actions(thankyou) {
+                    actions(lock) {
+                        matching(P.a) | when(.coin) | then(.locked) | unlock
+                    }
+                }
+            }
+        }
+        
+        fsm.handleEvent(.coin, predicates: P.a)
+        XCTAssertEqual(["thankyou", "lock", "unlock"], actions)
     }
 }
 
