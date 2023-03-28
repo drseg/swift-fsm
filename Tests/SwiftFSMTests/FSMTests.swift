@@ -9,10 +9,10 @@ import XCTest
 @testable import SwiftFSM
 
 final class FSMTests: XCTestCase, TableBuilder {
-    typealias State = Int
-    typealias Event = Double
+    typealias StateType = Int
+    typealias EventType = Double
     
-    var fsm: FSM<State, Event> = FSM(initialState: 1)
+    var fsm: FSM<StateType, EventType> = FSM(initialState: 1)
     
     func assertThrowsError<T: Error>(
         _ type: T.Type,
@@ -96,9 +96,9 @@ final class FSMTests: XCTestCase, TableBuilder {
     
     var actionsOutput = ""
     func assertHandleEvent(
-        _ event: Event,
+        _ event: EventType,
         predicates: any Predicate...,
-        state: State,
+        state: StateType,
         output: String,
         line: UInt = #line
     ) {
@@ -165,8 +165,8 @@ final class FSMTests: XCTestCase, TableBuilder {
 }
 
 class FSMIntegrationTests: XCTestCase, TableBuilder {
-    typealias State = TurnstileState
-    typealias Event = TurnstileEvent
+    typealias StateType = TurnstileState
+    typealias EventType = TurnstileEvent
     
     enum TurnstileState: String, CustomStringConvertible {
         case locked, unlocked, alarming
@@ -186,17 +186,17 @@ class FSMIntegrationTests: XCTestCase, TableBuilder {
     func unlock()   { actions.append("unlock")   }
     func thankyou() { actions.append("thankyou") }
     
-    let fsm = FSM<State, Event>(initialState: .locked)
+    let fsm = FSM<StateType, EventType>(initialState: .locked)
     var actual = [String]()
 }
 
 final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     func testTurnstile() throws {
-        func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
+        func assertEventAction(_ e: EventType, _ a: String, line: UInt = #line) {
             assertEventAction(e, [a], line: line)
         }
         
-        func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
+        func assertEventAction(_ e: EventType, _ a: [String], line: UInt = #line) {
             actual += a
             fsm.handleEvent(e)
             XCTAssertEqual(actions, actual, line: line)
@@ -242,11 +242,11 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         case punishing, rewarding
     }
     
-    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
+    func assertEventAction(_ e: EventType, _ a: String, line: UInt = #line) {
         assertEventAction(e, [a], line: line)
     }
     
-    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
+    func assertEventAction(_ e: EventType, _ a: [String], line: UInt = #line) {
         if !(a.first?.isEmpty ?? false) {
             actual += a
         }
@@ -324,36 +324,35 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     }
     
     func testTypealiasSyntaxTurnstile() throws {
-        typealias D = Syntax.Define<State>
-        typealias W = Syntax.When<Event>
-        typealias T = Syntax.Then<State>
-        typealias M = Syntax.Matching
-        typealias SS = SuperState
+        typealias State = Syntax.Define<StateType>
+        typealias Event = Syntax.When<EventType>
+        typealias NextState = Syntax.Then<StateType>
+        typealias If = Syntax.Matching
         
         try fsm.buildTable {
-            let resetable = SS {
-                W(.reset) | T(.locked)
+            let resetable = SuperState {
+                Event(.reset) | NextState(.locked)
             }
             
-            D(.locked, superState: resetable, onEntry: [lock]) {
-                W(.pass) {
-                    M(EnforcementStyle.weak)   | T(.locked)
-                    M(EnforcementStyle.strong) | T(.alarming)
+            State(.locked, superState: resetable, onEntry: [lock]) {
+                Event(.pass) {
+                    If(EnforcementStyle.weak)   | NextState(.locked)
+                    If(EnforcementStyle.strong) | NextState(.alarming)
                 }
                 
-                W(.coin) | T(.unlocked)
+                Event(.coin) | NextState(.unlocked)
             }
             
-            D(.unlocked, superState: resetable, onEntry: [unlock]) {
-                T(.unlocked) {
-                    M(RewardStyle.rewarding) | W(.coin) | thankyou
-                    M(RewardStyle.punishing) | W(.coin) | idiot
+            State(.unlocked, superState: resetable, onEntry: [unlock]) {
+                NextState(.unlocked) {
+                    If(RewardStyle.rewarding) | Event(.coin) | thankyou
+                    If(RewardStyle.punishing) | Event(.coin) | idiot
                 }
                 
-                W(.pass) | T(.locked)
+                Event(.pass) | NextState(.locked)
             }
             
-            D(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            State(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertTable()

@@ -7,20 +7,20 @@
 import Foundation
 
 protocol TableBuilder {
-    associatedtype State: Hashable
-    associatedtype Event: Hashable
+    associatedtype StateType: Hashable
+    associatedtype EventType: Hashable
 }
 
 extension TableBuilder {
     func define(
-        _ s1: State,
-        _ rest: State...,
+        _ s1: StateType,
+        _ rest: StateType...,
         superState: SuperState,
         onEntry: [() -> ()] = [],
         onExit: [() -> ()] = [],
         file: String = #file,
         line: Int = #line
-    ) -> Syntax.Define<State> {
+    ) -> Syntax.Define<StateType> {
         .init([s1] + rest,
               superState: superState,
               onEntry: onEntry,
@@ -31,15 +31,15 @@ extension TableBuilder {
     }
     
     func define(
-        _ s1: State,
-        _ rest: State...,
+        _ s1: StateType,
+        _ rest: StateType...,
         superState: SuperState? = nil,
         onEntry: [() -> ()] = [],
         onExit: [() -> ()] = [],
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [any MWTA]
-    ) -> Syntax.Define<State> {
+    ) -> Syntax.Define<StateType> {
         .init(states: [s1] + rest,
               superState: superState,
               onEntry: onEntry,
@@ -93,17 +93,17 @@ extension TableBuilder {
     }
     
     func when(
-        _ first: Event,
-        _ rest: Event...,
+        _ first: EventType,
+        _ rest: EventType...,
         file: String = #file,
         line: Int = #line
-    ) -> Syntax.When<Event> {
+    ) -> Syntax.When<EventType> {
         .init([first] + rest, file: file, line: line)
     }
     
     func when(
-        _ first: Event,
-        _ rest: Event...,
+        _ first: EventType,
+        _ rest: EventType...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [any MTA]
@@ -112,8 +112,8 @@ extension TableBuilder {
     }
     
     func when(
-        _ first: Event,
-        _ rest: Event...,
+        _ first: EventType,
+        _ rest: EventType...,
         file: String = #file,
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [any MA]
@@ -122,15 +122,15 @@ extension TableBuilder {
     }
     
     func then(
-        _ state: State? = nil,
+        _ state: StateType? = nil,
         file: String = #file,
         line: Int = #line
-    ) -> Syntax.Then<State> {
+    ) -> Syntax.Then<StateType> {
         .init(state, file: file, line: line)
     }
     
     func then(
-        _ state: State? = nil,
+        _ state: StateType? = nil,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [any MWA]
@@ -139,7 +139,7 @@ extension TableBuilder {
     }
     
     func then(
-        _ state: State? = nil,
+        _ state: StateType? = nil,
         file: String = #file,
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [any MA]
