@@ -15,19 +15,21 @@ protocol NodeBase {
     func finalised() -> Result
     func combinedWithRest(_ rest: [Input]) -> [Output]
     func validate() -> [Error]
+    
+    var _rest: [any NodeBase] { get }
 }
 
 extension NodeBase {
-    func _finalised(_ rest: [any NodeBase]) -> Result {
+    func finalised() -> Result {
         var output = [Input]()
         var errors = [Error]()
         
-        rest.forEach {
+        _rest.forEach {
             if let finalised = $0.finalised() as? ([Input], [Error])  {
                 output.append(contentsOf: finalised.0)
                 errors.append(contentsOf: finalised.1)
             } else {
-                errors.append(errorMessage($0, rest: rest))
+                errors.append(errorMessage($0, rest: _rest))
             }
         }
         
@@ -55,16 +57,12 @@ protocol Node<Output>: NodeBase {
 }
 
 extension UnsafeNode {
-    func finalised() -> Result {
-        _finalised(rest)
-    }
+    var _rest: [any NodeBase] {  rest }
 }
 
 @available(macOS 13, iOS 16, *)
 extension Node {
-    func finalised() -> Result {
-        _finalised(rest)
-    }
+    var _rest: [any NodeBase] { rest }
 }
 
 extension String: Error { }
