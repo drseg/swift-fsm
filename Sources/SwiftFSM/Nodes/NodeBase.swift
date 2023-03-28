@@ -29,18 +29,18 @@ extension NodeBase {
                 output.append(contentsOf: finalised.0)
                 errors.append(contentsOf: finalised.1)
             } else {
-                errors.append(errorMessage($0, rest: _rest))
+                errors.append(errorMessage($0))
             }
         }
         
         return (combinedWithRest(output), validate() + errors)
     }
     
-    func errorMessage(_ n: any NodeBase, rest: [any NodeBase]) -> String {
+    func errorMessage(_ n: any NodeBase) -> String {
         """
         Error: \(type(of: n.finalised().0)) must equal Array<\(Input.self)>
             Self: \(type(of: self))
-            Rest: \(rest.isEmpty ? "nil" : String(describing: type(of: rest.first!)))
+            Rest: \(_rest.isEmpty ? "nil" : String(describing: type(of: _rest.first!)))
         """
     }
     
