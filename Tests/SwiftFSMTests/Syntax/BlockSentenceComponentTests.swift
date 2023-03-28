@@ -711,12 +711,34 @@ class WhenBlockTests: DefaultIOBlockTests {
         assertMTAResult(node.rest, sutLine: rl + 1, xctLine: xl)
     }
     
-    func testWhenBlock() {
+    func assert(
+        _ b: Internal.MWASentence,
+        nodeLine nl: Int,
+        restLine rl: Int,
+        xctLine xl: UInt = #line
+    ) {
+        let node = b.node as! WhenBlockNode
+        assertWhenNode(node, sutLine: nl, xctLine: xl)
+        let actionsNode = node.rest.first as! ActionsNode
+        assertActions(actionsNode.actions, expectedOutput: "pass")
+        let matchNode = actionsNode.rest.first as! MatchNode
+        assertMatchNode(matchNode, all: [P.a], sutLine: nl)
+    }
+    
+    func testWhenBlockWithMTA() {
         let l1 = #line; let w1 = when(1, 2) { mtaBlock }
         let l2 = #line; let w2 = When(1, 2) { mtaBlock }
     
         assert(w1, nodeLine: l1, restLine: mtaLine)
         assert(w2, nodeLine: l2, restLine: mtaLine)
+    }
+    
+    func testWhenBlockWithMA() {
+        let l1 = #line; let w1 = when(1, 2) { Matching(P.a) | pass }
+        let l2 = #line; let w2 = When(1, 2) { Matching(P.a) | pass }
+        
+        assert(w1, nodeLine: l1, restLine: l1)
+        assert(w2, nodeLine: l2, restLine: l2)
     }
 }
 
@@ -732,11 +754,33 @@ class ThenBlockTests: DefaultIOBlockTests {
         assertMWAResult(node.rest, sutLine: rl + 1, xctLine: xl)
     }
     
-    func testThenBlock() {
+    func assert(
+        _ b: Internal.MTASentence,
+        nodeLine nl: Int,
+        restLine rl: Int,
+        xctLine xl: UInt = #line
+    ) {
+        let node = b.node as! ThenBlockNode
+        assertThenNode(node, state: 1, sutFile: #file, sutLine: nl, xctLine: xl)
+        let actionsNode = node.rest.first as! ActionsNode
+        assertActions(actionsNode.actions, expectedOutput: "pass")
+        let matchNode = actionsNode.rest.first as! MatchNode
+        assertMatchNode(matchNode, all: [P.a], sutLine: nl)
+    }
+    
+    func testThenBlockWithMTA() {
         let l1 = #line; let t1 = then(1) { mwaBlock }
         let l2 = #line; let t2 = Then(1) { mwaBlock }
 
         assert(t1, nodeLine: l1, restLine: mwaLine)
         assert(t2, nodeLine: l2, restLine: mwaLine)
+    }
+    
+    func testThenBlockWithMA() {
+        let l1 = #line; let w1 = then(1) { Matching(P.a) | pass }
+        let l2 = #line; let w2 = Then(1) { Matching(P.a) | pass }
+        
+        assert(w1, nodeLine: l1, restLine: l1)
+        assert(w2, nodeLine: l2, restLine: l2)
     }
 }

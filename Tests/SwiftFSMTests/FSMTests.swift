@@ -307,9 +307,11 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             }
             
             define(.unlocked, superState: resetable, onEntry: [unlock]) {
-                then(.unlocked) {
-                    matching(RewardStyle.rewarding) | when(.coin) | thankyou
-                    matching(RewardStyle.punishing) | when(.coin) | idiot
+                when(.coin) {
+                    then(.unlocked) {
+                        matching(RewardStyle.rewarding) | thankyou
+                        matching(RewardStyle.punishing) | idiot
+                    }
                 }
                 
                 when(.pass) | then(.locked)
@@ -356,10 +358,6 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         
         assertTable()
     }
-    
-    // TODO: add syntax:
-    // when() -> MWA with empty match and actions
-    // onEntry/onExit: () -> ()... allowing varargs in both functions and classes
     
     func testActionsBlockSyntax() throws {
         try fsm.buildTable {

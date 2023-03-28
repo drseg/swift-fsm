@@ -9,7 +9,7 @@ import ReflectiveEquality
 
 class FSM<State: Hashable, Event: Hashable> {
     @resultBuilder
-    struct TableBuilder: ResultBuilder {
+    struct Builder: ResultBuilder {
         typealias T = Syntax.Define<State>
     }
     
@@ -46,7 +46,7 @@ class FSM<State: Hashable, Event: Hashable> {
         state = initialState
     }
     
-    func buildTable(@TableBuilder _ table: () -> [Syntax.Define<State>]) throws {
+    func buildTable(@Builder _ table: () -> [Syntax.Define<State>]) throws {
         let transitionNode = ActionsResolvingNode(rest: table().map(\.node))
         let validationNode = SemanticValidationNode(rest: [transitionNode])
         let tableNode = PreemptiveTableNode(rest: [validationNode])

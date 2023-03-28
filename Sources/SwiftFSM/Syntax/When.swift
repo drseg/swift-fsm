@@ -56,5 +56,11 @@ extension Syntax {
         ) -> Internal.MWTASentence {
             .init(blockNode, block)
         }
+        
+        func callAsFunction(
+            @Internal.MABuilder _ block: () -> ([any MA])
+        ) -> Internal.MWASentence {
+            .init(blockNode, block)
+        }
     }
 }

@@ -33,6 +33,10 @@ enum Internal {
         let node: ThenNode
     }
     
+    struct MatchingActions: MA {
+        let node: any Node<DefaultIO>
+    }
+    
     struct MatchingWhenActions: MWA {
         let node: any Node<DefaultIO>
     }
@@ -96,6 +100,11 @@ enum Internal {
     struct MTABuilder: ResultBuilder {
         typealias T = any MTA
     }
+    
+    @resultBuilder
+    struct MABuilder: ResultBuilder {
+        typealias T = any MA
+    }
 }
 
 protocol Sentence {
@@ -105,6 +114,7 @@ protocol Sentence {
 protocol MWTA: Sentence { }
 protocol MWA: Sentence { }
 protocol MTA: Sentence { }
+protocol MA: Sentence { }
 
 extension Node {
     func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {

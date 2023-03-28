@@ -288,6 +288,16 @@ extension TableBuilder {
         Syntax.When.init([first] + rest, file: file, line: line).callAsFunction(block)
     }
     
+    func when(
+        _ first: Event,
+        _ rest: Event...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MABuilder _ block: () -> ([any MA])
+    ) -> Internal.MWASentence {
+        Syntax.When.init([first] + rest, file: file, line: line).callAsFunction(block)
+    }
+    
     func then(
         _ state: State? = nil,
         file: String = #file,
@@ -302,6 +312,15 @@ extension TableBuilder {
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> ([any MWA])
     ) -> Internal.MWTASentence {
+        Syntax.Then(state, file: file, line: line).callAsFunction(block)
+    }
+    
+    func then(
+        _ state: State? = nil,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MABuilder _ block: () -> ([any MA])
+    ) -> Internal.MTASentence {
         Syntax.Then(state, file: file, line: line).callAsFunction(block)
     }
     

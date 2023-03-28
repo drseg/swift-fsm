@@ -24,6 +24,10 @@ extension Syntax {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
         
+        static func | (lhs: Self, rhs: @escaping () -> ()) -> Internal.MatchingActions {
+            return .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        }
+        
         let node: MatchNode
         let file: String
         let line: Int
