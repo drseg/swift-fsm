@@ -50,223 +50,46 @@ extension TableBuilder {
     }
     
     func matching(
-        _ p: any Predicate,
+        _ first: any Predicate,
+        or: any Predicate...,
+        and: any Predicate...,
         file: String = #file,
         line: Int = #line
     ) -> Syntax.Matching {
-        .init(p, file: file, line: line)
+        .init(first, or: or, and: and, file: file, line: line)
     }
     
     func matching(
-        any: any Predicate,
-        _ any2: any Predicate,
-        _ anyRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line
-    ) -> Syntax.Matching {
-        .init(any: [any, any2] + anyRest, all: [], file: file, line: line)
-    }
-    
-    func matching(
-        all: any Predicate,
-        _ all2: any Predicate,
-        _ allRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line
-    ) -> Syntax.Matching {
-        .init(any: [], all: [all, all2] + allRest, file: file, line: line)
-    }
-    
-    func matching(
-        any: any Predicate,
-        _ any2: any Predicate,
-        _ anyRest: any Predicate...,
-        all: any Predicate,
-        _ all2: any Predicate,
-        _ allRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line
-    ) -> Syntax.Matching {
-        .init(any: [any, any2] + anyRest, all: [all, all2] + allRest, file: file, line: line)
-    }
-    
-    func matching(
-        _ p: any Predicate,
+        _ first: any Predicate,
+        or: any Predicate...,
+        and: any Predicate...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> ([any MWTA])
     ) -> Internal.MWTASentence {
-        Syntax.Matching(p, file: file, line: line).callAsFunction(block)
+        Syntax.Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
     
     func matching(
-        any: any Predicate,
-        _ any2: any Predicate,
-        _ anyRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTA])
-    ) -> Internal.MWTASentence {
-        Syntax.Matching(any: [any, any2] + anyRest,
-                        all: [],
-                        file: file,
-                        line: line
-        ).callAsFunction(block)
-    }
-
-    func matching(
-        all: any Predicate,
-        _ all2: any Predicate,
-        _ allRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTA])
-    ) -> Internal.MWTASentence {
-        Syntax.Matching(
-            any: [],
-            all: [all, all2] + allRest,
-            file: file,
-            line: line
-        ).callAsFunction(block)
-    }
-
-    func matching(
-        any: any Predicate,
-        _ any2: any Predicate,
-        _ anyRest: any Predicate...,
-        all: any Predicate,
-        _ all2: any Predicate,
-        _ allRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTA])
-    ) -> Internal.MWTASentence {
-        Syntax.Matching(
-            any: [any, any2] + anyRest,
-            all: [all, all2] + allRest,
-            file: file,
-            line: line
-        ).callAsFunction(block)
-    }
-    
-    func matching(
-        _ p: any Predicate,
+        _ first: any Predicate,
+        or: any Predicate...,
+        and: any Predicate...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> ([any MWA])
     ) -> Internal.MWASentence {
-        Syntax.Matching(p, file: file, line: line).callAsFunction(block)
+        Syntax.Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
     
     func matching(
-        any: any Predicate,
-        _ any2: any Predicate,
-        _ anyRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWA])
-    ) -> Internal.MWASentence {
-        Syntax.Matching(
-            any: [any, any2] + anyRest,
-            all: [],
-            file: file,
-            line: line
-        ).callAsFunction(block)
-    }
-
-    func matching(
-        all: any Predicate,
-        _ all2: any Predicate,
-        _ allRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWA])
-    ) -> Internal.MWASentence {
-        Syntax.Matching(
-            any: [],
-            all: [all, all2] + allRest,
-            file: file,
-            line: line
-        ).callAsFunction(block)
-    }
-
-    func matching(
-        any: any Predicate,
-        _ any2: any Predicate,
-        _ anyRest: any Predicate...,
-        all: any Predicate,
-        _ all2: any Predicate,
-        _ allRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWA])
-    ) -> Internal.MWASentence {
-        Syntax.Matching(
-            any: [any, any2] + anyRest,
-            all: [all, all2] + allRest,
-            file: file,
-            line: line
-        ).callAsFunction(block)
-    }
-    
-    func matching(
-        _ p: any Predicate,
+        _ first: any Predicate,
+        or: any Predicate...,
+        and: any Predicate...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> ([any MTA])
     ) -> Internal.MTASentence {
-        Syntax.Matching(p, file: file, line: line).callAsFunction(block)
-    }
-    
-    func matching(
-        any: any Predicate,
-        _ any2: any Predicate,
-        _ anyRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTA])
-    ) -> Internal.MTASentence {
-        Syntax.Matching(
-            any: [any, any2] + anyRest,
-            all: [],
-            file: file,
-            line: line
-        ).callAsFunction(block)
-    }
-
-    func matching(
-        all: any Predicate,
-        _ all2: any Predicate,
-        _ allRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTA])
-    ) -> Internal.MTASentence {
-        Syntax.Matching(
-            any: [],
-            all: [all, all2] + allRest,
-            file: file,
-            line: line
-        ).callAsFunction(block)
-    }
-
-    func matching(
-        any: any Predicate,
-        _ any2: any Predicate,
-        _ anyRest: any Predicate...,
-        all: any Predicate,
-        _ all2: any Predicate,
-        _ allRest: any Predicate...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTA])
-    ) -> Internal.MTASentence {
-        Syntax.Matching(
-            any: [any, any2] + anyRest,
-            all: [all, all2] + allRest,
-            file: file,
-            line: line
-        ).callAsFunction(block)
+        Syntax.Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
     
     func when(

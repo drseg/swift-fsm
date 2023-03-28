@@ -143,15 +143,15 @@ final class FSMTests: XCTestCase, TableBuilder {
         
         try fsm.buildTable {
             define(1) {
-                matching(any: P.a, Q.a) | when(1.1) | then(2) | pass
+                matching(P.a, or: Q.a) | when(1.1) | then(2) | pass
             }
             
             define(1) {
-                matching(any: P.b, Q.b) | when(1.1) | then(3) | pass
+                matching(P.b, or: Q.b) | when(1.1) | then(3) | pass
             }
             
             define(1) {
-                matching(all: P.b, Q.b) | when(1.1) | then(4) | pass
+                matching(P.b, and: Q.b) | when(1.1) | then(4) | pass
             }
         }
         
@@ -359,7 +359,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         assertTable()
     }
     
-    func testActionsBlockSyntax() throws {
+    func testActionsBlockTurnstile() throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -399,10 +399,10 @@ final class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
     func testMultiplePredicateBlocks() throws {
         try fsm.buildTable {
             define(.locked) {
-                matching(any: P.a, P.b) {
+                matching(P.a, or: P.b) {
                     matching(Q.a) {
-                        matching(all: R.a, S.a) {
-                            matching(all: T.a, U.a) {
+                        matching(R.a, and: S.a) {
+                            matching(T.a, and: U.a) {
                                 when(.coin) | then(.locked) | thankyou
                             }
                         }

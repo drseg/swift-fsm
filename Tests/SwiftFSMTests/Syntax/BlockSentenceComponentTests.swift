@@ -519,20 +519,20 @@ class MatchingBlockTests: DefaultIOBlockTests {
         assertMWTABlock(m1, all: [Q.a], nodeLine: l1)
         assertMWTABlock(m2, all: [Q.a], nodeLine: l2)
         
-        let l3 = #line; let m3 = matching(all: Q.a, R.a) { mwtaBlock }
-        let l4 = #line; let m4 = Matching(all: Q.a, R.a) { mwtaBlock }
+        let l3 = #line; let m3 = matching(Q.a, and: R.a) { mwtaBlock }
+        let l4 = #line; let m4 = Matching(Q.a, and: R.a) { mwtaBlock }
         
         assertMWTABlock(m3, all: [Q.a, R.a], nodeLine: l3)
         assertMWTABlock(m4, all: [Q.a, R.a], nodeLine: l4)
         
-        let l5 = #line; let m5 = matching(any: Q.a, R.a) { mwtaBlock }
-        let l6 = #line; let m6 = Matching(any: Q.a, R.a) { mwtaBlock }
+        let l5 = #line; let m5 = matching(Q.a, or: R.a) { mwtaBlock }
+        let l6 = #line; let m6 = Matching(Q.a, or: R.a) { mwtaBlock }
         
         assertMWTABlock(m5, any: [Q.a, R.a], nodeLine: l5)
         assertMWTABlock(m6, any: [Q.a, R.a], nodeLine: l6)
         
-        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a) { mwtaBlock }
-        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a) { mwtaBlock }
+        let l7 = #line; let m7 = matching(Q.a, or: R.a, and: Q.a, R.a) { mwtaBlock }
+        let l8 = #line; let m8 = Matching(Q.a, or: R.a, and: Q.a, R.a) { mwtaBlock }
         
         assertMWTABlock(m7, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l7)
         assertMWTABlock(m8, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l8)
@@ -560,20 +560,20 @@ class MatchingBlockTests: DefaultIOBlockTests {
         assertMWABlock(m1, all: [Q.a], nodeLine: l1)
         assertMWABlock(m2, all: [Q.a], nodeLine: l2)
         
-        let l3 = #line; let m3 = matching(all: Q.a, R.a) { mwaBlock }
-        let l4 = #line; let m4 = Matching(all: Q.a, R.a) { mwaBlock }
+        let l3 = #line; let m3 = matching(Q.a, and: R.a) { mwaBlock }
+        let l4 = #line; let m4 = Matching(Q.a, and: R.a) { mwaBlock }
 
         assertMWABlock(m3, all: [Q.a, R.a], nodeLine: l3)
         assertMWABlock(m4, all: [Q.a, R.a], nodeLine: l4)
         
-        let l5 = #line; let m5 = matching(any: Q.a, R.a) { mwaBlock }
-        let l6 = #line; let m6 = Matching(any: Q.a, R.a) { mwaBlock }
+        let l5 = #line; let m5 = matching(Q.a, or: R.a) { mwaBlock }
+        let l6 = #line; let m6 = Matching(Q.a, or: R.a) { mwaBlock }
         
         assertMWABlock(m5, any: [Q.a, R.a], nodeLine: l5)
         assertMWABlock(m6, any: [Q.a, R.a], nodeLine: l6)
         
-        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a)  { mwaBlock }
-        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a)  { mwaBlock }
+        let l7 = #line; let m7 = matching(Q.a, or: R.a, and: Q.a, R.a)  { mwaBlock }
+        let l8 = #line; let m8 = Matching(Q.a, or: R.a, and: Q.a, R.a)  { mwaBlock }
 
         assertMWABlock(m7, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l7)
         assertMWABlock(m8, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l8)
@@ -601,20 +601,20 @@ class MatchingBlockTests: DefaultIOBlockTests {
         assertMTABlock(m1, all: [Q.a], nodeLine: l1)
         assertMTABlock(m2, all: [Q.a], nodeLine: l2)
         
-        let l3 = #line; let m3 = matching(all: Q.a, R.a) { mtaBlock }
-        let l4 = #line; let m4 = Matching(all: Q.a, R.a) { mtaBlock }
+        let l3 = #line; let m3 = matching(Q.a, and: R.a) { mtaBlock }
+        let l4 = #line; let m4 = Matching(Q.a, and: R.a) { mtaBlock }
 
         assertMTABlock(m3, all: [Q.a, R.a], nodeLine: l3)
         assertMTABlock(m4, all: [Q.a, R.a], nodeLine: l4)
         
-        let l5 = #line; let m5 = matching(any: Q.a, R.a) { mtaBlock }
-        let l6 = #line; let m6 = Matching(any: Q.a, R.a) { mtaBlock }
+        let l5 = #line; let m5 = matching(Q.a, or: R.a) { mtaBlock }
+        let l6 = #line; let m6 = Matching(Q.a, or: R.a) { mtaBlock }
         
         assertMTABlock(m5, any: [Q.a, R.a], nodeLine: l5)
         assertMTABlock(m6, any: [Q.a, R.a], nodeLine: l6)
         
-        let l7 = #line; let m7 = matching(any: Q.a, R.a, all: Q.a, R.a)  { mtaBlock }
-        let l8 = #line; let m8 = Matching(any: Q.a, R.a, all: Q.a, R.a)  { mtaBlock }
+        let l7 = #line; let m7 = matching(Q.a, or: R.a, and: Q.a, R.a)  { mtaBlock }
+        let l8 = #line; let m8 = Matching(Q.a, or: R.a, and: Q.a, R.a)  { mtaBlock }
 
         assertMTABlock(m7, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l7)
         assertMTABlock(m8, any: [Q.a, R.a], all: [Q.a, R.a], nodeLine: l8)

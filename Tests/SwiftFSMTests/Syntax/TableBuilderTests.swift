@@ -59,6 +59,8 @@ class SyntaxTestsBase: XCTestCase, TableBuilder {
         
         XCTAssertEqual(any, node.match.matchAny, file: xf, line: xl)
         XCTAssertEqual(all.erased(), node.match.matchAll, file: xf, line: xl)
+        XCTAssertEqual(node.match.file, sf, file: xf, line: xl)
+        XCTAssertEqual(node.match.line, sl, file: xf, line: xl)
         
         if let node = node as? MatchBlockNode {
             assertNeverEmptyNode(node,

@@ -30,20 +30,20 @@ final class ComponentTests: SyntaxTestsBase {
         assertMatching(m1, all: P.a, sutLine: l1)
         assertMatching(m2, all: P.a, sutLine: l2)
         
-        let m3 = matching(any: P.a, P.b, line: -1)
-        let m4 = Matching(any: P.a, P.b, line: -1)
+        let m3 = matching(P.a, or: P.b, line: -1)
+        let m4 = Matching(P.a, or: P.b, line: -1)
 
         assertMatching(m3, any: P.a, P.b, sutLine: -1)
         assertMatching(m4, any: P.a, P.b, sutLine: -1)
         
-        let m5 = matching(all: P.a, Q.a, line: -1)
-        let m6 = Matching(all: P.a, Q.a, line: -1)
+        let m5 = matching(P.a, and: Q.a, line: -1)
+        let m6 = Matching(P.a, and: Q.a, line: -1)
         
         assertMatching(m5, all: P.a, Q.a, sutLine: -1)
         assertMatching(m6, all: P.a, Q.a, sutLine: -1)
         
-        let m7 = matching(any: P.a, P.b, all: Q.a, R.a, line: -1)
-        let m8 = Matching(any: P.a, P.b, all: Q.a, R.a, line: -1)
+        let m7 = matching(P.a, or: P.b, and: Q.a, R.a, line: -1)
+        let m8 = Matching(P.a, or: P.b, and: Q.a, R.a, line: -1)
         
         assertMatching(m7, any: P.a, P.b, all: Q.a, R.a, sutLine: -1)
         assertMatching(m8, any: P.a, P.b, all: Q.a, R.a, sutLine: -1)
