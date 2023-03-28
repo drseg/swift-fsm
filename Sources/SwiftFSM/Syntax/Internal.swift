@@ -60,7 +60,7 @@ enum Internal {
     class BlockSentence {
         let node: any Node<DefaultIO>
 
-        init<N: Node>(_ n: N, _ block: () -> ([any Sentence]))
+        init<N: Node>(_ n: N, _ block: () -> [any Sentence])
         where N.Input == DefaultIO, N.Input == N.Output {
             var n = n
             n.rest = block().nodes
@@ -71,7 +71,7 @@ enum Internal {
             _ actions: [() -> ()],
             file: String = #file,
             line: Int = #line,
-            _ block: () -> ([any Sentence])
+            _ block: () -> [any Sentence]
         ) {
             node = ActionsBlockNode(actions: actions,
                                     rest: block().nodes,

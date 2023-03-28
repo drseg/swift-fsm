@@ -23,19 +23,19 @@ extension Syntax {
         }
         
         func callAsFunction(
-            @Internal.MWTABuilder _ block: () -> ([any MWTA])
+            @Internal.MWTABuilder _ block: () -> [any MWTA]
         ) -> Internal.MWTASentence {
             .init(actions, file: file, line: line, block)
         }
         
         func callAsFunction(
-            @Internal.MWABuilder _ block: () -> ([any MWA])
+            @Internal.MWABuilder _ block: () -> [any MWA]
         ) -> Internal.MWASentence {
             .init(actions, file: file, line: line, block)
         }
         
         func callAsFunction(
-            @Internal.MTABuilder _ block: () -> ([any MTA])
+            @Internal.MTABuilder _ block: () -> [any MTA]
         ) -> Internal.MTASentence {
             .init(actions, file: file, line: line, block)
         }

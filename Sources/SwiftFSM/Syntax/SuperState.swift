@@ -9,7 +9,7 @@ import Foundation
 struct SuperState {
     var nodes: [any Node<DefaultIO>]
     
-    init(@Internal.MWTABuilder _ block: () -> ([any MWTA])) {
+    init(@Internal.MWTABuilder _ block: () -> [any MWTA]) {
         nodes = block().nodes
     }
 }

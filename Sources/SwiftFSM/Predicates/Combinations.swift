@@ -16,7 +16,7 @@ extension Collection where Element: Collection {
     }
     
     private func combinations(_ c1: Output, _ c2: Element) -> Output {
-        c1.reduce(into: Output()) { combinations, elem1 in
+        c1.reduce(into: []) { combinations, elem1 in
             c2.forEach { elem2 in
                 combinations.append(elem1 + [elem2])
             }

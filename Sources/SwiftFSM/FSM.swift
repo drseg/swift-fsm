@@ -49,21 +49,19 @@ class FSM<State: Hashable, Event: Hashable> {
     func buildTable(@Builder _ table: () -> [Syntax.Define<State>]) throws {
         let transitionNode = ActionsResolvingNode(rest: table().map(\.node))
         let validationNode = SemanticValidationNode(rest: [transitionNode])
-        let tableNode = PreemptiveTableNode(rest: [validationNode])
-        let finalised = tableNode.finalised()
+        let tableNode = MatchResolvingNode(rest: [validationNode])
+        let result = tableNode.finalised()
         
-        try checkForErrors(finalised)
-        makeTable(finalised.output)
+        try checkForErrors(result)
+        makeTable(result.output)
     }
     
-    func checkForErrors(
-        _ finalised: (output: [PreemptiveTableNode.Output], errors: [Error])
-    ) throws {
-        if !finalised.errors.isEmpty {
-            throw CompoundError(errors: finalised.errors)
+    func checkForErrors(_ result: (output: [MatchResolvingNode.Output], errors: [Error])) throws {
+        if !result.errors.isEmpty {
+            throw CompoundError(errors: result.errors)
         }
         
-        if finalised.output.isEmpty {
+        if result.output.isEmpty {
             throw CompoundError(errors: [EmptyTableError()])
         }
         
@@ -71,20 +69,20 @@ class FSM<State: Hashable, Event: Hashable> {
             throw CompoundError(errors: [TypeClashError()])
         }
         
-        let predicates = finalised.output.map(\.predicates).flattened
+        let predicates = result.output.map(\.predicates).flattened
         if predicates.contains(where: { $0.base.base is State || $0.base.base is Event }) {
             throw CompoundError(errors: [TypeClashError()])
         }
         
-        let firstState = finalised.output.first!.state
-        let firstEvent = finalised.output.first!.event
+        let firstState = result.output.first!.state
+        let firstEvent = result.output.first!.event
         
         if deepDescription((firstState, firstEvent)).contains("NSObject") {
             throw CompoundError(errors: [NSObjectError()])
         }
     }
     
-    func makeTable(_ output: [PreemptiveTableNode.Output]) {
+    func makeTable(_ output: [MatchResolvingNode.Output]) {
         output.forEach {
             let value = Value(state: $0.state.base,
                               predicates: $0.predicates,

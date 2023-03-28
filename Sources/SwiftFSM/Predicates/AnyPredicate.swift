@@ -64,7 +64,7 @@ extension Collection where Element == AnyPredicate {
     }
     
     func uniqueTypes() -> [AnyPredicate] {
-        uniqueElementTypes.reduce(into: [AnyPredicate]()) { predicates, type in
+        uniqueElementTypes.reduce(into: []) { predicates, type in
             predicates.append(first { $0.type == type }!)
         }
     }

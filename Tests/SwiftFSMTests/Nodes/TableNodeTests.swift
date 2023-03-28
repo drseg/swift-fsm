@@ -14,9 +14,9 @@ class PreemptiveTableNodeTests: DefineConsumer {
                                          nextState: AnyTraceable,
                                          actionsOutput: String)
     
-    typealias PTN = PreemptiveTableNode
+    typealias PTN = MatchResolvingNode
     typealias SVN = SemanticValidationNode
-    typealias Key = PreemptiveTableNode.ImplicitClashesKey
+    typealias Key = MatchResolvingNode.ImplicitClashesKey
     typealias TableNodeResult = (output: [PTN.Output], errors: [Error])
     
     enum P: Predicate { case a, b }

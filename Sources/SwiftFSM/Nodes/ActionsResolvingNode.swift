@@ -21,7 +21,7 @@ struct ActionsResolvingNode: Node {
             onEntry[state] = rest.first { $0.state == state }?.onEntry
         }
         
-        return rest.reduce(into: [Output]()) {
+        return rest.reduce(into: []) {
             let actions = $1.state == $1.nextState
             ? $1.actions
             : $1.actions + $1.onExit + (onEntry[$1.nextState] ?? [])

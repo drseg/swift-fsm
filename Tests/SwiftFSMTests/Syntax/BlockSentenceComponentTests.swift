@@ -77,7 +77,7 @@ class BlockTests: SyntaxTestsBase {
 }
 
 class BlockComponentTests: BlockTests {
-    func buildMWTA(@MWTABuilder _ block: () -> ([any MWTA])) -> [any MWTA] {
+    func buildMWTA(@MWTABuilder _ block: () -> [any MWTA]) -> [any MWTA] {
         block()
     }
     

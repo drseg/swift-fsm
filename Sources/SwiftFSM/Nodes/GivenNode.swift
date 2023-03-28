@@ -17,7 +17,7 @@ struct GivenNode: Node {
     var rest: [any Node<DefaultIO>] = []
     
     func combinedWithRest(_ rest: [DefaultIO]) -> [Output] {
-        states.reduce(into: [Output]()) { result, state in
+        states.reduce(into: []) { result, state in
             rest.forEach {
                 result.append(
                     (state: state,

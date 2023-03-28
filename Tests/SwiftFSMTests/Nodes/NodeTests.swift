@@ -25,7 +25,7 @@ class NodeTests: XCTestCase {
         }
         
         func combinedWithRest(_ rest: [IOType]) -> [IOType] {
-            rest.reduce(into: [IOType]()) {
+            rest.reduce(into: []) {
                 $0.append(first + $1)
             } ??? [first]
         }

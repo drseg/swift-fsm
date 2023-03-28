@@ -6,7 +6,7 @@
 
 import Foundation
 
-protocol Key {
+protocol SVNKey {
     init(_ input: SemanticValidationNode.Input)
 }
 
@@ -19,7 +19,7 @@ class SemanticValidationNode: Node {
         let clashes: ClashesDictionary
     }
     
-    struct DuplicatesKey: Key, Hashable {
+    struct DuplicatesKey: SVNKey, Hashable {
         let state: AnyTraceable,
             match: Match,
             event: AnyTraceable,
@@ -33,7 +33,7 @@ class SemanticValidationNode: Node {
         }
     }
     
-    struct ClashesKey: Key, Hashable {
+    struct ClashesKey: SVNKey, Hashable {
         let state: AnyTraceable,
             match: Match,
             event: AnyTraceable
@@ -74,7 +74,7 @@ class SemanticValidationNode: Node {
                 ClashesKey(lhs) == ClashesKey(row)
             }
             
-            func add<T: Key>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {
+            func add<T: SVNKey>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {
                 let key = T(row)
                 dict[key] = (dict[key] ?? [existing]) + [row]
             }

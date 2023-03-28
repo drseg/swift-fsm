@@ -16,7 +16,7 @@ class MatchNodeBase {
     }
     
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
-        rest.reduce(into: [DefaultIO]()) {
+        rest.reduce(into: []) {
             $0.append(
                 (match: $1.match.prepend(match),
                  event: $1.event,

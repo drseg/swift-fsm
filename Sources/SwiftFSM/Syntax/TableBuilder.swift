@@ -38,7 +38,7 @@ extension TableBuilder {
         onExit: [() -> ()] = [],
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTA])
+        @Internal.MWTABuilder _ block: () -> [any MWTA]
     ) -> Syntax.Define<State> {
         .init(states: [s1] + rest,
               superState: superState,
@@ -65,7 +65,7 @@ extension TableBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTA])
+        @Internal.MWTABuilder _ block: () -> [any MWTA]
     ) -> Internal.MWTASentence {
         Syntax.Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
@@ -76,7 +76,7 @@ extension TableBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWA])
+        @Internal.MWABuilder _ block: () -> [any MWA]
     ) -> Internal.MWASentence {
         Syntax.Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
@@ -87,7 +87,7 @@ extension TableBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTA])
+        @Internal.MTABuilder _ block: () -> [any MTA]
     ) -> Internal.MTASentence {
         Syntax.Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
@@ -106,7 +106,7 @@ extension TableBuilder {
         _ rest: Event...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTA])
+        @Internal.MTABuilder _ block: () -> [any MTA]
     ) -> Internal.MWTASentence {
         Syntax.When.init([first] + rest, file: file, line: line).callAsFunction(block)
     }
@@ -116,7 +116,7 @@ extension TableBuilder {
         _ rest: Event...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MABuilder _ block: () -> ([any MA])
+        @Internal.MABuilder _ block: () -> [any MA]
     ) -> Internal.MWASentence {
         Syntax.When.init([first] + rest, file: file, line: line).callAsFunction(block)
     }
@@ -133,7 +133,7 @@ extension TableBuilder {
         _ state: State? = nil,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWA])
+        @Internal.MWABuilder _ block: () -> [any MWA]
     ) -> Internal.MWTASentence {
         Syntax.Then(state, file: file, line: line).callAsFunction(block)
     }
@@ -142,7 +142,7 @@ extension TableBuilder {
         _ state: State? = nil,
         file: String = #file,
         line: Int = #line,
-        @Internal.MABuilder _ block: () -> ([any MA])
+        @Internal.MABuilder _ block: () -> [any MA]
     ) -> Internal.MTASentence {
         Syntax.Then(state, file: file, line: line).callAsFunction(block)
     }
@@ -152,7 +152,7 @@ extension TableBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> ([any MWTA])
+        @Internal.MWTABuilder _ block: () -> [any MWTA]
     ) -> Internal.MWTASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line).callAsFunction(block)
     }
@@ -162,7 +162,7 @@ extension TableBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> ([any MWA])
+        @Internal.MWABuilder _ block: () -> [any MWA]
     ) -> Internal.MWASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line).callAsFunction(block)
     }
@@ -172,7 +172,7 @@ extension TableBuilder {
         _ aRest: () -> ()...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> ([any MTA])
+        @Internal.MTABuilder _ block: () -> [any MTA]
     ) -> Internal.MTASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line).callAsFunction(block)
     }

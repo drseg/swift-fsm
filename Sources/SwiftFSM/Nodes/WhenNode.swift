@@ -29,7 +29,7 @@ class WhenNodeBase {
     }
     
     func makeOutput(_ rest: [DefaultIO], _ event: AnyTraceable) -> [DefaultIO] {
-        rest.reduce(into: [DefaultIO]()) {
+        rest.reduce(into: []) {
             $0.append(
                 (match: $1.match,
                  event: event,
@@ -42,7 +42,7 @@ class WhenNodeBase {
 
 class WhenNode: WhenNodeBase, NeverEmptyNode {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        events.reduce(into: [DefaultIO]()) { output, event in
+        events.reduce(into: []) { output, event in
             output.append(contentsOf: makeOutput(rest, event) ??? defaultIOOutput(event: event))
         }
     }
@@ -54,7 +54,7 @@ class WhenNode: WhenNodeBase, NeverEmptyNode {
 
 class WhenBlockNode: WhenNodeBase, NeverEmptyNode {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        events.reduce(into: [DefaultIO]()) { output, event in
+        events.reduce(into: []) { output, event in
             output.append(contentsOf: makeOutput(rest, event))
         }
     }

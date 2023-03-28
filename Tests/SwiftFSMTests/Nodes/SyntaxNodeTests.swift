@@ -273,7 +273,7 @@ class SyntaxNodeTests: XCTestCase {
              ThenNode(state: s1),
              ActionsNode(actions: [{ self.actionsOutput += "chain" }])]
                         
-            return nodes.permutations(ofCount: 4).reduce(into: [any Node<DefaultIO>]()) {
+            return nodes.permutations(ofCount: 4).reduce(into: []) {
                 var one = $1[0].copy(),
                     two = $1[1].copy(),
                     three = $1[2].copy(),

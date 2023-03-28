@@ -34,7 +34,7 @@ extension Syntax {
              onExit: [() -> ()] = [],
              file: String = #file,
              line: Int = #line,
-             @Internal.MWTABuilder _ block: () -> ([any MWTA])
+             @Internal.MWTABuilder _ block: () -> [any MWTA]
         ) {
             self.init(states: [s1] + rest,
                       superState: superState,
@@ -51,7 +51,7 @@ extension Syntax {
              onExit: [() -> ()],
              file: String = #file,
              line: Int = #line,
-             @Internal.MWTABuilder _ block: () -> ([any MWTA])
+             @Internal.MWTABuilder _ block: () -> [any MWTA]
         ) {
             let elements = block()
             
