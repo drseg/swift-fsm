@@ -12,8 +12,9 @@ protocol NodeBase {
     
     typealias Result = (output: [Output], errors: [Error])
     
-    func validate() -> [Error]
+    func finalised() -> Result
     func combinedWithRest(_ rest: [Input]) -> [Output]
+    func validate() -> [Error]
 }
 
 extension NodeBase {
@@ -22,26 +23,25 @@ extension NodeBase {
 
 protocol UnsafeNode: NodeBase {
     var rest: [any UnsafeNode] { get set }
-    func finalised() throws -> Result
 }
 
 @available(macOS 13, iOS 16, *)
 protocol Node<Output>: NodeBase {
     var rest: [any Node<Input>] { get set }
-    func finalised() -> Result
 }
 
 extension UnsafeNode {
-    func finalised() throws -> Result {
+    func finalised() -> Result {
         var output = [Input]()
         var errors = [Error]()
         
-        try rest.forEach {
-            guard let finalised = try $0.finalised() as? ([Input], [Error]) else {
-                throw errorMessage($0)
+        rest.forEach {
+            if let finalised = $0.finalised() as? ([Input], [Error])  {
+                output.append(contentsOf: finalised.0)
+                errors.append(contentsOf: finalised.1)
+            } else {
+                errors.append(errorMessage($0))
             }
-            output.append(contentsOf: finalised.0)
-            errors.append(contentsOf: finalised.1)
         }
         
         return (combinedWithRest(output), validate() + errors)
@@ -49,7 +49,7 @@ extension UnsafeNode {
     
     func errorMessage(_ n: any UnsafeNode) -> String {
         """
-        Error: \(type(of: try? n.finalised().0)) must equal Array<\(Input.self)>
+        Error: \(type(of: n.finalised().0)) must equal Array<\(Input.self)>
             Self: \(type(of: self))
             Rest: \(rest.isEmpty ? "nil" : String(describing: type(of: rest.first!)))
         """

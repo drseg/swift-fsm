@@ -296,7 +296,6 @@ class SyntaxNodeTests: XCTestCase {
             
             let result = results[0]
             
-#warning("calling finalised() depends on Match code tested elsewhere - is it necessary?")
             let actualPredicates = result.match.finalised()
             let expectedPredicates = expectedMatch.finalised()
             

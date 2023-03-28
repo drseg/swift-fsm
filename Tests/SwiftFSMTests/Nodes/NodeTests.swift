@@ -61,7 +61,7 @@ class NodeTests: XCTestCase {
         let n2 = UnsafeStringNode(first: "When", rest: [n0, n1])
         let n3 = UnsafeStringNode(first: "Given", rest: [n2])
         
-        assertEqual(actual: try? n3.finalised(),
+        assertEqual(actual: n3.finalised(),
                     expected: (["GivenWhenThen1", "GivenWhenThen2"],
                                ["E", "E", "E", "E"]))
     }
@@ -72,14 +72,9 @@ class NodeTests: XCTestCase {
         let n1 = IntNode(first: 1, rest: [])
         let n2 = UnsafeStringNode(first: "1", rest: [n1])
         
-        XCTAssertThrowsError(try n2.finalised().0) {
-            if let error = $0 as? String {
-                XCTAssertTrue(error.contains(UnsafeStringNode.name))
-                XCTAssertTrue(error.contains(IntNode.name))
-            } else {
-                XCTFail("Wrong error")
-            }
-        }
+        let error = n2.finalised().errors.last as? String
+        XCTAssertTrue((error ?? "").contains(UnsafeStringNode.name))
+        XCTAssertTrue((error ?? "").contains(IntNode.name))
     }
 }
 
