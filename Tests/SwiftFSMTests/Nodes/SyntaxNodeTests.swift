@@ -34,13 +34,11 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     var thenNode: ThenNode {
-        ThenNode(state: s1,
-                 rest: [actionsNode])
+        ThenNode(state: s1, rest: [actionsNode])
     }
     
     var whenNode: WhenNode {
-        WhenNode(events: [e1, e2],
-                 rest: [thenNode])
+        WhenNode(events: [e1, e2], rest: [thenNode])
     }
     
     var m1: Match {
@@ -336,9 +334,8 @@ class DefineConsumer: SyntaxNodeTests {
         let when = WhenNode(events: [w], rest: [then])
         let match = MatchNode(match: m, rest: [when])
         let given = GivenNode(states: [g], rest: [match])
-        return .init(onEntry: entry ?? [],
-                     onExit: exit ?? [],
-                     rest: [given])
+        
+        return .init(onEntry: entry ?? [], onExit: exit ?? [],  rest: [given])
     }
 }
 

@@ -71,26 +71,20 @@ final class FSMTests: XCTestCase, TableBuilder {
     func testThrowsPredicateEventTypeClash() {
         assertThrowsError(TypeClashError.self) {
             try fsm.buildTable {
-                Syntax.Define(1) {
-                    Syntax.Matching(1) | Syntax.When(1.1) | Syntax.Then(2)
-                }
+                Syntax.Define(1) { Syntax.Matching(1) | Syntax.When(1.1) | Syntax.Then(2) }
             }
         }
         
         assertThrowsError(TypeClashError.self) {
             try fsm.buildTable {
-                Syntax.Define(1) {
-                    Syntax.Matching(1.1) | Syntax.When(1.1) | Syntax.Then(2)
-                }
+                Syntax.Define(1) { Syntax.Matching(1.1) | Syntax.When(1.1) | Syntax.Then(2) }
             }
         }
     }
     
     func testValidTableDoesNotThrow() {
         XCTAssertNoThrow(
-            try fsm.buildTable {
-                define(1) { when(1.1) | then(2) }
-            }
+            try fsm.buildTable { define(1) { when(1.1) | then(2) } }
         )
     }
     
@@ -112,9 +106,7 @@ final class FSMTests: XCTestCase, TableBuilder {
     
     func testHandleEventWithoutPredicate() throws {
         try fsm.buildTable {
-            define(1) {
-                when(1.1) | then(2) | { self.actionsOutput = "pass" }
-            }
+            define(1) { when(1.1) | then(2) | { self.actionsOutput = "pass" } }
         }
         
         assertHandleEvent(1.1, state: 2, output: "pass")
@@ -123,13 +115,8 @@ final class FSMTests: XCTestCase, TableBuilder {
     
     func testHandleEventWithSinglePredicate() throws {
         try fsm.buildTable {
-            define(1) {
-                matching(P.a) | when(1.1) | then(2) | { self.actionsOutput = "pass" }
-            }
-            
-            define(1) {
-                matching(P.b) | when(1.1) | then(3) | { self.actionsOutput = "pass" }
-            }
+            define(1) { matching(P.a) | when(1.1) | then(2) | { self.actionsOutput = "pass" } }
+            define(1) { matching(P.b) | when(1.1) | then(3) | { self.actionsOutput = "pass" } }
         }
         
         assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
@@ -142,17 +129,9 @@ final class FSMTests: XCTestCase, TableBuilder {
         }
         
         try fsm.buildTable {
-            define(1) {
-                matching(P.a, or: Q.a) | when(1.1) | then(2) | pass
-            }
-            
-            define(1) {
-                matching(P.b, or: Q.b) | when(1.1) | then(3) | pass
-            }
-            
-            define(1) {
-                matching(P.b, and: Q.b) | when(1.1) | then(4) | pass
-            }
+            define(1) { matching(P.a, or: Q.a) | when(1.1) | then(2) | pass }
+            define(1) { matching(P.b, or: Q.b) | when(1.1) | then(3) | pass }
+            define(1) { matching(P.b, and: Q.b) | when(1.1) | then(4) | pass }
         }
         
         assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
@@ -165,15 +144,12 @@ final class FSMTests: XCTestCase, TableBuilder {
 }
 
 class FSMIntegrationTests: XCTestCase, TableBuilder {
-    typealias StateType = TurnstileState
-    typealias EventType = TurnstileEvent
-    
-    enum TurnstileState: String, CustomStringConvertible {
+    enum StateType: String, CustomStringConvertible {
         case locked, unlocked, alarming
         var description: String { rawValue  }
     }
 
-    enum TurnstileEvent: String, CustomStringConvertible {
+    enum EventType: String, CustomStringConvertible {
         case reset, coin, pass
         var description: String { rawValue }
     }
@@ -232,15 +208,10 @@ final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
 }
 
 final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
+    enum EnforcementStyle: Predicate { case strong, weak }
+    enum RewardStyle: Predicate { case punishing, rewarding }
+    
     func idiot() { actions.append("idiot")    }
-    
-    enum EnforcementStyle: Predicate {
-        case strong, weak
-    }
-    
-    enum RewardStyle: Predicate {
-        case punishing, rewarding
-    }
     
     func assertEventAction(_ e: EventType, _ a: String, line: UInt = #line) {
         assertEventAction(e, [a], line: line)
@@ -402,7 +373,7 @@ final class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
                     matching(Q.a) {
                         matching(R.a, and: S.a) {
                             matching(T.a, and: U.a) {
-                                matching(V.a) | when(.coin) | then(.locked) | thankyou
+                                matching(V.a) | when(.coin) | then() | thankyou
                             }
                         }
                     }

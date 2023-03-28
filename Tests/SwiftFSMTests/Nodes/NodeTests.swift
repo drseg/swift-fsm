@@ -20,9 +20,7 @@ class NodeTests: XCTestCase {
             self.rest = rest
         }
         
-        func validate() -> [Error] {
-            ["E"]
-        }
+        func validate() -> [Error] { ["E"] }
         
         func combinedWithRest(_ rest: [IOType]) -> [IOType] {
             rest.reduce(into: []) {

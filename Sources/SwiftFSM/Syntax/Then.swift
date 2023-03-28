@@ -28,7 +28,7 @@ extension Syntax {
             node = ThenNode(
                 state: state != nil ? AnyTraceable(base: state,
                                                    file: file,
-                                                   line: line): nil
+                                                   line: line) : nil
             )
             self.file = file
             self.line = line

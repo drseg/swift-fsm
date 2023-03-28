@@ -78,7 +78,6 @@ enum Internal {
                                     caller: "actions",
                                     file: file,
                                     line: line)
-            
         }
     }
     
