@@ -403,7 +403,7 @@ final class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
                     matching(Q.a) {
                         matching(R.a, and: S.a) {
                             matching(T.a, and: U.a) {
-                                when(.coin) | then(.locked) | thankyou
+                                matching(V.a) | when(.coin) | then(.locked) | thankyou
                             }
                         }
                     }
@@ -411,14 +411,14 @@ final class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
             }
         }
         
-        fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a)
+        fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual(["thankyou"], actions)
         
-        fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a)
+        fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual(["thankyou", "thankyou"], actions)
         
         actions = []
-        fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a)
+        fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual([], actions)
     }
     

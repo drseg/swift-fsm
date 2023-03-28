@@ -8,13 +8,13 @@ import XCTest
 @testable import SwiftFSM
 
 enum P: Predicate { case a, b, c }
-enum Q: Predicate { case a, b, c }
-enum R: Predicate { case a, b, c }
-enum S: Predicate { case a, b, c }
-enum T: Predicate { case a, b, c }
-enum U: Predicate { case a, b, c }
-enum V: Predicate { case a, b, c }
-enum W: Predicate { case a, b, c }
+enum Q: Predicate { case a, b    }
+enum R: Predicate { case a, b    }
+enum S: Predicate { case a, b    }
+enum T: Predicate { case a, b    }
+enum U: Predicate { case a, b    }
+enum V: Predicate { case a, b    }
+enum W: Predicate { case a, b    }
 
 class MatchTests: XCTestCase {
     let p1 = P.a, p2 = P.b, p3 = P.c
