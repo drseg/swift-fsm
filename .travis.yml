@@ -1,0 +1,6 @@
+language: swift
+os: osx
+osx_image: xcode13.2
+script:
+  - swift build
+  - swift test
