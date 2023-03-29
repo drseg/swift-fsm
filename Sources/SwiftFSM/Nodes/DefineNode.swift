@@ -42,7 +42,7 @@ final class DefineNode: NeverEmptyNode {
     }
     
     func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
-        rest.reduce(into: []) {
+        let output = rest.reduce(into: []) {
             $0.append(
                 (state: $1.state,
                  match: finalised($1.match),
@@ -53,6 +53,8 @@ final class DefineNode: NeverEmptyNode {
                  onExit: onExit)
             )
         }
+        
+        return errors.isEmpty ? output : []
     }
     
     private func finalised(_ m: Match) -> Match {

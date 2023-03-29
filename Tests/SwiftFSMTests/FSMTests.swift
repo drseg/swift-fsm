@@ -457,7 +457,7 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
         }
     }
     
-    func testDuplicatesThrowErrors() {
+    func testDuplicatesAndClashesThrowErrors() {
         typealias DE = SemanticValidationNode.DuplicatesError
         typealias CE = SemanticValidationNode.ClashError
         
@@ -473,19 +473,16 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             let errors = ($0 as? CompoundError)?.errors
             XCTAssertEqual(2, errors?.count)
             
-            let e1 = (errors?.first { $0 is DE } as? DE)?.duplicates ?? [:]
-            XCTAssertEqual(1, e1.count)
-            let e2 = (errors?.first { $0 is CE } as? CE)?.clashes ?? [:]
-            XCTAssertEqual(1, e2.count)
+            let e1 = errors?.compactMap { $0 as? DE }.first?.duplicates.values
+            let e2 = errors?.compactMap { $0 as? CE }.first?.clashes.values
+
+            XCTAssertEqual(1, e1?.count)
+            XCTAssertEqual(1, e2?.count)
             
-            let e1v = e1.values
-            XCTAssertEqual(1, e1v.count)
-            let e2v = e2.values
-            XCTAssertEqual(1, e2v.count)
+            let duplicates = e1?.first ?? []
+            let clashes = e2?.first ?? []
             
-            let duplicates = e1v.first ?? []
             XCTAssertEqual(2, duplicates.count)
-            let clashes = e2v.first ?? []
             XCTAssertEqual(2, clashes.count)
             
             XCTAssert(
@@ -507,6 +504,65 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             
             XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(StateType.locked) })
             XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(StateType.unlocked) })
+        }
+    }
+    
+    func testImplicitMatchClashesThrowErrors() {
+        XCTAssertThrowsError (
+            try fsm.buildTable {
+                define(.locked) {
+                    #warning("this file and line data is thrown away...")
+                    matching(P.a, file: "f1", line: -1)  | when(.coin) | then(.unlocked)
+                    matching(Q.a, file: "f2", line: -2)  | when(.coin) | then(.locked)
+                }
+            }
+        ) {
+            let errors = ($0 as? CompoundError)?.errors
+            XCTAssertEqual(1, errors?.count)
+            
+            let error = errors?.first as? MatchResolvingNode.ImplicitClashesError
+            let clashes = error?.clashes.values
+            XCTAssertEqual(1, clashes?.count)
+            
+            let clash = clashes?.first
+            XCTAssertEqual(2, clash?.count)
+            
+            XCTAssert(clash?.allSatisfy {
+                $0.state.base == AnyHashable(StateType.locked) &&
+                $0.event.base == AnyHashable(EventType.coin) &&
+                $0.predicates == Set([P.a, Q.a].erased())
+            } ?? false)
+            
+            XCTAssertEqual(AnyHashable(StateType.unlocked), clash?.first?.nextState.base)
+            XCTAssertEqual(AnyHashable(StateType.locked), clash?.last?.nextState.base)
+        }
+    }
+    
+    func testMatchesThrowErrors() {
+        XCTAssertThrowsError (
+            try fsm.buildTable {
+                define(.locked) {
+                    matching(P.a, or: P.a, file: "f1", line: -1)  | when(.coin) | then(.unlocked)
+                    matching(P.a, and: P.a, file: "f2", line: -2) | when(.coin) | then(.locked)
+                }
+            }
+        ) {
+            func assertError(
+                _ e: MatchError?,
+                expectedFile: String,
+                expectedLine: Int,
+                line: UInt = #line
+            ) {
+                XCTAssertEqual([expectedFile], e?.files, line: line)
+                XCTAssertEqual([expectedLine], e?.lines, line: line)
+                XCTAssert(e?.description.contains("P.a, P.a") ?? false, line: line)
+            }
+            
+            let errors = ($0 as? CompoundError)?.errors
+            XCTAssertEqual(2, errors?.count)
+            
+            assertError(errors?.first as? MatchError, expectedFile: "f1", expectedLine: -1)
+            assertError(errors?.last as? MatchError, expectedFile: "f2", expectedLine: -2)
         }
     }
 }

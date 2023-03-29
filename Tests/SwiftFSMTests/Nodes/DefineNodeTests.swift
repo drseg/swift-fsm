@@ -34,7 +34,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         )
     }
     
-    func testCompleteMatchNodeWithInvalidMatchProducesError() {
+    func testCompleteNodeWithInvalidMatchProducesErrorAndNoOutput() {
         let invalidMatch = Match(all: P.a, P.a)
         
         let m = MatchNode(match: invalidMatch, rest: [WhenNode(events: [e1])])
@@ -43,6 +43,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         
         let result = d.finalised()
         
+        XCTAssertEqual(0, result.output.count)
         XCTAssertEqual(1, result.errors.count)
         XCTAssertTrue(result.errors.first is MatchError)
     }
