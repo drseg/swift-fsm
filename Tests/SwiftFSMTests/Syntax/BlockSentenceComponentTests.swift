@@ -491,7 +491,7 @@ class MatchingBlockTests: DefaultIOBlockTests {
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
-        assertNeverEmptyNode(b, caller: "match", sutLine: sl, xctLine: xl)
+        assertNeverEmptyNode(b, caller: "matching", sutLine: sl, xctLine: xl)
         assertMatchNode(b, any: [any], all: all, sutLine: sl, xctLine: xl)
     }
 

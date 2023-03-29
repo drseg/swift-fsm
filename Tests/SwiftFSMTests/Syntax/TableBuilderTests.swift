@@ -64,7 +64,7 @@ class SyntaxTestsBase: XCTestCase, TableBuilder {
         
         if let node = node as? MatchBlockNode {
             assertNeverEmptyNode(node,
-                                 caller: "match",
+                                 caller: "matching",
                                  sutFile: sf,
                                  xctFile: xf,
                                  sutLine: sl,

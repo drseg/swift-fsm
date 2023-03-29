@@ -82,7 +82,7 @@ extension Syntax {
             
             if isValid {
                 func eraseToAnyTraceable(_ s: State) -> AnyTraceable {
-                    AnyTraceable(base: s, file: file, line: line)
+                    AnyTraceable(s, file: file, line: line)
                 }
                 
                 let states = states.map(eraseToAnyTraceable)

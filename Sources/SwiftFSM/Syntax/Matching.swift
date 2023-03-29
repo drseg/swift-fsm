@@ -35,7 +35,7 @@ extension Syntax {
         var blockNode: MatchBlockNode {
             MatchBlockNode(match: node.match,
                            rest: node.rest,
-                           caller: "match",
+                           caller: "matching",
                            file: file,
                            line: line)
         }

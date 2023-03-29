@@ -11,7 +11,7 @@ struct AnyTraceable {
     let file: String
     let line: Int
     
-    init<H: Hashable>(base: H?, file: String, line: Int) {
+    init<H: Hashable>(_ base: H?, file: String, line: Int) {
         self.base = base!
         self.file = file
         self.line = line

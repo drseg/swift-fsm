@@ -89,7 +89,7 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func randomisedTrace(_ base: String) -> AnyTraceable {
-        AnyTraceable(base: base,
+        AnyTraceable(base,
                      file: UUID().uuidString,
                      line: Int.random(in: 0...Int.max))
     }
@@ -388,7 +388,7 @@ extension [MSES] {
 
 extension AnyTraceable: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
-        self.init(base: AnyHashable(value), file: "null", line: -1)
+        self.init(AnyHashable(value), file: "null", line: -1)
     }
 }
 

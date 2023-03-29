@@ -21,8 +21,7 @@ protocol NodeBase {
 
 extension NodeBase {
     func finalised() -> Result {
-        var output = [Input]()
-        var errors = [Error]()
+        var output = [Input](), errors = [Error]()
         
         _rest.forEach {
             if let finalised = $0.finalised() as? ([Input], [Error])  {
@@ -57,7 +56,7 @@ protocol Node<Output>: NodeBase {
 }
 
 extension UnsafeNode {
-    var _rest: [any NodeBase] {  rest }
+    var _rest: [any NodeBase] { rest }
 }
 
 @available(macOS 13, iOS 16, *)

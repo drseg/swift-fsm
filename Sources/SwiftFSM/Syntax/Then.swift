@@ -26,7 +26,7 @@ extension Syntax {
         
         init(_ state: State? = nil, file: String = #file, line: Int = #line) {
             node = ThenNode(
-                state: state != nil ? AnyTraceable(base: state,
+                state: state != nil ? AnyTraceable(state,
                                                    file: file,
                                                    line: line) : nil
             )

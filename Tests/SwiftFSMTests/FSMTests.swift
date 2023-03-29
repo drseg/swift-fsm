@@ -408,10 +408,120 @@ final class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
     }
 }
 
+final class FSMIntegrationTests_Errors: FSMIntegrationTests {
+    func assertEmptyError(_ e: EmptyBuilderError?,
+                     expectedCaller: String,
+                     expectedLine: Int,
+                     line: UInt = #line
+    ) {
+        XCTAssertEqual(expectedCaller, e?.caller, line: line)
+        XCTAssertEqual("file", e?.file, line: line)
+        XCTAssertEqual(expectedLine, e?.line, line: line)
+    }
+    
+    func testEmptyBlockThrowsError() {
+        XCTAssertThrowsError (
+            try fsm.buildTable {
+                define(.locked, file: "file", line: -1 ) { }
+            }
+        ) {
+            let errors = ($0 as? CompoundError)?.errors
+            XCTAssertEqual(1, errors?.count)
+            let error = errors?.first as? EmptyBuilderError
+            
+            assertEmptyError(error, expectedCaller: "define", expectedLine: -1)
+        }
+    }
+    
+    func testEmptyBlocksThrowErrors() {
+        XCTAssertThrowsError (
+            try fsm.buildTable {
+                define(.locked) {
+                    matching(P.a, file: "file", line: -1) {}
+                    then(.locked, file: "file", line: -2) {}
+                    when(.pass,   file: "file", line: -3) {}
+                }
+            }
+        ) {
+            let errors = ($0 as? CompoundError)?.errors
+            XCTAssertEqual(3, errors?.count)
+            
+            let e1 = errors?.safelyAt(0) as? EmptyBuilderError
+            assertEmptyError(e1, expectedCaller: "matching", expectedLine: -1)
+            
+            let e2 = errors?.safelyAt(1) as? EmptyBuilderError
+            assertEmptyError(e2, expectedCaller: "then", expectedLine: -2)
+            
+            let e3 = errors?.safelyAt(2) as? EmptyBuilderError
+            assertEmptyError(e3, expectedCaller: "when", expectedLine: -3)
+        }
+    }
+    
+    func testDuplicatesThrowErrors() {
+        typealias DE = SemanticValidationNode.DuplicatesError
+        typealias CE = SemanticValidationNode.ClashError
+        
+        XCTAssertThrowsError (
+            try fsm.buildTable {
+                define(.locked) {
+                    matching(P.a) | when(.coin) | then(.unlocked)
+                    matching(P.a) | when(.coin) | then(.unlocked)
+                    matching(P.a) | when(.coin) | then(.locked)
+                }
+            }
+        ) {
+            let errors = ($0 as? CompoundError)?.errors
+            XCTAssertEqual(2, errors?.count)
+            
+            let e1 = (errors?.first { $0 is DE } as? DE)?.duplicates ?? [:]
+            XCTAssertEqual(1, e1.count)
+            let e2 = (errors?.first { $0 is CE } as? CE)?.clashes ?? [:]
+            XCTAssertEqual(1, e2.count)
+            
+            let e1v = e1.values
+            XCTAssertEqual(1, e1v.count)
+            let e2v = e2.values
+            XCTAssertEqual(1, e2v.count)
+            
+            let duplicates = e1v.first ?? []
+            XCTAssertEqual(2, duplicates.count)
+            let clashes = e2v.first ?? []
+            XCTAssertEqual(2, clashes.count)
+            
+            XCTAssert(
+                duplicates.allSatisfy {
+                    $0.match == Match(all: P.a) &&
+                    $0.state.base == AnyHashable(StateType.locked) &&
+                    $0.event.base == AnyHashable(EventType.coin) &&
+                    $0.nextState.base == AnyHashable(StateType.unlocked)
+                }, "\(duplicates)"
+            )
+            
+            XCTAssert(
+                clashes.allSatisfy {
+                    $0.match == Match(all: P.a) &&
+                    $0.state.base == AnyHashable(StateType.locked) &&
+                    $0.event.base == AnyHashable(EventType.coin)
+                }, "\(clashes)"
+            )
+            
+            XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(StateType.locked) })
+            XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(StateType.unlocked) })
+        }
+    }
+}
+
 extension Int: Predicate {
     public static var allCases: [Int] { [] }
 }
 
 extension Double: Predicate {
     public static var allCases: [Double] { [] }
+}
+
+extension Array {
+    func safelyAt(_ i: Index) -> Element? {
+        guard i < count else { return nil }
+        return self[i]
+    }
 }
