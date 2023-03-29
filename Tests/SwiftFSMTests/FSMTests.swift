@@ -446,13 +446,13 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             let errors = ($0 as? CompoundError)?.errors
             XCTAssertEqual(3, errors?.count)
             
-            let e1 = errors?.safelyAt(0) as? EmptyBuilderError
+            let e1 = errors?(0) as? EmptyBuilderError
             assertEmptyError(e1, expectedCaller: "matching", expectedLine: -1)
             
-            let e2 = errors?.safelyAt(1) as? EmptyBuilderError
+            let e2 = errors?(1) as? EmptyBuilderError
             assertEmptyError(e2, expectedCaller: "then", expectedLine: -2)
             
-            let e3 = errors?.safelyAt(2) as? EmptyBuilderError
+            let e3 = errors?(2) as? EmptyBuilderError
             assertEmptyError(e3, expectedCaller: "when", expectedLine: -3)
         }
     }
@@ -479,8 +479,8 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssertEqual(1, e1?.count)
             XCTAssertEqual(1, e2?.count)
             
-            let duplicates = e1?.first ?? []
-            let clashes = e2?.first ?? []
+            let duplicates = e1?(0) ?? []
+            let clashes = e2?(1) ?? []
             
             XCTAssertEqual(2, duplicates.count)
             XCTAssertEqual(2, clashes.count)
@@ -576,7 +576,7 @@ extension Double: Predicate {
 }
 
 extension Array {
-    func safelyAt(_ i: Index) -> Element? {
+    func callAsFunction(_ i: Index) -> Element? {
         guard i < count else { return nil }
         return self[i]
     }
