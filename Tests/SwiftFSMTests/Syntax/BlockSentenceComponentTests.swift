@@ -177,19 +177,36 @@ class BlockComponentTests: BlockTests {
     }
     
     func testDefineAddsBlockAndSuperStateNodesTogether() {
-        #warning("This test is not sufficient")
+        func assertDefine(_ n: DefineNode, line: UInt = #line) {
+            func castRest<T: Node, U: Node>(_ n: [U], to: T.Type) -> [T] {
+                n.map { $0.rest }.flattened as! [T]
+            }
+            
+            let givens = n.rest as! [GivenNode]
+            let actions = castRest(givens, to: ActionsNode.self)
+            let thens = castRest(actions, to: ThenNode.self)
+            let whens = castRest(thens, to: WhenNode.self)
+            
+            func givenStates(_ n: GivenNode?) -> [AnyHashable] { bases(n?.states) }
+            func events(_ n: WhenNode?) -> [AnyHashable] { bases(n?.events) }
+            func thenState(_ n: ThenNode?) -> AnyHashable { n?.state?.base }
+            func bases(_ t: [AnyTraceable]?) -> [AnyHashable] { t?.map(\.base) ?? [] }
+            
+            XCTAssertEqual([1], givenStates(givens(0)), line: line)
+            XCTAssertEqual([[1], [2]], [events(whens(0)), events(whens(1))], line: line)
+            XCTAssertEqual([1, 2], [thenState(thens(0)), thenState(thens(1))], line: line)
+            
+            assertActions(actions.map(\.actions).flattened,
+                          expectedOutput: "passpass",
+                          xctLine: line)
+        }
+        
         let s = SuperState                { when(1) | then(1) | pass }
         let d1 = define(1, superState: s) { when(2) | then(2) | pass }
         let d2 = Define(1, superState: s) { when(2) | then(2) | pass }
         
-        let given1 = d1.node.rest.first as? GivenNode
-        let given2 = d2.node.rest.first as? GivenNode
-
-        let io1 = given1?.rest
-        let io2 = given2?.rest
-        
-        XCTAssertEqual(2, io1?.count)
-        XCTAssertEqual(2, io2?.count)
+        assertDefine(d1.node)
+        assertDefine(d2.node)
     }
     
     func testOptionalActions() {
