@@ -58,27 +58,27 @@ class FSM<State: Hashable, Event: Hashable> {
     
     func checkForErrors(_ result: (output: [MatchResolvingNode.Output], errors: [Error])) throws {
         if !result.errors.isEmpty {
-            throw CompoundError(errors: result.errors)
+            throw SwiftFSMError(errors: result.errors)
         }
         
         if result.output.isEmpty {
-            throw CompoundError(errors: [EmptyTableError()])
+            throw SwiftFSMError(errors: [EmptyTableError()])
         }
         
         if State.self == Event.self {
-            throw CompoundError(errors: [TypeClashError()])
+            throw SwiftFSMError(errors: [TypeClashError()])
         }
         
         let predicates = result.output.map(\.predicates).flattened
         if predicates.contains(where: { $0.base.base is State || $0.base.base is Event }) {
-            throw CompoundError(errors: [TypeClashError()])
+            throw SwiftFSMError(errors: [TypeClashError()])
         }
         
         let firstState = result.output.first!.state
         let firstEvent = result.output.first!.event
         
         if deepDescription((firstState, firstEvent)).contains("NSObject") {
-            throw CompoundError(errors: [NSObjectError()])
+            throw SwiftFSMError(errors: [NSObjectError()])
         }
     }
     

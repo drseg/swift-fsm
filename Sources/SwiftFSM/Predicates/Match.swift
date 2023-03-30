@@ -80,7 +80,7 @@ class Match {
         ) -> Result where C.Element == AnyPredicate {
             .failure(
                 type.init(
-                    message: duplicates.formattedDescription(),
+                    predicates: duplicates,
                     files: [file],
                     lines: [line]
                 )
@@ -178,14 +178,6 @@ extension Match.Result {
     
     func appending(files: [String], lines: [Int]) -> Self {
         mapError { $0.append(files: files, lines: lines) }
-    }
-}
-
-extension Collection where Element == AnyPredicate {
-    func formattedDescription() -> String {
-        map(\.description)
-            .sorted()
-            .joined(separator: ", ")
     }
 }
 

@@ -152,9 +152,9 @@ class ValidationTests: MatchTests {
     }
     
     func assertHasDuplicateTypes(_ m1: Match, line: UInt = #line) {
-        let error = DuplicateMatchTypes(message: "p1, p2",
-                                   files: [m1.file],
-                                   lines: [m1.line])
+        let error = DuplicateMatchTypes(predicates: [p1, p2].erased(),
+                                        files: [m1.file],
+                                        lines: [m1.line])
         assert(match: m1, is: error, line: line)
     }
     
@@ -172,7 +172,7 @@ class ValidationTests: MatchTests {
     }
     
     func assertDuplicateTypesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
-        let error = DuplicateMatchTypes(message: "p1, p2",
+        let error = DuplicateMatchTypes(predicates: [p1, p2].erased(),
                                         files: [m1.file, m2.file],
                                         lines: [m1.line, m2.line])
         
@@ -190,7 +190,7 @@ class ValidationTests: MatchTests {
     }
     
     func assertHasDuplicateValues(_ m: Match, line: UInt = #line) {
-        let error =  DuplicateMatchValues(message: "p1",
+        let error =  DuplicateMatchValues(predicates: [p1].erased(),
                                           files: [m.file],
                                           lines: [m.line])
         
@@ -202,7 +202,7 @@ class ValidationTests: MatchTests {
     }
     
     func assertDuplicateValuesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
-        let error =  DuplicateMatchValues(message: "p1, p2",
+        let error =  DuplicateMatchValues(predicates: [p1, p2].erased(),
                                           files: [m1.file, m2.file],
                                           lines: [m1.line, m2.line])
         
@@ -222,7 +222,7 @@ class ValidationTests: MatchTests {
     func testAnyAndAny_FormingDuplicateTypes() {
         let match = Match(any: [[p1], [p2], [p3]])
 
-        assert(match: match, is: DuplicateMatchTypes(message: "p1, p2, p3",
+        assert(match: match, is: DuplicateMatchTypes(predicates: [p1, p2, p3].erased(),
                                                      files: [match.file],
                                                      lines: [match.line]))
     }
@@ -423,7 +423,7 @@ extension Match: CustomStringConvertible {
 extension MatchError: CustomStringConvertible {
     public var description: String {
         String.build {
-            "Message: \(message)"
+            "Predicates: \(predicates)"
             "Files: \(files.map { URL(string: $0)!.lastPathComponent})"
             "Lines: \(lines)"
         }

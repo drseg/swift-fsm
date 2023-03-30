@@ -21,7 +21,7 @@ final class FSMTests: XCTestCase, TableBuilder {
         block: () throws -> ()
     ) {
         XCTAssertThrowsError(try block(), line: line) {
-            let errors = ($0 as? CompoundError)?.errors
+            let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(count, errors?.count, line: line)
             XCTAssertTrue(errors?.first is T, String(describing: errors), line: line)
         }
@@ -425,7 +425,7 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
                 define(.locked, file: "file", line: -1 ) { }
             }
         ) {
-            let errors = ($0 as? CompoundError)?.errors
+            let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(1, errors?.count)
             let error = errors?.first as? EmptyBuilderError
             
@@ -443,7 +443,7 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
                 }
             }
         ) {
-            let errors = ($0 as? CompoundError)?.errors
+            let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(3, errors?.count)
             
             let e1 = errors?(0) as? EmptyBuilderError
@@ -470,7 +470,7 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
                 }
             }
         ) {
-            let errors = ($0 as? CompoundError)?.errors
+            let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(2, errors?.count)
             
             let e1 = errors?.compactMap { $0 as? DE }.first?.duplicates.values
@@ -517,7 +517,7 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
                 }
             }
         ) {
-            let errors = ($0 as? CompoundError)?.errors
+            let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(1, errors?.count)
             
             let error = errors?.first as? MatchResolvingNode.ImplicitClashesError
@@ -558,7 +558,7 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
                 XCTAssert(e?.description.contains("P.a, P.a") ?? false, line: line)
             }
             
-            let errors = ($0 as? CompoundError)?.errors
+            let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(2, errors?.count)
             
             assertError(errors?.first as? MatchError, expectedFile: "f1", expectedLine: -1)

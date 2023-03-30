@@ -6,26 +6,93 @@
 
 import Foundation
 
+struct SwiftFSMError: LocalizedError, CustomStringConvertible {
+    let errors: [Error]
+    
+    var description: String {
+        localizedDescription
+    }
+    
+    var errorDescription: String? {
+        String.build {
+            "- SwiftFSM Errors -"
+            ""
+            "\(errors.count) errors were found:"
+            ""
+            errors.map { $0.localizedDescription }.joined(separator: "\n")
+            ""
+            "- End -"
+        }
+    }
+}
+
 #warning("why does this take files and lines and not Matches?")
 class MatchError: LocalizedError {
-    let message: String
+    let predicates: [AnyPredicate]
     let files: [String]
     let lines: [Int]
     
-    required init(message: String, files: [String], lines: [Int]) {
-        self.message = message
+    required init<C: Collection>(
+        predicates: C,
+        files: [String],
+        lines: [Int]
+    ) where C.Element == AnyPredicate {
+        self.predicates = Array(predicates)
         self.files = files
         self.lines = lines
     }
     
     func append(files: [String], lines: [Int]) -> Self {
-        .init(message: message,
+        .init(predicates: predicates,
               files: self.files + files,
               lines: self.lines + lines)
     }
+    
+    var errorDescription: String? {
+        ""
+    }
 }
 
-class DuplicateMatchTypes: MatchError {}
+class DuplicateMatchTypes: MatchError {
+    var firstLine: String {
+        let types = predicates.map(\.type)
+        let dupes = Set(
+            types.filter {
+                type in types.filter { type == $0 }.count > 1
+            }
+        ).reduce(into: []) {
+            $0.append($1)
+        }.sorted().joined(separator: ", ")
+        
+        let predicates = predicates
+            .map(\.description)
+            .sorted()
+            .joined(separator: " AND ")
+        
+        return dupes.count > 1
+        ? "'matching(\(predicates))' is ambiguous - types \(dupes) appear multiple times"
+        : "'matching(\(predicates))' is ambiguous - type \(dupes) appears multiple times"
+    }
+    
+    override var errorDescription: String? {
+        let filesAndLines = zip(files, lines).reduce(into: []) {
+            $0.append("file \($1.0), line \($1.1)")
+        }.joined(separator: "\n")
+        
+        print(filesAndLines)
+        
+        return files.count > 1
+        ? String.build {
+            firstLine
+            "This combination was formed by AND-ing 'matching' statements at:"
+            filesAndLines
+        }
+        : String.build {
+            firstLine
+            "This combination was found in a 'matching' statement at \(filesAndLines)"
+        }
+    }
+}
 
 class DuplicateMatchValues: MatchError {}
 
@@ -45,25 +112,6 @@ struct EmptyBuilderError: LocalizedError, Equatable {
     }
 }
 
-struct CompoundError: LocalizedError, CustomStringConvertible {
-    let errors: [Error]
-    
-    var description: String {
-        localizedDescription
-    }
-    
-    var errorDescription: String? {
-        String.build {
-            "- SwiftFSM Errors -"
-            ""
-            "\(errors.count) errors were found:"
-            ""
-            errors.map { $0.localizedDescription }.joined(separator: "\n")
-            ""
-            "- End -"
-        }
-    }
-}
 
 struct EmptyTableError: LocalizedError {
     
