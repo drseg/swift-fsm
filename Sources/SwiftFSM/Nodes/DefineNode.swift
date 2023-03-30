@@ -23,7 +23,7 @@ final class DefineNode: NeverEmptyNode {
     let file: String
     let line: Int
         
-    private var errors: [LocalizedError] = []
+    private var errors: [Error] = []
     
     init(
         onEntry: [Action],

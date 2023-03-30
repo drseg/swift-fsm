@@ -27,7 +27,7 @@ struct SwiftFSMError: LocalizedError, CustomStringConvertible {
 }
 
 #warning("why does this take files and lines and not Matches?")
-class MatchError: LocalizedError {
+class MatchError: Error {
     let predicates: [AnyPredicate]
     let files: [String]
     let lines: [Int]
@@ -47,13 +47,9 @@ class MatchError: LocalizedError {
               files: self.files + files,
               lines: self.lines + lines)
     }
-    
-    var errorDescription: String? {
-        ""
-    }
 }
 
-class DuplicateMatchTypes: MatchError {
+class DuplicateMatchTypes: MatchError, LocalizedError {
     var firstLine: String {
         let types = predicates.map(\.type)
         let dupes = Set(
@@ -74,7 +70,7 @@ class DuplicateMatchTypes: MatchError {
         : "'matching(\(predicates))' is ambiguous - type \(dupes) appears multiple times"
     }
     
-    override var errorDescription: String? {
+    var errorDescription: String? {
         let filesAndLines = zip(files, lines).reduce(into: []) {
             $0.append("file \($1.0), line \($1.1)")
         }.joined(separator: "\n")
@@ -94,7 +90,7 @@ class DuplicateMatchTypes: MatchError {
     }
 }
 
-class DuplicateMatchValues: MatchError {}
+class DuplicateMatchValues: MatchError, LocalizedError {}
 
 struct EmptyBuilderError: LocalizedError, Equatable {
     let caller: String
