@@ -64,6 +64,8 @@ extension Node {
     var _rest: [any NodeBase] { rest }
 }
 
-extension String: Error { }
+extension String: LocalizedError {
+    public var errorDescription: String? { self }
+}
 
 

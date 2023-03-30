@@ -430,13 +430,6 @@ extension MatchError: CustomStringConvertible {
     }
 }
 
-@resultBuilder struct StringBuilder: ResultBuilder { typealias T = String }
-extension String {
-    static func build(@StringBuilder _ b:  () -> [String]) -> String {
-        b().joined(separator: "\n")
-    }
-}
-
 extension MatchError: Equatable {
     public static func == (lhs: MatchError, rhs: MatchError) -> Bool {
         lhs.files.sorted() == rhs.files.sorted() &&

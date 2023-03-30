@@ -25,7 +25,7 @@ final class MatchResolvingNode: Node {
         }
     }
     
-    struct ImplicitClashesError: Error {
+    struct ImplicitClashesError: LocalizedError {
         let clashes: ImplicitClashesDictionary
     }
     

@@ -479,8 +479,8 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssertEqual(1, e1?.count)
             XCTAssertEqual(1, e2?.count)
             
-            let duplicates = e1?(0) ?? []
-            let clashes = e2?(1) ?? []
+            let duplicates = e1?.first ?? []
+            let clashes = e2?.first ?? []
             
             XCTAssertEqual(2, duplicates.count)
             XCTAssertEqual(2, clashes.count)

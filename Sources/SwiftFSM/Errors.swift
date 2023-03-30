@@ -7,7 +7,7 @@
 import Foundation
 
 #warning("why does this take files and lines and not Matches?")
-class MatchError: Error {
+class MatchError: LocalizedError {
     let message: String
     let files: [String]
     let lines: [Int]
@@ -29,7 +29,7 @@ class DuplicateMatchTypes: MatchError {}
 
 class DuplicateMatchValues: MatchError {}
 
-struct EmptyBuilderError: Error, Equatable {
+struct EmptyBuilderError: LocalizedError, Equatable {
     let caller: String
     let file: String
     let line: Int
@@ -39,20 +39,47 @@ struct EmptyBuilderError: Error, Equatable {
         self.file = file
         self.line = line
     }
+    
+    var errorDescription: String? {
+        "Empty @resultBuilder block passed to '\(caller)' in \(file) at line \(line)"
+    }
 }
 
-struct CompoundError: Error {
+struct CompoundError: LocalizedError, CustomStringConvertible {
     let errors: [Error]
+    
+    var description: String {
+        localizedDescription
+    }
+    
+    var errorDescription: String? {
+        String.build {
+            "- SwiftFSM Errors -"
+            ""
+            "\(errors.count) errors were found:"
+            ""
+            errors.map { $0.localizedDescription }.joined(separator: "\n")
+            ""
+            "- End -"
+        }
+    }
 }
 
-struct EmptyTableError: Error {
+struct EmptyTableError: LocalizedError {
     
 }
 
-struct NSObjectError: Error {
+struct NSObjectError: LocalizedError {
     
 }
 
-struct TypeClashError: Error {
+struct TypeClashError: LocalizedError {
     
+}
+
+@resultBuilder struct StringBuilder: ResultBuilder { typealias T = String }
+extension String {
+    static func build(@StringBuilder _ b:  () -> [String]) -> String {
+        b().joined(separator: "\n")
+    }
 }

@@ -23,7 +23,7 @@ final class DefineNode: NeverEmptyNode {
     let file: String
     let line: Int
         
-    private var errors: [Error] = []
+    private var errors: [LocalizedError] = []
     
     init(
         onEntry: [Action],
@@ -42,24 +42,26 @@ final class DefineNode: NeverEmptyNode {
     }
     
     func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
-        let output = rest.reduce(into: []) {
-            $0.append(
-                (state: $1.state,
-                 match: finalised($1.match),
-                 event: $1.event,
-                 nextState: $1.nextState,
-                 actions: $1.actions,
-                 onEntry: onEntry,
-                 onExit: onExit)
-            )
+        let output = rest.reduce(into: [Output]()) {
+            if let match = finalise($1.match) {
+                $0.append(
+                    (state: $1.state,
+                     match: match,
+                     event: $1.event,
+                     nextState: $1.nextState,
+                     actions: $1.actions,
+                     onEntry: onEntry,
+                     onExit: onExit)
+                )
+            }
         }
         
         return errors.isEmpty ? output : []
     }
     
-    private func finalised(_ m: Match) -> Match {
+    private func finalise(_ m: Match) -> Match? {
         switch m.finalised() {
-        case .failure(let e): errors.append(e); return Match()
+        case .failure(let e): errors.append(e); return nil
         case .success(let m): return m
         }
     }
