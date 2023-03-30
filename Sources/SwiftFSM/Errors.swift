@@ -26,7 +26,6 @@ struct SwiftFSMError: LocalizedError, CustomStringConvertible {
     }
 }
 
-#warning("why does this take files and lines and not Matches?")
 class MatchError: Error {
     let predicates: [AnyPredicate]
     let files: [String]

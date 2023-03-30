@@ -52,7 +52,8 @@ final class ErrorTests: SyntaxNodeTests {
                                 lines: [1, 2])
         e.assertDescription(
             String.build {
-                "'matching(P.a AND P.b AND Q.a AND Q.b)' is ambiguous - types P, Q appear multiple times"
+                let preds = "'matching(P.a AND P.b AND Q.a AND Q.b)'"
+                "\(preds) is ambiguous - types P, Q appear multiple times"
                 "This combination was formed by AND-ing 'matching' statements at:"
                 "file f1, line 1"
                 "file f2, line 2"
