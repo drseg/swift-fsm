@@ -9,9 +9,7 @@ import Foundation
 struct SwiftFSMError: LocalizedError, CustomStringConvertible {
     let errors: [Error]
     
-    var description: String {
-        localizedDescription
-    }
+    var description: String { localizedDescription }
     
     var errorDescription: String? {
         String.build {
@@ -55,9 +53,7 @@ class DuplicateMatchTypes: MatchError, LocalizedError {
             types.filter {
                 type in types.filter { type == $0 }.count > 1
             }
-        ).reduce(into: []) {
-            $0.append($1)
-        }.sorted().joined(separator: ", ")
+        ).reduce(into: []) { $0.append($1) }.sorted().joined(separator: ", ")
         
         let predicates = predicates
             .map(\.description)
@@ -73,9 +69,7 @@ class DuplicateMatchTypes: MatchError, LocalizedError {
         let filesAndLines = zip(files, lines).reduce(into: []) {
             $0.append("file \($1.0), line \($1.1)")
         }.joined(separator: "\n")
-        
-        print(filesAndLines)
-        
+                
         return files.count > 1
         ? String.build {
             firstLine
