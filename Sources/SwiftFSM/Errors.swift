@@ -44,21 +44,44 @@ class MatchError: Error {
               files: self.files + files,
               lines: self.lines + lines)
     }
+    
+    func duplicates(in strings: [String]) -> String {
+        Set(strings.filter { s in strings.filter { s == $0 }.count > 1 })
+            .map { [$0] }
+            .reduce([], +)
+            .sorted()
+            .joined(separator: ", ")
+    }
+    
+    func predicatesString(separator: String) -> String {
+        predicates
+            .map(\.description)
+            .sorted()
+            .joined(separator: separator)
+    }
+    
+    var filesAndLines: String {
+        zip(files, lines).reduce([]) {
+            $0 + [("file \($1.0), line \($1.1)")]
+        }.joined(separator: "\n")
+    }
+    
+    var duplicatesList: String {
+        String.build {
+            if files.count > 1 {
+                "This combination was formed by AND-ing 'matching' statements at:"
+                filesAndLines
+            } else {
+                "This combination was found in a 'matching' statement at \(filesAndLines)"
+            }
+        }
+    }
 }
 
 class DuplicateMatchTypes: MatchError, LocalizedError {
     var firstLine: String {
-        let types = predicates.map(\.type)
-        let dupes = Set(
-            types.filter {
-                type in types.filter { type == $0 }.count > 1
-            }
-        ).reduce(into: []) { $0.append($1) }.sorted().joined(separator: ", ")
-        
-        let predicates = predicates
-            .map(\.description)
-            .sorted()
-            .joined(separator: " AND ")
+        let dupes = duplicates(in: predicates.map(\.type))
+        let predicates = predicatesString(separator: " AND ")
         
         return dupes.count > 1
         ? "'matching(\(predicates))' is ambiguous - types \(dupes) appear multiple times"
@@ -66,24 +89,39 @@ class DuplicateMatchTypes: MatchError, LocalizedError {
     }
     
     var errorDescription: String? {
-        let filesAndLines = zip(files, lines).reduce(into: []) {
-            $0.append("file \($1.0), line \($1.1)")
-        }.joined(separator: "\n")
-                
-        return files.count > 1
-        ? String.build {
+        String.build {
             firstLine
-            "This combination was formed by AND-ing 'matching' statements at:"
-            filesAndLines
-        }
-        : String.build {
-            firstLine
-            "This combination was found in a 'matching' statement at \(filesAndLines)"
+            duplicatesList
         }
     }
 }
 
-class DuplicateMatchValues: MatchError, LocalizedError {}
+class DuplicateAnyValues: MatchError, LocalizedError {
+    var errorDescription: String? {
+        let dupes = duplicates(in: predicates.map(\.description))
+        let predicates = predicatesString(separator: " OR ")
+        
+        return String.build {
+            "'matching(\(predicates))' contains multiple instances of \(dupes)"
+            duplicatesList
+        }
+    }
+}
+
+class DuplicateAnyAllValues: MatchError, LocalizedError {
+    var errorDescription: String? {
+        let dupes = duplicates(in: predicates.map(\.description))
+        return String.build {
+            if files.count > 1 {
+                "When combined, 'matching' statements at:"
+                filesAndLines
+                "...contain multiple instances of \(dupes)"
+            } else {
+                "'matching' statement at \(filesAndLines) contains multiple instances of \(dupes)"
+            }
+        }
+    }
+}
 
 struct EmptyBuilderError: LocalizedError, Equatable {
     let caller: String
@@ -112,6 +150,11 @@ struct NSObjectError: LocalizedError {
 
 struct TypeClashError: LocalizedError {
     
+}
+
+fileprivate extension ResultBuilder {
+    static func buildEither(first: [T]) -> [T] { first }
+    static func buildEither(second: [T]) -> [T] { second }
 }
 
 @resultBuilder struct StringBuilder: ResultBuilder { typealias T = String }

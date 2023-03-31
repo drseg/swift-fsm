@@ -190,28 +190,39 @@ class ValidationTests: MatchTests {
     }
     
     func assertHasDuplicateValues(_ m: Match, line: UInt = #line) {
-        let error =  DuplicateMatchValues(predicates: [p1].erased(),
-                                          files: [m.file],
-                                          lines: [m.line])
+        let error =  DuplicateAnyValues(predicates: [p1].erased(),
+                                        files: [m.file],
+                                        lines: [m.line])
         
         assert(match: m, is: error, line: line)
     }
     
     func testAny_All_WithSamePredicates() {
-        assertHasDuplicateValues(Match(any: p1, p2, all: p1, q1))
+        let m = Match(any: p1, p2, all: p1, q1)
+        let error = DuplicateAnyAllValues(predicates: [p1].erased(),
+                                          files: [m.file],
+                                          lines: [m.line])
+        
+        assert(match: m, is: error)
     }
     
-    func assertDuplicateValuesWhenAdded(_ m1: Match, _ m2: Match, line: UInt = #line) {
-        let error =  DuplicateMatchValues(predicates: [p1, p2].erased(),
-                                          files: [m1.file, m2.file],
-                                          lines: [m1.line, m2.line])
+    func assertDuplicateValuesWhenAdded<T: MatchError>(
+        _ m1: Match,
+        _ m2: Match,
+        type: T.Type = DuplicateAnyValues.self,
+        line: UInt = #line
+    ) {
+        let error =  type.init(predicates: [p1, p2].erased(),
+                               files: [m1.file, m2.file],
+                               lines: [m1.line, m2.line])
         
         assert(match: m1.prepend(m2), is: error, line: line)
     }
     
     func testAny_AddingAll_FormingDuplicateValues() {
         assertDuplicateValuesWhenAdded(Match(any: p1, p2),
-                                       Match(all: p1, q1))
+                                       Match(all: p1, q1),
+                                       type: DuplicateAnyAllValues.self)
     }
     
     func testAny_AddingAny_FormingDuplicateValues() {

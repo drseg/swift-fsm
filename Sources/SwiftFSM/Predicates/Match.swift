@@ -92,7 +92,7 @@ class Match {
         }
         
         guard matchAny.flattened.elementsAreUnique else {
-            return failure(duplicates: matchAny.flattened, type: DuplicateMatchValues.self)
+            return failure(duplicates: matchAny.flattened, type: DuplicateAnyValues.self)
         }
         
         guard matchAny.hasNoDuplicateTypes else {
@@ -101,7 +101,7 @@ class Match {
             
         let duplicates = matchAll.filter { matchAny.flattened.contains($0) }
         guard duplicates.isEmpty else {
-            return failure(duplicates: duplicates, type: DuplicateMatchValues.self)
+            return failure(duplicates: duplicates, type: DuplicateAnyAllValues.self)
         }
         
         return .success(self)

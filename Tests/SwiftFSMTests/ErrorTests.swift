@@ -60,6 +60,55 @@ final class ErrorTests: SyntaxNodeTests {
             }
         )
     }
+    
+    func testDuplicateMatchValues() {
+        e = DuplicateAnyValues(predicates: [P.a, P.a, P.b, P.b].erased(),
+                                 files: ["f1"],
+                                 lines: [1])
+        e.assertDescription(
+            String.build {
+                "'matching(P.a OR P.a OR P.b OR P.b)' contains multiple instances of P.a, P.b"
+                "This combination was found in a 'matching' statement at file f1, line 1"
+            }
+        )
+    }
+    
+    func testDuplicateMatchValuesThroughAddition() {
+        e = DuplicateAnyValues(predicates: [P.a, P.a, P.b, P.b].erased(),
+                                 files: ["f1", "f2"],
+                                 lines: [1, 2])
+        e.assertDescription(
+            String.build {
+                "'matching(P.a OR P.a OR P.b OR P.b)' contains multiple instances of P.a, P.b"
+                "This combination was formed by AND-ing 'matching' statements at:"
+                "file f1, line 1"
+                "file f2, line 2"
+            }
+        )
+    }
+    
+    func testDuplicateMatchAnyAllValues() {
+        e = DuplicateAnyAllValues(predicates: [P.a, P.a, P.b, P.b].erased(),
+                                  files: ["f1"],
+                                  lines: [1])
+        e.assertDescription(
+            "'matching' statement at file f1, line 1 contains multiple instances of P.a, P.b"
+        )
+    }
+    
+    func testDuplicateMatchAnyAllValuesThroughAddition() {
+        e = DuplicateAnyAllValues(predicates: [P.a, P.a, P.b, P.b].erased(),
+                                  files: ["f1", "f2"],
+                                  lines: [1, 2])
+        e.assertDescription(
+            String.build {
+                "When combined, 'matching' statements at:"
+                "file f1, line 1"
+                "file f2, line 2"
+                "...contain multiple instances of P.a, P.b"
+            }
+        )
+    }
 }
 
 extension Error {
