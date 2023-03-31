@@ -12,7 +12,7 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testSwiftFSMError() {
         e = SwiftFSMError(errors: ["Error1", "Error2"])
-        let message = String.build {
+        let message = String {
             "- SwiftFSM Errors -"
             ""
             "2 errors were found:"
@@ -39,7 +39,7 @@ final class ErrorTests: SyntaxNodeTests {
                                 files: ["f1"],
                                 lines: [1])
         e.assertDescription(
-            String.build {
+            String {
                 "'matching(P.a AND P.b)' is ambiguous - type P appears multiple times"
                 "This combination was found in a 'matching' statement at file f1, line 1"
             }
@@ -51,7 +51,7 @@ final class ErrorTests: SyntaxNodeTests {
                                 files: ["f1", "f2"],
                                 lines: [1, 2])
         e.assertDescription(
-            String.build {
+            String {
                 let preds = "'matching(P.a AND P.b AND Q.a AND Q.b)'"
                 "\(preds) is ambiguous - types P, Q appear multiple times"
                 "This combination was formed by AND-ing 'matching' statements at:"
@@ -63,10 +63,10 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testDuplicateMatchValues() {
         e = DuplicateAnyValues(predicates: [P.a, P.a, P.b, P.b].erased(),
-                                 files: ["f1"],
-                                 lines: [1])
+                               files: ["f1"],
+                               lines: [1])
         e.assertDescription(
-            String.build {
+            String {
                 "'matching(P.a OR P.a OR P.b OR P.b)' contains multiple instances of P.a, P.b"
                 "This combination was found in a 'matching' statement at file f1, line 1"
             }
@@ -75,10 +75,10 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testDuplicateMatchValuesThroughAddition() {
         e = DuplicateAnyValues(predicates: [P.a, P.a, P.b, P.b].erased(),
-                                 files: ["f1", "f2"],
-                                 lines: [1, 2])
+                               files: ["f1", "f2"],
+                               lines: [1, 2])
         e.assertDescription(
-            String.build {
+            String {
                 "'matching(P.a OR P.a OR P.b OR P.b)' contains multiple instances of P.a, P.b"
                 "This combination was formed by AND-ing 'matching' statements at:"
                 "file f1, line 1"
@@ -101,7 +101,7 @@ final class ErrorTests: SyntaxNodeTests {
                                   files: ["f1", "f2"],
                                   lines: [1, 2])
         e.assertDescription(
-            String.build {
+            String {
                 "When combined, 'matching' statements at:"
                 "file f1, line 1"
                 "file f2, line 2"

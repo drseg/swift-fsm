@@ -433,7 +433,7 @@ extension Match: CustomStringConvertible {
 
 extension MatchError: CustomStringConvertible {
     public var description: String {
-        String.build {
+        String {
             "Predicates: \(predicates)"
             "Files: \(files.map { URL(string: $0)!.lastPathComponent})"
             "Lines: \(lines)"
