@@ -15,7 +15,22 @@ class SemanticValidationNode: Node {
         let duplicates: DuplicatesDictionary
         
         var errorDescription: String? {
-            "TILT"
+            String {
+                "The FSM table contains the following duplicates:"
+                for v in duplicates.values {
+                    ""
+                    for (i, d) in v.enumerated() {
+                        d.state.defineDescription
+                        d.match.errorDescription
+                        d.event.whenDescription
+                        d.nextState.thenDescription
+                        
+                        if i < v.count - 1 {
+                            ""
+                        }
+                    }
+                }
+            }
         }
     }
     

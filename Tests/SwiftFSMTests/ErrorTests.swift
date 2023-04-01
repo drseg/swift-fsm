@@ -154,35 +154,35 @@ final class ErrorTests: SyntaxNodeTests {
     func testMatchDescriptionWithNoPredicates() {
         let match = Match(file: "f", line: 1)
         
-        XCTAssertEqual("matching() - file f, line 1",
+        XCTAssertEqual("matching() @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithOrOnly() {
         let match = Match(any: [[P.a, P.b]], file: "f", line: 1)
         
-        XCTAssertEqual("matching((P.a OR P.b)) - file f, line 1",
+        XCTAssertEqual("matching((P.a OR P.b)) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithMultipleOrOnly() {
         let match = Match(any: [[P.a, P.b], [Q.a, Q.b]], file: "f", line: 1)
         
-        XCTAssertEqual("matching((P.a OR P.b) AND (Q.a OR Q.b)) - file f, line 1",
+        XCTAssertEqual("matching((P.a OR P.b) AND (Q.a OR Q.b)) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithAndOnly() {
         let match = Match(all: R.a, S.a, file: "f", line: 1)
         
-        XCTAssertEqual("matching(R.a AND S.a) - file f, line 1",
+        XCTAssertEqual("matching(R.a AND S.a) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithOrAndAnd() {
         let match = Match(any: [[P.a, P.b]], all: R.a, S.a, file: "f", line: 1)
         
-        XCTAssertEqual("matching((P.a OR P.b) AND R.a AND S.a) - file f, line 1",
+        XCTAssertEqual("matching((P.a OR P.b) AND R.a AND S.a) @f: 1",
                        match.errorDescription)
     }
     
@@ -195,8 +195,8 @@ final class ErrorTests: SyntaxNodeTests {
         XCTAssertEqual(String {
             "matching((P.a OR P.b) AND (Q.a OR Q.b) AND R.a AND S.a)"
             "  formed by combining:"
-            "    - matching((P.a OR P.b) AND R.a AND S.a) - file 1, line 1"
-            "    - matching((Q.a OR Q.b)) - file 2, line 2"
+            "    - matching((P.a OR P.b) AND R.a AND S.a) @1: 1"
+            "    - matching((Q.a OR Q.b)) @2: 2"
         },
                        match?.errorDescription)
     }
@@ -204,8 +204,6 @@ final class ErrorTests: SyntaxNodeTests {
     typealias SVN = SemanticValidationNode
     
     func testSVMDuplicatesError() throws {
-        throw XCTSkip("closed for refurbishment")
-        
         func s1(_ line: Int) -> AnyTraceable { AnyTraceable("s1", file: "fs", line: line) }
         func m1(_ line: Int) -> Match { Match(any: P.a, all: Q.a, R.a, file: "fm", line: line) }
         func e1(_ line: Int) -> AnyTraceable { AnyTraceable("e1", file: "fe", line: line) }
@@ -221,17 +219,15 @@ final class ErrorTests: SyntaxNodeTests {
             String {
                 "The FSM table contains the following duplicates:"
                 ""
-                "define(s1) - file fs, line 1 {"
-                "   matching(P.a, and: Q.a, R.a) - file fm, line 2 | " +
-                "when(e1) - file fe, line 3 | " +
-                "then(s2) - file fns, line 4"
-                "}"
+                "define(s1) @fs: 1"
+                "matching(P.a AND Q.a AND R.a) @fm: 2"
+                "when(e1) @fe: 3"
+                "then(s2) @fns: 4"
                 ""
-                "define(s1) - file fs, line 5 {"
-                "   matching(P.a, and: Q.a, R.a) - file fm, line 6 | " +
-                "when(e1) - file fe, line 7 | " +
-                "then(s2) - file fns, line 8"
-                "}"
+                "define(s1) @fs: 5"
+                "matching(P.a AND Q.a AND R.a) @fm: 6"
+                "when(e1) @fe: 7"
+                "then(s2) @fns: 8"
             }
         )
     }

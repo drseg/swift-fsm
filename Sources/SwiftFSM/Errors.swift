@@ -178,10 +178,8 @@ extension Match {
         }.joined(separator: " AND ")
         
         let and = matchAll.map(\.description).joined(separator: " AND ")
-        let components = asArray
         
         var summary: String
-        
         switch (matchAll.isEmpty, matchAny.isEmpty) {
         case (true, true): summary = "matching()"
         case (true, false): summary = "matching(\(or))"
@@ -189,25 +187,42 @@ extension Match {
         case (false, false): summary = "matching(\(or) AND \(and))"
         }
         
-        if components.count < 2 {
-            return summary + " - file \(file), line \(line)"
+        let components = asArray
+        guard components.count > 1 else {
+            return summary + " @\(file): \(line)"
         }
         
         return String {
-            let componentsString = components.reduce([]) {
-                $0 + ["    - " + $1.errorDescription]
-            }.joined(separator: "\n")
-            
             summary
             "  formed by combining:"
-            componentsString
+            components.reduce([]) { $0 + ["    - " + $1.errorDescription] }.joined(separator: "\n")
         }
     }
 }
 
-fileprivate extension ResultBuilder {
+extension AnyTraceable {
+    var fileAndLine: String {
+        "@\(file): \(line)"
+    }
+    
+    var defineDescription: String {
+        "define(\(base)) " + fileAndLine
+    }
+    
+    var whenDescription: String {
+        "when(\(base)) " + fileAndLine
+    }
+    
+    var thenDescription: String {
+        "then(\(base)) " + fileAndLine
+    }
+}
+
+extension ResultBuilder {
     static func buildEither(first: [T]) -> [T] { first }
     static func buildEither(second: [T]) -> [T] { second }
+    static func buildOptional(_ component: [T]?) -> [T] { component ?? [] }
+    static func buildArray(_ components: [[T]]) -> [T] { components.flattened }
 }
 
 @resultBuilder struct StringBuilder: ResultBuilder { typealias T = String }
