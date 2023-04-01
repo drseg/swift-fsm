@@ -31,13 +31,15 @@ final class MatchResolvingNode: Node {
     
     struct ImplicitClashesKey: Hashable {
         let state: AnyTraceable,
+            match: Match,
             predicates: PredicateSet,
             event: AnyTraceable
         
-        init(_ output: Output) {
-            state = output.state
-            predicates = output.predicates
-            event = output.event
+        init(_ output: Output, _ match: Match) {
+            self.state = output.state
+            self.predicates = output.predicates
+            self.event = output.event
+            self.match = match
         }
     }
     
@@ -66,7 +68,8 @@ final class MatchResolvingNode: Node {
                 }
                 
                 func isClash(_ lhs: RankedOutput) -> Bool {
-                    ImplicitClashesKey(lhs.toOutput) == ImplicitClashesKey(ro.toOutput)
+                    ImplicitClashesKey(lhs.toOutput, input.match) ==
+                    ImplicitClashesKey(ro.toOutput, input.match)
                 }
                 
                 func highestRank(_ lhs: RankedOutput, _ rhs: RankedOutput) -> RankedOutput {
@@ -79,7 +82,7 @@ final class MatchResolvingNode: Node {
                 
                 else {
                     if let clash = result.first(where: isClash) {
-                        let key = ImplicitClashesKey(ro.toOutput)
+                        let key = ImplicitClashesKey(ro.toOutput, input.match)
                         clashes[key] = (clashes[key] ?? [clash.toOutput]) + [ro.toOutput]
                     }
                     result.append(ro)

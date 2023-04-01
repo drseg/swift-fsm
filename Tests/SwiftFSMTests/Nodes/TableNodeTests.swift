@@ -7,8 +7,9 @@
 import XCTest
 @testable import SwiftFSM
 
-class PreemptiveTableNodeTests: DefineConsumer {
+class MatchResolvingNodeTests: DefineConsumer {
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
+                                         match: Match,
                                          predicates: PredicateSet,
                                          event: AnyTraceable,
                                          nextState: AnyTraceable,
@@ -28,12 +29,13 @@ class PreemptiveTableNodeTests: DefineConsumer {
     
     func makeOutput(
         _ g: AnyTraceable,
+        _ m: Match,
         _ p: [any Predicate],
         _ w: AnyTraceable,
         _ t: AnyTraceable,
         _ a: String = "12"
     ) -> ExpectedTableNodeOutput {
-        (state: g, predicates: Set(p.erased()), event: w, nextState: t, actionsOutput: a)
+        (state: g, match: m, predicates: Set(p.erased()), event: w, nextState: t, actionsOutput: a)
     }
     
     func assertResult(
@@ -103,7 +105,7 @@ class PreemptiveTableNodeTests: DefineConsumer {
         let result = tableNode(rest: [d1]).finalised()
 
         assertCount(result.output, expected: 1)
-        assertResult(result, expected: makeOutput(s1, [], e1, s2))
+        assertResult(result, expected: makeOutput(s1, Match(), [], e1, s2))
     }
     
     func testImplicitMatch() {
@@ -113,8 +115,8 @@ class PreemptiveTableNodeTests: DefineConsumer {
         
         assertCount(result.output, expected: 2)
         
-        assertResult(result, expected: makeOutput(s1, [Q.b], e1, s2))
-        assertResult(result, expected: makeOutput(s1, [Q.a], e1, s3))
+        assertResult(result, expected: makeOutput(s1, Match(), [Q.b], e1, s2))
+        assertResult(result, expected: makeOutput(s1, Match(any: Q.a), [Q.a], e1, s3))
     }
     
     func testImplicitMatchClash() {
@@ -130,8 +132,8 @@ class PreemptiveTableNodeTests: DefineConsumer {
         let clashes = clashError.clashes
         guard assertCount(clashes.first?.value, expected: 2) else { return }
         
-        assertError(result, expected: [makeOutput(s1, [P.a, Q.a], e1, s2),
-                                       makeOutput(s1, [P.a, Q.a], e1, s3)])
+        assertError(result, expected: [makeOutput(s1, Match(any: P.a), [P.a, Q.a], e1, s2),
+                                       makeOutput(s1, Match(any: Q.a), [P.a, Q.a], e1, s3)])
     }
 }
 

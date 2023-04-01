@@ -208,7 +208,7 @@ final class ErrorTests: SyntaxNodeTests {
     func e1(_ line: Int) -> AnyTraceable { AnyTraceable("e1", file: "fe", line: line) }
     func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "fns", line: line) }
     
-    func testSVMDuplicatesError() {
+    func testSVNDuplicatesError() {
         let key = SVN.DuplicatesKey((s1(0), m1(0), e1(0), s2(0), []))
         let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
                                    (s1(5), m1(6), e1(7), s2(8), [])]
@@ -232,7 +232,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testSVMClashesError() {
+    func testSVNClashesError() {
         let key = SVN.ClashesKey((s1(0), m1(0), e1(0), s2(0), []))
         let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
                                    (s2(5), m1(6), e1(7), s2(8), [])]
@@ -252,6 +252,10 @@ final class ErrorTests: SyntaxNodeTests {
                 "when(e1) @fe: 7"
             }
         )
+    }
+    
+    func testMRNClashesError() {
+        
     }
 }
 
