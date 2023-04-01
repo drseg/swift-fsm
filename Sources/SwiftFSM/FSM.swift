@@ -65,15 +65,6 @@ class FSM<State: Hashable, Event: Hashable> {
             throw SwiftFSMError(errors: [EmptyTableError()])
         }
         
-        if State.self == Event.self {
-            throw SwiftFSMError(errors: [TypeClashError()])
-        }
-        
-        let predicates = result.output.map(\.predicates).flattened
-        if predicates.contains(where: { $0.base.base is State || $0.base.base is Event }) {
-            throw SwiftFSMError(errors: [TypeClashError()])
-        }
-        
         let firstState = result.output.first!.state
         let firstEvent = result.output.first!.event
         

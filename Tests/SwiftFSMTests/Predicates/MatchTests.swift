@@ -27,13 +27,19 @@ class MatchTests: XCTestCase {
 
 class BasicTests: MatchTests {
     func testEquatable() {
-        XCTAssertEqual(Match(), Match())
+        let m1 = Match()
+        let m2 = Match()
+        
+        XCTAssertEqual(m1, m2)
         
         XCTAssertEqual(Match(any: p1, p2, all: q1, r1),
                        Match(any: p1, p2, all: q1, r1))
         
         XCTAssertEqual(Match(any: p1, p2, all: q1, r1),
                        Match(any: p2, p1, all: r1, q1))
+        
+        m1.subMatches = [m2]
+        XCTAssertNotEqual(m1, m2)
         
         XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1),
                           Match(any: p1, s2, all: q1, r1))

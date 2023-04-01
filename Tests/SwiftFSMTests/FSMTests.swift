@@ -60,28 +60,6 @@ final class FSMTests: XCTestCase, TableBuilder {
         }
     }
     
-    func testThrowsStateEventTypeClash() {
-        assertThrowsError(TypeClashError.self) {
-            try FSM<Int, Int>(initialState: 1).buildTable {
-                Syntax.Define(1) { Syntax.When(1) | Syntax.Then(2) }
-            }
-        }
-    }
-    
-    func testThrowsPredicateEventTypeClash() {
-        assertThrowsError(TypeClashError.self) {
-            try fsm.buildTable {
-                Syntax.Define(1) { Syntax.Matching(1) | Syntax.When(1.1) | Syntax.Then(2) }
-            }
-        }
-        
-        assertThrowsError(TypeClashError.self) {
-            try fsm.buildTable {
-                Syntax.Define(1) { Syntax.Matching(1.1) | Syntax.When(1.1) | Syntax.Then(2) }
-            }
-        }
-    }
-    
     func testValidTableDoesNotThrow() {
         XCTAssertNoThrow(
             try fsm.buildTable { define(1) { when(1.1) | then(2) } }

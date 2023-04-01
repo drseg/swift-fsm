@@ -11,8 +11,12 @@ protocol SVNKey {
 }
 
 class SemanticValidationNode: Node {
-    struct DuplicatesError: Error {
+    struct DuplicatesError: LocalizedError {
         let duplicates: DuplicatesDictionary
+        
+        var errorDescription: String? {
+            "TILT"
+        }
     }
     
     struct ClashError: Error {

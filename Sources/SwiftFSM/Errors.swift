@@ -53,7 +53,6 @@ class MatchError: Error {
             .joined(separator: ", ")
     }
     
-    
     func predicatesString(separator: String) -> String {
         predicates
             .map(\.description)
@@ -141,17 +140,29 @@ struct EmptyBuilderError: LocalizedError, Equatable {
     }
 }
 
-
 struct EmptyTableError: LocalizedError {
-    
+    var errorDescription: String? {
+        "FSM tables must have at least one 'define' statement in them"
+    }
 }
 
 struct NSObjectError: LocalizedError {
-    
+    var errorDescription: String? {
+        String {
+            "'State' and 'Event' types cannot:"
+            ""
+            "- Inherit from NSObject"
+            "- Hold properties that inherit from NSObject'"
+            ""
+            "NSObject hashes by object id, leading to unintended FSM behaviour"
+        }
+    }
 }
 
-struct TypeClashError: LocalizedError {
-    
+extension Match {
+    var errorDescription: String {
+        "TILT"
+    }
 }
 
 fileprivate extension ResultBuilder {

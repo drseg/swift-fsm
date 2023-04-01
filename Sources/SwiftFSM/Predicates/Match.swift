@@ -23,6 +23,7 @@ class Match {
     let file: String
     let line: Int
     
+    var subMatches: [Match] = []
     private var next: Match? = nil
     
     convenience init(any: AnyPP..., all: AnyPP..., file: String = #file, line: Int = #line) {
@@ -157,7 +158,8 @@ extension Match: Hashable {
         return lhs.matchAny.count == rhs.matchAny.count &&
         lhs.matchAll.count == rhs.matchAll.count &&
         lhsAny.allSatisfy({ rhsAny.contains($0) }) &&
-        lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) })
+        lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) }) &&
+        lhs.subMatches == rhs.subMatches
     }
     
     func hash(into hasher: inout Hasher) {

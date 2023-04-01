@@ -109,6 +109,73 @@ final class ErrorTests: SyntaxNodeTests {
             }
         )
     }
+    
+    func testEmptyTableError() {
+        e = EmptyTableError()
+        e.assertDescription(
+            "FSM tables must have at least one 'define' statement in them"
+        )
+    }
+    
+    func testNSObjectStateError() {
+        e = NSObjectError()
+        e.assertDescription(
+            String {
+                "'State' and 'Event' types cannot:"
+                ""
+                "- Inherit from NSObject"
+                "- Hold properties that inherit from NSObject'"
+                ""
+                "NSObject hashes by object id, leading to unintended FSM behaviour"
+            }
+        )
+    }
+    
+    func testMatchDescription() throws {
+        throw XCTSkip("closed for refurbishment")
+
+        let match = Match(any: [[P.a, P.b], [Q.a, Q.b]], all: R.a, S.a, file: "f", line: 1)
+        
+        XCTAssertEqual(String {
+            "matching((P.a OR P.b) AND (Q.a OR Q.b) AND R.a AND S.a) - file f, line 1"
+        },
+                       match.errorDescription)
+    }
+    
+    typealias SVN = SemanticValidationNode
+    
+    func testSVMDuplicatesError() throws {
+        throw XCTSkip("closed for refurbishment")
+        
+        func s1(_ line: Int) -> AnyTraceable { AnyTraceable("s1", file: "fs", line: line) }
+        func m1(_ line: Int) -> Match { Match(any: P.a, all: Q.a, R.a, file: "fm", line: line) }
+        func e1(_ line: Int) -> AnyTraceable { AnyTraceable("e1", file: "fe", line: line) }
+        func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "fns", line: line) }
+
+        let key = SVN.DuplicatesKey((s1(0), m1(0), e1(0), s2(0), []))
+        let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
+                                   (s1(5), m1(6), e1(7), s2(8), [])]
+        let duplicates = [key: values]
+        
+        e = SVN.DuplicatesError(duplicates: duplicates)
+        e.assertDescription(
+            String {
+                "The FSM table contains the following duplicates:"
+                ""
+                "define(s1) - file fs, line 1 {"
+                "   matching(P.a, and: Q.a, R.a) - file fm, line 2 | " +
+                "when(e1) - file fe, line 3 | " +
+                "then(s2) - file fns, line 4"
+                "}"
+                ""
+                "define(s1) - file fs, line 5 {"
+                "   matching(P.a, and: Q.a, R.a) - file fm, line 6 | " +
+                "when(e1) - file fe, line 7 | " +
+                "then(s2) - file fns, line 8"
+                "}"
+            }
+        )
+    }
 }
 
 extension Error {
