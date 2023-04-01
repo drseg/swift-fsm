@@ -32,7 +32,6 @@ extension SVNError {
     }
 }
 
-
 class SemanticValidationNode: Node {
     struct DuplicatesError: SVNError {
         let duplicates: DuplicatesDictionary
