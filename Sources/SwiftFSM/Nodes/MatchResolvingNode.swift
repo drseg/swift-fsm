@@ -41,7 +41,9 @@ final class MatchResolvingNode: Node {
         var errorDescription: String? {
             String {
                 "The FSM table contains implicit logical clashes (total: \(clashes.count))"
-                for (i, clashGroup) in clashes.reversed().enumerated() {
+                for (i, clashGroup) in clashes.sorted(by: {
+                    $0.key.predicates.description < $1.key.predicates.description
+                }).enumerated() {
                     let predicates = clashGroup.key.predicates.reduce([String]()) {
                         $0 + [$1.description]
                     }.sorted().joined(separator: " AND ")

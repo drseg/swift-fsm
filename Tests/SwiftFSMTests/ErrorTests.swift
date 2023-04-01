@@ -259,12 +259,9 @@ final class ErrorTests: SyntaxNodeTests {
     func testMRNClashesError() {
         let m1 = Match(any: P.a, file: "fm", line: 2)
         let m2 = Match(any: Q.a, file: "fm", line: 6)
-        
-        let p1: [any Predicate] = [P.a, Q.a]
-        let p2: [any Predicate] = [R.a, S.a]
 
-        let pr1 = Set(p1.map { $0.erased() })
-        let pr2 = Set(p2.map { $0.erased() })
+        let pr1 = Set([P.a.erased(), Q.a.erased()])
+        let pr2 = Set([R.a.erased(), S.a.erased()])
 
         let k1 = MRN.ImplicitClashesKey((s1(0), pr1, e1(0), s2(0), []))
         let k2 = MRN.ImplicitClashesKey((s2(0), pr2, e1(0), s2(0), []))
