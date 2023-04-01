@@ -236,9 +236,9 @@ final class ErrorTests: SyntaxNodeTests {
         let key = SVN.ClashesKey((s1(0), m1(0), e1(0), s2(0), []))
         let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
                                    (s2(5), m1(6), e1(7), s2(8), [])]
-        let duplicates = [key: values]
+        let clashes = [key: values]
         
-        e = SVN.ClashError(clashes: duplicates)
+        e = SVN.ClashError(clashes: clashes)
         e.assertDescription(
             String {
                 "The FSM table contains the following logical clashes:"
@@ -254,8 +254,59 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
+    typealias MRN = MatchResolvingNode
+
     func testMRNClashesError() {
+        let m1 = Match(any: P.a, file: "fm", line: 2)
+        let m2 = Match(any: Q.a, file: "fm", line: 6)
         
+        let p1: [any Predicate] = [P.a, Q.a]
+        let p2: [any Predicate] = [R.a, S.a]
+
+        let pr1 = Set(p1.map { $0.erased() })
+        let pr2 = Set(p2.map { $0.erased() })
+
+        let k1 = MRN.ImplicitClashesKey((s1(0), pr1, e1(0), s2(0), []))
+        let k2 = MRN.ImplicitClashesKey((s2(0), pr2, e1(0), s2(0), []))
+        
+        let values: [MRN.ErrorOutput] = [(s1(1), m1, e1(3), s2(4)),
+                                         (s1(5), m2, e1(7), s2(8))]
+        let clashes = [k1: values, k2: values]
+        
+        e = MRN.ImplicitClashesError(clashes: clashes)
+        e.assertDescription(
+            String {
+                "The FSM table contains implicit logical clashes (total: 2)"
+                ""
+                "Multiple clashing statements imply the same predicates (P.a AND Q.a)"
+                ""
+                "Context 1:"
+                ""
+                "define(s1) @fs: 1"
+                "matching(P.a) @fm: 2"
+                "when(e1) @fe: 3"
+                "then(s2) @fns: 4"
+                ""
+                "define(s1) @fs: 5"
+                "matching(Q.a) @fm: 6"
+                "when(e1) @fe: 7"
+                "then(s2) @fns: 8"
+                ""
+                "Multiple clashing statements imply the same predicates (R.a AND S.a)"
+                ""
+                "Context 2:"
+                ""
+                "define(s1) @fs: 1"
+                "matching(P.a) @fm: 2"
+                "when(e1) @fe: 3"
+                "then(s2) @fns: 4"
+                ""
+                "define(s1) @fs: 5"
+                "matching(Q.a) @fm: 6"
+                "when(e1) @fe: 7"
+                "then(s2) @fns: 8"
+            }
+        )
     }
 }
 

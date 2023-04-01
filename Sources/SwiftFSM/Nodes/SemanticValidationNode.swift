@@ -10,30 +10,8 @@ protocol SVNKey {
     init(_ input: SemanticValidationNode.Input)
 }
 
-protocol SVNError: LocalizedError {}
-extension SVNError {
-    func description<K: Hashable, V: Collection>(
-        _ header: String,
-        _ dict: [K: V],
-        @StringBuilder _ block: (V.Element) -> [String]
-    ) -> String {
-        String {
-            header
-            for v in dict.values {
-                ""
-                for (i, element) in v.enumerated() {
-                    block(element)
-                    if i < v.count - 1 {
-                        ""
-                    }
-                }
-            }
-        }
-    }
-}
-
 class SemanticValidationNode: Node {
-    struct DuplicatesError: SVNError {
+    struct DuplicatesError: ValidationError {
         let duplicates: DuplicatesDictionary
         
         var errorDescription: String? {
@@ -46,7 +24,7 @@ class SemanticValidationNode: Node {
         }
     }
     
-    struct ClashError: SVNError {
+    struct ClashError: ValidationError {
         let clashes: ClashesDictionary
         
         var errorDescription: String? {

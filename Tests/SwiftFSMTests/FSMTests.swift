@@ -489,7 +489,6 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
         XCTAssertThrowsError (
             try fsm.buildTable {
                 define(.locked) {
-                    #warning("this file and line data is thrown away...")
                     matching(P.a, file: "f1", line: -1)  | when(.coin) | then(.unlocked)
                     matching(Q.a, file: "f2", line: -2)  | when(.coin) | then(.locked)
                 }
@@ -505,11 +504,21 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             let clash = clashes?.first
             XCTAssertEqual(2, clash?.count)
             
-            XCTAssert(clash?.allSatisfy {
+            XCTAssert(clash?.contains {
                 $0.state.base == AnyHashable(StateType.locked) &&
                 $0.event.base == AnyHashable(EventType.coin) &&
-                $0.predicates == Set([P.a, Q.a].erased())
-            } ?? false)
+                $0.match == Match(all: P.a) &&
+                $0.match.file == "f1" &&
+                $0.match.line == -1
+            } ?? false, "\(String(describing: clash))")
+            
+            XCTAssert(clash?.contains {
+                $0.state.base == AnyHashable(StateType.locked) &&
+                $0.event.base == AnyHashable(EventType.coin) &&
+                $0.match == Match(all: Q.a) &&
+                $0.match.file == "f2" &&
+                $0.match.line == -2
+            } ?? false, "\(String(describing: clash))")
             
             XCTAssertEqual(AnyHashable(StateType.unlocked), clash?.first?.nextState.base)
             XCTAssertEqual(AnyHashable(StateType.locked), clash?.last?.nextState.base)

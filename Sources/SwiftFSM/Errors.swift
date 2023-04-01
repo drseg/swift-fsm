@@ -6,6 +6,28 @@
 
 import Foundation
 
+protocol ValidationError: LocalizedError {}
+extension ValidationError {
+    func description<K: Hashable, V: Collection>(
+        _ header: String,
+        _ dict: [K: V],
+        @StringBuilder _ block: (V.Element) -> [String]
+    ) -> String {
+        String {
+            header
+            for v in dict.values {
+                ""
+                for (i, element) in v.enumerated() {
+                    block(element)
+                    if i < v.count - 1 {
+                        ""
+                    }
+                }
+            }
+        }
+    }
+}
+
 struct SwiftFSMError: LocalizedError, CustomStringConvertible {
     let errors: [Error]
     var description: String { localizedDescription }

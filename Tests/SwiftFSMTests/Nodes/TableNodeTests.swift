@@ -73,7 +73,7 @@ class MatchResolvingNodeTests: DefineConsumer {
         expected.forEach { exp in
             assertEqual(exp, errors.first {
                 $0.state == exp.state &&
-                $0.predicates == exp.predicates &&
+                $0.match == exp.match &&
                 $0.event == exp.event &&
                 $0.nextState == exp.nextState
             }, line: line)
@@ -91,6 +91,17 @@ class MatchResolvingNodeTests: DefineConsumer {
         XCTAssertEqual(lhs?.nextState, rhs?.nextState, line: line)
         
         assertActions(rhs?.actions, expectedOutput: lhs?.actionsOutput, line: line)
+    }
+    
+    func assertEqual(
+        _ lhs: ExpectedTableNodeOutput?,
+        _ rhs: PTN.ErrorOutput?,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(lhs?.state, rhs?.state, line: line)
+        XCTAssertEqual(lhs?.match, rhs?.match, line: line)
+        XCTAssertEqual(lhs?.event, rhs?.event, line: line)
+        XCTAssertEqual(lhs?.nextState, rhs?.nextState, line: line)
     }
     
     func testEmptyNode() {

@@ -13,8 +13,14 @@ final class MatchResolvingNode: Node {
                         nextState: AnyTraceable,
                         actions: [Action])
     
+    typealias ErrorOutput = (state: AnyTraceable,
+                             match: Match,
+                             event: AnyTraceable,
+                             nextState: AnyTraceable)
+    
     struct RankedOutput {
         let state: AnyTraceable,
+            match: Match,
             predicateResult: PredicateResult,
             event: AnyTraceable,
             nextState: AnyTraceable,
@@ -23,27 +29,50 @@ final class MatchResolvingNode: Node {
         var toOutput: Output {
             (state, predicateResult.predicates, event, nextState, actions)
         }
+        
+        var toErrorOutput: ErrorOutput {
+            (state, match, event, nextState)
+        }
     }
     
-    struct ImplicitClashesError: LocalizedError {
+    struct ImplicitClashesError: ValidationError {
         let clashes: ImplicitClashesDictionary
+        
+        var errorDescription: String? {
+            String {
+                "The FSM table contains implicit logical clashes (total: \(clashes.count))"
+                for (i, clashGroup) in clashes.reversed().enumerated() {
+                    let predicates = clashGroup.key.predicates.reduce([String]()) {
+                        $0 + [$1.description]
+                    }.sorted().joined(separator: " AND ")
+                    
+                    ""
+                    "Multiple clashing statements imply the same predicates (\(predicates))"
+                    ""
+                    description("Context \(i + 1):", [clashGroup.key: clashGroup.value]) { c in
+                        c.state.defineDescription
+                        c.match.errorDescription
+                        c.event.whenDescription
+                        c.nextState.thenDescription
+                    }
+                }
+            }
+        }
     }
     
     struct ImplicitClashesKey: Hashable {
         let state: AnyTraceable,
-            match: Match,
             predicates: PredicateSet,
             event: AnyTraceable
         
-        init(_ output: Output, _ match: Match) {
+        init(_ output: Output) {
             self.state = output.state
             self.predicates = output.predicates
             self.event = output.event
-            self.match = match
         }
     }
     
-    typealias ImplicitClashesDictionary = [ImplicitClashesKey: [Output]]
+    typealias ImplicitClashesDictionary = [ImplicitClashesKey: [ErrorOutput]]
 
     var rest: [any Node<Input>]
     var errors: [Error] = []
@@ -58,6 +87,7 @@ final class MatchResolvingNode: Node {
         let result = rest.reduce(into: [RankedOutput]()) { result, input in
             func appendInput(_ predicateResult: PredicateResult = PredicateResult()) {
                 let ro = RankedOutput(state: input.state,
+                                      match: input.match,
                                       predicateResult: predicateResult,
                                       event: input.event,
                                       nextState: input.nextState,
@@ -68,8 +98,8 @@ final class MatchResolvingNode: Node {
                 }
                 
                 func isClash(_ lhs: RankedOutput) -> Bool {
-                    ImplicitClashesKey(lhs.toOutput, input.match) ==
-                    ImplicitClashesKey(ro.toOutput, input.match)
+                    ImplicitClashesKey(lhs.toOutput) ==
+                    ImplicitClashesKey(ro.toOutput)
                 }
                 
                 func highestRank(_ lhs: RankedOutput, _ rhs: RankedOutput) -> RankedOutput {
@@ -82,8 +112,8 @@ final class MatchResolvingNode: Node {
                 
                 else {
                     if let clash = result.first(where: isClash) {
-                        let key = ImplicitClashesKey(ro.toOutput, input.match)
-                        clashes[key] = (clashes[key] ?? [clash.toOutput]) + [ro.toOutput]
+                        let key = ImplicitClashesKey(ro.toOutput)
+                        clashes[key] = (clashes[key] ?? [clash.toErrorOutput]) + [ro.toErrorOutput]
                     }
                     result.append(ro)
                 }
