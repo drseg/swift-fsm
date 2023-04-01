@@ -161,12 +161,16 @@ struct NSObjectError: LocalizedError {
 
 extension Match {
     var asArray: [Match] {
-        [self] + (next?.asArray ?? [])
+        [originalSelf?.removingNext ?? removingNext] + (next?.asArray ?? [])
+    }
+    
+    var removingNext: Match {
+        Match(any: matchAny, all: matchAll, file: file, line: line)
     }
     
     var errorDescription: String {
         let or = matchAny.reduce([String]()) { result, predicates in
-            let firstPredicateString = predicates.first?.description ?? ""
+            let firstPredicateString = predicates.first!.description
             
             return result + [predicates.dropFirst().reduce(firstPredicateString) {
                 "(\($0) OR \($1))"
@@ -174,8 +178,30 @@ extension Match {
         }.joined(separator: " AND ")
         
         let and = matchAll.map(\.description).joined(separator: " AND ")
+        let components = asArray
         
-        return "matching(\(or) AND \(and)) - file \(file), line \(line)"
+        var summary: String
+        
+        switch (matchAll.isEmpty, matchAny.isEmpty) {
+        case (true, true): summary = "matching()"
+        case (true, false): summary = "matching(\(or))"
+        case (false, true): summary = "matching(\(and))"
+        case (false, false): summary = "matching(\(or) AND \(and))"
+        }
+        
+        if components.count < 2 {
+            return summary + " - file \(file), line \(line)"
+        }
+        
+        return String {
+            let componentsString = components.reduce([]) {
+                $0 + ["    - " + $1.errorDescription]
+            }.joined(separator: "\n")
+            
+            summary
+            "  formed by combining:"
+            componentsString
+        }
     }
 }
 

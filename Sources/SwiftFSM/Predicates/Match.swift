@@ -16,6 +16,7 @@ class Match {
                       file: self.file,
                       line: self.line)
         m.next = self.next
+        m.originalSelf = self
         
         return m
     }
@@ -27,6 +28,7 @@ class Match {
     let line: Int
     
     var next: Match? = nil
+    var originalSelf: Match? = nil
     
     convenience init(any: AnyPP..., all: AnyPP..., file: String = #file, line: Int = #line) {
         self.init(any: any.erased(), all: all.erased(), file: file, line: line)

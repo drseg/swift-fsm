@@ -131,18 +131,74 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testMatchAsArray() {
-        let array = Match(any: P.a).prepend(Match(any: R.a)).prepend(Match()).asArray
+    func testSingleMatchAsArray() {
+        let array = try? Match(any: P.a)
+            .finalised()
+            .get()
+            .asArray
+        
+        XCTAssertEqual(array, [Match(any: P.a)])
+    }
+    
+    func testMultipleMatchesAsArray() {
+        let array = try? Match(any: P.a)
+            .prepend(Match(any: R.a))
+            .prepend(Match())
+            .finalised()
+            .get()
+            .asArray
+        
         XCTAssertEqual(array, [Match(), Match(any: R.a), Match(any: P.a)])
     }
     
-    func testMatchDescriptionWithNoNext() throws {
+    func testMatchDescriptionWithNoPredicates() {
+        let match = Match(file: "f", line: 1)
+        
+        XCTAssertEqual("matching() - file f, line 1",
+                       match.errorDescription)
+    }
+    
+    func testMatchDescriptionWithOrOnly() {
+        let match = Match(any: [[P.a, P.b]], file: "f", line: 1)
+        
+        XCTAssertEqual("matching((P.a OR P.b)) - file f, line 1",
+                       match.errorDescription)
+    }
+    
+    func testMatchDescriptionWithMultipleOrOnly() {
+        let match = Match(any: [[P.a, P.b], [Q.a, Q.b]], file: "f", line: 1)
+        
+        XCTAssertEqual("matching((P.a OR P.b) AND (Q.a OR Q.b)) - file f, line 1",
+                       match.errorDescription)
+    }
+    
+    func testMatchDescriptionWithAndOnly() {
+        let match = Match(all: R.a, S.a, file: "f", line: 1)
+        
+        XCTAssertEqual("matching(R.a AND S.a) - file f, line 1",
+                       match.errorDescription)
+    }
+    
+    func testMatchDescriptionWithOrAndAnd() {
         let match = Match(any: [[P.a, P.b]], all: R.a, S.a, file: "f", line: 1)
         
-        XCTAssertEqual(
-            "matching((P.a OR P.b) AND R.a AND S.a) - file f, line 1",
-            match.errorDescription
-        )
+        XCTAssertEqual("matching((P.a OR P.b) AND R.a AND S.a) - file f, line 1",
+                       match.errorDescription)
+    }
+    
+    func testMatchDescriptionWithNext() {
+        let match = try? Match(any: [[Q.a, Q.b]], file: "2", line: 2)
+            .prepend(Match(any: [[P.a, P.b]], all: R.a, S.a, file: "1", line: 1))
+            .finalised()
+            .get()
+
+        XCTAssertEqual(String {
+            "matching((P.a OR P.b) AND (Q.a OR Q.b) AND R.a AND S.a)"
+            "  formed by combining:"
+            "    - matching((P.a OR P.b) AND R.a AND S.a) - file 1, line 1"
+            "    - matching((Q.a OR Q.b)) - file 2, line 2"
+        },
+                       match?.errorDescription)
     }
     
     typealias SVN = SemanticValidationNode
