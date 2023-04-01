@@ -10,32 +10,53 @@ protocol SVNKey {
     init(_ input: SemanticValidationNode.Input)
 }
 
-class SemanticValidationNode: Node {
-    struct DuplicatesError: LocalizedError {
-        let duplicates: DuplicatesDictionary
-        
-        var errorDescription: String? {
-            String {
-                "The FSM table contains the following duplicates:"
-                for v in duplicates.values {
-                    ""
-                    for (i, d) in v.enumerated() {
-                        d.state.defineDescription
-                        d.match.errorDescription
-                        d.event.whenDescription
-                        d.nextState.thenDescription
-                        
-                        if i < v.count - 1 {
-                            ""
-                        }
+protocol SVNError: LocalizedError {}
+extension SVNError {
+    func description<K: Hashable, V: Collection>(
+        _ header: String,
+        _ dict: [K: V],
+        @StringBuilder _ block: (V.Element) -> [String]
+    ) -> String {
+        String {
+            header
+            for v in dict.values {
+                ""
+                for (i, element) in v.enumerated() {
+                    block(element)
+                    if i < v.count - 1 {
+                        ""
                     }
                 }
             }
         }
     }
+}
+
+
+class SemanticValidationNode: Node {
+    struct DuplicatesError: SVNError {
+        let duplicates: DuplicatesDictionary
+        
+        var errorDescription: String? {
+            description("The FSM table contains the following duplicates:", duplicates) { d in
+                d.state.defineDescription
+                d.match.errorDescription
+                d.event.whenDescription
+                d.nextState.thenDescription
+            }
+        }
+    }
     
-    struct ClashError: Error {
+    struct ClashError: SVNError {
         let clashes: ClashesDictionary
+        
+        var errorDescription: String? {
+            description("The FSM table contains the following logical clashes:", clashes) { c in
+                c.state.defineDescription
+                c.match.errorDescription
+                c.event.whenDescription
+            }
+        }
     }
     
     struct DuplicatesKey: SVNKey, Hashable {

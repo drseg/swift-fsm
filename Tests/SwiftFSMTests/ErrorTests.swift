@@ -203,12 +203,12 @@ final class ErrorTests: SyntaxNodeTests {
     
     typealias SVN = SemanticValidationNode
     
-    func testSVMDuplicatesError() throws {
-        func s1(_ line: Int) -> AnyTraceable { AnyTraceable("s1", file: "fs", line: line) }
-        func m1(_ line: Int) -> Match { Match(any: P.a, all: Q.a, R.a, file: "fm", line: line) }
-        func e1(_ line: Int) -> AnyTraceable { AnyTraceable("e1", file: "fe", line: line) }
-        func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "fns", line: line) }
-
+    func s1(_ line: Int) -> AnyTraceable { AnyTraceable("s1", file: "fs", line: line) }
+    func m1(_ line: Int) -> Match { Match(any: P.a, all: Q.a, R.a, file: "fm", line: line) }
+    func e1(_ line: Int) -> AnyTraceable { AnyTraceable("e1", file: "fe", line: line) }
+    func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "fns", line: line) }
+    
+    func testSVMDuplicatesError() {
         let key = SVN.DuplicatesKey((s1(0), m1(0), e1(0), s2(0), []))
         let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
                                    (s1(5), m1(6), e1(7), s2(8), [])]
@@ -228,6 +228,28 @@ final class ErrorTests: SyntaxNodeTests {
                 "matching(P.a AND Q.a AND R.a) @fm: 6"
                 "when(e1) @fe: 7"
                 "then(s2) @fns: 8"
+            }
+        )
+    }
+    
+    func testSVMClashesError() {
+        let key = SVN.ClashesKey((s1(0), m1(0), e1(0), s2(0), []))
+        let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
+                                   (s2(5), m1(6), e1(7), s2(8), [])]
+        let duplicates = [key: values]
+        
+        e = SVN.ClashError(clashes: duplicates)
+        e.assertDescription(
+            String {
+                "The FSM table contains the following logical clashes:"
+                ""
+                "define(s1) @fs: 1"
+                "matching(P.a AND Q.a AND R.a) @fm: 2"
+                "when(e1) @fe: 3"
+                ""
+                "define(s2) @fns: 5"
+                "matching(P.a AND Q.a AND R.a) @fm: 6"
+                "when(e1) @fe: 7"
             }
         )
     }
