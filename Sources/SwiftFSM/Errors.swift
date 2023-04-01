@@ -160,8 +160,22 @@ struct NSObjectError: LocalizedError {
 }
 
 extension Match {
+    var asArray: [Match] {
+        [self] + (next?.asArray ?? [])
+    }
+    
     var errorDescription: String {
-        "TILT"
+        let or = matchAny.reduce([String]()) { result, predicates in
+            let firstPredicateString = predicates.first?.description ?? ""
+            
+            return result + [predicates.dropFirst().reduce(firstPredicateString) {
+                "(\($0) OR \($1))"
+            }]
+        }.joined(separator: " AND ")
+        
+        let and = matchAll.map(\.description).joined(separator: " AND ")
+        
+        return "matching(\(or) AND \(and)) - file \(file), line \(line)"
     }
 }
 

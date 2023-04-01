@@ -10,11 +10,14 @@ class Match {
     typealias Result = Swift.Result<Match, MatchError>
     typealias AnyPP = any Predicate
     
-    static func + (lhs: Match, rhs: Match) -> Match {
-        .init(any: lhs.matchAny + rhs.matchAny,
-              all: lhs.matchAll + rhs.matchAll,
-              file: lhs.file,
-              line: lhs.line)
+    static func + (self: Match, next: Match) -> Match {
+        let m = Match(any: self.matchAny + next.matchAny,
+                      all: self.matchAll + next.matchAll,
+                      file: self.file,
+                      line: self.line)
+        m.next = self.next
+        
+        return m
     }
     
     let matchAny: [[AnyPredicate]]
@@ -23,8 +26,7 @@ class Match {
     let file: String
     let line: Int
     
-    var subMatches: [Match] = []
-    private var next: Match? = nil
+    var next: Match? = nil
     
     convenience init(any: AnyPP..., all: AnyPP..., file: String = #file, line: Int = #line) {
         self.init(any: any.erased(), all: all.erased(), file: file, line: line)
@@ -158,8 +160,7 @@ extension Match: Hashable {
         return lhs.matchAny.count == rhs.matchAny.count &&
         lhs.matchAll.count == rhs.matchAll.count &&
         lhsAny.allSatisfy({ rhsAny.contains($0) }) &&
-        lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) }) &&
-        lhs.subMatches == rhs.subMatches
+        lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) })
     }
     
     func hash(into hasher: inout Hasher) {

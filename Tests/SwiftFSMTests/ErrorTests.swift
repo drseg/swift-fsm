@@ -131,15 +131,18 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testMatchDescription() throws {
-        throw XCTSkip("closed for refurbishment")
-
-        let match = Match(any: [[P.a, P.b], [Q.a, Q.b]], all: R.a, S.a, file: "f", line: 1)
+    func testMatchAsArray() {
+        let array = Match(any: P.a).prepend(Match(any: R.a)).prepend(Match()).asArray
+        XCTAssertEqual(array, [Match(), Match(any: R.a), Match(any: P.a)])
+    }
+    
+    func testMatchDescriptionWithNoNext() throws {
+        let match = Match(any: [[P.a, P.b]], all: R.a, S.a, file: "f", line: 1)
         
-        XCTAssertEqual(String {
-            "matching((P.a OR P.b) AND (Q.a OR Q.b) AND R.a AND S.a) - file f, line 1"
-        },
-                       match.errorDescription)
+        XCTAssertEqual(
+            "matching((P.a OR P.b) AND R.a AND S.a) - file f, line 1",
+            match.errorDescription
+        )
     }
     
     typealias SVN = SemanticValidationNode
