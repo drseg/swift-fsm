@@ -263,7 +263,7 @@ final class ErrorTests: SyntaxNodeTests {
         let pr1 = Set([P.a.erased(), Q.a.erased()])
         let pr2 = Set([R.a.erased(), S.a.erased()])
 
-        let k1 = MRN.ImplicitClashesKey((s1(0), pr1, e1(0), s2(0), []))
+        let k1 = MRN.ImplicitClashesKey((s1(-1), pr1, e1(0), s2(0), []))
         let k2 = MRN.ImplicitClashesKey((s2(0), pr2, e1(0), s2(0), []))
         
         let values: [MRN.ErrorOutput] = [(s1(1), m1, e1(3), s2(4)),
