@@ -274,6 +274,12 @@ try fsm.buildTable {
 
 `onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state.
 
+### Syntax Order
+
+All statements must be made in the form `define { when | then | actions }`. Any reordering will not compile.
+
+See [\#expanded-syntax][2] below for exceptions to this rule.
+
 ### Syntax Variations
 
 SwiftFSM allows you to alter the naming conventions in your syntax by using `typealiases`. Though `define`, `when`, and `then` are functions, there are matching structs with equivalent capitalised names contained in the `SwiftFSM.Syntax` namespace.
@@ -675,3 +681,4 @@ Using three predicates, each with 10 cases each, would therefore require 1,000 o
 In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs no error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance.
 
 [1]:	https://github.com/unclebob/CC_SMC
+[2]:	#expanded-syntax "Expanded Syntax"
