@@ -326,16 +326,14 @@ But this comes with a problem - we now have some aspects of our state transition
 enum Enforcement: Predicate { case weak, strong }
 
 try fsm.buildTable {
-	...
-
+    ...
     define(.locked) {
         matching(Enforcement.weak)   | when(.pass) | then(.locked)
         matching(Enforcement.strong) | when(.pass) | then(.alarming)
                 
         when(.coin) | then(.unlocked)
     }
-
-	...
+    ...
 }
 
 fsm.handleEvent(.pass, predicates: Enforcement.weak)
@@ -384,8 +382,7 @@ enum Enforcement: Predicate { case weak, strong }
 enum Reward: Predicate { case positive, negative }
 
 try fsm.buildTable {
-	...
-
+    ...
     define(.locked) {
         matching(Enforcement.weak)   | when(.pass) | then(.locked)   | lock
         matching(Enforcement.strong) | when(.pass) | then(.alarming) | alarmOn
@@ -399,8 +396,7 @@ try fsm.buildTable {
                 
         when(.coin) | then(.unlocked)
     }
-
-	...
+    ...
 }
 
 fsm.handleEvent(.pass, predicates: Enforcement.weak, Reward.positive)
@@ -449,8 +445,7 @@ The full example would now be:
 
 ```swift
 try fsm.buildTable {
-	...
-
+    ...
     define(.locked) {
         when(.pass) {
             matching(Enforcement.weak)   | then(.locked)
@@ -459,8 +454,7 @@ try fsm.buildTable {
                 
         when(.coin) | then(.unlocked)
     }
-
-	...
+    ...
 }
 ```
 
@@ -470,18 +464,16 @@ try fsm.buildTable {
 
 ```swift
 try fsm.buildTable {
-	...
-
+    ...
     define(.locked) {
         then(.unlocked) {
-		    when(.pass) {
+            when(.pass) {
                 matching(Enforcement.weak)   | doSomething
                 matching(Enforcement.strong) | doSomethingElse
             }
         }
     }
-
-	...
+    ...
 }
 ```
 
@@ -489,8 +481,7 @@ try fsm.buildTable {
 
 ```swift
 try fsm.buildTable {
-	...
-
+    ...
     define(.locked) {
         matching(Enforcement.weak) {
             when(.coin) | then(.unlocked) | somethingWeak
@@ -502,8 +493,7 @@ try fsm.buildTable {
             when(.pass) | then(.alarming) | somethingElseStrong
         }
     }
-
-	...
+    ...
 }
 ```
 
@@ -511,16 +501,14 @@ try fsm.buildTable {
 
 ```swift
 try fsm.buildTable {
-	...
-
+    ...
     define(.locked) {
         actions(someCommonFunction) {
             when(.coin) | then(.unlocked)
             when(.pass) | then(.alarming)
         }
     }
-
-	...
+    ...
 }
 ```
 
@@ -530,19 +518,19 @@ The deduplication section introduced four blocks:
 
 ```swift
 matching(predicate) { 
-// everything inside this block matches 'predicate'
+    // everything inside this block matches 'predicate'
 }
 
 when(event) { 
-// everything inside this block responds to the event 'event'
+    // everything inside this block responds to the event 'event'
 }
 
 then(state) { 
-// everything inside this block transitions to the state 'state'
+    // everything inside this block transitions to the state 'state'
 }
 
 actions(functionCalls) { 
-// everything inside this block calls 'functionCalls'
+   // everything inside this block calls 'functionCalls'
 }
 ```
 
@@ -555,19 +543,17 @@ Each transition can only respond to a specific event, and then transition to a s
 ```swift
 define(.locked) {
     when(.coin) {
-        when(.pass) { } // does not compile
-        when(.pass) | ... // does not compile
+        when(.pass) { } // error: does not compile
+        when(.pass) | ... // error: does not compile
 
-        matching(.something) | when(.pass) | ... // does not compile
+        matching(.something) | when(.pass) | ... // error: does not compile
 
 		matching(.something) { 
-            when(.pass) | ... // does not compile
+            when(.pass) | ... // error: does not compile
         }
 
         matching(.something) { 
-            when(.pass) {
-                | ... // does not compile
-            } 
+            when(.pass) { } // error: does not compile
         }
     }
 
@@ -582,9 +568,7 @@ define(.locked) {
         }
 
         matching(.something) { 
-            then(.locked) {
-                | ... // error: does not compile
-            } 
+            then(.locked) { } // error: does not compile 
         }
     }      
 }
@@ -596,8 +580,8 @@ Additionally, there is a specific combination of  `when` and `then` that does no
 ```swift
 define(.locked) {
     when(.coin) {
-		then(.unlocked) | action // error: does not compile
-		then(.locked)   | action // error: does not compile
+        then(.unlocked) | action // error: does not compile
+        then(.locked)   | action // error: does not compile
     }
 }
 ```
@@ -607,7 +591,7 @@ Logically, there is no situation where in response to an event (in this case, `.
 ```swift
 define(.locked) {
     when(.coin) {
-		matching(Enforcement.weak)   | then(.unlocked) | action // ok
+        matching(Enforcement.weak)   | then(.unlocked) | action // ok
         matching(Enforcement.strong) | then(.locked)   | otherAction // ok
     }
 }
@@ -618,7 +602,7 @@ Note that it is easy to form a duplicate that cannot be checked at compile time.
 ```swift
 define(.locked) {
     when(.coin) {
-		matching(Enforcement.weak) | then(.unlocked) | action // ok
+        matching(Enforcement.weak) | then(.unlocked) | action // ok
         matching(Enforcement.weak) | then(.locked)   | otherAction // ok
     }
 }
