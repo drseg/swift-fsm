@@ -225,6 +225,8 @@ try! fsm.buildTable {
 
 If a `SuperState` instance is given, the `@resultBuilder` argument to `define` is optional.
 
+**Important** - SMC allows for both abstract (without a given state) and concrete (with a given state) Super States. It also allows for overriding transitions declared in a Super State. SwiftFSM on the other hand only allows abstract Super States, defined using the `SuperState` struct, and any attempt to override a Super State transition will result in a duplicate transition error.
+
 ### Entry and Exit Actions
 
 > In the previous example, the fact that the alarm is turned on every time the Alarming state is entered and is turned off every time the Alarming state is exited, is hidden within the logic of several different transitions. We can make it explicit by using entry actions and exit actions.
@@ -273,6 +275,10 @@ try fsm.buildTable {
 ```
 
 `onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state.
+
+**Important** - in SMC, entry and exit actions are invoked even if the state does not change. In the example above, this would mean that the unlock entry action would be called on all transitions into the `Unlocked` state, *even if the FSM is already in the `Unlocked` state*. 
+
+In contrast, SwiftFSM entry and exit actions are only invoked if there is a state change. In the example above, this means that, in the `.unlocked` state, after a `.coin` event, `unlock` will *not* be called.
 
 ### Syntax Order
 
