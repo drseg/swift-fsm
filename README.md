@@ -44,8 +44,8 @@ SwiftFSM (with additional code for context):
 
 ```swift
 class MyClass: TransitionBuilder {
-    enum State { case locked, unlocked, alarming }
-    enum Event { case reset, coin, pass }
+    enum State { case locked, unlocked }
+    enum Event { case coin, pass }
 
     let fsm = FSM<State, Event>(initialState: .locked)
 
