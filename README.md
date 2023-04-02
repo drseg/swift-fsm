@@ -146,15 +146,15 @@ SwiftFSM:
 ```swift
 try! fsm.buildTable {
     define(.locked) {
-        when(.coin) | then(.unlocked) | unlock
-        when(.pass) | then(.alarming) | alarmOn
-        when(.reset)| then()          | { alarmOff(); lock() }
+        when(.coin)  | then(.unlocked) | unlock
+        when(.pass)  | then(.alarming) | alarmOn
+        when(.reset) | then()          | { alarmOff(); lock() }
     }
 
     define(.unlocked) {
-        when(.reset)| then(.locked)   | { alarmOff(); lock() }
-        when(.coin) | then(.unlocked) | thankyou
-        when(.pass) | then(.locked)   | lock
+        when(.reset) | then(.locked)   | { alarmOff(); lock() }
+        when(.coin)  | then(.unlocked) | thankyou
+        when(.pass)  | then(.locked)   | lock
     }
 
     define(.alarming) {
