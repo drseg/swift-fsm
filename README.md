@@ -658,7 +658,7 @@ matching(A.x, or: A.y)... // if A.x OR A.y
 matching(A.x, or: A.y, A.z)... // if A.x OR A.y OR A.z
 
 matching(A.x, and: B.x)... // if A.x AND B.x
-matching(A.x, and: A.y)... // throws Error: AND-ed values must be different types
+matching(A.x, and: A.y)... // error: cannot match A.x and A.y simultaneously
 matching(A.x, and: B.x, C.x)... // if A.x AND B.x AND C.x
 
 matching(A.x, or: A.y, A.z, and: B.x, C.x)... // if (A.x OR A.y OR A.z) AND B.x AND C.x
@@ -668,11 +668,55 @@ fsm.handleEvent(.coin, predicates: A.x, B.x, C.x)
 
 All of these `matching` statements can be used both with `|` syntax, and with deduplicating `{ }` syntax, as demonstrated with previous `matching` statements.
 
-They should be reasonably self-explanatory, perhaps with the exception of why `matching(A.x, and: A.y) // throws error`. In SwiftFSM, the word ‘and’ means that we expect both predicates will be present *at the same time*. Each predicate type can only have one value at the time it is passed to `handleEvent()`, therefore asking it to match multiple values of the same `Predicate` simultaneously has no meaning. The rules of the system are that, if `A.x` is current, `A.y` cannot also be current.
+They should be reasonably self-explanatory, perhaps with the exception of why `matching(A.x, and: A.y) // error: cannot match A.x and A.y simultaneously`. In SwiftFSM, the word ‘and’ means that we expect both predicates will be present *at the same time*. Each predicate type can only have one value at the time it is passed to `handleEvent()`, therefore asking it to match multiple values of the same `Predicate` simultaneously has no meaning. The rules of the system are that, if `A.x` is current, `A.y` cannot also be current.
 
 For clarity, it can be useful to think of `matching(A.x, and: A.y)` as meaning `matching(A.x, andSimultaneously: A.y)`. In terms of a `when` statement to which it is analogous, it would be as meaningless as saying `when(.coin, and: .pass)` - the event is either `.coin` or `.pass`, it cannot be both.
 
 The word ‘or’ is more permissive - `matching(A.x, or: A.y)` can be thought of as `matching(anyOneOf: A.x, A.y)`.
+
+**Important** - remember that nested `matching` statements are combined by AND-ing them together, which makes it particularly easy inadvertently to create a conflict.
+
+```swift
+define(.locked) {
+    matching(A.x) {
+        matching(A.y) {
+            // error: cannot match A.x and A.y simultaneously 
+        }
+    }
+}
+```
+
+This AND-ing behaviour also applies to OR statements: 
+
+```swift
+define(.locked) {
+    matching(A.x, or: A.y) {
+        matching(A.z) {
+            // error: cannot match A.x and A.z simultaneously 
+            // error: cannot match A.y and A.z simultaneously 
+        }
+    }
+}
+```
+
+Nested OR statements that do not conflict are AND-ed as follows:
+
+```swift
+define(.locked) {
+    matching(A.x, or: A.y) {
+        matching(B.x, or: B.y) {
+            // ok, logically matches (A.x OR A.y) AND (B.x OR B.y)
+
+            // internally translates to:
+
+            // 1. matching(A.x, and: B.x)
+			// 2. matching(A.x, and: B.y)
+            // 3. matching(A.y, and: B.x)
+            // 4. matching(A.y, and: B.y)
+        }
+    }
+}
+```
 
 #### Predicate Performance
 
