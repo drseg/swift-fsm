@@ -348,9 +348,9 @@ fsm.handleEvent(.pass, predicates: Enforcement.weak)
 Here we have introduced a new keyword `matching`, and a new protocol `Predicate`. The define statement with its three sentences now reads as follows:
 
 - Given that we are in the locked state:
-	- If the `Enforcement` strategy is `.weak`, when we get a `.pass` event, transition to the `.locked` state
-	- If the `Enforcement` strategy is `.strong`, when we get a `.pass` event, transition to the `.alarming` state
-	- **Regardless** of `Enforcement` strategy, when we get a `.coin` event, transition to the `.unlocked` state
+	- If `Enforcement` is `.weak`, when we get a `.pass`, transition to `.locked`
+	- If `Enforcement` is `.strong`, when we get a `.pass`, transition to `.alarming`
+	- **Regardless** of `Enforcement`, when we get a `.coin`, transition to `.unlocked`
 
 This allows the extra `Enforcement`logic to be expressed directly within the FSM table
 
@@ -555,11 +555,8 @@ define(.locked) {
         matching(.something) | when(.pass) | ... // error: does not compile
 
         matching(.something) { 
-            when(.pass) | ... // error: does not compile
-        }
-
-        matching(.something) { 
             when(.pass) { } // error: does not compile
+            when(.pass) | ... // error: does not compile
         }
     }
 
@@ -570,11 +567,8 @@ define(.locked) {
         matching(.something) | then(.locked) | ... // error: does not compile
 
         matching(.something) { 
+            then(.locked) { } // error: does not compile
             then(.locked) | ... // error: does not compile
-        }
-
-        matching(.something) { 
-            then(.locked) { } // error: does not compile 
         }
     }      
 }
@@ -640,6 +634,18 @@ Nested `actions` blocks simply sum the actions and perform all of them. In the a
 
 Nested `matching` blocks are AND-ed together. In the above example, anything declared inside `matching(Reward.positive) { }` will match both `Enforcement.weak` AND `Reward.positive`. 
 
+##### Mixing blocks and pipes
+
+Pipes can and must be used inside blocks, whereas blocks cannot be opened after pipes
+
+```swift
+define(.locked) {
+    when(.coin) | then(.unlocked) { } // error: does not compile
+    when(.coin) | then(.unlocked) | actions(doSomething) { } // error: does not compile
+    matching(.something) | when(.coin) { } // error: does not compile
+}
+```
+
 #### Complex Predicates
 
 ```swift
@@ -678,7 +684,9 @@ Using three predicates, each with 10 cases each, would therefore require 1,000 o
 
 #### Error Handling
 
-In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs no error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance.
+In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs no error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance. It is the caller’s responsibility to ensure that the predicates passed to `handleEvent` and the predicates used in the transition table are of the same type and number.
+
+`try fsm.buildTable { }` does perform error handling to make sure the table is syntactically and semantically valid. In particular, it ensures that all `matching` statements are valid, and that there are no duplicate transitions and no logical clashes between transitions.
 
 [1]:	https://github.com/unclebob/CC_SMC
 [2]:	#expanded-syntax "Expanded Syntax"
