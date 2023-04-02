@@ -710,7 +710,7 @@ define(.locked) {
             // internally translates to:
 
             // 1. matching(A.x, and: B.x)
-			// 2. matching(A.x, and: B.y)
+            // 2. matching(A.x, and: B.y)
             // 3. matching(A.y, and: B.x)
             // 4. matching(A.y, and: B.y)
         }
