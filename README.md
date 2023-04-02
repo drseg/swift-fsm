@@ -278,7 +278,7 @@ try fsm.buildTable {
 
 All statements must be made in the form `define { when | then | actions }`. Any reordering will not compile.
 
-See [\#expanded-syntax][2] below for exceptions to this rule.
+See [Expanded Syntax][2] below for exceptions to this rule.
 
 ### Syntax Variations
 
