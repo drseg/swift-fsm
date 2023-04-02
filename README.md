@@ -43,6 +43,8 @@ FSM: Turnstile
 SwiftFSM (with additional code for context):
 
 ```swift
+import SwiftFSM
+
 class MyClass: TransitionBuilder {
     enum State { case locked, unlocked }
     enum Event { case coin, pass }
