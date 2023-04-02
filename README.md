@@ -1,4 +1,5 @@
-# SwiftFSM
+# Swift FSM
+### Friendly Finite State Machine Syntax for Swift, iOS and macOS
 
 Inspired by [Uncle Bob's SMC][1] syntax, SwiftFSM is a pure Swift syntax for declaring and operating a Finite State Machine (FSM). Unlike Uncle Bob’s SMC, the FSM itself is declared inside your Swift code, rather than as a separate text file, and compiles and runs directly alongside all your other project code.
 
@@ -304,16 +305,17 @@ No harm will befall the FSM if you mix and match, but at the very least, from an
 ### Performance
 
 SwiftFSM uses a Dictionary to store the state transition table, and each time `handleEvent()` is called, it performs a single O(1) operation to find the correct transition. Though O(1) is ideal from a performance point of view, any lookup table is significantly slower than a nested switch case statement, and SwiftFSM is approximately 2-3x slower per transition.
+---- 
 
-### Expanded Syntax
+## Expanded Syntax
 
 SwiftFSM matches the syntax possibilities offered by SMC, however it also introduces some new possibilities of its own. None of this additional syntax is required, and is provided for convenience.
 
-#### Rationale
+### Rationale
 
 Though the turnstile is a pleasing example, it is also conveniently simple. Given that all computer programs are in essence FSMs, there is no limit to the degree of complexity an FSM table might reach. At some point on the complexity scale, SMC and SwiftFSM basic syntax would become so lengthy as to be unusable.
 
-#### Example
+### Example
 
 Let’s imagine an extension to our turnstile rules, whereby under some circumstances, we might want to strongly enforce the ‘everyone pays’ rule by entering the alarming state if a `.pass` is detected when still in the `.locked` state, yet in others, perhaps at rush hour for example, this behaviour might be too disruptive to other passengers.
 
@@ -349,11 +351,11 @@ Here we have introduced a new keyword `matching`, and a new protocol `Predicate`
 
 This allows the extra `Enforcement`logic to be expressed directly within the FSM table
 
-#### Detailed Description
+### Detailed Description
 
 `Predicate` requires the conformer to be `Hashable` and `CaseIterable`. The `CaseIterable` conformance allows the FSM to calculate all the possible cases of the `Predicate`, such that, if none is specified, it can match that statement to *any* of its cases. It is possible to use any type you wish, as long as your conformance to CaseIterable makes logical sense. In practice however, this requirement is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`. 
 
-##### Implicit `matching` statements:
+#### Implicit `matching` statements:
 
 Take this example from the example above:
 
@@ -374,7 +376,7 @@ matching(Enforcement.strong) | when(.coin) | then(.unlocked)
 
 In other words, it is `Predicate` agnostic, and will match any given `Predicate`. In this way, `matching` statements are optional specifiers that *constrain* the transition to one or more specific `Predicate` cases.
 
-##### Deduplication:
+#### Deduplication:
 
 Take the following lines from the original example:
 
@@ -425,7 +427,7 @@ try fsm.buildTable {
 
     define(.locked) {
         then(.unlocked) {
-			when(.pass) {
+		    when(.pass) {
                 matching(Enforcement.weak)   | doSomething
                 matching(Enforcement.strong) | doSomethingElse
             }
@@ -460,7 +462,7 @@ try fsm.buildTable {
 
 See the end of this document for a complete list of possible deduplications…
 
-##### Multiple Predicates
+#### Multiple Predicates
 
 SwiftFSM does not limit the number of `Predicate` types that can be used in one table. The following (contrived and rather silly) expansion of the original `Predicate` example is equally valid:
 
@@ -508,20 +510,20 @@ matching(Reward.negative)    | when(.pass) | then(.alarming)
 ...
 ```
 
-##### Complex Predicates
+#### Complex Predicates
 
 
 
-##### Predicate Performance
+#### Predicate Performance
 
-Using predicates has no effect on the performance of `handleEvent()` - it remains O(1). In order to maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all the implied `Predicate` combinations.
+Using predicates has no effect on the performance of `handleEvent()`. To maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
 
 The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m\*n) where m is the number of`Predicate` types, and n is the average number cases per `Predicate`.
 
 Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations. On a relatively-slow A10 chip, this would take just under 0.5 seconds.
 
-##### Error Handling
+#### Error Handling
 
-`fsm.handleEvent(event:predicates:)` performs no error handling, in order not to affect performance. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table created when calling `fsm.buildTransitions { }`will not generate any kind of error. The consequence sill simply be that the FSM will not be able to make any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance.
+In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs no error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance.
 
 [1]:	https://github.com/unclebob/CC_SMC
