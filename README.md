@@ -548,7 +548,7 @@ define(.locked) {
 
         matching(.something) | when(.pass) | ... // error: does not compile
 
-		matching(.something) { 
+        matching(.something) { 
             when(.pass) | ... // error: does not compile
         }
 
@@ -563,7 +563,7 @@ define(.locked) {
 
         matching(.something) | then(.locked) | ... // error: does not compile
 
-		matching(.something) { 
+        matching(.something) { 
             then(.locked) | ... // error: does not compile
         }
 
