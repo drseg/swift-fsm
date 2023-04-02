@@ -400,14 +400,14 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
     func testEmptyBlockThrowsError() {
         XCTAssertThrowsError (
             try fsm.buildTable {
-                define(.locked, file: "file", line: -1 ) { }
+                define(.locked, file: "file", line: 1 ) { }
             }
         ) {
             let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(1, errors?.count)
             let error = errors?.first as? EmptyBuilderError
             
-            assertEmptyError(error, expectedCaller: "define", expectedLine: -1)
+            assertEmptyError(error, expectedCaller: "define", expectedLine: 1)
         }
     }
     
@@ -415,9 +415,9 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
         XCTAssertThrowsError (
             try fsm.buildTable {
                 define(.locked) {
-                    matching(P.a, file: "file", line: -1) {}
-                    then(.locked, file: "file", line: -2) {}
-                    when(.pass,   file: "file", line: -3) {}
+                    matching(P.a, file: "file", line: 1) {}
+                    then(.locked, file: "file", line: 2) {}
+                    when(.pass,   file: "file", line: 3) {}
                 }
             }
         ) {
@@ -425,13 +425,13 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssertEqual(3, errors?.count)
             
             let e1 = errors?(0) as? EmptyBuilderError
-            assertEmptyError(e1, expectedCaller: "matching", expectedLine: -1)
+            assertEmptyError(e1, expectedCaller: "matching", expectedLine: 1)
             
             let e2 = errors?(1) as? EmptyBuilderError
-            assertEmptyError(e2, expectedCaller: "then", expectedLine: -2)
+            assertEmptyError(e2, expectedCaller: "then", expectedLine: 2)
             
             let e3 = errors?(2) as? EmptyBuilderError
-            assertEmptyError(e3, expectedCaller: "when", expectedLine: -3)
+            assertEmptyError(e3, expectedCaller: "when", expectedLine: 3)
         }
     }
     
@@ -441,10 +441,10 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
         
         XCTAssertThrowsError (
             try fsm.buildTable {
-                define(.locked) {
-                    matching(P.a) | when(.coin) | then(.unlocked)
-                    matching(P.a) | when(.coin) | then(.unlocked)
-                    matching(P.a) | when(.coin) | then(.locked)
+                define(.locked, line: 1) {
+                    matching(P.a, line: 2) | when(.coin, line: 3) | then(.unlocked, line: 4)
+                    matching(P.a, line: 2) | when(.coin, line: 3) | then(.unlocked, line: 4)
+                    matching(P.a, line: 2) | when(.coin, line: 3) | then(.locked, line: 4)
                 }
             }
         ) {
@@ -465,18 +465,18 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             
             XCTAssert(
                 duplicates.allSatisfy {
-                    $0.match == Match(all: P.a) &&
-                    $0.state.base == AnyHashable(StateType.locked) &&
-                    $0.event.base == AnyHashable(EventType.coin) &&
-                    $0.nextState.base == AnyHashable(StateType.unlocked)
+                    $0.state.isEqual(AnyTraceable(StateType.locked, file: #file, line: 1)) &&
+                    $0.match.isEqual(Match(all: P.a, file: #file, line: 2)) &&
+                    $0.event.isEqual(AnyTraceable(EventType.coin, file: #file, line: 3)) &&
+                    $0.nextState.isEqual(AnyTraceable(StateType.unlocked, file: #file, line: 4))
                 }, "\(duplicates)"
             )
             
             XCTAssert(
                 clashes.allSatisfy {
-                    $0.match == Match(all: P.a) &&
-                    $0.state.base == AnyHashable(StateType.locked) &&
-                    $0.event.base == AnyHashable(EventType.coin)
+                    $0.state.isEqual(AnyTraceable(StateType.locked, file: #file, line: 1)) &&
+                    $0.match.isEqual(Match(all: P.a, file: #file, line: 2)) &&
+                    $0.event.isEqual(AnyTraceable(EventType.coin, file: #file, line: 3))
                 }, "\(clashes)"
             )
             
@@ -488,9 +488,14 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
     func testImplicitMatchClashesThrowErrors() {
         XCTAssertThrowsError (
             try fsm.buildTable {
-                define(.locked) {
-                    matching(P.a, file: "f1", line: -1)  | when(.coin) | then(.unlocked)
-                    matching(Q.a, file: "f2", line: -2)  | when(.coin) | then(.locked)
+                define(.locked, file: "1", line: 1) {
+                    matching(P.a, file: "1", line: 1)
+                    | when(.coin, file: "1", line: 1)
+                    | then(.unlocked, file: "1", line: 1)
+                    
+                    matching(Q.a, file: "2", line: 2)
+                    | when(.coin, file: "2", line: 2)
+                    | then(.locked, file: "2", line: 2)
                 }
             }
         ) {
@@ -505,19 +510,15 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssertEqual(2, clash?.count)
             
             XCTAssert(clash?.contains {
-                $0.state.base == AnyHashable(StateType.locked) &&
-                $0.event.base == AnyHashable(EventType.coin) &&
-                $0.match == Match(all: P.a) &&
-                $0.match.file == "f1" &&
-                $0.match.line == -1
+                $0.state.isEqual(AnyTraceable(StateType.locked, file: "1", line: 1)) &&
+                $0.event.isEqual(AnyTraceable(EventType.coin, file: "1", line: 1)) &&
+                $0.match.isEqual(Match(all: P.a, file: "1", line: 1))
             } ?? false, "\(String(describing: clash))")
             
             XCTAssert(clash?.contains {
-                $0.state.base == AnyHashable(StateType.locked) &&
-                $0.event.base == AnyHashable(EventType.coin) &&
-                $0.match == Match(all: Q.a) &&
-                $0.match.file == "f2" &&
-                $0.match.line == -2
+                $0.state.isEqual(AnyTraceable(StateType.locked, file: "1", line: 1)) &&
+                $0.event.isEqual(AnyTraceable(EventType.coin, file: "2", line: 2)) &&
+                $0.match.isEqual(Match(all: Q.a, file: "2", line: 2))
             } ?? false, "\(String(describing: clash))")
             
             XCTAssertEqual(AnyHashable(StateType.unlocked), clash?.first?.nextState.base)
@@ -529,8 +530,8 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
         XCTAssertThrowsError (
             try fsm.buildTable {
                 define(.locked) {
-                    matching(P.a, or: P.a, file: "f1", line: -1)  | when(.coin) | then(.unlocked)
-                    matching(P.a, and: P.a, file: "f2", line: -2) | when(.coin) | then(.locked)
+                    matching(P.a, or: P.a, file: "1", line: 1)  | when(.coin) | then(.unlocked)
+                    matching(P.a, and: P.a, file: "2", line: 2) | when(.coin) | then(.locked)
                 }
             }
         ) {
@@ -548,9 +549,21 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(2, errors?.count)
             
-            assertError(errors?.first as? MatchError, expectedFile: "f1", expectedLine: -1)
-            assertError(errors?.last as? MatchError, expectedFile: "f2", expectedLine: -2)
+            assertError(errors?.first as? MatchError, expectedFile: "1", expectedLine: 1)
+            assertError(errors?.last as? MatchError, expectedFile: "2", expectedLine: 2)
         }
+    }
+}
+
+private extension Match {
+    func isEqual(_ other: Match) -> Bool {
+        self == other && file == other.file && line == other.line
+    }
+}
+
+private extension AnyTraceable {
+    func isEqual(_ other: AnyTraceable) -> Bool {
+        self == other && file == other.file && line == other.line
     }
 }
 
