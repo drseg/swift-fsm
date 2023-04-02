@@ -273,27 +273,7 @@ try fsm.buildTable {
 
 SwiftFSM allows you to alter the naming conventions in your syntax by using `typealiases`. Though `define`, `when`, and `then` are functions, there are matching structs with equivalent capitalised names contained in the `SwiftFSM.Syntax` namespace.
 
-Examples include…
-
-```swift
-typealias State = Syntax.Define<State>
-typealias Event = Syntax.When<Event>
-typealias NextState = Syntax.Then<State>
-
-try! fsm.buildTable {
-    State(.locked) {
-        Event(.coin) | NextState(.unlocked) | unlock
-        Event(.pass) | NextState(.locked)   | alarm
-    }
-
-    State(.unlocked) {
-        Event(.coin) | NextState(.unlocked) | thankyou
-        Event(.pass) | NextState(.locked)   | lock
-    }
-}
-```
-
-or for absolute minimalism…
+Here is one minimalistic example:
 
 ```swift
 typealias d = Syntax.Define<State>
