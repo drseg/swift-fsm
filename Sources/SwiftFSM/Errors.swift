@@ -11,17 +11,29 @@ extension ValidationError {
     func description<K: Hashable, V: Collection>(
         _ header: String,
         _ dict: [K: V],
-        @StringBuilder _ block: (V.Element) -> [String]
+        @StringBuilder _ eachGroup: (V.Element) -> [String]
+    ) -> String {
+        String {
+            header + " (total: \(dict.count)):"
+            for (i, e) in dict.enumerated() {
+                ""
+                eachGroupDescription("Group \(i + 1):", e, eachGroup)
+            }
+        }
+    }
+    
+    func eachGroupDescription<K: Hashable, V: Collection>(
+        _ header: String,
+        _ group: (K, V),
+        @StringBuilder _ eachGroup: (V.Element) -> [String]
     ) -> String {
         String {
             header
-            for v in dict.values {
-                ""
-                for (i, element) in v.enumerated() {
-                    block(element)
-                    if i < v.count - 1 {
-                        ""
-                    }
+            ""
+            for (i, e) in group.1.enumerated() {
+                eachGroup(e)
+                if i < group.1.count - 1 {
+                    ""
                 }
             }
         }
@@ -227,16 +239,12 @@ extension AnyTraceable {
         "@\(file): \(line)"
     }
     
-    var defineDescription: String {
-        "define(\(base)) " + fileAndLine
-    }
+    var defineDescription: String { description("define") }
+    var whenDescription:   String { description("when")   }
+    var thenDescription:   String { description("then")   }
     
-    var whenDescription: String {
-        "when(\(base)) " + fileAndLine
-    }
-    
-    var thenDescription: String {
-        "then(\(base)) " + fileAndLine
+    func description(_ prefix: String) -> String {
+        prefix + "(\(base)) " + fileAndLine
     }
 }
 

@@ -15,11 +15,11 @@ class SemanticValidationNode: Node {
         let duplicates: DuplicatesDictionary
         
         var errorDescription: String? {
-            description("The FSM table contains the following duplicates:", duplicates) { d in
-                d.state.defineDescription
-                d.match.errorDescription
-                d.event.whenDescription
-                d.nextState.thenDescription
+            description("The FSM table contains duplicate groups", duplicates) {
+                $0.state.defineDescription
+                $0.match.errorDescription
+                $0.event.whenDescription
+                $0.nextState.thenDescription
             }
         }
     }
@@ -28,10 +28,10 @@ class SemanticValidationNode: Node {
         let clashes: ClashesDictionary
         
         var errorDescription: String? {
-            description("The FSM table contains the following logical clashes:", clashes) { c in
-                c.state.defineDescription
-                c.match.errorDescription
-                c.event.whenDescription
+            description("The FSM table contains logical clash groups", clashes) {
+                $0.state.defineDescription
+                $0.match.errorDescription
+                $0.event.whenDescription
             }
         }
     }

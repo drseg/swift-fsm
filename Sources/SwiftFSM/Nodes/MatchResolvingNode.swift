@@ -51,7 +51,7 @@ final class MatchResolvingNode: Node {
                     ""
                     "Multiple clashing statements imply the same predicates (\(predicates))"
                     ""
-                    description("Context \(i + 1):", [clashGroup.key: clashGroup.value]) { c in
+                    eachGroupDescription("Context \(i + 1):", clashGroup) { c in
                         c.state.defineDescription
                         c.match.errorDescription
                         c.event.whenDescription

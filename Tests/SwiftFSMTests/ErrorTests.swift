@@ -132,11 +132,7 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testSingleMatchAsArray() {
-        let array = try? Match(any: P.a)
-            .finalised()
-            .get()
-            .asArray
-        
+        let array = try? Match(any: P.a).finalised().get() .asArray
         XCTAssertEqual(array, [Match(any: P.a)])
     }
     
@@ -209,15 +205,31 @@ final class ErrorTests: SyntaxNodeTests {
     func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "fns", line: line) }
     
     func testSVNDuplicatesError() {
-        let key = SVN.DuplicatesKey((s1(0), m1(0), e1(0), s2(0), []))
+        let k1 = SVN.DuplicatesKey((s1(0), m1(0), e1(0), s2(0), []))
+        let k2 = SVN.DuplicatesKey((s2(0), m1(0), e1(0), s2(0), []))
+
         let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
                                    (s1(5), m1(6), e1(7), s2(8), [])]
-        let duplicates = [key: values]
+        let duplicates = [k1: values, k2: values]
         
         e = SVN.DuplicatesError(duplicates: duplicates)
         e.assertDescription(
             String {
-                "The FSM table contains the following duplicates:"
+                "The FSM table contains duplicate groups (total: 2):"
+                ""
+                "Group 1:"
+                ""
+                "define(s1) @fs: 1"
+                "matching(P.a AND Q.a AND R.a) @fm: 2"
+                "when(e1) @fe: 3"
+                "then(s2) @fns: 4"
+                ""
+                "define(s1) @fs: 5"
+                "matching(P.a AND Q.a AND R.a) @fm: 6"
+                "when(e1) @fe: 7"
+                "then(s2) @fns: 8"
+                ""
+                "Group 2:"
                 ""
                 "define(s1) @fs: 1"
                 "matching(P.a AND Q.a AND R.a) @fm: 2"
@@ -233,15 +245,29 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testSVNClashesError() {
-        let key = SVN.ClashesKey((s1(0), m1(0), e1(0), s2(0), []))
+        let k1 = SVN.ClashesKey((s1(0), m1(0), e1(0), s2(0), []))
+        let k2 = SVN.ClashesKey((s2(0), m1(0), e1(0), s2(0), []))
+
         let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
                                    (s2(5), m1(6), e1(7), s2(8), [])]
-        let clashes = [key: values]
+        let clashes = [k1: values, k2: values]
         
         e = SVN.ClashError(clashes: clashes)
         e.assertDescription(
             String {
-                "The FSM table contains the following logical clashes:"
+                "The FSM table contains logical clash groups (total: 2):"
+                ""
+                "Group 1:"
+                ""
+                "define(s1) @fs: 1"
+                "matching(P.a AND Q.a AND R.a) @fm: 2"
+                "when(e1) @fe: 3"
+                ""
+                "define(s2) @fns: 5"
+                "matching(P.a AND Q.a AND R.a) @fm: 6"
+                "when(e1) @fe: 7"
+                ""
+                "Group 2:"
                 ""
                 "define(s1) @fs: 1"
                 "matching(P.a AND Q.a AND R.a) @fm: 2"
