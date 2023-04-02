@@ -4,11 +4,11 @@ Inspired by [Uncle Bob's SMC][1] syntax, SwiftFSM is a pure Swift syntax for dec
 
 This guide is reasonably complete, but does presume some familiarity with FSMs and specifically the SMC syntax linked above.
 
-### Requirements:
+## Requirements:
 
 SwiftFSM is a Swift package, importable through the Swift Package Manager, and requires macOS 12.6 and/or iOS 15.6 or later, alongside Swift 5.6 or later.
 
-### Example:
+## Example:
 
 Borrowing from SMC, we have an example of a simple subway turnstile system. This turnstile currently has two possible states: `Locked`, and `Unlocked`, alongside two possible events: `Coin`, and `Pass`.
 
@@ -21,7 +21,7 @@ The logic is as follows (from Uncle Bob, emphasis added):
 
 Following Uncle Bob’s examples, we will build up our table bit by bit to demonstrate the different syntactic possibilities of SwiftFSM:
 
-#### Basic Syntax:
+### Basic Syntax:
 
 SMC:
 
@@ -113,7 +113,7 @@ fsm.handleEvent(.coin)
 
 The `FSM` instance will look up the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, the `FSM` will call the `unlock` function and transition to the `unlocked` state.  If no transition is found, it will do nothing.
 
-#### Optional Arguments:
+### Optional Arguments:
 
 > Now let's add an Alarming state that must be reset by a repairman:
 
@@ -167,7 +167,7 @@ try! fsm.buildTable {
 
 `then()`with no argument means ‘no change’, and the FSM will remain in the current state.  The actions argument is also optional - if a transition performs no actions, it can be omitted.
 
-#### Super States:
+### Super States:
 
 > Notice the duplication of the Reset transition. In all three states the Reset event does the same thing. It transitions to the Locked state and it invokes the lock and alarmOff actions. This duplication can be eliminated by using a Super State as follows:
 
@@ -220,7 +220,7 @@ try! fsm.buildTable {
 
 If a `SuperState` instance is given, the `@resultBuilder` argument to `define` is optional.
 
-#### Entry and Exit Actions
+### Entry and Exit Actions
 
 > > In the previous example, the fact that the alarm is turned on every time the Alarming state is entered and is turned off every time the Alarming state is exited, is hidden within the logic of several different transitions. We can make it explicit by using entry actions and exit actions.
 
@@ -268,5 +268,53 @@ try fsm.buildTable {
 ```
 
 `onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state.
+
+### Syntax Variations
+
+SwiftFSM allows you to alter the naming conventions in your syntax by using `typealiases`. Though `define`, `when`, and `then` are functions, there are matching structs with equivalent capitalised names contained in the `SwiftFSM.Syntax` namespace.
+
+Examples include…
+
+```swift
+typealias State = Syntax.Define<State>
+typealias Event = Syntax.When<Event>
+typealias NextState = Syntax.Then<State>
+
+try! fsm.buildTable {
+    State(.locked) {
+        Event(.coin) | NextState(.unlocked) | unlock
+        Event(.pass) | NextState(.locked)   | alarm
+    }
+
+    State(.unlocked) {
+        Event(.coin) | NextState(.unlocked) | thankyou
+        Event(.pass) | NextState(.locked)   | lock
+    }
+}
+```
+
+…or for absolute minimalism…
+
+```swift
+typealias d = Syntax.Define<State>
+typealias w = Syntax.When<Event>
+typealias t = Syntax.Then<State>
+
+try! fsm.buildTable {
+    d(.locked) {
+        w(.coin) | t(.unlocked) | unlock
+        w(.pass) | t(.locked)   | alarm
+    }
+
+    d(.unlocked) {
+        w(.coin) | t(.unlocked) | thankyou
+        w(.pass) | t(.locked)   | lock
+    }
+}
+```
+
+It you wish to use this alternative syntax, it is strongly recommended that you *do not implement `TransitionBuilder`*. Use the function syntax provided by `TransitionBuilder`, *or* the struct syntax provided by the `Syntax` namespace. 
+
+No harm will befall the FSM if you mix and match, but at the very least, from an autocomplete point of view, things will get messy. 
 
 [1]:	https://github.com/unclebob/CC_SMC
