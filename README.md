@@ -165,7 +165,7 @@ try! fsm.buildTable {
 }
 ```
 
-`then()`with no argument means ‘no change’, and the FSM will remain in the current state.  The actions argument is also optional - if a transition performs no actions, it can be omitted.
+`then()` with no argument means ‘no change’, and the FSM will remain in the current state.  The actions argument is also optional - if a transition performs no actions, it can be omitted.
 
 ### Super States:
 
@@ -222,7 +222,7 @@ If a `SuperState` instance is given, the `@resultBuilder` argument to `define` i
 
 ### Entry and Exit Actions
 
-> > In the previous example, the fact that the alarm is turned on every time the Alarming state is entered and is turned off every time the Alarming state is exited, is hidden within the logic of several different transitions. We can make it explicit by using entry actions and exit actions.
+> In the previous example, the fact that the alarm is turned on every time the Alarming state is entered and is turned off every time the Alarming state is exited, is hidden within the logic of several different transitions. We can make it explicit by using entry actions and exit actions.
 
 SMC:
 
@@ -293,7 +293,7 @@ try! fsm.buildTable {
 }
 ```
 
-…or for absolute minimalism…
+or for absolute minimalism…
 
 ```swift
 typealias d = Syntax.Define<State>

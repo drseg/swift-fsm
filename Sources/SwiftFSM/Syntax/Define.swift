@@ -10,6 +10,7 @@ extension Syntax {
     struct Define<State: Hashable> {
         let node: DefineNode
         
+        #warning("should take SuperState vararg")
         init(_ s1: State,
              _ rest: State...,
              superState: SuperState,
