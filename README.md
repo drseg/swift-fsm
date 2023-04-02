@@ -15,10 +15,10 @@ Borrowing from SMC, we have an example of a simple subway turnstile system. This
 
 The logic is as follows (from Uncle Bob, emphasis added): 
 
-> - **Given** we are in the **Locked** state, **when** we get a **Coin** event, **then** we transition to the **Unlocked** state and **invoke** the **unlock** action.
-> - **Given** we are in the **Locked** state, **when** we get a **Pass** event, **then** we stay in the **Locked** state and **invoke** the **alarm** action.
-> - **Given** we are in the **Unlocked** state, **when** we get a **Coin** event, **then** we stay in the **Unlocked** state and **invoke** the **thankyou** action.
-> - **GIven** we are in the **Unlocked** state, **when** we get a **Pass** event, **then** we transition to the **Locked** state and **invoke** the **lock** action.
+> - *Given* we are in the *Locked* state, *when* we get a *Coin* event, *then* we transition to the *Unlocked* state and *invoke* the *unlock* action.
+> - *Given* we are in the *Locked* state, *when* we get a *Pass* event, *then* we stay in the *Locked* state and *invoke* the *alarm* action.
+> - *Given* we are in the *Unlocked* state, *when* we get a *Coin* event, *then* we stay in the *Unlocked* state and *invoke* the *thankyou* action.
+> - *GIven* we are in the *Unlocked* state, *when* we get a *Pass* event, *then* we transition to the *Locked* state and *invoke* the *lock* action.
 
 Following Uncle Bob’s examples, we will build up our table bit by bit to demonstrate the different syntactic possibilities of SwiftFSM:
 
@@ -320,7 +320,7 @@ Let’s imagine an extension to our turnstile rules, whereby under some circumst
 
 We could implement a check somewhere else in the system, perhaps inside the `alarmOn` function to decide what the appropriate behaviour should be.
 
-But this comes with a problem - we now have some aspects of our state transitions declared inside the transition table, and other aspects declared elsewhere. Though this problem is inevitable in software, SwiftFSM provides a mechanism to add this decision tree into the FSM table itself.
+But this comes with a problem - we now have some aspects of our state transitions declared inside the transition table, and other aspects declared elsewhere. Though this problem is inevitable in software, SwiftFSM provides a mechanism to add this additional decision tree into the FSM table itself.
 
 ```swift
 enum Enforcement: Predicate { case weak, strong }
@@ -352,7 +352,7 @@ This allows the extra `Enforcement`logic to be expressed directly within the FSM
 
 ### Detailed Description
 
-`Predicate` requires the conformer to be `Hashable` and `CaseIterable`. The `CaseIterable` conformance allows the FSM to calculate all the possible cases of the `Predicate`, such that, if none is specified, it can match that statement to *any* of its cases. It is possible to use any type you wish, as long as your conformance to CaseIterable makes logical sense. In practice however, this requirement is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`. 
+`Predicate` requires the conformer to be `Hashable` and `CaseIterable`. The `CaseIterable` conformance allows the FSM to calculate all the possible cases of the `Predicate`, such that, if none is specified, it can match that statement to *any* of its cases. It is possible to use any type you wish, as long as your conformance to `CaseIterable` makes logical sense. In practice however, this requirement is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`. 
 
 #### Implicit `matching` statements:
 
@@ -373,7 +373,55 @@ matching(Enforcement.strong) | when(.coin) | then(.unlocked)
 ...
 ```
 
-In other words, it is `Predicate` agnostic, and will match any given `Predicate`. In this way, `matching` statements are optional specifiers that *constrain* the transition to one or more specific `Predicate` cases.
+In other words, it is `Predicate` agnostic, and will match any given `Predicate`. In this way, `matching` statements are optional specifiers that *constrain* the transition to one or more specific `Predicate` cases. If no `Predicate` is specified, the statement will match all cases.
+
+#### Multiple Predicates
+
+SwiftFSM does not limit the number of `Predicate` types that can be used in one table. The following (contrived and rather silly) expansion of the original `Predicate` example is equally valid:
+
+```swift
+enum Enforcement: Predicate { case weak, strong }
+enum Reward: Predicate { case positive, negative }
+
+try fsm.buildTable {
+	...
+
+    define(.locked) {
+        matching(Enforcement.weak)   | when(.pass) | then(.locked)   | lock
+        matching(Enforcement.strong) | when(.pass) | then(.alarming) | alarmOn
+                
+        when(.coin) | then(.unlocked)
+    }
+
+    define(.unlocked) {
+        matching(Reward.positive) | when(.coin) | then(.unlocked) | thankyou
+        matching(Reward.negative) | when(.coin) | then(.unlocked) | idiot
+                
+        when(.coin) | then(.unlocked)
+    }
+
+	...
+}
+
+fsm.handleEvent(.pass, predicates: Enforcement.weak, Reward.positive)
+```
+
+The same inference rules also apply. The statement…
+
+```swift
+when(.coin) | then(.unlocked)
+```
+
+…in this new context with an additional `Predicate` will now be inferred as:
+
+```swift
+...
+matching(Enforcement.weak)   | when(.coin) | then(.unlocked)
+matching(Enforcement.strong) | when(.coin) | then(.unlocked)
+matching(Reward.positive)    | when(.coin) | then(.unlocked)
+matching(Reward.negative)    | when(.coin) | then(.unlocked)
+...
+```
 
 #### Deduplication:
 
@@ -459,67 +507,184 @@ try fsm.buildTable {
 }
 ```
 
-See the end of this document for a complete list of possible deduplications…
-
-#### Multiple Predicates
-
-SwiftFSM does not limit the number of `Predicate` types that can be used in one table. The following (contrived and rather silly) expansion of the original `Predicate` example is equally valid:
+`actions` is also available for deduplicating function calls:
 
 ```swift
-enum Enforcement: Predicate { case weak, strong }
-enum Reward: Predicate { case positive, negative }
-
 try fsm.buildTable {
 	...
 
     define(.locked) {
-        matching(Enforcement.weak)   | when(.pass) | then(.locked)   | lock
-        matching(Enforcement.strong) | when(.pass) | then(.alarming) | alarmOn
-                
-        when(.coin) | then(.unlocked)
-    }
-
-    define(.unlocked) {
-        matching(Reward.positive) | when(.coin) | then(.unlocked) | thankyou
-        matching(Reward.negative) | when(.coin) | then(.unlocked) | idiot
-                
-        when(.coin) | then(.unlocked)
+        actions(someCommonFunction) {
+            when(.coin) | then(.unlocked)
+            when(.pass) | then(.alarming)
+        }
     }
 
 	...
 }
-
-fsm.handleEvent(.pass, predicates: Enforcement.weak, Reward.positive)
 ```
 
-The same inference rules also apply. The statement…
+#### Chained Blocks
+
+The deduplication section introduced four blocks:
 
 ```swift
-when(.coin) | then(.unlocked)
+matching(predicate) { 
+// everything inside this block matches 'predicate'
+}
+
+when(event) { 
+// everything inside this block responds to the event 'event'
+}
+
+then(state) { 
+// everything inside this block transitions to the state 'state'
+}
+
+actions(functionCalls) { 
+// everything inside this block calls 'functionCalls'
+}
 ```
 
-…in this context will now be inferred as:
+They can be divided into two groups - blocks that can be chained together, and blocks that cannot.
+
+##### Discrete Blocks - `when` and `then`
+
+Each transition can only respond to a specific event, and then transition to a specific state. Therefore `when {}` and `then {}` blocks cannot be chained.
 
 ```swift
-...
-matching(Enforcement.weak)   | when(.pass) | then(.locked)
-matching(Enforcement.strong) | when(.pass) | then(.alarming)
-matching(Reward.positive)    | when(.pass) | then(.locked)
-matching(Reward.negative)    | when(.pass) | then(.alarming)
-...
+define(.locked) {
+    when(.coin) {
+        when(.pass) { } // does not compile
+        when(.pass) | ... // does not compile
+
+        matching(.something) | when(.pass) | ... // does not compile
+
+		matching(.something) { 
+            when(.pass) | ... // does not compile
+        }
+
+        matching(.something) { 
+            when(.pass) {
+                | ... // does not compile
+            } 
+        }
+    }
+
+    then(.unlocked) {
+        then(.locked) { } // error: does not compile
+        then(.locked) | ... // error: does not compile
+
+        matching(.something) | then(.locked) | ... // error: does not compile
+
+		matching(.something) { 
+            then(.locked) | ... // error: does not compile
+        }
+
+        matching(.something) { 
+            then(.locked) {
+                | ... // error: does not compile
+            } 
+        }
+    }      
+}
+
 ```
+
+Additionally, there is a specific combination of  `when` and `then` that does not compile:
+
+```swift
+define(.locked) {
+    when(.coin) {
+		then(.unlocked) | action // error: does not compile
+		then(.locked)   | action // error: does not compile
+    }
+}
+```
+
+Logically, there is no situation where in response to an event (in this case, `.coin`), there could be a transition to more than one state unless an extra `Predicate` is stated. Therefore the following is allowed:
+
+```swift
+define(.locked) {
+    when(.coin) {
+		matching(Enforcement.weak)   | then(.unlocked) | action // ok
+        matching(Enforcement.strong) | then(.locked)   | otherAction // ok
+    }
+}
+```
+
+Note that it is easy to form a duplicate that cannot be checked at compile time. For example:
+
+```swift
+define(.locked) {
+    when(.coin) {
+		matching(Enforcement.weak) | then(.unlocked) | action // ok
+        matching(Enforcement.weak) | then(.locked)   | otherAction // ok
+    }
+}
+
+// runtime error: logical clash
+```
+
+See the errors section for more information
+
+##### Chainable Blocks - `matching` and `actions`
+
+There are no restrictions on the number of predicates or actions per transition, therefore both can be chained as follows:
+
+```swift
+define(.locked) {
+    matching(Enforcement.weak) {
+        matching(Reward.positive) { } // ok
+        matching(Reward.positive) | ... // ok
+    }
+
+    actions(doSomething) {
+        actions(doSomethingElse) { } // ok
+        ... | doSomethingElse // ok
+    }      
+}
+```
+
+Nested `actions` blocks simply sum the actions and perform all of them. In the above example, anything declared inside `actions(doSomethingElse) { }` will call both `doSomethingElse()` and `doSomething()`.
+
+Nested `matching` blocks are AND-ed together. In the above example, anything declared inside `matching(Reward.positive) { }` will match both `Enforcement.weak` AND `Reward.positive`. 
 
 #### Complex Predicates
 
+```swift
+enum A: Predicate { case x, y, z }
+enum B: Predicate { case x, y, z }
+enum C: Predicate { case x, y, z }
 
+matching(A.x)... // if A.x
+matching(A.x, or: A.y)... // if A.x OR A.y
+matching(A.x, or: A.y, A.z)... // if A.x OR A.y OR A.z
+
+matching(A.x, and: B.x)... // if A.x AND B.x
+matching(A.x, and: A.y)... // throws Error: AND-ed values must be different types
+matching(A.x, and: B.x, C.x)... // if A.x AND B.x AND C.x
+
+matching(A.x, or: A.y, A.z, and: B.x, C.x)... // if (A.x OR A.y OR A.z) AND B.x AND C.x
+
+fsm.handleEvent(.coin, predicates: A.x, B.x, C.x)
+```
+
+All of these `matching` statements can be used both with `|` syntax, and with deduplicating `{ }` syntax, as demonstrated with previous `matching` statements.
+
+They should be reasonably self-explanatory, perhaps with the exception of why `matching(A.x, and: A.y) // throws error`. In SwiftFSM, the word ‘and’ means that we expect both predicates will be present *at the same time*. Each predicate type can only have one value at the time it is passed to `handleEvent()`, therefore asking it to match multiple values of the same `Predicate` simultaneously has no meaning. The rules of the system are that, if `A.x` is current, `A.y` cannot also be current.
+
+For clarity, it can be useful to think of `matching(A.x, and: A.y)` as meaning `matching(A.x, andSimultaneously: A.y)`. In terms of a `when` statement to which it is analogous, it would be as meaningless as saying `when(.coin, and: .pass)` - the event is either `.coin` or `.pass`, it cannot be both.
+
+The word ‘or’ is more permissive - `matching(A.x, or: A.y)` can be thought of as `matching(anyOneOf: A.x, A.y)`.
 
 #### Predicate Performance
 
-Using predicates has no effect on the performance of `handleEvent()`. To maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
+Adding predicates has no effect on the performance of `handleEvent()`. To maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
 
 The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m\*n) where m is the number of`Predicate` types, and n is the average number cases per `Predicate`.
 
-Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations. On a relatively-slow A10 chip, this would take just under 0.5 seconds.
+Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations.
 
 #### Error Handling
 
