@@ -305,7 +305,6 @@ No harm will befall the FSM if you mix and match, but at the very least, from an
 ### Performance
 
 SwiftFSM uses a Dictionary to store the state transition table, and each time `handleEvent()` is called, it performs a single O(1) operation to find the correct transition. Though O(1) is ideal from a performance point of view, any lookup table is significantly slower than a nested switch case statement, and SwiftFSM is approximately 2-3x slower per transition.
----- 
 
 ## Expanded Syntax
 
