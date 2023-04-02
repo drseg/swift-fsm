@@ -148,7 +148,7 @@ try! fsm.buildTable {
     define(.locked) {
         when(.coin) | then(.unlocked) | unlock
         when(.pass) | then(.alarming) | alarmOn
-        when(.reset)| then() 		  | { alarmOff(); lock() }
+        when(.reset)| then()          | { alarmOff(); lock() }
     }
 
     define(.unlocked) {
