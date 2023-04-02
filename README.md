@@ -49,19 +49,21 @@ class MyClass: TransitionBuilder {
 
     let fsm = FSM<State, Event>(initialState: .locked)
 
-    try! fsm.buildTable {
-        define(.locked) {
-            when(.coin) | then(.unlocked) | unlock
-            when(.pass) | then(.locked)   | alarm
+    func myMethod() {
+        try! fsm.buildTable {
+            define(.locked) {
+                when(.coin) | then(.unlocked) | unlock
+                when(.pass) | then(.locked)   | alarm
+            }
+
+            define(.unlocked) {
+                when(.coin) | then(.unlocked) | thankyou
+                when(.pass) | then(.locked)   | lock
+            }
         }
 
-        define(.unlocked) {
-            when(.coin) | then(.unlocked) | thankyou
-            when(.pass) | then(.locked)   | lock
-        }
+        fsm.handleEvent(.coin)
     }
-
-    fsm.handleEvent(.coin)
 }
 ```
 
@@ -293,7 +295,7 @@ try! fsm.buildTable {
 }
 ```
 
-It you wish to use this alternative syntax, it is strongly recommended that you *do not implement `TransitionBuilder`*. Use the function syntax provided by `TransitionBuilder`, *or* the struct syntax provided by the `Syntax` namespace. 
+It you wish to use this alternative syntax, it is strongly recommended that you *do not implement* `TransitionBuilder`. Use the function syntax provided by `TransitionBuilder`, *or* the struct syntax provided by the `Syntax` namespace. 
 
 No harm will befall the FSM if you mix and match, but at the very least, from an autocomplete point of view, things will get messy. 
 
