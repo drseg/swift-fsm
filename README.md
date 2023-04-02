@@ -264,7 +264,7 @@ try fsm.buildTable {
     }
 
     define(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
-    }
+}
 ```
 
 `onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state.
