@@ -499,8 +499,7 @@ class MyClass: ExpandedSyntaxBuilder {
                 when(.coin) | then(.unlocked)
             }
             ...
-
-        }
+       }
         
         fsm.handleEvent(.pass, predicates: Enforcement.weak)
     }

@@ -83,10 +83,6 @@ extension Syntax {
             let isValid = !superStates.isEmpty || !elements.isEmpty
             
             if isValid {
-                func eraseToAnyTraceable(_ s: State) -> AnyTraceable {
-                    AnyTraceable(s, file: file, line: line)
-                }
-                
                 let state = AnyTraceable(state, file: file, line: line)
                 let rest = superStates.map(\.nodes).flattened + elements.nodes
                 let gNode = GivenNode(states: [state], rest: rest)
