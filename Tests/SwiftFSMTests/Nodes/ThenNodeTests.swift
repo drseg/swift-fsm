@@ -9,23 +9,15 @@ import XCTest
 
 final class ThenNodeTests: SyntaxNodeTests {
     func testNilThenNodeState() {
-        assertEmptyThen(
-            ThenNode(state: nil, rest: []),
-            thenState: nil
-        )
+        assertEmptyThen(ThenNode(state: nil, rest: []), thenState: nil)
     }
     
     func testEmptyThenNode() {
-        assertEmptyThen(
-            ThenNode(state: s1, rest: [])
-        )
+        assertEmptyThen(ThenNode(state: s1, rest: []))
     }
     
     func testThenNodeWithEmptyRest() {
-        assertEmptyThen(
-            ThenNode(state: s1,
-                     rest: [ActionsNode(actions: [])])
-        )
+        assertEmptyThen(ThenNode(state: s1, rest: [ActionsNode(actions: [])]))
     }
     
     func testEmptyThenBlockNodeIsError() {
@@ -37,10 +29,7 @@ final class ThenNodeTests: SyntaxNodeTests {
     }
     
     func testThenNodeFinalisesCorrectly() {
-        assertThenWithActions(
-            expected: "12",
-            ThenNode(state: s1, rest: [actionsNode])
-        )
+        assertThenWithActions(expected: "12", ThenNode(state: s1, rest: [actionsNode]))
     }
     
     func testThenNodePlusChainFinalisesCorrectly() {
@@ -55,10 +44,9 @@ final class ThenNodeTests: SyntaxNodeTests {
     }
     
     func testThenNodeFinalisesWithMultipleActionsNodes() {
-        assertThenWithActions(
-            expected: "1212",
-            ThenNode(state: s1, rest: [actionsNode,
-                                       actionsNode])
+        assertThenWithActions(expected: "1212",
+                              ThenNode(state: s1, rest: [actionsNode,
+                                                         actionsNode])
         )
     }
 }

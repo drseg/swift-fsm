@@ -78,7 +78,7 @@ class Match {
         }
     }
     
-    private func validate() -> Result {
+    func validate() -> Result {
         func failure<C: Collection>(
             duplicates: C,
             type: MatchError.Type

@@ -130,7 +130,7 @@ class BlockComponentTests: BlockTests {
     }
     
     var entry: [() -> ()] { [{ self.output += "entry" }] }
-    var exit: [() -> ()] { [{ self.output += "exit" }] }
+    var exit: [() -> ()]  { [{ self.output += "exit"  }] }
     
     func testSuperStateAddsEntryExitActions() {
         let s1 = SuperState(onEntry: entry, onExit: exit) {
@@ -280,9 +280,9 @@ class BlockComponentTests: BlockTests {
             let whens = castRest(thens, to: WhenNode.self)
             
             func givenStates(_ n: GivenNode?) -> [AnyHashable] { bases(n?.states) }
-            func events(_ n: WhenNode?) -> [AnyHashable] { bases(n?.events) }
-            func thenState(_ n: ThenNode?) -> AnyHashable { n?.state?.base }
-            func bases(_ t: [AnyTraceable]?) -> [AnyHashable] { t?.map(\.base) ?? [] }
+            func events(_ n: WhenNode?)       -> [AnyHashable] { bases(n?.events) }
+            func thenState(_ n: ThenNode?)    -> AnyHashable   { n?.state?.base }
+            func bases(_ t: [AnyTraceable]?)  -> [AnyHashable] { t?.map(\.base) ?? [] }
             
             XCTAssertEqual([1], givenStates(givens(0)), line: line)
             XCTAssertEqual([[1], [2]], [events(whens(0)), events(whens(1))], line: line)

@@ -140,9 +140,7 @@ class MatchResolvingNodeTests: DefineConsumer {
             XCTFail("unexpected error \(result.errors[0])"); return
         }
         
-        let clashes = clashError.clashes
-        guard assertCount(clashes.first?.value, expected: 2) else { return }
-        
+        guard assertCount(clashError.clashes.first?.value, expected: 2) else { return }
         assertError(result, expected: [makeOutput(s1, Match(any: P.a), [P.a, Q.a], e1, s2),
                                        makeOutput(s1, Match(any: Q.a), [P.a, Q.a], e1, s3)])
     }

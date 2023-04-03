@@ -45,9 +45,7 @@ final class WhenNodeTests: SyntaxNodeTests {
     }
     
     func testWhenNodeFinalisesCorrectly() {
-        assertWhenNodeWithActions(
-            WhenNode(events: [e1, e2], rest: [thenNode])
-        )
+        assertWhenNodeWithActions(WhenNode(events: [e1, e2], rest: [thenNode]))
     }
     
     func testWhenNodeWithChainFinalisesCorrectly() {

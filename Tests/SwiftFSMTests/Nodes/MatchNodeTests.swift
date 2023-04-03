@@ -9,7 +9,7 @@ import XCTest
 
 final class MatchNodeTests: SyntaxNodeTests {
     func testEmptyMatchNodeIsNotError() {
-        XCTAssertEqual(0, MatchNode(match: Match(), rest: []).finalised().errors.count)
+        assertCount(MatchNode(match: Match(), rest: []).finalised().errors, expected: 0)
     }
     
     func testEmptyMatchBlockNodeIsError() {

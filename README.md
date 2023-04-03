@@ -3,32 +3,32 @@
 
 Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is a pure Swift syntax for declaring and operating a Finite State Machine (FSM). Unlike Uncle Bob’s SMC, the FSM itself is declared inside your Swift code, rather than as a separate text file, and compiles and runs directly alongside all your other project code.
 
-This guide is reasonably complete, but does presume some familiarity with FSMs and specifically the SMC syntax linked above.
+This guide is reasonably complete, but does presume some familiarity with FSMs and specifically the SMC syntax linked above, as well as Swift [`@resultBuilder`][2] syntax.
 
 ## Contents
 
-- [Requirements][2]
-- [Basic Syntax][3]
-	- [Optional Arguments][4]
-	- [Super States][5]
-	- [Entry and Exit Actions][6]
-	- [Syntax Order][7]
-	- [Syntax Variations][8]
-	- [Syntactic Sugar][9]
-	- [Runtime Errors][10]
-	- [Performance][11]
-- [Expanded Syntax][12]
-	- [Rationale][13]
-	- [Example][14]
-	- [ExpandedSyntaxBuilder and Predicate][15]
-	- [Implicit Matching Statements][16]
-	- [Multiple Predicates][17]
-	- [Implicit Clashes][18]
-	- [Deduplication][19]
-	- [Chained Blocks][20]
-	- [Complex Predicates][21]
-	- [Runtime Errors][22]
-	- [Predicate Performance][23]
+- [Requirements][3]
+- [Basic Syntax][4]
+	- [Optional Arguments][5]
+	- [Super States][6]
+	- [Entry and Exit Actions][7]
+	- [Syntax Order][8]
+	- [Syntax Variations][9]
+	- [Syntactic Sugar][10]
+	- [Runtime Errors][11]
+	- [Performance][12]
+- [Expanded Syntax][13]
+	- [Rationale][14]
+	- [Example][15]
+	- [ExpandedSyntaxBuilder and Predicate][16]
+	- [Implicit Matching Statements][17]
+	- [Multiple Predicates][18]
+	- [Implicit Clashes][19]
+	- [Deduplication][20]
+	- [Chained Blocks][21]
+	- [Complex Predicates][22]
+	- [Runtime Errors][23]
+	- [Predicate Performance][24]
 
 ## Requirements
 
@@ -358,7 +358,7 @@ In contrast, Swift FSM entry and exit actions are only invoked if there is a sta
 
 All statements must be made in the form `define { when | then | actions }`. Any reordering will not compile.
 
-See [Expanded Syntax][24] below for exceptions to this rule.
+See [Expanded Syntax][25] below for exceptions to this rule.
 
 ### Syntax Variations
 
@@ -457,7 +457,7 @@ Thought the two transitions are clearly distinct from one another, from a logica
 
 This is not an issue for most Swift types, as `Hashable` conformance will have to be declared explicitly. `NSObject` however already conforms to `Hashable`, and is hashed *by instance identity*, rather than by value. Therefore, an error will be thrown if Swift FSM detects any trace of `NSObject` anywhere near your `State` or `Event` types. 
 
-This is very much an edge case and it is extremely unlikely that you will ever fall foul of this rule, unless you do so intentionally. Nonetheless, the check is quite exhaustive - If you would like to see how this check works, see the dependency [Reflective Equality][25].
+This is very much an edge case and it is extremely unlikely that you will ever fall foul of this rule, unless you do so intentionally. Nonetheless, the check is quite exhaustive - If you would like to see how this check works, see the dependency [Reflective Equality][26].
 
 ### Performance
 
@@ -948,7 +948,7 @@ matching(A.a, or: A.b) { // ✅
 
 #### Implicit Clash Error
 
-See [Implicit Clashes][26]
+See [Implicit Clashes][27]
 
 ### Predicate Performance
 
@@ -959,28 +959,29 @@ The performance of `fsm.buildTransitions { }` is dominated by this, assuming any
 Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations.
 
 [1]:	https://github.com/unclebob/CC_SMC
-[2]:	#requirements
-[3]:	#basic-syntax
-[4]:	#optional-arguments
-[5]:	#super-states
-[6]:	#entry-and-exit-actions
-[7]:	#syntax-order
-[8]:	#syntax-variations
-[9]:	#syntactic-sugar
-[10]:	#runtime-errors
-[11]:	#performance
-[12]:	#expanded-syntax
-[13]:	#rationale
-[14]:	#example
-[15]:	#expandedsyntaxbuilder-and-predicate
-[16]:	#implicit-matching-statements
-[17]:	#multiple-predicates
-[18]:	#implicit-clashes
-[19]:	#deduplication
-[20]:	#chained-blocks
-[21]:	#complex-predicates
-[22]:	#error-handling
-[23]:	#predicate-performance
-[24]:	#expanded-syntax "Expanded Syntax"
-[25]:	https://github.com/drseg/reflective-equality
-[26]:	#implicit-clashes
+[2]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder
+[3]:	#requirements
+[4]:	#basic-syntax
+[5]:	#optional-arguments
+[6]:	#super-states
+[7]:	#entry-and-exit-actions
+[8]:	#syntax-order
+[9]:	#syntax-variations
+[10]:	#syntactic-sugar
+[11]:	#runtime-errors
+[12]:	#performance
+[13]:	#expanded-syntax
+[14]:	#rationale
+[15]:	#example
+[16]:	#expandedsyntaxbuilder-and-predicate
+[17]:	#implicit-matching-statements
+[18]:	#multiple-predicates
+[19]:	#implicit-clashes
+[20]:	#deduplication
+[21]:	#chained-blocks
+[22]:	#complex-predicates
+[23]:	#error-handling
+[24]:	#predicate-performance
+[25]:	#expanded-syntax "Expanded Syntax"
+[26]:	https://github.com/drseg/reflective-equality
+[27]:	#implicit-clashes

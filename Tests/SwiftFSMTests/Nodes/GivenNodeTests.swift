@@ -28,8 +28,7 @@ final class GivenNodeTests: SyntaxNodeTests {
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
-                        node: givenNode(thenState: nil,
-                                        actionsNode: actionsNode))
+                        node: givenNode(thenState: nil, actionsNode: actionsNode))
     }
     
     func testGivenNodeFinalisesWithNextStates() {
@@ -40,8 +39,7 @@ final class GivenNodeTests: SyntaxNodeTests {
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
-                        node: givenNode(thenState: s3,
-                                        actionsNode: actionsNode))
+                        node: givenNode(thenState: s3, actionsNode: actionsNode))
     }
     
     func testGivenNodeCanSetRestAfterInitialisation() {

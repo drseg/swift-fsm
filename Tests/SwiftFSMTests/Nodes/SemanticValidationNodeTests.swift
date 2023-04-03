@@ -49,8 +49,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let t = transitionNode(s1, Match(), e1, s2)
         let finalised = SVN(rest: [t, t]).finalised()
         
-        guard assertCount(finalised.errors, expected: 1) else { return }
-        guard assertCount(finalised.output, expected: 0) else { return }
+        guard assertCount(finalised.errors, expected: 1),
+              assertCount(finalised.output, expected: 0) else { return }
         
         let duplicates = firstDuplicates(in: finalised)
         let expected = t.finalised().output[0]
@@ -66,8 +66,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
 
         let finalised = SVN(rest: [t1, t2]).finalised()
         
-        guard assertCount(finalised.errors, expected: 1) else { return }
-        guard assertCount(finalised.output, expected: 0) else { return }
+        guard assertCount(finalised.errors, expected: 1),
+              assertCount(finalised.output, expected: 0) else { return }
 
         let clashes = firstClashes(in: finalised)
             
