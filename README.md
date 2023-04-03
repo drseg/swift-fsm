@@ -225,7 +225,7 @@ try! fsm.buildTable {
 
 If a `SuperState` instance is given, the `@resultBuilder` argument to `define` is optional.
 
-`SuperState` instances themselves can accept other `SuperState` instances, and will combine them together in the same way a `define` statement does:
+`SuperState` instances themselves can accept other `SuperState` instances, and will combine them together in the same way as `define`:
 
 ```swift
 let s1 = SuperState { when(.coin) | then(.unlocked) | unlock  }
@@ -308,8 +308,8 @@ define(.locked, superStates: resetable) {
 
 define(.locked, onEntry: [lock]) {
     when(.reset) | then(.locked)
-    when(.coin) | then(.unlocked)
-    when(.pass) | then(.alarming)
+    when(.coin)  | then(.unlocked)
+    when(.pass)  | then(.alarming)
 }
 ```
 
@@ -426,8 +426,9 @@ class MyClass: TableBuilder {
             }
             ...
 
-            fsm.handleEvent(.pass, predicates: Enforcement.weak)
         }
+        
+        fsm.handleEvent(.pass, predicates: Enforcement.weak)
     }
 }
 ```
@@ -449,28 +450,26 @@ This allows the extra `Enforcement` logic to be expressed directly within the FS
 
 #### Implicit `matching` statements:
 
-Take this line from the example above:
-
 ```swift
 when(.coin) | then(.unlocked)
 ```
 
-As no `Predicate` is specified, its meaning is inferred from its context. The scope for predicate inference is the sum of the builder blocks for all `SuperState` and `define` calls inside `fsm.buildTable { }`.  In this case, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and SwiftFSM will therefore to infer it to be equivalent to:
+In the line above, no `Predicate` is specified, and its full meaning is therefore inferred from its context. The scope for predicate inference is the sum of the builder blocks for all `SuperState` and `define` calls inside `fsm.buildTable { }`.  
+
+In this case, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and SwiftFSM will therefore to infer the absent `matching` statement as follows:
 
 ```swift
 matching(Enforcement.weak)   | when(.coin) | then(.unlocked)
 matching(Enforcement.strong) | when(.coin) | then(.unlocked)
 ```
 
-In other words, statements in SwiftFSM are are `Predicate` agnostic by default, and will match any given `Predicate`. In this way, `matching` statements are optional specifiers that *constrain* the transition to one or more specific `Predicate` cases. If no `Predicate` is specified, the statement will match all cases.
+Statements in SwiftFSM are are therefore `Predicate` agnostic by default, and will match any given `Predicate`. In this way, `matching` statements are optional specifiers that *constrain* the transition to one or more specific `Predicate` cases. If no `Predicate` is specified, the statement will match all cases.
 
 #### Multiple Predicates
 
 SwiftFSM does not limit the number of `Predicate` types that can be used in one table. The following (contrived and rather silly) expansion of the original `Predicate` example is equally valid:
 
-```swift
-class myClass: ComplexTableBuilder {
-
+```
 enum Enforcement: Predicate { case weak, strong }
 enum Reward: Predicate { case positive, negative }
 
@@ -486,17 +485,16 @@ try fsm.buildTable {
     define(.unlocked) {
         matching(Reward.positive) | when(.coin) | then(.unlocked) | thankyou
         matching(Reward.negative) | when(.coin) | then(.unlocked) | idiot
-                
+
         when(.coin) | then(.unlocked) | unlock
     }
     ...
 }
 
 fsm.handleEvent(.pass, predicates: Enforcement.weak, Reward.positive)
-}
 ```
 
-The same inference rules also apply:
+The same inference rules continue to apply:
 
 ```swift
 when(.coin) | then(.unlocked)
@@ -520,7 +518,7 @@ define(.locked) {
 // 💥 error: implicit conflict
 ```
 
-On the surface of it, the two transitions above appear to be different from one another. However if we remember the inference rules, we will see that they actually conflict with one another:
+On the surface of it, the two transitions above appear to be different from one another. However if we remember the inference rules, we will see that they actually conflict:
 
 ```swift
 define(.locked) {
@@ -774,7 +772,7 @@ fsm.handleEvent(.coin, predicates: A.x, B.x, C.x)
 
 All of these `matching` statements can be used both with `|` syntax, and with deduplicating `{ }` syntax, as demonstrated with previous `matching` statements.
 
-They should be reasonably self-explanatory, perhaps with the exception of why `matching(A.x, and: A.y) // error: cannot match A.x and A.y simultaneously` is an error. 
+They should be reasonably self-explanatory, perhaps with the exception of why `matching(A.x, and: A.y)` is an error. 
 
 In SwiftFSM, the word ‘and’ means that we expect both predicates to be present *at the same time*. Each predicate type can only have one value at the time it is passed to `handleEvent()`, therefore asking it to match multiple values of the same `Predicate` type simultaneously has no meaning. The rules of the system are that, if `A.x` is current, `A.y` cannot also be current.
 
