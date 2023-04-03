@@ -46,7 +46,7 @@ SwiftFSM (with additional code for context):
 ```swift
 import SwiftFSM
 
-class MyClass: TransitionBuilder {
+class MyClass: TableBuilder {
     enum State { case locked, unlocked }
     enum Event { case coin, pass }
 
@@ -73,16 +73,16 @@ class MyClass: TransitionBuilder {
 Here we can see the four natural language sentences translated into a minimalistic syntax capable of expressing their essential logic.
 
 ```swift
-class MyClass: TransitionBuilder {
+class MyClass: TableBuilder {
 ```
 
-The `TransitionBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable`.
+The `TableBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable`.
 
 ```swift
 let fsm = FSM<State, Event>(initialState: .locked)
 ```
 
-`FSM` is generic  over `State` and `Event`.  As with `TransitionBuilder`, `State` and `Event` must be `Hashable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
+`FSM` is generic  over `State` and `Event`.  As with `TableBuilder`, `State` and `Event` must be `Hashable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
 
 ```swift
 try! fsm.buildTable {
@@ -310,7 +310,7 @@ try! fsm.buildTable {
 }
 ```
 
-It you wish to use this alternative syntax, it is strongly recommended that you *do not implement* `TransitionBuilder`. Use the function syntax provided by `TransitionBuilder`, *or* the struct syntax provided by the `Syntax` namespace. 
+It you wish to use this alternative syntax, it is strongly recommended that you *do not implement* `TableBuilder`. Use the function syntax provided by `TableBuilder`, *or* the struct syntax provided by the `Syntax` namespace. 
 
 No harm will befall the FSM if you mix and match, but at the very least, from an autocomplete point of view, things will get messy. 
 

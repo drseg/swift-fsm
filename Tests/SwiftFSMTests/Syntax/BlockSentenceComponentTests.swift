@@ -99,7 +99,67 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(s2.nodes, sutLine: l2)
     }
     
-    func testSuperState() {
+    func testSuperStateAddsSuperStateNodes() {
+        let l1 = #line + 1; let s1 = SuperState {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+        
+        let nodes = SuperState(superStates: s1, s1).nodes
+        
+        XCTAssertEqual(4, nodes.count)
+        assertMWTAResult(Array(nodes.prefix(2)), sutLine: l1)
+        assertMWTAResult(Array(nodes.suffix(2)), sutLine: l1)
+    }
+    
+    func testSuperStateCombinesSuperStateNodes() {
+        let l1 = #line + 1; let s1 = SuperState {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+        
+        let l2 = #line + 1; let s2 = SuperState(superStates: s1) {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+        
+        let nodes = s2.nodes
+        XCTAssertEqual(4, nodes.count)
+        assertMWTAResult(Array(nodes.prefix(2)), sutLine: l2)
+        assertMWTAResult(Array(nodes.suffix(2)), sutLine: l1)
+    }
+    
+    var entry: [() -> ()] { [{ self.output += "entry" }] }
+    var exit: [() -> ()] { [{ self.output += "exit" }] }
+    
+    func testSuperStateAddsEntryExitActions() {
+        let s1 = SuperState(onEntry: entry, onExit: exit) {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+        
+        let s2 = SuperState(superStates: s1)
+
+        assertActions(s2.entryActions, expectedOutput: "entry")
+        assertActions(s2.exitActions, expectedOutput: "exit")
+    }
+    
+    func testSuperStateCombinesEntryExitActions() {
+        let s1 = SuperState(onEntry: entry, onExit: exit) {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+        
+        let s2 = SuperState(superStates: s1, onEntry: entry, onExit: exit) {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+        
+        assertActions(s2.entryActions, expectedOutput: "entryentry")
+        assertActions(s2.exitActions, expectedOutput: "exitexit")
+    }
+    
+    func testSuperStateBlock() {
         let l1 = #line + 1; let s1 = SuperState {
             matching(P.a) | when(1, 2) | then(1) | pass
             when(1, 2) | then(1) | pass

@@ -6,6 +6,7 @@
 
 import Foundation
 
+#warning("Split into TableBuilder and ComplexTableBuilder")
 protocol TableBuilder {
     associatedtype StateType: Hashable
     associatedtype EventType: Hashable

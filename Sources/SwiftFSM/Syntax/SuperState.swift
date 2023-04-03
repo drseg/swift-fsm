@@ -8,10 +8,38 @@ import Foundation
 
 struct SuperState {
     var nodes: [any Node<DefaultIO>]
+    var entryActions: [() -> ()]
+    var exitActions: [() -> ()]
+
+    init(
+        superStates: SuperState,
+        _ rest: SuperState...,
+        onEntry: [() -> ()] = [],
+        onExit: [() -> ()] = []
+    ) {
+        self.init(superStates: [superStates] + rest, onEntry: onEntry, onExit: onExit)
+    }
     
-    #warning("should take vararg SuperState")
-    #warning("should take entry/exit actions?")
-    init(@Internal.MWTABuilder _ block: () -> [any MWTA]) {
-        nodes = block().nodes
+    init(
+        superStates: SuperState...,
+        onEntry: [() -> ()] = [],
+        onExit: [() -> ()] = [],
+        @Internal.MWTABuilder _ block: () -> [any MWTA]
+    ) {
+        self.init(nodes: block().nodes,
+                  superStates: superStates,
+                  onEntry: onEntry,
+                  onExit: onExit)
+    }
+    
+    private init(
+        nodes: [any Node<DefaultIO>] = [],
+        superStates: [SuperState],
+        onEntry: [() -> ()],
+        onExit: [() -> ()]
+    ) {
+        self.nodes = nodes + superStates.map(\.nodes).flattened
+        entryActions = onEntry + superStates.map(\.entryActions).flattened
+        exitActions = onExit + superStates.map(\.exitActions).flattened
     }
 }
