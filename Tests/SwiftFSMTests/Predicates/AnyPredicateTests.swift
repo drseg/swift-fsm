@@ -119,7 +119,7 @@ final class PredicateCombinationsTests: XCTestCase {
         
         let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erased()
         
-        XCTAssertEqual(P.allCases.count * Q.allCases.count * R.allCases.count, // 1000, O(m*n)
+        XCTAssertEqual(P.allCases.count * Q.allCases.count * R.allCases.count, // 1000, O(m^n)
                        predicates.combinationsOfAllCases.count)
     }
 }

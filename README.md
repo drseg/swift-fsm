@@ -954,7 +954,7 @@ See [Implicit Clashes][26]
 
 Adding predicates has no effect on the performance of `handleEvent()`. To maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
 
-The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m\*n) where m is the number of`Predicate` types, and n is the average number cases per `Predicate`.
+The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m\<sup\>n\</sup\>) where m is the average number of cases per predicate, and n is number of`Predicate` types.
 
 Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations.
 
