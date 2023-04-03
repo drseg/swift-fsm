@@ -1,5 +1,5 @@
 # Swift FSM
-### Friendly Finite State Machine Syntax for Swift, iOS and macOS
+** Friendly Finite State Machine Syntax for Swift, iOS and macOS**
 
 Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is a pure Swift syntax for declaring and operating a Finite State Machine (FSM). Unlike Uncle Bob’s SMC, the FSM itself is declared inside your Swift code, rather than as a separate text file, and compiles and runs directly alongside all your other project code.
 
@@ -27,8 +27,8 @@ This guide is reasonably complete, but does presume some familiarity with FSMs a
 	- [Deduplication][19]
 	- [Chained Blocks][20]
 	- [Complex Predicates][21]
-	- [Predicate Performance][22]
-	- [Runtime Errors][23]
+	- [Runtime Errors][22]
+	- [Predicate Performance][23]
 
 ## Requirements
 
@@ -193,7 +193,7 @@ try fsm.buildTable {
 
 `then()` with no argument means ‘no change’, and the FSM will remain in the current state.  The actions pipe is also optional - if a transition performs no actions, it can be omitted.
 
-### Super States:
+### Super States
 
 > Notice the duplication of the Reset transition. In all three states the Reset event does the same thing. It transitions to the Locked state and it invokes the lock and alarmOff actions. This duplication can be eliminated by using a Super State as follows:
 
@@ -913,14 +913,6 @@ define(.locked) {
 }
 ```
 
-### Predicate Performance
-
-Adding predicates has no effect on the performance of `handleEvent()`. To maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
-
-The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m\*n) where m is the number of`Predicate` types, and n is the average number cases per `Predicate`.
-
-Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations.
-
 ### Runtime Errors
 
 In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs no error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance. It is the caller’s responsibility to ensure that the predicates passed to `handleEvent` and the predicates used in the transition table are of the same type and number.
@@ -959,6 +951,14 @@ matching(A.a, or: A.b) { // ✅
 
 See [Implicit Clashes][26]
 
+### Predicate Performance
+
+Adding predicates has no effect on the performance of `handleEvent()`. To maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
+
+The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m\*n) where m is the number of`Predicate` types, and n is the average number cases per `Predicate`.
+
+Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations.
+
 [1]:	https://github.com/unclebob/CC_SMC
 [2]:	#requirements
 [3]:	#basic-syntax
@@ -980,8 +980,8 @@ See [Implicit Clashes][26]
 [19]:	#deduplication
 [20]:	#chained-blocks
 [21]:	#complex-predicates
-[22]:	#predicate-performance
-[23]:	#error-handling
+[22]:	#error-handling
+[23]:	#predicate-performance
 [24]:	#expanded-syntax "Expanded Syntax"
 [25]:	https://github.com/drseg/reflective-equality
 [26]:	#implicit-clashes

@@ -140,8 +140,8 @@ class BlockComponentTests: BlockTests {
         
         let s2 = SuperState(superStates: s1)
 
-        assertActions(s2.entryActions, expectedOutput: "entry")
-        assertActions(s2.exitActions, expectedOutput: "exit")
+        assertActions(s2.onEntry, expectedOutput: "entry")
+        assertActions(s2.onExit, expectedOutput: "exit")
     }
     
     func testSuperStateCombinesEntryExitActions() {
@@ -155,8 +155,8 @@ class BlockComponentTests: BlockTests {
             when(1, or: 2) | then(1) | pass
         }
         
-        assertActions(s2.entryActions, expectedOutput: "entryentry")
-        assertActions(s2.exitActions, expectedOutput: "exitexit")
+        assertActions(s2.onEntry, expectedOutput: "entryentry")
+        assertActions(s2.onExit, expectedOutput: "exitexit")
     }
     
     func testSuperStateBlock() {

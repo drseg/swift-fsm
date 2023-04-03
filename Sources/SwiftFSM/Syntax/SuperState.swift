@@ -8,8 +8,8 @@ import Foundation
 
 struct SuperState {
     var nodes: [any Node<DefaultIO>]
-    var entryActions: [() -> ()]
-    var exitActions: [() -> ()]
+    var onEntry: [() -> ()]
+    var onExit: [() -> ()]
 
     init(
         superStates: SuperState,
@@ -39,7 +39,7 @@ struct SuperState {
         onExit: [() -> ()]
     ) {
         self.nodes = nodes + superStates.map(\.nodes).flattened
-        entryActions = onEntry + superStates.map(\.entryActions).flattened
-        exitActions = onExit + superStates.map(\.exitActions).flattened
+        self.onEntry = onEntry + superStates.map(\.onEntry).flattened
+        self.onExit = onExit + superStates.map(\.onExit).flattened
     }
 }
