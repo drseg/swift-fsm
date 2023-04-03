@@ -8,7 +8,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-class SyntaxTestsBase: XCTestCase, TableBuilder {
+class SyntaxTestsBase: XCTestCase, ComplexTableBuilder {
     typealias StateType = Int
     typealias EventType = Int
     
