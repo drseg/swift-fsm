@@ -493,10 +493,30 @@ func handleAlarm() {
     case .strong: defconOne()
     }
 }
-
 ```
 
-But this comes with a problem - we now have some aspects of our state transitions declared inside the transition table, and other aspects declared elsewhere. Though this problem is inevitable in software, Swift FSM provides a mechanism to add some additional decision trees into the FSM table itself.
+But this comes with a problem - we now have some aspects of our state transitions declared inside the transition table, and other aspects declared elsewhere. It also requires us to transition to the `.alarming` state, regardless of the `Enforcement` policy. But what if different policies implied different transitions altogether?
+
+An alternative might be to introduce an extra event to differentiate between the two policies:
+
+```swift
+try fsm.buildTable {
+    ...
+    define(.locked) {
+        when(.passWithEnforcement)    | then(.alarming) | defconOne
+        when(.passWithoutEnforcement) | then(.locked)   | smile
+    }
+    ...
+}
+```
+
+This has the advantage not only of allowing us to call different functions, but also to transition to a different state, all depending on the enforcement policy. 
+
+The down side is that every transition that originally responded to the `.pass` event will now have to be written twice, once for each of the two new versions of this event, *even if they do the same thing in both cases*. In no time at all, the state transition table is going to become unmanageably long, and littered with duplication. 
+
+Following this path allows us to keep all of our logic inside the transition table, but it violates the Open/Closed principle - in order to extend the table’s behaviour, we would have to modify all of its existing parts.
+
+**The Swift FSM Solution**
 
 ```swift
 import SwiftFSM
@@ -543,7 +563,7 @@ Given that we are in the locked state:
 - If `Enforcement` is `.strong`, when we get a `.pass`, transition to `.alarming` and `defconOne`
 - **Regardless** of `Enforcement`, when we get a `.coin`, transition to `.unlocked` and `unlock`
 
-This allows the extra `Enforcement` logic to be expressed directly within the FSM table
+This allows the extra `Enforcement` logic to be expressed directly within the FSM table without violating the Open/Closed principle. Only those statements that care about the `Enforcement` policy need know it exists, and all other existing statements continue to work as they always did.
 
 ### ExpandedSyntaxBuilder and Predicate
 
