@@ -35,7 +35,7 @@ Swift FSM is a Swift package, importable through the Swift Package Manager, and 
 
 ## Basic Syntax
 
-Borrowing from SMC, we will use an example of a subway turnstile system. This turnstile has two possible states: `Locked`, and `Unlocked`, and two possible events: `Coin`, and `Pass`.
+Borrowing from SMC, we will use the example of a subway turnstile system. This turnstile has two possible states: `Locked`, and `Unlocked`, and two possible events: `Coin`, and `Pass`.
 
 The logic is as follows (from Uncle Bob, emphasis added): 
 
@@ -407,11 +407,11 @@ define(.locked) {
 
 ### Performance
 
-Swift FSM uses a Dictionary to store the state transition table, and each time `handleEvent()` is called, it performs a single O(1) operation to find the correct transition. Though O(1) is ideal from a performance point of view, a O(1) lookup is still significantly slower than a nested switch case statement, and Swift FSM is approximately 2-3x slower per transition.
+Swift FSM uses a Dictionary to store the state transition table, and each time `handleEvent()` is called, it performs a single O(1) operation to find the correct transition. Though O(1) is ideal from a performance point of view, an O(1) lookup is still significantly slower than a nested switch case statement, and Swift FSM is approximately 2-3x slower per transition.
 
 ## Expanded Syntax
 
-Swift FSM matches the syntax possibilities offered by SMC, however it also introduces some new possibilities of its own. None of this additional syntax is required, and is provided for convenience.
+Swift FSM matches most of the syntax of SMC, however it also introduces some new possibilities of its own. None of this additional syntax is required, and is provided for convenience.
 
 ### Rationale
 
@@ -453,7 +453,18 @@ class MyClass: ExpandedSyntaxBuilder {
 }
 ```
 
-Here we have introduced a new keyword `matching`, and two new protocols, `ExpandedTransitionBuilder` and `Predicate`. The define statement with its three sentences now reads as follows:
+Here we have introduced a new keyword `matching`, and two new protocols, `ExpandedSyntaxBuilder` and `Predicate`. 
+
+The define statement …
+> ```swift
+> define(.locked) {
+>     matching(Enforcement.weak)   | when(.pass) | then(.locked)   | doNothing
+>     matching(Enforcement.strong) | when(.pass) | then(.alarming) | makeAFuss
+>                 
+>     when(.coin) | then(.unlocked)
+> }
+> ```
+… now reads as follows:
 
 - Given that we are in the locked state:
 	- If `Enforcement` is `.weak`, when we get a `.pass`, transition to `.locked`
@@ -489,7 +500,7 @@ Statements in Swift FSM are are therefore `Predicate` agnostic by default, and w
 
 Swift FSM does not limit the number of `Predicate` types that can be used in one table. The following (contrived and rather silly) expansion of the original `Predicate` example is equally valid:
 
-```
+```swift
 enum Enforcement: Predicate { case weak, strong }
 enum Reward: Predicate { case positive, negative }
 
