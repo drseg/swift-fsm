@@ -5,17 +5,35 @@ Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is a pure Swift syntax for de
 
 This guide is reasonably complete, but does presume some familiarity with FSMs and specifically the SMC syntax linked above.
 
-## Contents:
+## Contents
 
 - [Requirements][2]
 - [Basic Syntax][3]
-- [Expanded Syntax][4]
+	- [Optional Arguments][4]
+	- [Super States][5]
+	- [Entry and Exit Actions][6]
+	- [Syntax Order][7]
+	- [Syntax Variations][8]
+	- [Syntactic Sugar][9]
+	- [Performance][10]
+- [Expanded Syntax][11]
+	- [Rationale][12]
+	- [Example][13]
+	- [Detailed Description][14]
+		- [Implicit Matching Statements][15]
+		- [Multiple Predicates][16]
+		- [Implicit Conflicts][17]
+		- [Deduplication][18]
+		- [Chained Blocks][19]
+		- [Complex Predicates][20]
+		- [Predicate Performance][21]
+		- [Error Handling][22]
 
-## Requirements:
+## Requirements
 
 Swift FSM is a Swift package, importable through the Swift Package Manager, and requires macOS 12.6 and/or iOS 15.6 or later, alongside Swift 5.6 or later.
 
-## Basic Syntax:
+## Basic Syntax
 
 Borrowing from SMC, we have an example of a simple subway turnstile system. This turnstile currently has two possible states: `Locked`, and `Unlocked`, alongside two possible events: `Coin`, and `Pass`.
 
@@ -122,7 +140,7 @@ fsm.handleEvent(.coin)
 
 The `FSM` instance will look up the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, the `FSM` will call the `unlock` function and transition to the `unlocked` state.  If no transition is found, it will do nothing.
 
-### Optional Arguments:
+### Optional Arguments
 
 > Now let's add an Alarming state that must be reset by a repairman:
 
@@ -341,7 +359,7 @@ In contrast, Swift FSM entry and exit actions are only invoked if there is a sta
 
 All statements must be made in the form `define { when | then | actions }`. Any reordering will not compile.
 
-See [Expanded Syntax][5] below for exceptions to this rule.
+See [Expanded Syntax][23] below for exceptions to this rule.
 
 ### Syntax Variations
 
@@ -452,7 +470,7 @@ This allows the extra `Enforcement` logic to be expressed directly within the FS
 
 `Predicate` requires the conformer to be `Hashable` and `CaseIterable`. `CaseIterable` conformance allows the FSM to calculate all the possible cases of the `Predicate`, such that, if none is specified, it can match that statement to *any* of its cases. It is possible to use any type you wish, as long as your conformance to `Hashable` and `CaseIterable` makes logical sense. In practice however, this requirement is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`. 
 
-#### Implicit `matching` statements:
+#### Implicit Matching Statements:
 
 ```swift
 when(.coin) | then(.unlocked)
@@ -511,7 +529,7 @@ matching(Reward.positive)    | when(.coin) | then(.unlocked)
 matching(Reward.negative)    | when(.coin) | then(.unlocked)
 ```
 
-#### Implicit Conflicts:
+#### Implicit Conflicts
 
 ```swift
 define(.locked) {
@@ -537,7 +555,7 @@ define(.locked) {
     matching(Enforcement.strong)  | when(.coin) | then(.locked)
 ```
 
-#### Deduplication:
+#### Deduplication
 
 In the following case, `when(.pass)` is duplicated:
 
@@ -845,5 +863,23 @@ In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs 
 [1]:	https://github.com/unclebob/CC_SMC
 [2]:	#requirements
 [3]:	#basic-syntax
-[4]:	#expanded-syntax
-[5]:	#expanded-syntax "Expanded Syntax"
+[4]:	#optional-arguments
+[5]:	#super-states
+[6]:	#entry-and-exit-actions
+[7]:	#syntax-order
+[8]:	#syntax-variations
+[9]:	#syntactic-sugar
+[10]:	#performance
+[11]:	#expanded-syntax
+[12]:	#rationale
+[13]:	#example
+[14]:	#detailed-description
+[15]:	#implicit-matching-statements
+[16]:	#multiple-predicates
+[17]:	#implicit-conflicts
+[18]:	#deduplication
+[19]:	#chained-blocks
+[20]:	#complex-predicates
+[21]:	#predicate-performance
+[22]:	#error-handling
+[23]:	#expanded-syntax "Expanded Syntax"
