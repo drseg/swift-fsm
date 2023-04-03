@@ -490,6 +490,10 @@ In the line above, no `Predicate` is specified, and its full meaning is therefor
 In this case, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and Swift FSM will therefore to infer the absent `matching` statement as follows:
 
 ```swift
+when(.coin) | then(.unlocked)
+
+// is inferred to mean:
+
 matching(Enforcement.weak)   | when(.coin) | then(.unlocked)
 matching(Enforcement.strong) | when(.coin) | then(.unlocked)
 ```
@@ -742,10 +746,10 @@ define(.locked) {
     }
 }
 
-// runtime error: logical clash
+// 💥 error: logical clash
 ```
 
-See the errors section for more information
+See the errors section for more information (TBA…)
 
 ##### Chainable Blocks - `matching` and `actions`
 
@@ -793,7 +797,7 @@ matching(A.x, or: A.y)... // if A.x OR A.y
 matching(A.x, or: A.y, A.z)... // if A.x OR A.y OR A.z
 
 matching(A.x, and: B.x)... // if A.x AND B.x
-matching(A.x, and: A.y)... // 💥 error: cannot match A.x and A.y simultaneously
+matching(A.x, and: A.y)... // 💥 error: cannot match A.x AND A.y simultaneously
 matching(A.x, and: B.x, C.x)... // if A.x AND B.x AND C.x
 
 matching(A.x, or: A.y, A.z, and: B.x, C.x)... // if (A.x OR A.y OR A.z) AND B.x AND C.x
@@ -817,7 +821,7 @@ The word ‘or’ is more permissive - `matching(A.x, or: A.y)` can be thought o
 define(.locked) {
     matching(A.x) {
         matching(A.y) {
-            // 💥 error: cannot match A.x and A.y simultaneously 
+            // 💥 error: cannot match A.x AND A.y simultaneously 
         }
     }
 }
@@ -829,8 +833,8 @@ This AND-ing behaviour also applies to OR statements:
 define(.locked) {
     matching(A.x, or: A.y) {
         matching(A.z) {
-            // 💥 error: cannot match A.x and A.z simultaneously 
-            // 💥 error: cannot match A.y and A.z simultaneously 
+            // 💥 error: cannot match A.x AND A.z simultaneously 
+            // 💥 error: cannot match A.y AND A.z simultaneously 
         }
     }
 }
