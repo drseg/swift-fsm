@@ -18,17 +18,16 @@ This guide is reasonably complete, but does presume some familiarity with FSMs a
 	- [Runtime Errors][11]
 	- [Performance][12]
 - [Expanded Syntax][13]
-	- [Rationale][14]
-	- [Example][15]
-	- [ExpandedSyntaxBuilder and Predicate][16]
-	- [Implicit Matching Statements][17]
-	- [Multiple Predicates][18]
-	- [Implicit Clashes][19]
-	- [Deduplication][20]
-	- [Chained Blocks][21]
-	- [Complex Predicates][22]
-	- [Runtime Errors][23]
-	- [Predicate Performance][24]
+	- [Example][14]
+	- [ExpandedSyntaxBuilder and Predicate][15]
+	- [Implicit Matching Statements][16]
+	- [Multiple Predicates][17]
+	- [Implicit Clashes][18]
+	- [Deduplication][19]
+	- [Chained Blocks][20]
+	- [Complex Predicates][21]
+	- [Runtime Errors][22]
+	- [Predicate Performance][23]
 
 ## Requirements
 
@@ -358,7 +357,7 @@ In contrast, Swift FSM entry and exit actions are only invoked if there is a sta
 
 All statements must be made in the form `define { when | then | actions }`. Any reordering will not compile.
 
-See [Expanded Syntax][25] below for exceptions to this rule.
+See [Expanded Syntax][24] below for exceptions to this rule.
 
 ### Syntax Variations
 
@@ -457,7 +456,7 @@ Thought the two transitions are clearly distinct from one another, from a logica
 
 This is not an issue for most Swift types, as `Hashable` conformance will have to be declared explicitly. `NSObject` however already conforms to `Hashable`, and is hashed *by instance identity*, rather than by value. Therefore, an error will be thrown if Swift FSM detects any trace of `NSObject` anywhere near your `State` or `Event` types. 
 
-This is very much an edge case and it is extremely unlikely that you will ever fall foul of this rule, unless you do so intentionally. Nonetheless, the check is quite exhaustive - If you would like to see how this check works, see the dependency [Reflective Equality][26].
+This is very much an edge case and it is extremely unlikely that you will ever fall foul of this rule, unless you do so intentionally. Nonetheless, the check is quite exhaustive - If you would like to see how this check works, see the dependency [Reflective Equality][25].
 
 ### Performance
 
@@ -467,15 +466,35 @@ Swift FSM uses a Dictionary to store the state transition table, and each time `
 
 Swift FSM matches most of the syntax of SMC, however it also introduces some new possibilities of its own. None of this additional syntax is required, and is provided for convenience.
 
-### Rationale
-
-Though the turnstile is a pleasing example, it is also conveniently simple. Given that all computer programs are in essence FSMs, there is no limit to the degree of complexity an FSM table might reach. At some point on the complexity scale, SMC and Swift FSM basic syntax would become so lengthy as to be unusable.
-
 ### Example
 
 Let’s imagine an extension to our turnstile rules, whereby under some circumstances, we might want to strongly enforce the ‘everyone pays’ rule by entering the alarming state if a `.pass` is detected when still in the `.locked` state, yet in others, perhaps at rush hour for example, we might want to be more permissive in order to avoid disruption to other passengers.
 
 We could implement a check somewhere else in the system, perhaps inside the implementation of the `alarmOn` function to decide what the appropriate behaviour should be depending on the time of day.
+
+```swift
+try fsm.buildTable {
+    ...
+    define(.locked) {
+        when(.pass) | then(.alarming) | handleAlarm
+    }
+    ...
+}
+
+// some other file somewhere...
+
+enum Enforcement: Predicate { case weak, strong }
+
+let enforcement = Enforcement.weak
+
+func handleAlarm() {
+    switch enforcement {
+    case .weak: smile()
+    case .strong: defconOne()
+    }
+}
+
+```
 
 But this comes with a problem - we now have some aspects of our state transitions declared inside the transition table, and other aspects declared elsewhere. Though this problem is inevitable in software, Swift FSM provides a mechanism to add some additional decision trees into the FSM table itself.
 
@@ -493,8 +512,8 @@ class MyClass: ExpandedSyntaxBuilder {
         try fsm.buildTable {
             ...
             define(.locked) {
-                matching(Enforcement.weak)   | when(.pass) | then(.locked)   | doNothing
-                matching(Enforcement.strong) | when(.pass) | then(.alarming) | makeAFuss
+                matching(Enforcement.weak)   | when(.pass) | then(.locked)   | smile
+                matching(Enforcement.strong) | when(.pass) | then(.alarming) | defconOne
                 
                 when(.coin) | then(.unlocked)
             }
@@ -512,7 +531,7 @@ The define statement …
 > ```swift
 > define(.locked) {
 >     matching(Enforcement.weak)   | when(.pass) | then(.locked)   | smile
->     matching(Enforcement.strong) | when(.pass) | then(.alarming) | makeAFuss
+>     matching(Enforcement.strong) | when(.pass) | then(.alarming) | defconOne
 >                 
 >     when(.coin) | then(.unlocked) | unlock
 > }
@@ -521,7 +540,7 @@ The define statement …
 
 Given that we are in the locked state:
 - If `Enforcement` is `.weak`, when we get a `.pass`, transition to `.locked` and `smile`
-- If `Enforcement` is `.strong`, when we get a `.pass`, transition to `.alarming` and `makeAFuss`
+- If `Enforcement` is `.strong`, when we get a `.pass`, transition to `.alarming` and `defconOne`
 - **Regardless** of `Enforcement`, when we get a `.coin`, transition to `.unlocked` and `unlock`
 
 This allows the extra `Enforcement` logic to be expressed directly within the FSM table
@@ -948,7 +967,7 @@ matching(A.a, or: A.b) { // ✅
 
 #### Implicit Clash Error
 
-See [Implicit Clashes][27]
+See [Implicit Clashes][26]
 
 ### Predicate Performance
 
@@ -971,17 +990,16 @@ Using three predicates, each with 10 cases each, would therefore require 1,000 o
 [11]:	#runtime-errors
 [12]:	#performance
 [13]:	#expanded-syntax
-[14]:	#rationale
-[15]:	#example
-[16]:	#expandedsyntaxbuilder-and-predicate
-[17]:	#implicit-matching-statements
-[18]:	#multiple-predicates
-[19]:	#implicit-clashes
-[20]:	#deduplication
-[21]:	#chained-blocks
-[22]:	#complex-predicates
-[23]:	#error-handling
-[24]:	#predicate-performance
-[25]:	#expanded-syntax "Expanded Syntax"
-[26]:	https://github.com/drseg/reflective-equality
-[27]:	#implicit-clashes
+[14]:	#example
+[15]:	#expandedsyntaxbuilder-and-predicate
+[16]:	#implicit-matching-statements
+[17]:	#multiple-predicates
+[18]:	#implicit-clashes
+[19]:	#deduplication
+[20]:	#chained-blocks
+[21]:	#complex-predicates
+[22]:	#error-handling
+[23]:	#predicate-performance
+[24]:	#expanded-syntax "Expanded Syntax"
+[25]:	https://github.com/drseg/reflective-equality
+[26]:	#implicit-clashes
