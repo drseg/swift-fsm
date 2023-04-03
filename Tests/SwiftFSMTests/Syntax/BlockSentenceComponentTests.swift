@@ -203,8 +203,8 @@ class BlockComponentTests: BlockTests {
                             when(1, 2) | then(1) | pass
         }
         
-        let l1 = #line; let d1 = define(1, 2, superState: s, onEntry: [entry], onExit: [exit])
-        let l2 = #line; let d2 = Define(1, 2, superState: s, onEntry: [entry], onExit: [exit])
+        let l1 = #line; let d1 = define(1, 2, superStates: s, onEntry: [entry], onExit: [exit])
+        let l2 = #line; let d2 = Define(1, 2, superStates: s, onEntry: [entry], onExit: [exit])
         
         assertDefine(d1, sutLine: l1, elementLine: l0)
         assertDefine(d2, sutLine: l2, elementLine: l0)
@@ -222,8 +222,8 @@ class BlockComponentTests: BlockTests {
         assertDefine(d3, sutLine: l3, elementLine: l3 + 1)
         assertDefine(d4, sutLine: l4, elementLine: l4 + 1)
         
-        let d5 = define(1, 2,superState: s, onEntry: [entry],  onExit: [exit]) { }
-        let d6 = Define(1, 2, superState: s, onEntry: [entry], onExit: [exit]) { }
+        let d5 = define(1, 2,superStates: s, onEntry: [entry],  onExit: [exit]) { }
+        let d6 = Define(1, 2, superStates: s, onEntry: [entry], onExit: [exit]) { }
         
         // technically valid/non-empty but need to flag empty trailing block
         assertEmpty(d5)
@@ -261,12 +261,27 @@ class BlockComponentTests: BlockTests {
                           xctLine: line)
         }
         
-        let s = SuperState                { when(1) | then(1) | pass }
-        let d1 = define(1, superState: s) { when(2) | then(2) | pass }
-        let d2 = Define(1, superState: s) { when(2) | then(2) | pass }
+        let s = SuperState                 { when(1) | then(1) | pass }
+        let d1 = define(1, superStates: s) { when(2) | then(2) | pass }
+        let d2 = Define(1, superStates: s) { when(2) | then(2) | pass }
         
         assertDefine(d1.node)
         assertDefine(d2.node)
+    }
+    
+    func testDefineAddsSuperStateEntryExitActions() {
+        let s1 = SuperState(onEntry: entry, onExit: exit) {
+            matching(P.a) | when(1, 2) | then(1) | pass
+            when(1, 2) | then(1) | pass
+        }
+        
+        let d1 = define(1, superStates: s1, s1, onEntry: entry, onExit: exit)
+        let d2 = Define(1, superStates: s1, s1, onEntry: entry, onExit: exit)
+        
+        assertActions(d1.node.onEntry, expectedOutput: "entryentryentry")
+        assertActions(d1.node.onExit, expectedOutput: "exitexitexit")
+        assertActions(d2.node.onEntry, expectedOutput: "entryentryentry")
+        assertActions(d2.node.onExit, expectedOutput: "exitexitexit")
     }
     
     func testOptionalActions() {

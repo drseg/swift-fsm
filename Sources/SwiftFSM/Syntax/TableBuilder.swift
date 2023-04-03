@@ -15,15 +15,16 @@ protocol TableBuilder {
 extension TableBuilder {
     func define(
         _ s1: StateType,
-        _ rest: StateType...,
-        superState: SuperState,
+        _ rest1: StateType...,
+        superStates: SuperState,
+        _ rest2: SuperState...,
         onEntry: [() -> ()] = [],
         onExit: [() -> ()] = [],
         file: String = #file,
         line: Int = #line
     ) -> Syntax.Define<StateType> {
-        .init([s1] + rest,
-              superState: superState,
+        .init([s1] + rest1,
+              superStates: [superStates] + rest2,
               onEntry: onEntry,
               onExit: onExit,
               elements: [],
@@ -34,7 +35,7 @@ extension TableBuilder {
     func define(
         _ s1: StateType,
         _ rest: StateType...,
-        superState: SuperState? = nil,
+        superStates: SuperState...,
         onEntry: [() -> ()] = [],
         onExit: [() -> ()] = [],
         file: String = #file,
@@ -42,7 +43,7 @@ extension TableBuilder {
         @Internal.MWTABuilder _ block: () -> [any MWTA]
     ) -> Syntax.Define<StateType> {
         .init(states: [s1] + rest,
-              superState: superState,
+              superStates: superStates,
               onEntry: onEntry,
               onExit: onExit,
               file: file,

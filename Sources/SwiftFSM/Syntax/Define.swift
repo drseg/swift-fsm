@@ -10,17 +10,17 @@ extension Syntax {
     struct Define<State: Hashable> {
         let node: DefineNode
         
-        #warning("should take SuperState vararg")
         init(_ s1: State,
-             _ rest: State...,
-             superState: SuperState,
+             _ rest1: State...,
+             superStates: SuperState,
+             _ rest2: SuperState...,
              onEntry: [() -> ()],
              onExit: [() -> ()],
              file: String = #file,
              line: Int = #line
         ) {
-            self.init([s1] + rest,
-                      superState: superState,
+            self.init([s1] + rest1,
+                      superStates: [superStates] + rest2,
                       onEntry: onEntry,
                       onExit: onExit,
                       elements: [],
@@ -30,7 +30,7 @@ extension Syntax {
         
         init(_ s1: State,
              _ rest: State...,
-             superState: SuperState? = nil,
+             superStates: SuperState...,
              onEntry: [() -> ()] = [],
              onExit: [() -> ()] = [],
              file: String = #file,
@@ -38,7 +38,7 @@ extension Syntax {
              @Internal.MWTABuilder _ block: () -> [any MWTA]
         ) {
             self.init(states: [s1] + rest,
-                      superState: superState,
+                      superStates: superStates,
                       onEntry: onEntry,
                       onExit: onExit,
                       file: file,
@@ -47,7 +47,7 @@ extension Syntax {
         }
         
         init(states: [State],
-             superState: SuperState? = nil,
+             superStates: [SuperState] = [],
              onEntry: [() -> ()],
              onExit: [() -> ()],
              file: String = #file,
@@ -57,7 +57,7 @@ extension Syntax {
             let elements = block()
             
             self.init(states,
-                      superState: elements.isEmpty ? nil : superState,
+                      superStates: elements.isEmpty ? [] : superStates,
                       onEntry: onEntry,
                       onExit: onExit,
                       elements: elements,
@@ -66,20 +66,23 @@ extension Syntax {
         }
         
         init(_ states: [State],
-             superState: SuperState?,
+             superStates: [SuperState],
              onEntry: [() -> ()],
              onExit: [() -> ()],
              elements: [any MWTA],
              file: String = #file,
              line: Int = #line
         ) {
+            let onEntry = onEntry + superStates.map(\.entryActions).flattened
+            let onExit = onExit + superStates.map(\.exitActions).flattened
+            
             let dNode = DefineNode(onEntry: onEntry,
                                    onExit: onExit,
                                    caller: "define",
                                    file: file,
                                    line: line)
             
-            let isValid = superState != nil || !elements.isEmpty
+            let isValid = !superStates.isEmpty || !elements.isEmpty
             
             if isValid {
                 func eraseToAnyTraceable(_ s: State) -> AnyTraceable {
@@ -87,7 +90,7 @@ extension Syntax {
                 }
                 
                 let states = states.map(eraseToAnyTraceable)
-                let rest = (superState?.nodes ?? []) + elements.nodes
+                let rest = superStates.map(\.nodes).flattened + elements.nodes
                 let gNode = GivenNode(states: states, rest: rest)
                 
                 dNode.rest = [gNode]
