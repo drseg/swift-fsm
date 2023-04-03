@@ -1,5 +1,5 @@
 # Swift FSM
-** Friendly Finite State Machine Syntax for Swift, iOS and macOS**
+**Friendly Finite State Machine Syntax for Swift, iOS and macOS**
 
 Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is a pure Swift syntax for declaring and operating a Finite State Machine (FSM). Unlike Uncle Bob’s SMC, the FSM itself is declared inside your Swift code, rather than as a separate text file, and compiles and runs directly alongside all your other project code.
 
