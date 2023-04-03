@@ -13,8 +13,8 @@ extension Syntax {
         init(_ state: State,
              superStates: SuperState,
              _ rest: SuperState...,
-             onEntry: [() -> ()],
-             onExit: [() -> ()],
+             onEntry: [Action],
+             onExit: [Action],
              file: String = #file,
              line: Int = #line
         ) {
@@ -29,8 +29,8 @@ extension Syntax {
         
         init(_ state: State,
              superStates: SuperState...,
-             onEntry: [() -> ()] = [],
-             onExit: [() -> ()] = [],
+             onEntry: [Action] = [],
+             onExit: [Action] = [],
              file: String = #file,
              line: Int = #line,
              @Internal.MWTABuilder _ block: () -> [any MWTA]
@@ -46,8 +46,8 @@ extension Syntax {
         
         init(state: State,
              superStates: [SuperState] = [],
-             onEntry: [() -> ()],
-             onExit: [() -> ()],
+             onEntry: [Action],
+             onExit: [Action],
              file: String = #file,
              line: Int = #line,
              @Internal.MWTABuilder _ block: () -> [any MWTA]
@@ -65,8 +65,8 @@ extension Syntax {
         
         init(_ state: State,
              superStates: [SuperState],
-             onEntry: [() -> ()],
-             onExit: [() -> ()],
+             onEntry: [Action],
+             onExit: [Action],
              elements: [any MWTA],
              file: String = #file,
              line: Int = #line

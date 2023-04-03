@@ -300,7 +300,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     }
     
     func assertActions(
-        _ actions: [() -> ()],
+        _ actions: [Action],
         expectedOutput eo: String,
         file: StaticString = #file,
         xctLine xl: UInt = #line

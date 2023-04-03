@@ -16,7 +16,7 @@ enum Internal {
             .init(node: rhs.node.appending(lhs.node))
         }
         
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> MatchingWhenActions {
+        static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
@@ -28,7 +28,7 @@ enum Internal {
     }
     
     struct MatchingThen {
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> MatchingThenActions {
+        static func | (lhs: Self, rhs: @escaping Action) -> MatchingThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
@@ -48,7 +48,7 @@ enum Internal {
     }
     
     struct MatchingWhenThen {
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> MatchingWhenThenActions {
+        static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
@@ -70,7 +70,7 @@ enum Internal {
         }
         
         init(
-            _ actions: [() -> ()],
+            _ actions: [Action],
             file: String = #file,
             line: Int = #line,
             _ block: () -> [any Sentence]

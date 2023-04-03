@@ -16,8 +16,8 @@ extension SyntaxBuilder {
         _ state: StateType,
         superStates: SuperState,
         _ rest2: SuperState...,
-        onEntry: [() -> ()] = [],
-        onExit: [() -> ()] = [],
+        onEntry: [Action] = [],
+        onExit: [Action] = [],
         file: String = #file,
         line: Int = #line
     ) -> Syntax.Define<StateType> {
@@ -33,8 +33,8 @@ extension SyntaxBuilder {
     func define(
         _ state: StateType,
         superStates: SuperState...,
-        onEntry: [() -> ()] = [],
-        onExit: [() -> ()] = [],
+        onEntry: [Action] = [],
+        onExit: [Action] = [],
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [any MWTA]
@@ -104,8 +104,8 @@ extension SyntaxBuilder {
     }
     
     func actions(
-        _ a1: @escaping () -> (),
-        _ aRest: () -> ()...,
+        _ a1: @escaping Action,
+        _ aRest: Action...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [any MWTA]
@@ -114,8 +114,8 @@ extension SyntaxBuilder {
     }
     
     func actions(
-        _ a1: @escaping () -> (),
-        _ aRest: () -> ()...,
+        _ a1: @escaping Action,
+        _ aRest: Action...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [any MWA]
@@ -124,8 +124,8 @@ extension SyntaxBuilder {
     }
     
     func actions(
-        _ a1: @escaping () -> (),
-        _ aRest: () -> ()...,
+        _ a1: @escaping Action,
+        _ aRest: Action...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [any MTA]

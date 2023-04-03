@@ -33,7 +33,7 @@ func defaultIOOutput(
     match: Match = Match(),
     event: AnyTraceable? = nil,
     state: AnyTraceable? = nil,
-    actions: [() -> ()] = []
+    actions: [Action] = []
 ) -> [DefaultIO] {
     [(match: match, event: event, state: state, actions: actions)]
 }

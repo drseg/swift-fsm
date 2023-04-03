@@ -442,7 +442,7 @@ A logical clash occurs when two transitions share the same start state and event
 try fsm.buildTable {
     define(.locked) {
         when(.coin) | then(.unlocked) | unlock
-        when(.coin) | then(.locked) | lock
+        when(.coin) | then(.locked)   | lock
     }
 }
 
@@ -501,7 +501,7 @@ class MyClass: ExpandedSyntaxBuilder {
             ...
        }
         
-        fsm.handleEvent(.pass, predicates: Enforcement.weak)
+       fsm.handleEvent(.pass, predicates: Enforcement.weak)
     }
 }
 ```
@@ -511,18 +511,18 @@ Here we have introduced a new keyword `matching`, and two new protocols, `Expand
 The define statement …
 > ```swift
 > define(.locked) {
->     matching(Enforcement.weak)   | when(.pass) | then(.locked)   | doNothing
+>     matching(Enforcement.weak)   | when(.pass) | then(.locked)   | smile
 >     matching(Enforcement.strong) | when(.pass) | then(.alarming) | makeAFuss
 >                 
->     when(.coin) | then(.unlocked)
+>     when(.coin) | then(.unlocked) | unlock
 > }
 > ```
 … now reads as follows:
 
-- Given that we are in the locked state:
-	- If `Enforcement` is `.weak`, when we get a `.pass`, transition to `.locked`
-	- If `Enforcement` is `.strong`, when we get a `.pass`, transition to `.alarming`
-	- **Regardless** of `Enforcement`, when we get a `.coin`, transition to `.unlocked`
+Given that we are in the locked state:
+- If `Enforcement` is `.weak`, when we get a `.pass`, transition to `.locked` and `smile`
+- If `Enforcement` is `.strong`, when we get a `.pass`, transition to `.alarming` and `makeAFuss`
+- **Regardless** of `Enforcement`, when we get a `.coin`, transition to `.unlocked` and `unlock`
 
 This allows the extra `Enforcement` logic to be expressed directly within the FSM table
 
@@ -959,7 +959,7 @@ The performance of `fsm.buildTransitions { }` is dominated by this, assuming any
 Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations.
 
 [1]:	https://github.com/unclebob/CC_SMC
-[2]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators#Result-Builders
+[2]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder
 [3]:	#requirements
 [4]:	#basic-syntax
 [5]:	#optional-arguments

@@ -18,7 +18,7 @@ class FSM<State: Hashable, Event: Hashable> {
             predicates: PredicateSet,
             event: AnyHashable
         
-        init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable ) {
+        init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable) {
             self.state = state
             self.predicates = predicates
             self.event = event
@@ -36,7 +36,7 @@ class FSM<State: Hashable, Event: Hashable> {
             predicates: PredicateSet,
             event: AnyHashable,
             nextState: AnyHashable,
-            actions: [() -> ()]
+            actions: [Action]
     }
     
     var table: [Key: Value] = [:]
@@ -65,10 +65,8 @@ class FSM<State: Hashable, Event: Hashable> {
             throw SwiftFSMError(errors: [EmptyTableError()])
         }
         
-        let firstState = result.output.first!.state
-        let firstEvent = result.output.first!.event
-        
-        if deepDescription((firstState, firstEvent)).contains("NSObject") {
+        let stateEvent = (result.output[0].state, result.output[0].event)
+        if deepDescription(stateEvent).contains("NSObject") {
             throw SwiftFSMError(errors: [NSObjectError()])
         }
     }

@@ -8,7 +8,7 @@ import Foundation
 
 extension Syntax {
     struct Then<State: Hashable> {
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> Internal.MatchingThenActions {
+        static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         

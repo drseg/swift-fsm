@@ -8,15 +8,15 @@ import Foundation
 
 extension Syntax {
     struct Actions {
-        let actions: [() -> ()]
+        let actions: [Action]
         let file: String
         let line: Int
         
-        init(_ actions: @escaping () -> (), file: String = #file, line: Int = #line) {
+        init(_ actions: @escaping Action, file: String = #file, line: Int = #line) {
             self.init([actions], file: file, line: line)
         }
         
-        init(_ actions: [() -> ()], file: String = #file, line: Int = #line) {
+        init(_ actions: [Action], file: String = #file, line: Int = #line) {
             self.actions = actions
             self.file = file
             self.line = line

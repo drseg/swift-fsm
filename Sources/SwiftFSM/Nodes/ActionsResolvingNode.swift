@@ -16,7 +16,7 @@ struct ActionsResolvingNode: Node {
     var rest: [any Node<Input>] = []
     
     func combinedWithRest(_ rest: [DefineNode.Output]) -> [Output] {
-        var onEntry = [AnyTraceable: [() -> ()]]()
+        var onEntry = [AnyTraceable: [Action]]()
         Set(rest.map(\.state)).forEach { state in
             onEntry[state] = rest.first { $0.state == state }?.onEntry
         }

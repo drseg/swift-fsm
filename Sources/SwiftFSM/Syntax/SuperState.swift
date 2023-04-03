@@ -8,22 +8,22 @@ import Foundation
 
 struct SuperState {
     var nodes: [any Node<DefaultIO>]
-    var onEntry: [() -> ()]
-    var onExit: [() -> ()]
+    var onEntry: [Action]
+    var onExit: [Action]
 
     init(
         superStates: SuperState,
         _ rest: SuperState...,
-        onEntry: [() -> ()] = [],
-        onExit: [() -> ()] = []
+        onEntry: [Action] = [],
+        onExit: [Action] = []
     ) {
         self.init(superStates: [superStates] + rest, onEntry: onEntry, onExit: onExit)
     }
     
     init(
         superStates: SuperState...,
-        onEntry: [() -> ()] = [],
-        onExit: [() -> ()] = [],
+        onEntry: [Action] = [],
+        onExit: [Action] = [],
         @Internal.MWTABuilder _ block: () -> [any MWTA]
     ) {
         self.init(nodes: block().nodes,
@@ -35,8 +35,8 @@ struct SuperState {
     private init(
         nodes: [any Node<DefaultIO>] = [],
         superStates: [SuperState],
-        onEntry: [() -> ()],
-        onExit: [() -> ()]
+        onEntry: [Action],
+        onExit: [Action]
     ) {
         self.nodes = nodes + superStates.map(\.nodes).flattened
         self.onEntry = onEntry + superStates.map(\.onEntry).flattened

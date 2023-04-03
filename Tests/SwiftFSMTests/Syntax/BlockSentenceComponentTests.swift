@@ -129,8 +129,8 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(Array(nodes.suffix(2)), sutLine: l1)
     }
     
-    var entry: [() -> ()] { [{ self.output += "entry" }] }
-    var exit: [() -> ()]  { [{ self.output += "exit"  }] }
+    var entry: [Action] { [{ self.output += "entry" }] }
+    var exit: [Action]  { [{ self.output += "exit"  }] }
     
     func testSuperStateAddsEntryExitActions() {
         let s1 = SuperState(onEntry: entry, onExit: exit) {

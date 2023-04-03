@@ -16,7 +16,7 @@ extension Syntax {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
         
-        static func | (lhs: Self, rhs: @escaping () -> ()) -> Internal.MatchingWhenActions {
+        static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingWhenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         

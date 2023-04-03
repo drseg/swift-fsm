@@ -308,7 +308,7 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func assertActions(
-        _ actions: [() -> ()]?,
+        _ actions: [Action]?,
         expectedOutput: String?,
         file: StaticString = #file,
         line: UInt = #line
@@ -325,8 +325,8 @@ class DefineConsumer: SyntaxNodeTests {
         _ m: Match,
         _ w: AnyTraceable,
         _ t: AnyTraceable,
-        entry: [() -> ()]? = nil,
-        exit: [() -> ()]? = nil
+        entry: [Action]? = nil,
+        exit: [Action]? = nil
     ) -> DefineNode {
         let actions = ActionsNode(actions: actions)
         let then = ThenNode(state: t, rest: [actions])
