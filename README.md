@@ -15,19 +15,20 @@ This guide is reasonably complete, but does presume some familiarity with FSMs a
 	- [Syntax Order][7]
 	- [Syntax Variations][8]
 	- [Syntactic Sugar][9]
-	- [Performance][10]
-- [Expanded Syntax][11]
-	- [Rationale][12]
-	- [Example][13]
-	- [Detailed Description][14]
-		- [Implicit Matching Statements][15]
-		- [Multiple Predicates][16]
-		- [Implicit Conflicts][17]
-		- [Deduplication][18]
-		- [Chained Blocks][19]
-		- [Complex Predicates][20]
-		- [Predicate Performance][21]
-		- [Error Handling][22]
+	- [Runtime Errors][10]
+	- [Performance][11]
+- [Expanded Syntax][12]
+	- [Rationale][13]
+	- [Example][14]
+	- [ExpandedSyntaxBuilder and Predicate][15]
+	- [Implicit Matching Statements][16]
+	- [Multiple Predicates][17]
+	- [Implicit Clashes][18]
+	- [Deduplication][19]
+	- [Chained Blocks][20]
+	- [Complex Predicates][21]
+	- [Predicate Performance][22]
+	- [Runtime Errors][23]
 
 ## Requirements
 
@@ -74,8 +75,8 @@ class MyClass: SyntaxBuilder {
 
     let fsm = FSM<State, Event>(initialState: .locked)
 
-    func myMethod() {
-        try! fsm.buildTable {
+    func myMethod() throws {
+        try fsm.buildTable {
             define(.locked) {
                 when(.coin) | then(.unlocked) | unlock
                 when(.pass) | then(.locked)   | alarm
@@ -105,7 +106,7 @@ The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` n
 `FSM` is generic  over `State` and `Event`.  As with `SyntaxBuilder`, `State` and `Event` must be `Hashable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
 
 > ```swift
-> try! fsm.buildTable {
+> try fsm.buildTable {
 > ```
 
 `fsm.buildTable` is a throwing function - though the type system will prevent various illogical statements, there are some issues that can only be detected at runtime.
@@ -169,7 +170,7 @@ FSM: Turnstile
 Swift FSM:
 
 ```swift
-try! fsm.buildTable {
+try fsm.buildTable {
     define(.locked) {
         when(.coin)  | then(.unlocked) | unlock
         when(.pass)  | then(.alarming) | alarmOn
@@ -222,7 +223,7 @@ FSM: Turnstile
 Swift FSM:
 
 ```swift
-try! fsm.buildTable {
+try fsm.buildTable {
     let resetable = SuperState {
         when(.reset) | then(.locked) | { alarmOff(); lock() }
     }
@@ -310,7 +311,7 @@ try fsm.buildTable {
 }
 ```
 
-`onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state.
+`onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state. Unfortunately these cannot be varargs, and must use explicit array syntax instead to work around limitations in Swift’s matching algorithm for functions that take multiple closure arguments.
 
 `SuperState` instances can also accept entry and exit actions:
 
@@ -357,7 +358,7 @@ In contrast, Swift FSM entry and exit actions are only invoked if there is a sta
 
 All statements must be made in the form `define { when | then | actions }`. Any reordering will not compile.
 
-See [Expanded Syntax][23] below for exceptions to this rule.
+See [Expanded Syntax][24] below for exceptions to this rule.
 
 ### Syntax Variations
 
@@ -370,7 +371,7 @@ typealias d = Syntax.Define<State>
 typealias w = Syntax.When<Event>
 typealias t = Syntax.Then<State>
 
-try! fsm.buildTable {
+try fsm.buildTable {
     d(.locked) {
         w(.coin) | t(.unlocked) | unlock
         w(.pass) | t(.locked)   | alarm
@@ -405,6 +406,59 @@ define(.locked) {
 }
 ```
 
+### Runtime Errors
+
+#### Empty Blocks
+
+All blocks must have at least one statement in them, otherwise an error will be thrown:
+
+```swift
+try fsm.buildTable { } //💥 error: empty table
+try fsm.buildTable {
+    define(.locked) { } // 💥 error: empty block
+}
+```
+
+#### Duplicate Transitions
+
+Swift FSM considers transitions to be duplicates if they share the same start state, event, and next state:
+
+```swift
+try fsm.buildTable {
+    define(.locked) {
+        when(.coin) | then(.unlocked) | unlock
+        when(.coin) | then(.unlocked) | lock
+    }
+}
+
+// 💥 error: duplicate transitions
+```
+
+#### Logical Clashes
+
+A logical clash occurs when two transitions share the same start state and event, but their next states differ:
+
+```swift
+try fsm.buildTable {
+    define(.locked) {
+        when(.coin) | then(.unlocked) | unlock
+        when(.coin) | then(.locked) | lock
+    }
+}
+
+// 💥 error: logical clash
+```
+
+Thought the two transitions are clearly distinct from one another, from a logical point of view they cannot both be true - the `.coin` event must either lead to the `.unlocked` state or the `.locked` state. It cannot lead to both.
+
+#### NSObject Error
+
+`State` and `Event` instances are used to produce `Hashable` keys for the transition `Dictionary` during the call to `fsm.buildTable`. These keys are then recreated and reused each time `fsm.handleEvent` is called. The entire system therefore depends on its ability to hash both `State` and `Event` objects *by their value* - multiple instances with the same values but different identities need to equate. 
+
+This is not an issue for most Swift types, as `Hashable` conformance will have to be declared explicitly. `NSObject` however already conforms to `Hashable`, and is hashed *by instance identity*, rather than by value. Therefore, an error will be thrown if Swift FSM detects any trace of `NSObject` anywhere near your `State` or `Event` types. 
+
+This is very much an edge case and it is extremely unlikely that you will ever fall foul of this rule, unless you do so intentionally. Nonetheless, the check is quite exhaustive - If you would like to see how this check works, see the dependency [Reflective Equality][25].
+
 ### Performance
 
 Swift FSM uses a Dictionary to store the state transition table, and each time `handleEvent()` is called, it performs a single O(1) operation to find the correct transition. Though O(1) is ideal from a performance point of view, an O(1) lookup is still significantly slower than a nested switch case statement, and Swift FSM is approximately 2-3x slower per transition.
@@ -435,7 +489,7 @@ class MyClass: ExpandedSyntaxBuilder {
 
     let fsm = FSM<State, Event>(initialState: .locked)
 
-    func myMethod() {
+    func myMethod() throws {
         try fsm.buildTable {
             ...
             define(.locked) {
@@ -473,13 +527,13 @@ The define statement …
 
 This allows the extra `Enforcement` logic to be expressed directly within the FSM table
 
-### Detailed Description
+### ExpandedSyntaxBuilder and Predicate
 
 `ExpandedSyntaxBuilder` inherits from `SyntaxBuilder`, providing all the SMC-equivalent syntax, whilst adding the new `matching` statements for working with predicates. For the `Struct` based variant syntax, the equivalent namespace is `SwiftFSM.Syntax.Expanded`.  
 
 `Predicate` requires the conformer to be `Hashable` and `CaseIterable`. `CaseIterable` conformance allows the FSM to calculate all the possible cases of the `Predicate`, such that, if none is specified, it can match that statement to *any* of its cases. It is possible to use any type you wish, as long as your conformance to `Hashable` and `CaseIterable` makes logical sense. In practice however, this requirement is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`. 
 
-#### Implicit Matching Statements:
+### Implicit Matching Statements
 
 ```swift
 when(.coin) | then(.unlocked)
@@ -500,7 +554,7 @@ matching(Enforcement.strong) | when(.coin) | then(.unlocked)
 
 Statements in Swift FSM are are therefore `Predicate` agnostic by default, and will match any given `Predicate`. In this way, `matching` statements are optional specifiers that *constrain* the transition to one or more specific `Predicate` cases. If no `Predicate` is specified, the statement will match all cases.
 
-#### Multiple Predicates
+### Multiple Predicates
 
 Swift FSM does not limit the number of `Predicate` types that can be used in one table. The following (contrived and rather silly) expansion of the original `Predicate` example is equally valid:
 
@@ -542,7 +596,7 @@ matching(Reward.positive)    | when(.coin) | then(.unlocked)
 matching(Reward.negative)    | when(.coin) | then(.unlocked)
 ```
 
-#### Implicit Conflicts
+### Implicit Clashes
 
 ```swift
 define(.locked) {
@@ -550,7 +604,7 @@ define(.locked) {
     matching(Reward.negative)  | when(.coin) | then(.locked)
 }
 
-// 💥 error: implicit conflict
+// 💥 error: implicit clash
 ```
 
 On the surface of it, the two transitions above appear to be different from one another. However if we remember the inference rules, we will see that they actually conflict:
@@ -568,7 +622,7 @@ define(.locked) {
     matching(Enforcement.strong)  | when(.coin) | then(.locked)
 ```
 
-#### Deduplication
+### Deduplication
 
 In the following case, `when(.pass)` is duplicated:
 
@@ -655,7 +709,7 @@ try fsm.buildTable {
 }
 ```
 
-#### Chained Blocks
+### Chained Blocks
 
 Deduplication has introduced us to four blocks:
 
@@ -679,7 +733,7 @@ actions(functionCalls) {
 
 They can be divided into two groups - blocks that can be logically chained (or AND-ed) together, and blocks that cannot.
 
-##### Discrete Blocks - `when` and `then`
+#### Discrete Blocks - `when` and `then`
 
 Each transition can only respond to a single event, and transition to a single state. Therefore multiple `when {}` and `then {}` blocks cannot be AND-ed together.
 
@@ -751,7 +805,7 @@ define(.locked) {
 
 See the errors section for more information (TBA…)
 
-##### Chainable Blocks - `matching` and `actions`
+#### Chainable Blocks - `matching` and `actions`
 
 There is no logical restriction on the number of predicates or actions per transition, and therefore both can be built up in a chain as follows:
 
@@ -773,7 +827,7 @@ Nested `actions` blocks sum the actions and perform all of them. In the above ex
 
 Nested `matching` blocks are AND-ed together. In the above example, anything declared inside `matching(Reward.positive) { }` will match both `Enforcement.weak` AND `Reward.positive`. 
 
-##### Mixing blocks and pipes
+#### Mixing blocks and pipes
 
 Pipes can and must be used inside blocks, whereas blocks cannot be opened after pipes
 
@@ -785,7 +839,7 @@ define(.locked) {
 }
 ```
 
-#### Complex Predicates
+### Complex Predicates
 
 ```swift
 enum A: Predicate { case x, y, z }
@@ -859,7 +913,7 @@ define(.locked) {
 }
 ```
 
-#### Predicate Performance
+### Predicate Performance
 
 Adding predicates has no effect on the performance of `handleEvent()`. To maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
 
@@ -867,11 +921,43 @@ The performance of `fsm.buildTransitions { }` is dominated by this, assuming any
 
 Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations.
 
-#### Error Handling
+### Runtime Errors
 
 In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs no error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance. It is the caller’s responsibility to ensure that the predicates passed to `handleEvent` and the predicates used in the transition table are of the same type and number.
 
 `try fsm.buildTable { }` does perform error handling to make sure the table is syntactically and semantically valid. In particular, it ensures that all `matching` statements are valid, and that there are no duplicate transitions and no logical clashes between transitions.
+
+In addition to the runtime errors thrown by the basic syntax, the expanded syntax also throws the following errors:
+
+#### Matching Error
+
+There are two ways one might inadvertently create an invalid `matching` statement. The first is within a single statement:
+
+```swift
+matching(A.a, and: A.b) // 💥 error: cannot match A.a AND A.b simultaneously
+matching(A.a, or: B.a, and: A.b) // 💥 error: cannot match A.a AND A.b simultaneously
+
+matching(A.a, and: A.a) // 💥 error: duplicate predicate
+matching(A.a, or: A.a)  // 💥 error: duplicate predicate
+```
+
+The second is when AND-ing multiple `matching` statements through the use of blocks:
+
+```swift
+matching(A.a, and: B.a) { // ✅
+    matching(A.a) // 💥 error: duplicate predicate
+    matching(A.b) // 💥 error: cannot match A.a AND A.b simultaneously
+}
+
+matching(A.a, or: A.b) { // ✅
+    matching(A.a) // 💥 error: duplicate predicate
+    matching(A.b) // 💥 error: duplicate predicate
+}
+```
+
+#### Implicit Clash Error
+
+See [Implicit Clashes][26]
 
 [1]:	https://github.com/unclebob/CC_SMC
 [2]:	#requirements
@@ -882,17 +968,20 @@ In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs 
 [7]:	#syntax-order
 [8]:	#syntax-variations
 [9]:	#syntactic-sugar
-[10]:	#performance
-[11]:	#expanded-syntax
-[12]:	#rationale
-[13]:	#example
-[14]:	#detailed-description
-[15]:	#implicit-matching-statements
-[16]:	#multiple-predicates
-[17]:	#implicit-conflicts
-[18]:	#deduplication
-[19]:	#chained-blocks
-[20]:	#complex-predicates
-[21]:	#predicate-performance
-[22]:	#error-handling
-[23]:	#expanded-syntax "Expanded Syntax"
+[10]:	#runtime-errors
+[11]:	#performance
+[12]:	#expanded-syntax
+[13]:	#rationale
+[14]:	#example
+[15]:	#expandedsyntaxbuilder-and-predicate
+[16]:	#implicit-matching-statements
+[17]:	#multiple-predicates
+[18]:	#implicit-clashes
+[19]:	#deduplication
+[20]:	#chained-blocks
+[21]:	#complex-predicates
+[22]:	#predicate-performance
+[23]:	#error-handling
+[24]:	#expanded-syntax "Expanded Syntax"
+[25]:	https://github.com/drseg/reflective-equality
+[26]:	#implicit-clashes
