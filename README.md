@@ -46,7 +46,7 @@ SwiftFSM (with additional code for context):
 ```swift
 import SwiftFSM
 
-class MyClass: TableBuilder {
+class MyClass: SyntaxBuilder {
     enum State { case locked, unlocked }
     enum Event { case coin, pass }
 
@@ -73,16 +73,16 @@ class MyClass: TableBuilder {
 Here we can see the four natural language sentences translated into a minimalistic syntax capable of expressing their essential logic.
 
 ```swift
-class MyClass: TableBuilder {
+class MyClass: SyntaxBuilder {
 ```
 
-The `TableBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable`.
+The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable`.
 
 ```swift
 let fsm = FSM<State, Event>(initialState: .locked)
 ```
 
-`FSM` is generic  over `State` and `Event`.  As with `TableBuilder`, `State` and `Event` must be `Hashable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
+`FSM` is generic  over `State` and `Event`.  As with `SyntaxBuilder`, `State` and `Event` must be `Hashable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
 
 ```swift
 try! fsm.buildTable {
@@ -363,7 +363,7 @@ try! fsm.buildTable {
 }
 ```
 
-It you wish to use this alternative syntax, it is strongly recommended that you *do not implement* `TableBuilder`. Use the function syntax provided by `TableBuilder`, *or* the struct syntax provided by the `Syntax` namespace. 
+It you wish to use this alternative syntax, it is strongly recommended that you *do not implement* `SyntaxBuilder`. Use the function syntax provided by `SyntaxBuilder`, *or* the struct syntax provided by the `Syntax` namespace. 
 
 No harm will befall the FSM if you mix and match, but at the very least, from an autocomplete point of view, things will get messy. 
 
@@ -408,7 +408,7 @@ But this comes with a problem - we now have some aspects of our state transition
 ```swift
 import SwiftFSM
 
-class MyClass: TableBuilder {
+class MyClass: ExpandedSyntaxBuilder {
     enum State { case locked, unlocked }
     enum Event { case coin, pass }
     enum Enforcement: Predicate { case weak, strong }
@@ -433,7 +433,7 @@ class MyClass: TableBuilder {
 }
 ```
 
-Here we have introduced a new keyword `matching`, and two new protocols, `ComplexTransitionBuilder` and `Predicate`. The define statement with its three sentences now reads as follows:
+Here we have introduced a new keyword `matching`, and two new protocols, `ExpandedTransitionBuilder` and `Predicate`. The define statement with its three sentences now reads as follows:
 
 - Given that we are in the locked state:
 	- If `Enforcement` is `.weak`, when we get a `.pass`, transition to `.locked`
@@ -444,7 +444,7 @@ This allows the extra `Enforcement` logic to be expressed directly within the FS
 
 ### Detailed Description
 
-`ComplexTableBuilder` inherits from `TableBuilder`, providing all the SMC-equivalent syntax, whilst adding the new `matching` statements for working with predicates. For the `Struct` based variant syntax, the equivalent namespace is `SwiftFSM.Syntax.Complex`.  
+`ExpandedSyntaxBuilder` inherits from `SyntaxBuilder`, providing all the SMC-equivalent syntax, whilst adding the new `matching` statements for working with predicates. For the `Struct` based variant syntax, the equivalent namespace is `SwiftFSM.Syntax.Expanded`.  
 
 `Predicate` requires the conformer to be `Hashable` and `CaseIterable`. `CaseIterable` conformance allows the FSM to calculate all the possible cases of the `Predicate`, such that, if none is specified, it can match that statement to *any* of its cases. It is possible to use any type you wish, as long as your conformance to `Hashable` and `CaseIterable` makes logical sense. In practice however, this requirement is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`. 
 

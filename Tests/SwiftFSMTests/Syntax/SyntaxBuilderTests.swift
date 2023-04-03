@@ -1,5 +1,5 @@
 //
-//  TransitionBuilderTests.swift
+//  SyntaxBuilderTests.swift
 //
 //  Created by Daniel Segall on 03/03/2023.
 //
@@ -8,7 +8,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-class SyntaxTestsBase: XCTestCase, ExpandedTableBuilder {
+class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     typealias StateType = Int
     typealias EventType = Int
     

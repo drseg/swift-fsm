@@ -8,7 +8,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-final class FSMTests: XCTestCase, ExpandedTableBuilder {
+final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias StateType = Int
     typealias EventType = Double
     
@@ -121,7 +121,7 @@ final class FSMTests: XCTestCase, ExpandedTableBuilder {
     }
 }
 
-class FSMIntegrationTests: XCTestCase, ExpandedTableBuilder {
+class FSMIntegrationTests: XCTestCase, ExpandedSyntaxBuilder {
     enum StateType: String, CustomStringConvertible {
         case locked, unlocked, alarming
         var description: String { rawValue  }

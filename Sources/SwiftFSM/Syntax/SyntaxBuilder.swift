@@ -6,12 +6,12 @@
 
 import Foundation
 
-protocol TableBuilder {
+protocol SyntaxBuilder {
     associatedtype StateType: Hashable
     associatedtype EventType: Hashable
 }
 
-extension TableBuilder {
+extension SyntaxBuilder {
     func define(
         _ state: StateType,
         superStates: SuperState,
@@ -134,9 +134,9 @@ extension TableBuilder {
     }
 }
 
-protocol ExpandedTableBuilder: TableBuilder { }
+protocol ExpandedSyntaxBuilder: SyntaxBuilder { }
 
-extension ExpandedTableBuilder {
+extension ExpandedSyntaxBuilder {
     typealias Matching = Syntax.Expanded.Matching
     
     func matching(
