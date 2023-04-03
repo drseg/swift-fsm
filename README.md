@@ -455,7 +455,7 @@ Take this line from the example above:
 when(.coin) | then(.unlocked)
 ```
 
-As no `Predicate` is specified here, its meaning is inferred by SwiftFSM from its context. The scope for inferring predicates is always anything that appears between the braces in `fsm.buildTable { }`.  In this case, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and SwiftFSM will therefore able to infer it to be equivalent to:
+As no `Predicate` is specified, its meaning is inferred from its context. The scope for predicate inference is the sum of the builder blocks for all `SuperState` and `define` calls inside `fsm.buildTable { }`.  In this case, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and SwiftFSM will therefore to infer it to be equivalent to:
 
 ```swift
 matching(Enforcement.weak)   | when(.coin) | then(.unlocked)
@@ -496,15 +496,13 @@ fsm.handleEvent(.pass, predicates: Enforcement.weak, Reward.positive)
 }
 ```
 
-The same inference rules also apply. The statement…
+The same inference rules also apply:
 
 ```swift
 when(.coin) | then(.unlocked)
-```
 
-in this new context with an additional `Predicate` will now be inferred as:
+// in two predicate context, now equivalent to:
 
-```swift
 matching(Enforcement.weak)   | when(.coin) | then(.unlocked)
 matching(Enforcement.strong) | when(.coin) | then(.unlocked)
 matching(Reward.positive)    | when(.coin) | then(.unlocked)
@@ -519,7 +517,7 @@ define(.locked) {
     matching(Reward.negative)  | when(.coin) | then(.locked)
 }
 
-// runtime error: implicit conflict
+// 💥 error: implicit conflict
 ```
 
 On the surface of it, the two transitions above appear to be different from one another. However if we remember the inference rules, we will see that they actually conflict with one another:
@@ -539,14 +537,14 @@ define(.locked) {
 
 #### Deduplication:
 
-Take the following lines from the original example:
+In the following case, `when(.pass)` is duplicated:
 
 ```swift
 matching(Enforcement.weak)   | when(.pass) | then(.locked)
 matching(Enforcement.strong) | when(.pass) | then(.alarming)
 ```
 
-In this case, `when(.pass)` is duplicated. We can remove that duplication, replacing the above as follows:
+ We can remove duplication as follows:
 
 ```swift
 when(.pass) {
@@ -555,7 +553,7 @@ when(.pass) {
 }
 ```
 
-Here we have created a `when` context block. Anything inside that context will assume that the event in question is `.pass`. 
+Here we have created a `when` context block. Anything in that context will assume that the event in question is `.pass`. 
 
 The full example would now be:
 
@@ -574,7 +572,7 @@ try fsm.buildTable {
 }
 ```
 
-`then` and `matching` also support deduplication in a similar way:
+`then` and `matching` support deduplication in a similar way:
 
 ```swift
 try fsm.buildTable {
@@ -609,7 +607,7 @@ try fsm.buildTable {
 }
 ```
 
-A new keyword `actions` is also available for deduplicating function calls:
+The keyword `actions` is available for deduplicating function calls:
 
 ```swift
 try fsm.buildTable {
@@ -646,35 +644,35 @@ actions(functionCalls) {
 }
 ```
 
-They can be divided into two groups - blocks that can be chained together, and blocks that cannot.
+They can be divided into two groups - blocks that can be logically chained (or AND-ed) together, and blocks that cannot.
 
 ##### Discrete Blocks - `when` and `then`
 
-Each transition can only respond to one specific event, and then transition to one specific state. Therefore multiple `when {}` and `then {}` blocks cannot be chained together.
+Each transition can only respond to a single event, and transition to a single state. Therefore multiple `when {}` and `then {}` blocks cannot be AND-ed together.
 
 ```swift
 define(.locked) {
     when(.coin) {
-        when(.pass) { } // error: does not compile
-        when(.pass) | ... // error: does not compile
+        when(.pass) { } // ⛔️ does not compile
+        when(.pass) | ... // ⛔️ does not compile
 
-        matching(.something) | when(.pass) | ... // error: does not compile
+        matching(.something) | when(.pass) | ... // ⛔️ does not compile
 
         matching(.something) { 
-            when(.pass) { } // error: does not compile
-            when(.pass) | ... // error: does not compile
+            when(.pass) { } // ⛔️ does not compile
+            when(.pass) | ... // ⛔️ does not compile
         }
     }
 
     then(.unlocked) {
-        then(.locked) { } // error: does not compile
-        then(.locked) | ... // error: does not compile
+        then(.locked) { } // ⛔️ does not compile
+        then(.locked) | ... // ⛔️ does not compile
 
-        matching(.something) | then(.locked) | ... // error: does not compile
+        matching(.something) | then(.locked) | ... // ⛔️ does not compile
 
         matching(.something) { 
-            then(.locked) { } // error: does not compile
-            then(.locked) | ... // error: does not compile
+            then(.locked) { } // ⛔️ does not compile
+            then(.locked) | ... // ⛔️ does not compile
         }
     }      
 }
@@ -686,19 +684,21 @@ Additionally, there is a specific combination of  `when` and `then` that does no
 ```swift
 define(.locked) {
     when(.coin) {
-        then(.unlocked) | action // error: does not compile
-        then(.locked)   | action // error: does not compile
+        then(.unlocked) | action // ⛔️ does not compile
+        then(.locked)   | action // ⛔️ does not compile
     }
 }
 ```
 
-Logically, there is no situation where, in response to a single event (in this case, `.coin`), there could then be a transition to more than one state, unless a different `Predicate` is stated for each. Therefore the following is allowed:
+Logically, there is no situation where, in response to a single event (in this case, `.coin`), there could then be a transition to more than one state, unless a different `Predicate` is stated for each. 
+
+Therefore the following is allowed:
 
 ```swift
 define(.locked) {
     when(.coin) {
-        matching(Enforcement.weak)   | then(.unlocked) | action // ok
-        matching(Enforcement.strong) | then(.locked)   | otherAction // ok
+        matching(Enforcement.weak)   | then(.unlocked) | action // ✅
+        matching(Enforcement.strong) | then(.locked)   | otherAction // ✅
     }
 }
 ```
@@ -708,8 +708,8 @@ Note that by doing this, it is quite easy to form a duplicate that cannot be che
 ```swift
 define(.locked) {
     when(.coin) {
-        matching(Enforcement.weak) | then(.unlocked) | action // ok
-        matching(Enforcement.weak) | then(.locked)   | otherAction // ok
+        matching(Enforcement.weak) | then(.unlocked) | action // ✅
+        matching(Enforcement.weak) | then(.locked)   | otherAction // ✅
     }
 }
 
@@ -725,13 +725,13 @@ There is no logical restriction on the number of predicates or actions per trans
 ```swift
 define(.locked) {
     matching(Enforcement.weak) {
-        matching(Reward.positive) { } // ok
-        matching(Reward.positive) | ... // ok
+        matching(Reward.positive) { } // ✅
+        matching(Reward.positive) | ... // ✅
     }
 
     actions(doSomething) {
-        actions(doSomethingElse) { } // ok
-        ... | doSomethingElse // ok
+        actions(doSomethingElse) { } // ✅
+        ... | doSomethingElse // ✅
     }      
 }
 ```
@@ -746,9 +746,9 @@ Pipes can and must be used inside blocks, whereas blocks cannot be opened after 
 
 ```swift
 define(.locked) {
-    when(.coin) | then(.unlocked) { } // error: does not compile
-    when(.coin) | then(.unlocked) | actions(doSomething) { } // error: does not compile
-    matching(.something) | when(.coin) { } // error: does not compile
+    when(.coin) | then(.unlocked) { } // ⛔️ does not compile
+    when(.coin) | then(.unlocked) | actions(doSomething) { } // ⛔️ does not compile
+    matching(.something) | when(.coin) { } // ⛔️ does not compile
 }
 ```
 
@@ -764,7 +764,7 @@ matching(A.x, or: A.y)... // if A.x OR A.y
 matching(A.x, or: A.y, A.z)... // if A.x OR A.y OR A.z
 
 matching(A.x, and: B.x)... // if A.x AND B.x
-matching(A.x, and: A.y)... // error: cannot match A.x and A.y simultaneously
+matching(A.x, and: A.y)... // 💥 error: cannot match A.x and A.y simultaneously
 matching(A.x, and: B.x, C.x)... // if A.x AND B.x AND C.x
 
 matching(A.x, or: A.y, A.z, and: B.x, C.x)... // if (A.x OR A.y OR A.z) AND B.x AND C.x
@@ -788,7 +788,7 @@ The word ‘or’ is more permissive - `matching(A.x, or: A.y)` can be thought o
 define(.locked) {
     matching(A.x) {
         matching(A.y) {
-            // error: cannot match A.x and A.y simultaneously 
+            // 💥 error: cannot match A.x and A.y simultaneously 
         }
     }
 }
@@ -800,8 +800,8 @@ This AND-ing behaviour also applies to OR statements:
 define(.locked) {
     matching(A.x, or: A.y) {
         matching(A.z) {
-            // error: cannot match A.x and A.z simultaneously 
-            // error: cannot match A.y and A.z simultaneously 
+            // 💥 error: cannot match A.x and A.z simultaneously 
+            // 💥 error: cannot match A.y and A.z simultaneously 
         }
     }
 }
@@ -813,7 +813,7 @@ Nested OR statements that do not conflict are AND-ed as follows:
 define(.locked) {
     matching(A.x, or: A.y) {
         matching(B.x, or: B.y) {
-            // ok, logically matches (A.x OR A.y) AND (B.x OR B.y)
+            // ✅ logically matches (A.x OR A.y) AND (B.x OR B.y)
 
             // internally translates to:
 
