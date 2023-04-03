@@ -959,7 +959,7 @@ The performance of `fsm.buildTransitions { }` is dominated by this, assuming any
 Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations.
 
 [1]:	https://github.com/unclebob/CC_SMC
-[2]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder
+[2]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators#Result-Builders
 [3]:	#requirements
 [4]:	#basic-syntax
 [5]:	#optional-arguments
