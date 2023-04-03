@@ -510,7 +510,7 @@ try fsm.buildTable {
 }
 ```
 
-This has the advantage not only of allowing us to call different functions, but also to transition to a different state, all depending on the enforcement policy. 
+This has the advantage not only of allowing us to call different functions, but also of transitioning to a different state, dependent on the enforcement policy. 
 
 The down side is that every transition that originally responded to the `.pass` event will now have to be written twice, once for each of the two new versions of this event, *even if they do the same thing in both cases*. In no time at all, the state transition table is going to become unmanageably long, and littered with duplication. 
 
@@ -563,7 +563,7 @@ Given that we are in the locked state:
 - If `Enforcement` is `.strong`, when we get a `.pass`, transition to `.alarming` and `defconOne`
 - **Regardless** of `Enforcement`, when we get a `.coin`, transition to `.unlocked` and `unlock`
 
-This allows the extra `Enforcement` logic to be expressed directly within the FSM table without violating the Open/Closed principle. Only those statements that care about the `Enforcement` policy need know it exists, and all other existing statements continue to work as they always did.
+This allows the extra `Enforcement` logic to be expressed directly within the FSM table without violating the Open/Closed principle. Only those statements that care about the `Enforcement` policy need know it exists, and all other preexisting statements continue to work as they always did.
 
 ### ExpandedSyntaxBuilder and Predicate
 
@@ -613,7 +613,7 @@ try fsm.buildTable {
         matching(Reward.positive) | when(.coin) | then(.unlocked) | thankyou
         matching(Reward.negative) | when(.coin) | then(.unlocked) | idiot
 
-        when(.coin) | then(.unlocked) | unlock
+        when(.pass) | then(.locked) | lock
     }
     ...
 }
@@ -626,7 +626,7 @@ The same inference rules continue to apply:
 ```swift
 when(.coin) | then(.unlocked)
 
-// in two predicate context, now equivalent to:
+// now in a two predicate context, equivalent to:
 
 matching(Enforcement.weak)   | when(.coin) | then(.unlocked)
 matching(Enforcement.strong) | when(.coin) | then(.unlocked)
