@@ -207,12 +207,12 @@ try! fsm.buildTable {
         when(.reset) | then(.locked) | { alarmOff(); lock() }
     }
 
-    define(.locked, superState: resetable) {
+    define(.locked, superStates: resetable) {
         when(.coin) | then(.unlocked) | unlock
         when(.pass) | then(.alarming) | alarmOn
     }
 
-    define(.unlocked, superState: resetable) {
+    define(.unlocked, superStates: resetable) {
         when(.coin) | then(.unlocked) | thankyou
         when(.pass) | then(.locked)   | lock
     }
@@ -221,9 +221,25 @@ try! fsm.buildTable {
 }
 ```
 
-`SuperState`  takes a `@resultBuilder` block like `define`, however it does not take a starting state. The starting state is taken from the `define` statement to which it is passed. Passing a `SuperState` instance to a `define` call will add the transitions declared in the `SuperState` to the other transitions declared in the `define`. 
+`SuperState`  takes a `@resultBuilder` block like `define`, however it does not take a starting state. The starting state is taken from the `define` statement to which it is passed. Passing `SuperState` instances to a `define` call will add the transitions declared in each of the `SuperState` instances to the other transitions declared in the `define`. 
 
 If a `SuperState` instance is given, the `@resultBuilder` argument to `define` is optional.
+
+`SuperState` instances themselves can accept other `SuperState` instances, and will combine them together in the same way a `define` statement does:
+
+```swift
+let s1 = SuperState { when(.coin) | then(.unlocked) | unlock  }
+let s2 = SuperState { when(.pass) | then(.alarming) | alarmOn }
+
+let s3 = SuperState(superStates: s1, s2)
+
+// s3 is equivalent to:
+
+let s4 = SuperState {
+    when(.coin) | then(.unlocked) | unlock
+    when(.pass) | then(.alarming) | alarmOn
+}
+```
 
 **Important** - SMC allows for both abstract (without a given state) and concrete (with a given state) Super States. It also allows for overriding transitions declared in a Super State. SwiftFSM on the other hand only allows abstract Super States, defined using the `SuperState` struct, and any attempt to override a Super State transition will result in a duplicate transition error.
 
@@ -260,21 +276,58 @@ try fsm.buildTable {
         when(.reset) | then(.locked)
     }
 
-    define(.locked, superState: resetable, onEntry: [lock]) {
+    define(.locked, superStates: resetable, onEntry: [lock]) {
         when(.coin) | then(.unlocked)
         when(.pass) | then(.alarming)
     }
 
-    define(.unlocked, superState: resetable, onEntry: [unlock]) {
+    define(.unlocked, superStates: resetable, onEntry: [unlock]) {
         when(.coin) | then(.unlocked) | thankyou
         when(.pass) | then(.locked)
     }
 
-    define(.alarming, superState: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+    define(.alarming, superStates: resetable, onEntry: [alarmOn], onExit: [alarmOff])
 }
 ```
 
 `onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state.
+
+`SuperState` instances can also accept entry and exit actions:
+
+```swift
+let resetable = SuperState(onEntry: [lock]) {
+    when(.reset) | then(.locked)
+}
+
+define(.locked, superStates: resetable) {
+    when(.coin) | then(.unlocked)
+    when(.pass) | then(.alarming)
+}
+
+// equivalent to:
+
+define(.locked, onEntry: [lock]) {
+    when(.reset) | then(.locked)
+    when(.coin) | then(.unlocked)
+    when(.pass) | then(.alarming)
+}
+```
+
+`SuperState` instances also inherit entry and exit actions from their superstates:
+
+```swift
+let s1 = SuperState(onEntry: [unlock])  { when(.coin) | then(.unlocked) }
+let s2 = SuperState(onEntry: [alarmOn]) { when(.pass) | then(.alarming) }
+
+let s3 = SuperState(superStates: s1, s2)
+
+// s3 is equivalent to:
+
+let s4 = SuperState(onEntry: [unlock, alarmOn]) { 
+    when(.coin) | then(.unlocked)
+    when(.pass) | then(.alarming)
+}
+```
 
 **Important** - in SMC, entry and exit actions are invoked even if the state does not change. In the example above, this would mean that the unlock entry action would be called on all transitions into the `Unlocked` state, *even if the FSM is already in the `Unlocked` state*. 
 
@@ -314,17 +367,23 @@ It you wish to use this alternative syntax, it is strongly recommended that you 
 
 No harm will befall the FSM if you mix and match, but at the very least, from an autocomplete point of view, things will get messy. 
 
-### Syntactic Sugar - warning, probably needs deletion
+### Syntactic Sugar
 
- `when` statements accept varargs for convenience.
+ `when` statements accept vararg `Event` instances for convenience.
 
 ```swift
-define(.locked, .unlocked) {
-    when(.coin, .pass) | then(.unlocked) | unlock
+define(.locked) {
+    when(.coin, or: .pass, ...) | then(.unlocked) | unlock
+}
+
+// equivalent to:
+
+define(.locked) {
+    when(.coin) | then(.unlocked) | unlock
+    when(.pass) | then(.unlocked) | unlock
+    ...
 }
 ```
-
-I have no idea why it can do this, and I probably need to delete it.
 
 ### Performance
 
@@ -347,23 +406,33 @@ We could implement a check somewhere else in the system, perhaps inside the impl
 But this comes with a problem - we now have some aspects of our state transitions declared inside the transition table, and other aspects declared elsewhere. Though this problem is inevitable in software, SwiftFSM provides a mechanism to add some additional decision trees into the FSM table itself.
 
 ```swift
-enum Enforcement: Predicate { case weak, strong }
+import SwiftFSM
 
-try fsm.buildTable {
-    ...
-    define(.locked) {
-        matching(Enforcement.weak)   | when(.pass) | then(.locked)   | doNothing
-        matching(Enforcement.strong) | when(.pass) | then(.alarming) | makeAFuss
+class MyClass: TableBuilder {
+    enum State { case locked, unlocked }
+    enum Event { case coin, pass }
+    enum Enforcement: Predicate { case weak, strong }
+
+    let fsm = FSM<State, Event>(initialState: .locked)
+
+    func myMethod() {
+        try fsm.buildTable {
+            ...
+            define(.locked) {
+                matching(Enforcement.weak)   | when(.pass) | then(.locked)   | doNothing
+                matching(Enforcement.strong) | when(.pass) | then(.alarming) | makeAFuss
                 
-        when(.coin) | then(.unlocked)
-    }
-    ...
-}
+                when(.coin) | then(.unlocked)
+            }
+            ...
 
-fsm.handleEvent(.pass, predicates: Enforcement.weak)
+            fsm.handleEvent(.pass, predicates: Enforcement.weak)
+        }
+    }
+}
 ```
 
-Here we have introduced a new keyword `matching`, and a new protocol `Predicate`. The define statement with its three sentences now reads as follows:
+Here we have introduced a new keyword `matching`, and two new protocols, `ComplexTransitionBuilder` and `Predicate`. The define statement with its three sentences now reads as follows:
 
 - Given that we are in the locked state:
 	- If `Enforcement` is `.weak`, when we get a `.pass`, transition to `.locked`
@@ -373,6 +442,8 @@ Here we have introduced a new keyword `matching`, and a new protocol `Predicate`
 This allows the extra `Enforcement` logic to be expressed directly within the FSM table
 
 ### Detailed Description
+
+`ComplexTableBuilder` inherits from `TableBuilder`, providing all the SMC-equivalent syntax, whilst adding the new `matching` statements for working with predicates. For the `Struct` based variant syntax, the equivalent namespace is `SwiftFSM.Syntax.Complex`.  
 
 `Predicate` requires the conformer to be `Hashable` and `CaseIterable`. `CaseIterable` conformance allows the FSM to calculate all the possible cases of the `Predicate`, such that, if none is specified, it can match that statement to *any* of its cases. It is possible to use any type you wish, as long as your conformance to `Hashable` and `CaseIterable` makes logical sense. In practice however, this requirement is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`. 
 
@@ -398,6 +469,8 @@ In other words, statements in SwiftFSM are are `Predicate` agnostic by default, 
 SwiftFSM does not limit the number of `Predicate` types that can be used in one table. The following (contrived and rather silly) expansion of the original `Predicate` example is equally valid:
 
 ```swift
+class myClass: ComplexTableBuilder {
+
 enum Enforcement: Predicate { case weak, strong }
 enum Reward: Predicate { case positive, negative }
 
@@ -420,6 +493,7 @@ try fsm.buildTable {
 }
 
 fsm.handleEvent(.pass, predicates: Enforcement.weak, Reward.positive)
+}
 ```
 
 The same inference rules also apply. The statement…
