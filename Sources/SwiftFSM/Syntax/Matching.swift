@@ -6,21 +6,21 @@
 
 import Foundation
 
-extension Syntax {
+extension Syntax.Complex {
     struct Matching {
-        static func |<E: Hashable> (lhs: Self, rhs: When<E>) -> Internal.MatchingWhen {
+        static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
             .init(node: rhs.node.appending(lhs.node))
         }
         
-        static func |<E: Hashable> (lhs: Self, rhs: When<E>) -> Internal.MatchingWhenActions {
+        static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
         
-        static func |<S: Hashable> (lhs: Self, rhs: Then<S>) -> Internal.MatchingThen {
+        static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
             .init(node: rhs.node.appending(lhs.node))
         }
         
-        static func |<S: Hashable> (lhs: Self, rhs: Then<S>) -> Internal.MatchingThenActions {
+        static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
         

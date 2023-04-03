@@ -13,7 +13,7 @@ class SyntaxTestsBase: XCTestCase, ComplexTableBuilder {
     typealias EventType = Int
     
     typealias Define = Syntax.Define<StateType>
-    typealias Matching = Syntax.Matching
+    typealias Matching = Syntax.Complex.Matching
     typealias When = Syntax.When<EventType>
     typealias Then = Syntax.Then<StateType>
     typealias Actions = Syntax.Actions

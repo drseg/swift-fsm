@@ -7,9 +7,7 @@
 import Foundation
 
 enum Syntax {
-    enum Complex {
-#warning("nest Matching in here")
-    }
+    enum Complex { }
 }
 
 enum Internal {

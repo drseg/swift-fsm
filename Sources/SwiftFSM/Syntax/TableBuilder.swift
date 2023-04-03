@@ -137,13 +137,15 @@ extension TableBuilder {
 protocol ComplexTableBuilder: TableBuilder { }
 
 extension ComplexTableBuilder {
+    typealias Matching = Syntax.Complex.Matching
+    
     func matching(
         _ first: any Predicate,
         or: any Predicate...,
         and: any Predicate...,
         file: String = #file,
         line: Int = #line
-    ) -> Syntax.Matching {
+    ) -> Matching {
         .init(first, or: or, and: and, file: file, line: line)
     }
     
@@ -155,7 +157,7 @@ extension ComplexTableBuilder {
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [any MWTA]
     ) -> Internal.MWTASentence {
-        Syntax.Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
+        Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
     
     func matching(
@@ -166,7 +168,7 @@ extension ComplexTableBuilder {
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [any MWA]
     ) -> Internal.MWASentence {
-        Syntax.Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
+        Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
     
     func matching(
@@ -177,6 +179,6 @@ extension ComplexTableBuilder {
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [any MTA]
     ) -> Internal.MTASentence {
-        Syntax.Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
+        Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
 }

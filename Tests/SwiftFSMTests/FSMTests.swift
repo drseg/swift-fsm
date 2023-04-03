@@ -276,7 +276,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         typealias State = Syntax.Define<StateType>
         typealias Event = Syntax.When<EventType>
         typealias NextState = Syntax.Then<StateType>
-        typealias If = Syntax.Matching
+        typealias If = Syntax.Complex.Matching
         
         try fsm.buildTable {
             let resetable = SuperState {
