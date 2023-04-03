@@ -35,7 +35,7 @@ Swift FSM is a Swift package, importable through the Swift Package Manager, and 
 
 ## Basic Syntax
 
-Borrowing from SMC, we have an example of a simple subway turnstile system. This turnstile currently has two possible states: `Locked`, and `Unlocked`, alongside two possible events: `Coin`, and `Pass`.
+Borrowing from SMC, we will use an example of a subway turnstile system. This turnstile has two possible states: `Locked`, and `Unlocked`, and two possible events: `Coin`, and `Pass`.
 
 The logic is as follows (from Uncle Bob, emphasis added): 
 
@@ -44,7 +44,7 @@ The logic is as follows (from Uncle Bob, emphasis added):
 > - *Given* we are in the *Unlocked* state, *when* we get a *Coin* event, *then* we stay in the *Unlocked* state and *invoke* the *thankyou* action.
 > - *GIven* we are in the *Unlocked* state, *when* we get a *Pass* event, *then* we transition to the *Locked* state and *invoke* the *lock* action.
 
-Following Uncle Bob’s examples, we will build up our table bit by bit to demonstrate the different syntactic possibilities of Swift FSM:
+Following Uncle Bob’s examples, we will build up our table bit by bit to demonstrate the different syntactic possibilities of Swift FSM and how they compare to SMC:
 
 SMC:
 
@@ -92,51 +92,49 @@ class MyClass: SyntaxBuilder {
 }
 ```
 
-Here we can see the four natural language sentences translated into a minimalistic syntax capable of expressing their essential logic.
-
-```swift
-class MyClass: SyntaxBuilder {
-```
+> ```swift
+> class MyClass: SyntaxBuilder {
+> ```
 
 The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable`.
 
-```swift
-let fsm = FSM<State, Event>(initialState: .locked)
-```
+> ```swift
+> let fsm = FSM<State, Event>(initialState: .locked)
+> ```
 
 `FSM` is generic  over `State` and `Event`.  As with `SyntaxBuilder`, `State` and `Event` must be `Hashable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
 
-```swift
-try! fsm.buildTable {
-```
+> ```swift
+> try! fsm.buildTable {
+> ```
 
 `fsm.buildTable` is a throwing function - though the type system will prevent various illogical statements, there are some issues that can only be detected at runtime.
 
-```swift
-define(.locked) {
-```
+> ```swift
+> define(.locked) {
+> ```
 
 The `define` statement roughly corresponds to the ‘Given’ keyword in the natural language description of the FSM. It is expected however that you will only write one `define` per state.
 
 `define` takes two arguments - a `State` instance, and a Swift `@resultBuilder` block.
 
-```swift
-when(.coin) | then(.unlocked) | unlock
-```
+> ```swift
+> when(.coin) | then(.unlocked) | unlock
+> ```
 
 As we are inside a `define` block, we take the `.locked` state as a given. We can now list our transitions, with each line representing a single transition. In this case, `when` we receive a `.coin` event, we will `then` transition to the `.unlocked` state and call `unlock`. 
 
 `unlock` is a function, also declarable as follows:
 
-```swift
-when(.coin) | then(.unlocked) | { unlock() //; otherFunction(); etc. }
-```
+> ```swift
+> when(.coin) | then(.unlocked) | { unlock() //; otherFunction(); etc. }
+> ```
 
 The `|` (pipe) operator binds transitions together. It feeds the output of the left hand side into the input of the right hand side, as you might expect in a terminal.
 
-```swift
-fsm.handleEvent(.coin)
-```
+> ```swift
+> fsm.handleEvent(.coin)
+> ```
 
 The `FSM` instance will look up the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, the `FSM` will call the `unlock` function and transition to the `unlocked` state.  If no transition is found, it will do nothing.
 
