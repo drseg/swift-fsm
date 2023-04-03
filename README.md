@@ -649,15 +649,15 @@ On the surface of it, the two transitions above appear to be different from one 
 
 ```swift
 define(.locked) {
-    matching(Enforcement.weak)    | when(.coin) | then(.unlocked) // clash 1
+    matching(Enforcement.weak)   | when(.coin) | then(.unlocked) // clash 1
 // also inferred as:
-    matching(Reward.positive)     | when(.coin) | then(.unlocked)
-    matching(Reward.negative)     | when(.coin) | then(.unlocked) // clash 2	
+    matching(Reward.positive)    | when(.coin) | then(.unlocked)
+    matching(Reward.negative)    | when(.coin) | then(.unlocked) // clash 2	
 
-    matching(Reward.negative)     | when(.coin) | then(.locked)   // clash 2
+    matching(Reward.negative)    | when(.coin) | then(.locked)   // clash 2
 // also inferred as:
-    matching(Enforcement.weak)    | when(.coin) | then(.locked)   // clash 1
-    matching(Enforcement.strong)  | when(.coin) | then(.locked)
+    matching(Enforcement.weak)   | when(.coin) | then(.locked)   // clash 1
+    matching(Enforcement.strong) | when(.coin) | then(.locked)
 ```
 
 ### Deduplication
@@ -840,8 +840,6 @@ define(.locked) {
 
 // 💥 error: logical clash
 ```
-
-See the errors section for more information (TBA…)
 
 #### Chainable Blocks - `matching` and `actions`
 
