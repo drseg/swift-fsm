@@ -134,10 +134,10 @@ extension TableBuilder {
     }
 }
 
-protocol ComplexTableBuilder: TableBuilder { }
+protocol ExpandedTableBuilder: TableBuilder { }
 
-extension ComplexTableBuilder {
-    typealias Matching = Syntax.Complex.Matching
+extension ExpandedTableBuilder {
+    typealias Matching = Syntax.Expanded.Matching
     
     func matching(
         _ first: any Predicate,

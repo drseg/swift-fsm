@@ -8,12 +8,12 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-class SyntaxTestsBase: XCTestCase, ComplexTableBuilder {
+class SyntaxTestsBase: XCTestCase, ExpandedTableBuilder {
     typealias StateType = Int
     typealias EventType = Int
     
     typealias Define = Syntax.Define<StateType>
-    typealias Matching = Syntax.Complex.Matching
+    typealias Matching = Syntax.Expanded.Matching
     typealias When = Syntax.When<EventType>
     typealias Then = Syntax.Then<StateType>
     typealias Actions = Syntax.Actions

@@ -6,7 +6,7 @@
 
 import Foundation
 
-extension Syntax.Complex {
+extension Syntax.Expanded {
     struct Matching {
         static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
             .init(node: rhs.node.appending(lhs.node))

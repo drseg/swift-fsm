@@ -7,7 +7,7 @@
 import Foundation
 
 enum Syntax {
-    enum Complex { }
+    enum Expanded { }
 }
 
 enum Internal {

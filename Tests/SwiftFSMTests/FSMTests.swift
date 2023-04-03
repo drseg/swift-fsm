@@ -8,7 +8,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-final class FSMTests: XCTestCase, ComplexTableBuilder {
+final class FSMTests: XCTestCase, ExpandedTableBuilder {
     typealias StateType = Int
     typealias EventType = Double
     
@@ -121,7 +121,7 @@ final class FSMTests: XCTestCase, ComplexTableBuilder {
     }
 }
 
-class FSMIntegrationTests: XCTestCase, ComplexTableBuilder {
+class FSMIntegrationTests: XCTestCase, ExpandedTableBuilder {
     enum StateType: String, CustomStringConvertible {
         case locked, unlocked, alarming
         var description: String { rawValue  }
@@ -276,7 +276,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         typealias State = Syntax.Define<StateType>
         typealias Event = Syntax.When<EventType>
         typealias NextState = Syntax.Then<StateType>
-        typealias If = Syntax.Complex.Matching
+        typealias If = Syntax.Expanded.Matching
         
         try fsm.buildTable {
             let resetable = SuperState {
