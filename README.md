@@ -1,15 +1,21 @@
 # Swift FSM
 ### Friendly Finite State Machine Syntax for Swift, iOS and macOS
 
-Inspired by [Uncle Bob's SMC][1] syntax, SwiftFSM is a pure Swift syntax for declaring and operating a Finite State Machine (FSM). Unlike Uncle Bob’s SMC, the FSM itself is declared inside your Swift code, rather than as a separate text file, and compiles and runs directly alongside all your other project code.
+Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is a pure Swift syntax for declaring and operating a Finite State Machine (FSM). Unlike Uncle Bob’s SMC, the FSM itself is declared inside your Swift code, rather than as a separate text file, and compiles and runs directly alongside all your other project code.
 
 This guide is reasonably complete, but does presume some familiarity with FSMs and specifically the SMC syntax linked above.
 
+## Contents:
+
+- [Requirements][2]
+- [Basic Syntax][3]
+- [Expanded Syntax][4]
+
 ## Requirements:
 
-SwiftFSM is a Swift package, importable through the Swift Package Manager, and requires macOS 12.6 and/or iOS 15.6 or later, alongside Swift 5.6 or later.
+Swift FSM is a Swift package, importable through the Swift Package Manager, and requires macOS 12.6 and/or iOS 15.6 or later, alongside Swift 5.6 or later.
 
-## Example:
+## Basic Syntax:
 
 Borrowing from SMC, we have an example of a simple subway turnstile system. This turnstile currently has two possible states: `Locked`, and `Unlocked`, alongside two possible events: `Coin`, and `Pass`.
 
@@ -20,9 +26,7 @@ The logic is as follows (from Uncle Bob, emphasis added):
 > - *Given* we are in the *Unlocked* state, *when* we get a *Coin* event, *then* we stay in the *Unlocked* state and *invoke* the *thankyou* action.
 > - *GIven* we are in the *Unlocked* state, *when* we get a *Pass* event, *then* we transition to the *Locked* state and *invoke* the *lock* action.
 
-Following Uncle Bob’s examples, we will build up our table bit by bit to demonstrate the different syntactic possibilities of SwiftFSM:
-
-### Basic Syntax:
+Following Uncle Bob’s examples, we will build up our table bit by bit to demonstrate the different syntactic possibilities of Swift FSM:
 
 SMC:
 
@@ -41,7 +45,7 @@ FSM: Turnstile
 }
 ```
 
-SwiftFSM (with additional code for context):
+Swift FSM (with additional code for context):
 
 ```swift
 import SwiftFSM
@@ -102,9 +106,9 @@ The `define` statement roughly corresponds to the ‘Given’ keyword in the nat
 when(.coin) | then(.unlocked) | unlock
 ```
 
-As we are inside a `define` block, we take the `.locked` state as a given. We can now list our transitions, with each line representing a single transition. In this case, `when` we receive a `.coin` event, we will `then` transition to the `.unlocked` state and call the `unlock` function. 
+As we are inside a `define` block, we take the `.locked` state as a given. We can now list our transitions, with each line representing a single transition. In this case, `when` we receive a `.coin` event, we will `then` transition to the `.unlocked` state and call `unlock`. 
 
-Here, `unlock` is a function, and could equally be declared as follows:
+`unlock` is a function, also declarable as follows:
 
 ```swift
 when(.coin) | then(.unlocked) | { unlock() //; otherFunction(); etc. }
@@ -146,7 +150,7 @@ FSM: Turnstile
 }
 ```
 
-SwiftFSM:
+Swift FSM:
 
 ```swift
 try! fsm.buildTable {
@@ -199,7 +203,7 @@ FSM: Turnstile
 }
 ```
 
-SwiftFSM:
+Swift FSM:
 
 ```swift
 try! fsm.buildTable {
@@ -241,7 +245,7 @@ let s4 = SuperState {
 }
 ```
 
-**Important** - SMC allows for both abstract (without a given state) and concrete (with a given state) Super States. It also allows for overriding transitions declared in a Super State. SwiftFSM on the other hand only allows abstract Super States, defined using the `SuperState` struct, and any attempt to override a Super State transition will result in a duplicate transition error.
+**Important** - SMC allows for both abstract (without a given state) and concrete (with a given state) Super States. It also allows for overriding transitions declared in a Super State. Swift FSM on the other hand only allows abstract Super States, defined using the `SuperState` struct, and any attempt to override a Super State transition will result in a duplicate transition error.
 
 ### Entry and Exit Actions
 
@@ -268,7 +272,7 @@ FSM: Turnstile
 }
 ```
 
-SwiftFSM:
+Swift FSM:
 
 ```swift
 try fsm.buildTable {
@@ -331,17 +335,17 @@ let s4 = SuperState(onEntry: [unlock, alarmOn]) {
 
 **Important** - in SMC, entry and exit actions are invoked even if the state does not change. In the example above, this would mean that the unlock entry action would be called on all transitions into the `Unlocked` state, *even if the FSM is already in the `Unlocked` state*. 
 
-In contrast, SwiftFSM entry and exit actions are only invoked if there is a state change. In the example above, this means that, in the `.unlocked` state, after a `.coin` event, `unlock` will *not* be called.
+In contrast, Swift FSM entry and exit actions are only invoked if there is a state change. In the example above, this means that, in the `.unlocked` state, after a `.coin` event, `unlock` will *not* be called.
 
 ### Syntax Order
 
 All statements must be made in the form `define { when | then | actions }`. Any reordering will not compile.
 
-See [Expanded Syntax][2] below for exceptions to this rule.
+See [Expanded Syntax][5] below for exceptions to this rule.
 
 ### Syntax Variations
 
-SwiftFSM allows you to alter the naming conventions in your syntax by using `typealiases`. Though `define`, `when`, and `then` are functions, there are matching structs with equivalent capitalised names contained in the `SwiftFSM.Syntax` namespace.
+Swift FSM allows you to alter the naming conventions in your syntax by using `typealiases`. Though `define`, `when`, and `then` are functions, there are matching structs with equivalent capitalised names contained in the `SwiftFSM.Syntax` namespace.
 
 Here is one minimalistic example:
 
@@ -387,15 +391,15 @@ define(.locked) {
 
 ### Performance
 
-SwiftFSM uses a Dictionary to store the state transition table, and each time `handleEvent()` is called, it performs a single O(1) operation to find the correct transition. Though O(1) is ideal from a performance point of view, a O(1) lookup is still significantly slower than a nested switch case statement, and SwiftFSM is approximately 2-3x slower per transition.
+Swift FSM uses a Dictionary to store the state transition table, and each time `handleEvent()` is called, it performs a single O(1) operation to find the correct transition. Though O(1) is ideal from a performance point of view, a O(1) lookup is still significantly slower than a nested switch case statement, and Swift FSM is approximately 2-3x slower per transition.
 
 ## Expanded Syntax
 
-SwiftFSM matches the syntax possibilities offered by SMC, however it also introduces some new possibilities of its own. None of this additional syntax is required, and is provided for convenience.
+Swift FSM matches the syntax possibilities offered by SMC, however it also introduces some new possibilities of its own. None of this additional syntax is required, and is provided for convenience.
 
 ### Rationale
 
-Though the turnstile is a pleasing example, it is also conveniently simple. Given that all computer programs are in essence FSMs, there is no limit to the degree of complexity an FSM table might reach. At some point on the complexity scale, SMC and SwiftFSM basic syntax would become so lengthy as to be unusable.
+Though the turnstile is a pleasing example, it is also conveniently simple. Given that all computer programs are in essence FSMs, there is no limit to the degree of complexity an FSM table might reach. At some point on the complexity scale, SMC and Swift FSM basic syntax would become so lengthy as to be unusable.
 
 ### Example
 
@@ -403,7 +407,7 @@ Let’s imagine an extension to our turnstile rules, whereby under some circumst
 
 We could implement a check somewhere else in the system, perhaps inside the implementation of the `alarmOn` function to decide what the appropriate behaviour should be depending on the time of day.
 
-But this comes with a problem - we now have some aspects of our state transitions declared inside the transition table, and other aspects declared elsewhere. Though this problem is inevitable in software, SwiftFSM provides a mechanism to add some additional decision trees into the FSM table itself.
+But this comes with a problem - we now have some aspects of our state transitions declared inside the transition table, and other aspects declared elsewhere. Though this problem is inevitable in software, Swift FSM provides a mechanism to add some additional decision trees into the FSM table itself.
 
 ```swift
 import SwiftFSM
@@ -456,18 +460,18 @@ when(.coin) | then(.unlocked)
 
 In the line above, no `Predicate` is specified, and its full meaning is therefore inferred from its context. The scope for predicate inference is the sum of the builder blocks for all `SuperState` and `define` calls inside `fsm.buildTable { }`.  
 
-In this case, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and SwiftFSM will therefore to infer the absent `matching` statement as follows:
+In this case, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and Swift FSM will therefore to infer the absent `matching` statement as follows:
 
 ```swift
 matching(Enforcement.weak)   | when(.coin) | then(.unlocked)
 matching(Enforcement.strong) | when(.coin) | then(.unlocked)
 ```
 
-Statements in SwiftFSM are are therefore `Predicate` agnostic by default, and will match any given `Predicate`. In this way, `matching` statements are optional specifiers that *constrain* the transition to one or more specific `Predicate` cases. If no `Predicate` is specified, the statement will match all cases.
+Statements in Swift FSM are are therefore `Predicate` agnostic by default, and will match any given `Predicate`. In this way, `matching` statements are optional specifiers that *constrain* the transition to one or more specific `Predicate` cases. If no `Predicate` is specified, the statement will match all cases.
 
 #### Multiple Predicates
 
-SwiftFSM does not limit the number of `Predicate` types that can be used in one table. The following (contrived and rather silly) expansion of the original `Predicate` example is equally valid:
+Swift FSM does not limit the number of `Predicate` types that can be used in one table. The following (contrived and rather silly) expansion of the original `Predicate` example is equally valid:
 
 ```
 enum Enforcement: Predicate { case weak, strong }
@@ -774,7 +778,7 @@ All of these `matching` statements can be used both with `|` syntax, and with de
 
 They should be reasonably self-explanatory, perhaps with the exception of why `matching(A.x, and: A.y)` is an error. 
 
-In SwiftFSM, the word ‘and’ means that we expect both predicates to be present *at the same time*. Each predicate type can only have one value at the time it is passed to `handleEvent()`, therefore asking it to match multiple values of the same `Predicate` type simultaneously has no meaning. The rules of the system are that, if `A.x` is current, `A.y` cannot also be current.
+In Swift FSM, the word ‘and’ means that we expect both predicates to be present *at the same time*. Each predicate type can only have one value at the time it is passed to `handleEvent()`, therefore asking it to match multiple values of the same `Predicate` type simultaneously has no meaning. The rules of the system are that, if `A.x` is current, `A.y` cannot also be current.
 
 For clarity, it can be useful to think of `matching(A.x, and: A.y)` as meaning `matching(A.x, andSimultaneously: A.y)`. In terms of a `when` statement to which it is analogous, it would be as meaningless as saying `when(.coin, and: .pass)` - the event is either `.coin` or `.pass`, it cannot be both.
 
@@ -839,4 +843,7 @@ In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs 
 `try fsm.buildTable { }` does perform error handling to make sure the table is syntactically and semantically valid. In particular, it ensures that all `matching` statements are valid, and that there are no duplicate transitions and no logical clashes between transitions.
 
 [1]:	https://github.com/unclebob/CC_SMC
-[2]:	#expanded-syntax "Expanded Syntax"
+[2]:	#requirements
+[3]:	#basic-syntax
+[4]:	#expanded-syntax
+[5]:	#expanded-syntax "Expanded Syntax"
