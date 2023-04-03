@@ -85,13 +85,13 @@ class BlockComponentTests: BlockTests {
         let s0 = buildMWTA { }
         
         let l1 = #line + 1; let s1 = buildMWTA {
-            matching(P.a) | when(1, 2) | then(1) | pass
-                            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
         let l2 = #line + 1; let s2 = buildMWTA {
-            Matching(P.a) | When(1, 2) | Then(1) | pass
-                            When(1, 2) | Then(1) | pass
+            Matching(P.a) | When(1, or: 2) | Then(1) | pass
+                            When(1, or: 2) | Then(1) | pass
         }
         
         XCTAssertTrue(s0.isEmpty)
@@ -101,8 +101,8 @@ class BlockComponentTests: BlockTests {
     
     func testSuperStateAddsSuperStateNodes() {
         let l1 = #line + 1; let s1 = SuperState {
-            matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+            when(1, or: 2) | then(1) | pass
         }
         
         let nodes = SuperState(superStates: s1, s1).nodes
@@ -114,13 +114,13 @@ class BlockComponentTests: BlockTests {
     
     func testSuperStateCombinesSuperStateNodes() {
         let l1 = #line + 1; let s1 = SuperState {
-            matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+            when(1, or: 2) | then(1) | pass
         }
         
         let l2 = #line + 1; let s2 = SuperState(superStates: s1) {
-            matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+            when(1, or: 2) | then(1) | pass
         }
         
         let nodes = s2.nodes
@@ -134,8 +134,8 @@ class BlockComponentTests: BlockTests {
     
     func testSuperStateAddsEntryExitActions() {
         let s1 = SuperState(onEntry: entry, onExit: exit) {
-            matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+            when(1, or: 2) | then(1) | pass
         }
         
         let s2 = SuperState(superStates: s1)
@@ -146,13 +146,13 @@ class BlockComponentTests: BlockTests {
     
     func testSuperStateCombinesEntryExitActions() {
         let s1 = SuperState(onEntry: entry, onExit: exit) {
-            matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+            when(1, or: 2) | then(1) | pass
         }
         
         let s2 = SuperState(superStates: s1, onEntry: entry, onExit: exit) {
-            matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+            when(1, or: 2) | then(1) | pass
         }
         
         assertActions(s2.entryActions, expectedOutput: "entryentry")
@@ -161,13 +161,13 @@ class BlockComponentTests: BlockTests {
     
     func testSuperStateBlock() {
         let l1 = #line + 1; let s1 = SuperState {
-            matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+            when(1, or: 2) | then(1) | pass
         }
         
         let l2 = #line + 1; let s2 = SuperState {
-            Matching(P.a) | When(1, 2) | Then(1) | pass
-            When(1, 2) | Then(1) | pass
+            Matching(P.a) | When(1, or: 2) | Then(1) | pass
+            When(1, or: 2) | Then(1) | pass
         }
         
         assertMWTAResult(s1.nodes, sutLine: l1)
@@ -185,7 +185,7 @@ class BlockComponentTests: BlockTests {
             
             XCTAssertEqual(1, d.node.rest.count, line: xl)
             let gNode = d.node.rest.first as! GivenNode
-            XCTAssertEqual([1, 2], gNode.states.map(\.base))
+            XCTAssertEqual([1], gNode.states.map(\.base))
             
             assertMWTAResult(gNode.rest, sutLine: el, xctLine: xl)
             assertActions(d.node.onEntry + d.node.onExit, expectedOutput: "entryexit", xctLine: xl)
@@ -199,38 +199,38 @@ class BlockComponentTests: BlockTests {
         }
         
         let l0 = #line + 1; let s = SuperState {
-            matching(P.a) | when(1, 2) | then(1) | pass
-                            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
-        let l1 = #line; let d1 = define(1, 2, superStates: s, onEntry: [entry], onExit: [exit])
-        let l2 = #line; let d2 = Define(1, 2, superStates: s, onEntry: [entry], onExit: [exit])
+        let l1 = #line; let d1 = define(1, superStates: s, onEntry: [entry], onExit: [exit])
+        let l2 = #line; let d2 = Define(1, superStates: s, onEntry: [entry], onExit: [exit])
         
         assertDefine(d1, sutLine: l1, elementLine: l0)
         assertDefine(d2, sutLine: l2, elementLine: l0)
         
-        let l3 = #line; let d3 = define(1, 2, onEntry: [entry], onExit: [exit]) {
-            matching(P.a) | when(1, 2) | then(1) | pass
-                            when(1, 2) | then(1) | pass
+        let l3 = #line; let d3 = define(1, onEntry: [entry], onExit: [exit]) {
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
-        let l4 = #line; let d4 = Define(1, 2, onEntry: [entry], onExit: [exit]) {
-            matching(P.a) | when(1, 2) | then(1) | pass
-                            when(1, 2) | then(1) | pass
+        let l4 = #line; let d4 = Define(1, onEntry: [entry], onExit: [exit]) {
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
         assertDefine(d3, sutLine: l3, elementLine: l3 + 1)
         assertDefine(d4, sutLine: l4, elementLine: l4 + 1)
         
-        let d5 = define(1, 2,superStates: s, onEntry: [entry],  onExit: [exit]) { }
-        let d6 = Define(1, 2, superStates: s, onEntry: [entry], onExit: [exit]) { }
+        let d5 = define(1, superStates: s, onEntry: [entry],  onExit: [exit]) { }
+        let d6 = Define(1, superStates: s, onEntry: [entry], onExit: [exit]) { }
         
         // technically valid/non-empty but need to flag empty trailing block
         assertEmpty(d5)
         assertEmpty(d6)
         
-        let d7 = define(1, 2, onEntry: [entry], onExit: [exit]) { }
-        let d8 = Define(1, 2, onEntry: [entry], onExit: [exit]) { }
+        let d7 = define(1, onEntry: [entry], onExit: [exit]) { }
+        let d8 = Define(1, onEntry: [entry], onExit: [exit]) { }
         
         assertEmpty(d7)
         assertEmpty(d8)
@@ -238,8 +238,8 @@ class BlockComponentTests: BlockTests {
     
     func testDefineAddsSuperStateEntryExitActions() {
         let s1 = SuperState(onEntry: entry, onExit: exit) {
-            matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+            when(1, or: 2) | then(1) | pass
         }
         
         let d1 = define(1, superStates: s1, s1, onEntry: entry, onExit: exit)
@@ -253,15 +253,14 @@ class BlockComponentTests: BlockTests {
     
     func testDefineAddsMultipleSuperStateNodes() {
         let l1 = #line + 1; let s1 = SuperState(onEntry: entry, onExit: exit) {
-            matching(P.a) | when(1, 2) | then(1) | pass
-            when(1, 2) | then(1) | pass
+            matching(P.a) | when(1, or: 2) | then(1) | pass
+            when(1, or: 2) | then(1) | pass
         }
         
-        let d1 = define(1, superStates: s1, s1, onEntry: entry, onExit: exit)
-        let d2 = Define(1, superStates: s1, s1, onEntry: entry, onExit: exit)
-        
-        let g1 = d1.node.rest[0] as! GivenNode
-        let g2 = d2.node.rest[0] as! GivenNode
+        let g1 = define(1, superStates: s1, s1, onEntry: entry, onExit: exit)
+            .node.rest[0] as! GivenNode
+        let g2 = Define(1, superStates: s1, s1, onEntry: entry, onExit: exit)
+            .node.rest[0] as! GivenNode
 
         assertMWTAResult(Array(g1.rest.prefix(2)), sutLine: l1)
         assertMWTAResult(Array(g1.rest.suffix(2)), sutLine: l1)
@@ -304,13 +303,13 @@ class BlockComponentTests: BlockTests {
     
     func testOptionalActions() {
         let l1 = #line; let mwtas1 = buildMWTA {
-            matching(P.a) | when(1, 2) | then(1)
-                            when(1, 2) | then(1)
+            matching(P.a) | when(1, or: 2) | then(1)
+                            when(1, or: 2) | then(1)
         }
         
         let l2 = #line; let mwtas2 = buildMWTA {
-            Matching(P.a) | When(1, 2) | Then(1)
-                            When(1, 2) | Then(1)
+            Matching(P.a) | When(1, or: 2) | Then(1)
+                            When(1, or: 2) | Then(1)
         }
         
         assertMWTAResult(mwtas1.nodes, expectedOutput: "", sutLine: l1 + 1)
@@ -320,13 +319,13 @@ class BlockComponentTests: BlockTests {
 
 class DefaultIOBlockTests: BlockTests {
     let mwtaLine = #line; @MWTABuilder var mwtaBlock: [any MWTA] {
-        Matching(P.a) | When(1, 2) | Then(1) | pass
-                        When(1, 2) | Then(1) | pass
+        Matching(P.a) | When(1, or: 2) | Then(1) | pass
+                        When(1, or: 2) | Then(1) | pass
     }
     
     let mwaLine = #line; @MWABuilder var mwaBlock: [any MWA] {
-        Matching(P.a) | When(1, 2) | pass
-                        When(1, 2) | pass
+        Matching(P.a) | When(1, or: 2) | pass
+                        When(1, or: 2) | pass
     }
     
     let mtaLine = #line; @MTABuilder var mtaBlock: [any MTA] {
@@ -433,8 +432,8 @@ class ActionsBlockTests: DefaultIOBlockTests {
         
         let l1 = #line; let a1 = actions(pass) { mwaBlock }
         let l2 = #line; let a2 = Actions(pass) { mwaBlock }
-        let l3 = #line; let a3 = actions(pass) { Matching(P.a) | When(1, 2) }
-        let l4 = #line; let a4 = Actions(pass) { Matching(P.a) | When(1, 2) }
+        let l3 = #line; let a3 = actions(pass) { Matching(P.a) | When(1, or: 2) }
+        let l4 = #line; let a4 = Actions(pass) { Matching(P.a) | When(1, or: 2) }
         
         assertMWABlock(a1, nodeLine: l1)
         assertMWABlock(a2, nodeLine: l2)
@@ -836,16 +835,16 @@ class WhenBlockTests: DefaultIOBlockTests {
     }
     
     func testWhenBlockWithMTA() {
-        let l1 = #line; let w1 = when(1, 2) { mtaBlock }
-        let l2 = #line; let w2 = When(1, 2) { mtaBlock }
+        let l1 = #line; let w1 = when(1, or: 2) { mtaBlock }
+        let l2 = #line; let w2 = When(1, or: 2) { mtaBlock }
     
         assert(w1, nodeLine: l1, restLine: mtaLine)
         assert(w2, nodeLine: l2, restLine: mtaLine)
     }
     
     func testWhenBlockWithMA() {
-        let l1 = #line; let w1 = when(1, 2) { Matching(P.a) | pass }
-        let l2 = #line; let w2 = When(1, 2) { Matching(P.a) | pass }
+        let l1 = #line; let w1 = when(1, or: 2) { Matching(P.a) | pass }
+        let l2 = #line; let w2 = When(1, or: 2) { Matching(P.a) | pass }
         
         assert(w1, nodeLine: l1, restLine: l1)
         assert(w2, nodeLine: l2, restLine: l2)

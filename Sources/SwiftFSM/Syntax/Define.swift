@@ -10,17 +10,16 @@ extension Syntax {
     struct Define<State: Hashable> {
         let node: DefineNode
         
-        init(_ s1: State,
-             _ rest1: State...,
+        init(_ state: State,
              superStates: SuperState,
-             _ rest2: SuperState...,
+             _ rest: SuperState...,
              onEntry: [() -> ()],
              onExit: [() -> ()],
              file: String = #file,
              line: Int = #line
         ) {
-            self.init([s1] + rest1,
-                      superStates: [superStates] + rest2,
+            self.init(state,
+                      superStates: [superStates] + rest,
                       onEntry: onEntry,
                       onExit: onExit,
                       elements: [],
@@ -28,8 +27,7 @@ extension Syntax {
                       line: line)
         }
         
-        init(_ s1: State,
-             _ rest: State...,
+        init(_ state: State,
              superStates: SuperState...,
              onEntry: [() -> ()] = [],
              onExit: [() -> ()] = [],
@@ -37,7 +35,7 @@ extension Syntax {
              line: Int = #line,
              @Internal.MWTABuilder _ block: () -> [any MWTA]
         ) {
-            self.init(states: [s1] + rest,
+            self.init(state: state,
                       superStates: superStates,
                       onEntry: onEntry,
                       onExit: onExit,
@@ -46,7 +44,7 @@ extension Syntax {
                       block)
         }
         
-        init(states: [State],
+        init(state: State,
              superStates: [SuperState] = [],
              onEntry: [() -> ()],
              onExit: [() -> ()],
@@ -56,7 +54,7 @@ extension Syntax {
         ) {
             let elements = block()
             
-            self.init(states,
+            self.init(state,
                       superStates: elements.isEmpty ? [] : superStates,
                       onEntry: onEntry,
                       onExit: onExit,
@@ -65,7 +63,7 @@ extension Syntax {
                       line: line)
         }
         
-        init(_ states: [State],
+        init(_ state: State,
              superStates: [SuperState],
              onEntry: [() -> ()],
              onExit: [() -> ()],
@@ -89,9 +87,9 @@ extension Syntax {
                     AnyTraceable(s, file: file, line: line)
                 }
                 
-                let states = states.map(eraseToAnyTraceable)
+                let state = AnyTraceable(state, file: file, line: line)
                 let rest = superStates.map(\.nodes).flattened + elements.nodes
-                let gNode = GivenNode(states: states, rest: rest)
+                let gNode = GivenNode(states: [state], rest: rest)
                 
                 dNode.rest = [gNode]
             }

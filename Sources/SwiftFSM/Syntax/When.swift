@@ -31,7 +31,7 @@ extension Syntax {
         
         init(
             _ first: Event,
-            _ rest: Event...,
+            or rest: Event...,
             file: String = #file,
             line: Int = #line
         ) {

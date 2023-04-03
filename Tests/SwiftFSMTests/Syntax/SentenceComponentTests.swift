@@ -50,8 +50,8 @@ final class ComponentTests: SyntaxTestsBase {
     }
             
     func testWhen() {
-        let w1 = when(1, 2); let l1 = #line
-        let w2 = When(1, 2); let l2 = #line
+        let w1 = when(1, or: 2); let l1 = #line
+        let w2 = When(1, or: 2); let l2 = #line
         
         assertWhen(w1, sutLine: l1)
         assertWhen(w2, sutLine: l2)
@@ -72,8 +72,8 @@ final class ComponentTests: SyntaxTestsBase {
     }
     
     func testMatchingWhen() {
-        assertMW(matching(P.a) | when(1, 2), sutLine: #line)
-        assertMW(Matching(P.a) | When(1, 2), sutLine: #line)
+        assertMW(matching(P.a) | when(1, or: 2), sutLine: #line)
+        assertMW(Matching(P.a) | When(1, or: 2), sutLine: #line)
     }
     
     func testMatchingWhenThen() {
@@ -86,13 +86,13 @@ final class ComponentTests: SyntaxTestsBase {
             assertMWNode(when, sutLine: sl)
         }
         
-        assertMWT(matching(P.a) | when(1, 2) | then(1), sutLine: #line)
-        assertMWT(Matching(P.a) | When(1, 2) | Then(1), sutLine: #line)
+        assertMWT(matching(P.a) | when(1, or: 2) | then(1), sutLine: #line)
+        assertMWT(Matching(P.a) | When(1, or: 2) | Then(1), sutLine: #line)
     }
     
     func testMatchingWhenThenActions() {
-        let mwta1 = matching(P.a) | when(1, 2) | then(1) | pass; let l1 = #line
-        let mwta2 = Matching(P.a) | When(1, 2) | Then(1) | pass; let l2 = #line
+        let mwta1 = matching(P.a) | when(1, or: 2) | then(1) | pass; let l1 = #line
+        let mwta2 = Matching(P.a) | When(1, or: 2) | Then(1) | pass; let l2 = #line
 
         assertMWTA(mwta1.node, sutLine: l1)
         assertMWTA(mwta2.node, sutLine: l2)
@@ -110,13 +110,13 @@ final class ComponentTests: SyntaxTestsBase {
             assertWhenNode(when, sutLine: sl, xctLine: xl)
         }
 
-        assertWT(when(1, 2) | then(1), sutLine: #line)
-        assertWT(When(1, 2) | Then(1), sutLine: #line)
+        assertWT(when(1, or: 2) | then(1), sutLine: #line)
+        assertWT(When(1, or: 2) | Then(1), sutLine: #line)
     }
     
     func testWhenThenActions() {
-        let wta1 = when(1, 2) | then(1) | pass; let l1 = #line
-        let wta2 = When(1, 2) | Then(1) | pass; let l2 = #line
+        let wta1 = when(1, or: 2) | then(1) | pass; let l1 = #line
+        let wta2 = When(1, or: 2) | Then(1) | pass; let l2 = #line
         
         assertWTA(wta1.node, sutLine: l1)
         assertWTA(wta2.node, sutLine: l2)

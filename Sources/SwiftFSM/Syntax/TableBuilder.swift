@@ -14,8 +14,7 @@ protocol TableBuilder {
 
 extension TableBuilder {
     func define(
-        _ s1: StateType,
-        _ rest1: StateType...,
+        _ state: StateType,
         superStates: SuperState,
         _ rest2: SuperState...,
         onEntry: [() -> ()] = [],
@@ -23,7 +22,7 @@ extension TableBuilder {
         file: String = #file,
         line: Int = #line
     ) -> Syntax.Define<StateType> {
-        .init([s1] + rest1,
+        .init(state,
               superStates: [superStates] + rest2,
               onEntry: onEntry,
               onExit: onExit,
@@ -33,8 +32,7 @@ extension TableBuilder {
     }
     
     func define(
-        _ s1: StateType,
-        _ rest: StateType...,
+        _ state: StateType,
         superStates: SuperState...,
         onEntry: [() -> ()] = [],
         onExit: [() -> ()] = [],
@@ -42,7 +40,7 @@ extension TableBuilder {
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [any MWTA]
     ) -> Syntax.Define<StateType> {
-        .init(states: [s1] + rest,
+        .init(state: state,
               superStates: superStates,
               onEntry: onEntry,
               onExit: onExit,
@@ -96,7 +94,7 @@ extension TableBuilder {
     
     func when(
         _ first: EventType,
-        _ rest: EventType...,
+        or rest: EventType...,
         file: String = #file,
         line: Int = #line
     ) -> Syntax.When<EventType> {
@@ -105,7 +103,7 @@ extension TableBuilder {
     
     func when(
         _ first: EventType,
-        _ rest: EventType...,
+        or rest: EventType...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [any MTA]
@@ -115,7 +113,7 @@ extension TableBuilder {
     
     func when(
         _ first: EventType,
-        _ rest: EventType...,
+        or rest: EventType...,
         file: String = #file,
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [any MA]
