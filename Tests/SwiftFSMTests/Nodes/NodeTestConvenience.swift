@@ -127,6 +127,27 @@ class NodeTestConvenience: DefineConsumer {
         }, toString(d, printFileAndLine: true))
     }
     
+    func testActionsBlockNodeFileAndLine() {
+        let a = ActionsBlockNode(actions: actions, rest: [], file: "null", line: -1)
+        XCTAssertEqual("A: 12 (null -1)", toString(a, printFileAndLine: true))
+    }
+    
+    func testThenBlockNodeFileAndLine() {
+        let t = ThenBlockNode(state: s1, rest: [], file: "null", line: -1)
+        XCTAssertEqual("T (null -1): S1 (null -1)", toString(t, printFileAndLine: true))
+    }
+    
+    func testWhenBlockNodeFileAndLine() {
+        let w = WhenBlockNode(events: [e1], rest: [], file: "null", line: -1)
+        XCTAssertEqual("W (null -1): E1 (null -1)", toString(w, printFileAndLine: true))
+    }
+    
+    func testMatchBlockNodeFileAndLine() {
+        let w = MatchBlockNode(match: m1, file: "null", line: -1)
+        XCTAssertEqual("M (null -1): any: [[P.a]], all: [Q.a] (null -1)",
+                       toString(w, printFileAndLine: true))
+    }
+    
     func testThenNodeWithMultipleActionsNodes() {
         let n = ThenNode(state: s1, rest: [actionsNode, actionsNode])
         XCTAssertEqual(String {
@@ -154,19 +175,31 @@ class NodeTestConvenience: DefineConsumer {
             }
         }
         
+        func fileAndLine(_ file: String, _ line: Int) -> String {
+            " (\(file) \(line))"
+        }
+        
         var output = ""
         
         if let n = n as? ActionsNodeBase {
             n.actions.executeAll()
             output.append("A: \(actionsOutput)")
+            
+            if let n = n as? ActionsBlockNode, printFileAndLine {
+                output.append(fileAndLine(n.file, n.line))
+            }
             actionsOutput = ""
         }
         
         if let n = n as? ThenNodeBase {
             if let state = n.state {
-                output.append("T: \(n.state!)")
+                if let n = n as? ThenBlockNode, printFileAndLine {
+                    output.append("T" + fileAndLine(n.file, n.line) + ": \(state)")
+                } else {
+                    output.append("T: \(state)")
+                }
                 if printFileAndLine {
-                    output.append(" (\(state.file) \(state.line))")
+                    output.append(fileAndLine(state.file, state.line))
                 }
             } else {
                 output.append("T: default")
@@ -175,23 +208,35 @@ class NodeTestConvenience: DefineConsumer {
         
         if let n = n as? WhenNodeBase {
             if printFileAndLine {
-                let description = n.events.map { $0.description + " (\($0.file) \($0.line))" }
-                output.append("W: \(description.joined(separator: ", "))")
+                let description = n.events.map { $0.description + fileAndLine($0.file, $0.line) }
+                
+                if let n = n as? WhenBlockNode, printFileAndLine {
+                    output.append("W" + fileAndLine(n.file, n.line)
+                                  + ": \(description.joined(separator: ", "))")
+
+                } else {
+                    output.append("W: \(description.joined(separator: ", "))")
+                }
             } else {
                 output.append("W: \(n.events.map(\.description).joined(separator: ", "))")
             }
         }
         
-        if let n = n as? MatchNode {
-            output.append("M: any: \(n.match.matchAny), all: \(n.match.matchAll)")
+        if let n = n as? MatchNodeBase {
+            if let n = n as? MatchBlockNode, printFileAndLine {
+                output.append("M" + fileAndLine(n.file, n.line)
+                              + ": any: \(n.match.matchAny), all: \(n.match.matchAll)")
+            } else {
+                output.append("M: any: \(n.match.matchAny), all: \(n.match.matchAll)")
+            }
             if printFileAndLine {
-                output.append(" (\(n.match.file) \(n.match.line))")
+                output.append(fileAndLine(n.match.file, n.match.line))
             }
         }
         
         if let n = n as? GivenNode {
             if printFileAndLine {
-                let description = n.states.map { $0.description + " (\($0.file) \($0.line))" }
+                let description = n.states.map { $0.description + fileAndLine($0.file, $0.line) }
                 output.append("G: \(description.joined(separator: ", "))")
             } else {
                 output.append("G: \(n.states.map(\.description).joined(separator: ", "))")
@@ -203,7 +248,7 @@ class NodeTestConvenience: DefineConsumer {
             n.onExit.executeAll()
             output.append("D: \(onEnterOutput) \(onExitOutput)")
             if printFileAndLine {
-                output.append(" (\(n.file) \(n.line))")
+                output.append(fileAndLine(n.file, n.line) )
             }
             onEnterOutput = ""
             onExitOutput = ""
