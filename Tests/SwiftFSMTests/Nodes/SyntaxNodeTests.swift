@@ -44,7 +44,7 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     var m1: Match {
-        Match(any: P.a, all: Q.a)
+        Match(any: P.a, all: Q.a, file: "null", line: -1)
     }
     
     func givenNode(thenState: AnyTraceable?, actionsNode: ActionsNode) -> GivenNode {
@@ -336,7 +336,11 @@ class DefineConsumer: SyntaxNodeTests {
         let match = MatchNode(match: m, rest: [when])
         let given = GivenNode(states: [g], rest: [match])
         
-        return .init(onEntry: entry ?? [], onExit: exit ?? [],  rest: [given])
+        return .init(onEntry: entry ?? [],
+                     onExit: exit ?? [],
+                     rest: [given],
+                     file: "null",
+                     line: -1)
     }
 }
 
