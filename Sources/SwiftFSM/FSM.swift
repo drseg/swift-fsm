@@ -57,6 +57,8 @@ class FSM<State: Hashable, Event: Hashable> {
     }
     
     func checkForErrors(_ result: (output: [MatchResolvingNode.Output], errors: [Error])) throws {
+        #warning("also need to check that buildTable hasn't already been called")
+        
         if !result.errors.isEmpty {
             throw SwiftFSMError(errors: result.errors)
         }

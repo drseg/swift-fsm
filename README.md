@@ -923,7 +923,7 @@ This AND-ing behaviour also applies to OR statements:
 define(.locked) {
     matching(A.x, or: A.y) {
         matching(A.z) {
-            // 💥 error: cannot match A.x AND A.z simultaneously 
+            // 💥 error: cannot match A.x AND A.y simultaneously 
             // 💥 error: cannot match A.y AND A.z simultaneously 
         }
     }
