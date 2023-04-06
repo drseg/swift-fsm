@@ -105,7 +105,7 @@ class BlockComponentTests: BlockTests {
             when(1, or: 2) | then(1) | pass
         }
         
-        let nodes = SuperState(superStates: s1, s1).nodes
+        let nodes = SuperState(adopts: s1, s1).nodes
         
         XCTAssertEqual(4, nodes.count)
         assertMWTAResult(Array(nodes.prefix(2)), sutLine: l1)
@@ -118,7 +118,7 @@ class BlockComponentTests: BlockTests {
             when(1, or: 2) | then(1) | pass
         }
         
-        let l2 = #line + 1; let s2 = SuperState(superStates: s1) {
+        let l2 = #line + 1; let s2 = SuperState(adopts: s1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
             when(1, or: 2) | then(1) | pass
         }
@@ -138,7 +138,7 @@ class BlockComponentTests: BlockTests {
             when(1, or: 2) | then(1) | pass
         }
         
-        let s2 = SuperState(superStates: s1)
+        let s2 = SuperState(adopts: s1)
 
         assertActions(s2.onEntry, expectedOutput: "entry")
         assertActions(s2.onExit, expectedOutput: "exit")
@@ -150,7 +150,7 @@ class BlockComponentTests: BlockTests {
             when(1, or: 2) | then(1) | pass
         }
         
-        let s2 = SuperState(superStates: s1, onEntry: entry, onExit: exit) {
+        let s2 = SuperState(adopts: s1, onEntry: entry, onExit: exit) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
             when(1, or: 2) | then(1) | pass
         }

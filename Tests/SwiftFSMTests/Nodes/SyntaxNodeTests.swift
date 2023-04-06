@@ -13,7 +13,7 @@ class SyntaxNodeTests: XCTestCase {
     let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
     
     var actionsOutput = ""
-    var onEnterOutput = ""
+    var onEntryOutput = ""
     var onExitOutput = ""
     
     var actions: [Action] {

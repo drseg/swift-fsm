@@ -12,7 +12,7 @@ struct SuperState {
     var onExit: [Action]
 
     init(
-        superStates: SuperState,
+        adopts superStates: SuperState,
         _ rest: SuperState...,
         onEntry: [Action] = [],
         onExit: [Action] = []
@@ -21,7 +21,7 @@ struct SuperState {
     }
     
     init(
-        superStates: SuperState...,
+        adopts superStates: SuperState...,
         onEntry: [Action] = [],
         onExit: [Action] = [],
         @Internal.MWTABuilder _ block: () -> [any MWTA]

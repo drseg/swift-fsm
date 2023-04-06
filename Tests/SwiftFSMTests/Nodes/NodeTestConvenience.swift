@@ -87,7 +87,7 @@ class NodeTestConvenience: DefineConsumer {
         }, toString(givenNode(thenState: s1, actionsNode: actionsNode), printFileAndLine: true))
     }
     
-    func entry() { onEnterOutput = "entry" }
+    func entry() { onEntryOutput = "entry" }
     func exit()  { onExitOutput = "exit"   }
     
     func testDefineNodeWithGivenMatchWhenThenActions() {
@@ -107,7 +107,7 @@ class NodeTestConvenience: DefineConsumer {
         }, toString(d))
         
         XCTAssertEqual("", onExitOutput)
-        XCTAssertEqual("", onEnterOutput)
+        XCTAssertEqual("", onEntryOutput)
     }
     
     func testDefineNodeWithGivenMatchWhenThenActionsFileAndLine() {
@@ -246,11 +246,11 @@ class NodeTestConvenience: DefineConsumer {
         if let n = n as? DefineNode {
             n.onEntry.executeAll()
             n.onExit.executeAll()
-            output.append("D: \(onEnterOutput) \(onExitOutput)")
+            output.append("D: \(onEntryOutput) \(onExitOutput)")
             if printFileAndLine {
                 output.append(fileAndLine(n.file, n.line) )
             }
-            onEnterOutput = ""
+            onEntryOutput = ""
             onExitOutput = ""
         }
         
