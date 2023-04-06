@@ -11,7 +11,7 @@ extension Syntax {
         let node: DefineNode
         
         init(_ state: State,
-             superStates: SuperState,
+             adopts superStates: SuperState,
              _ rest: SuperState...,
              onEntry: [Action],
              onExit: [Action],
@@ -19,7 +19,7 @@ extension Syntax {
              line: Int = #line
         ) {
             self.init(state,
-                      superStates: [superStates] + rest,
+                      adopts: [superStates] + rest,
                       onEntry: onEntry,
                       onExit: onExit,
                       elements: [],
@@ -28,7 +28,7 @@ extension Syntax {
         }
         
         init(_ state: State,
-             superStates: SuperState...,
+             adopts superStates: SuperState...,
              onEntry: [Action] = [],
              onExit: [Action] = [],
              file: String = #file,
@@ -36,7 +36,7 @@ extension Syntax {
              @Internal.MWTABuilder _ block: () -> [any MWTA]
         ) {
             self.init(state: state,
-                      superStates: superStates,
+                      adopts: superStates,
                       onEntry: onEntry,
                       onExit: onExit,
                       file: file,
@@ -45,7 +45,7 @@ extension Syntax {
         }
         
         init(state: State,
-             superStates: [SuperState] = [],
+             adopts superStates: [SuperState] = [],
              onEntry: [Action],
              onExit: [Action],
              file: String = #file,
@@ -55,7 +55,7 @@ extension Syntax {
             let elements = block()
             
             self.init(state,
-                      superStates: elements.isEmpty ? [] : superStates,
+                      adopts: elements.isEmpty ? [] : superStates,
                       onEntry: onEntry,
                       onExit: onExit,
                       elements: elements,
@@ -64,7 +64,7 @@ extension Syntax {
         }
         
         init(_ state: State,
-             superStates: [SuperState],
+             adopts superStates: [SuperState],
              onEntry: [Action],
              onExit: [Action],
              elements: [any MWTA],

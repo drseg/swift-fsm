@@ -14,7 +14,7 @@ protocol SyntaxBuilder {
 extension SyntaxBuilder {
     func define(
         _ state: StateType,
-        superStates: SuperState,
+        adopts superStates: SuperState,
         _ rest2: SuperState...,
         onEntry: [Action] = [],
         onExit: [Action] = [],
@@ -22,7 +22,7 @@ extension SyntaxBuilder {
         line: Int = #line
     ) -> Syntax.Define<StateType> {
         .init(state,
-              superStates: [superStates] + rest2,
+              adopts: [superStates] + rest2,
               onEntry: onEntry,
               onExit: onExit,
               elements: [],
@@ -32,7 +32,7 @@ extension SyntaxBuilder {
     
     func define(
         _ state: StateType,
-        superStates: SuperState...,
+        adopts superStates: SuperState...,
         onEntry: [Action] = [],
         onExit: [Action] = [],
         file: String = #file,
@@ -40,7 +40,7 @@ extension SyntaxBuilder {
         @Internal.MWTABuilder _ block: () -> [any MWTA]
     ) -> Syntax.Define<StateType> {
         .init(state: state,
-              superStates: superStates,
+              adopts: superStates,
               onEntry: onEntry,
               onExit: onExit,
               file: file,

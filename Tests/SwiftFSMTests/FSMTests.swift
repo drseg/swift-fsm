@@ -161,17 +161,17 @@ final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
 
-            define(.locked, superStates: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: [lock]) {
                 when(.coin) | then(.unlocked)
                 when(.pass) | then(.alarming)
             }
 
-            define(.unlocked, superStates: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 when(.coin) | then(.unlocked) | thankyou
                 when(.pass) | then(.locked)
             }
 
-            define(.alarming, superStates: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertEventAction(.coin,  "unlock")
@@ -220,21 +220,21 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
             
-            define(.locked, superStates: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: [lock]) {
                 matching(EnforcementStyle.weak)   | when(.pass) | then(.locked)
                 matching(EnforcementStyle.strong) | when(.pass) | then(.alarming)
                 
                 when(.coin) | then(.unlocked)
             }
             
-            define(.unlocked, superStates: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 matching(RewardStyle.rewarding) | when(.coin) | then(.unlocked) | thankyou
                 matching(RewardStyle.punishing) | when(.coin) | then(.unlocked) | idiot
                 
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, superStates: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertTable()
@@ -246,7 +246,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
             
-            define(.locked, superStates: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: [lock]) {
                 when(.pass) {
                     matching(EnforcementStyle.weak)   | then(.locked)
                     matching(EnforcementStyle.strong) | then(.alarming)
@@ -255,7 +255,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.coin) | then(.unlocked)
             }
             
-            define(.unlocked, superStates: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 when(.coin) {
                     then(.unlocked) {
                         matching(RewardStyle.rewarding) | thankyou
@@ -266,7 +266,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, superStates: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertTable()
@@ -283,7 +283,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 Event(.reset) | NextState(.locked)
             }
             
-            State(.locked, superStates: resetable, onEntry: [lock]) {
+            State(.locked, adopts: resetable, onEntry: [lock]) {
                 Event(.pass) {
                     If(EnforcementStyle.weak)   | NextState(.locked)
                     If(EnforcementStyle.strong) | NextState(.alarming)
@@ -292,7 +292,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 Event(.coin) | NextState(.unlocked)
             }
             
-            State(.unlocked, superStates: resetable, onEntry: [unlock]) {
+            State(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 NextState(.unlocked) {
                     If(RewardStyle.rewarding) | Event(.coin) | thankyou
                     If(RewardStyle.punishing) | Event(.coin) | idiot
@@ -301,7 +301,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 Event(.pass) | NextState(.locked)
             }
             
-            State(.alarming, superStates: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            State(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertTable()
@@ -313,7 +313,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
             
-            define(.locked, superStates: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: [lock]) {
                 when(.pass) {
                     matching(EnforcementStyle.weak)   | then(.locked)
                     matching(EnforcementStyle.strong) | then(.alarming)
@@ -322,7 +322,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.coin) | then(.unlocked)
             }
             
-            define(.unlocked, superStates: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 then(.unlocked) {
                     actions(thankyou) {
                         matching(RewardStyle.rewarding) | when(.coin)
@@ -336,7 +336,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, superStates: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertTable()
