@@ -27,7 +27,7 @@ class ThenNodeBase {
 
 class ThenNode: ThenNodeBase, Node {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        makeOutput(rest) ??? defaultIOOutput(state: state)
+        makeOutput(rest) ??? makeDefaultIO(state: state)
     }
 }
 

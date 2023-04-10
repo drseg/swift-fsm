@@ -26,6 +26,27 @@ class MatchTests: XCTestCase {
 }
 
 class BasicTests: MatchTests {
+    func testFileAndLineInit() {
+        let f = "f", l = 1
+        
+        func assertFileAndLine(_ m: Match, line: UInt = #line) {
+            XCTAssertEqual(f, m.file, line: line)
+            XCTAssertEqual(l, m.line, line: line)
+        }
+        
+        assertFileAndLine(Match(file: f, line: l))
+        assertFileAndLine(Match({ true }, file: f, line: l))
+        assertFileAndLine(Match(any: p1, file: f, line: l))
+        assertFileAndLine(Match(any: [[p1]], file: f, line: l))
+        assertFileAndLine(Match(any: [p1.erased()], all: [], file: f, line: l))
+        assertFileAndLine(Match(any: [[p1.erased()]], all: [], file: f, line: l))
+    }
+    
+    func testConditionInit() {
+        XCTAssertTrue(Match({ true }).condition!())
+        XCTAssertFalse(Match({ false }).condition!())
+    }
+    
     func testEquatable() {
         XCTAssertEqual(Match(), Match())
         
@@ -34,6 +55,8 @@ class BasicTests: MatchTests {
         
         XCTAssertEqual(Match(any: p1, p2, all: q1, r1),
                        Match(any: p2, p1, all: r1, q1))
+        
+        XCTAssertEqual(Match({ true }), Match({ false }))
         
         XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1),
                           Match(any: p1, s2, all: q1, r1))

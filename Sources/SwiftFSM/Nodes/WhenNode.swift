@@ -43,7 +43,7 @@ class WhenNodeBase {
 class WhenNode: WhenNodeBase, NeverEmptyNode {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         events.reduce(into: []) { output, event in
-            output.append(contentsOf: makeOutput(rest, event) ??? defaultIOOutput(event: event))
+            output.append(contentsOf: makeOutput(rest, event) ??? makeDefaultIO(event: event))
         }
     }
     

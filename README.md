@@ -227,17 +227,17 @@ try fsm.buildTable {
         when(.reset) | then(.locked) | { alarmOff(); lock() }
     }
 
-    define(.locked, superStates: resetable) {
+    define(.locked, adopts: resetable) {
         when(.coin) | then(.unlocked) | unlock
         when(.pass) | then(.alarming) | alarmOn
     }
 
-    define(.unlocked, superStates: resetable) {
+    define(.unlocked, adopts: resetable) {
         when(.coin) | then(.unlocked) | thankyou
         when(.pass) | then(.locked)   | lock
     }
 
-    define(.alarming, superState: resetable)
+    define(.alarming, adopts: resetable)
 }
 ```
 
@@ -251,7 +251,7 @@ If a `SuperState` instance is given, the `@resultBuilder` argument to `define` i
 let s1 = SuperState { when(.coin) | then(.unlocked) | unlock  }
 let s2 = SuperState { when(.pass) | then(.alarming) | alarmOn }
 
-let s3 = SuperState(superStates: s1, s2)
+let s3 = SuperState(adopts: s1, s2)
 
 // s3 is equivalent to:
 
@@ -296,17 +296,17 @@ try fsm.buildTable {
         when(.reset) | then(.locked)
     }
 
-    define(.locked, superStates: resetable, onEntry: [lock]) {
+    define(.locked, adopts: resetable, onEntry: [lock]) {
         when(.coin) | then(.unlocked)
         when(.pass) | then(.alarming)
     }
 
-    define(.unlocked, superStates: resetable, onEntry: [unlock]) {
+    define(.unlocked, adopts: resetable, onEntry: [unlock]) {
         when(.coin) | then(.unlocked) | thankyou
         when(.pass) | then(.locked)
     }
 
-    define(.alarming, superStates: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+    define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
 }
 ```
 
@@ -319,7 +319,7 @@ let resetable = SuperState(onEntry: [lock]) {
     when(.reset) | then(.locked)
 }
 
-define(.locked, superStates: resetable) {
+define(.locked, adopts: resetable) {
     when(.coin) | then(.unlocked)
     when(.pass) | then(.alarming)
 }
@@ -339,7 +339,7 @@ define(.locked, onEntry: [lock]) {
 let s1 = SuperState(onEntry: [unlock])  { when(.coin) | then(.unlocked) }
 let s2 = SuperState(onEntry: [alarmOn]) { when(.pass) | then(.alarming) }
 
-let s3 = SuperState(superStates: s1, s2)
+let s3 = SuperState(adopts: s1, s2)
 
 // s3 is equivalent to:
 

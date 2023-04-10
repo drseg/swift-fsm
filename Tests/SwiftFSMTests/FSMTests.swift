@@ -165,12 +165,12 @@ final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 when(.coin) | then(.unlocked)
                 when(.pass) | then(.alarming)
             }
-
+            
             define(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 when(.coin) | then(.unlocked) | thankyou
                 when(.pass) | then(.locked)
             }
-
+            
             define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
@@ -186,10 +186,10 @@ final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
 }
 
 final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
-    enum EnforcementStyle: Predicate { case strong, weak }
-    enum RewardStyle: Predicate { case punishing, rewarding }
+    enum Enforcement: Predicate { case strong, weak }
+    enum Reward: Predicate { case punishing, rewarding }
     
-    func idiot() { actions.append("idiot")    }
+    func idiot() { actions.append("idiot") }
     
     func assertEventAction(_ e: EventType, _ a: String, line: UInt = #line) {
         assertEventAction(e, [a], line: line)
@@ -199,7 +199,7 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         if !(a.first?.isEmpty ?? false) {
             actual += a
         }
-        fsm.handleEvent(e, predicates: [EnforcementStyle.weak, RewardStyle.punishing])
+        fsm.handleEvent(e, predicates: [Enforcement.weak, Reward.punishing])
         XCTAssertEqual(actions, actual, line: line)
     }
     
@@ -221,15 +221,15 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             }
             
             define(.locked, adopts: resetable, onEntry: [lock]) {
-                matching(EnforcementStyle.weak)   | when(.pass) | then(.locked)
-                matching(EnforcementStyle.strong) | when(.pass) | then(.alarming)
+                matching(Enforcement.weak)   | when(.pass) | then(.locked)
+                matching(Enforcement.strong) | when(.pass) | then(.alarming)
                 
                 when(.coin) | then(.unlocked)
             }
             
             define(.unlocked, adopts: resetable, onEntry: [unlock]) {
-                matching(RewardStyle.rewarding) | when(.coin) | then(.unlocked) | thankyou
-                matching(RewardStyle.punishing) | when(.coin) | then(.unlocked) | idiot
+                matching(Reward.rewarding) | when(.coin) | then(.unlocked) | thankyou
+                matching(Reward.punishing) | when(.coin) | then(.unlocked) | idiot
                 
                 when(.pass) | then(.locked)
             }
@@ -248,8 +248,8 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             
             define(.locked, adopts: resetable, onEntry: [lock]) {
                 when(.pass) {
-                    matching(EnforcementStyle.weak)   | then(.locked)
-                    matching(EnforcementStyle.strong) | then(.alarming)
+                    matching(Enforcement.weak)   | then(.locked)
+                    matching(Enforcement.strong) | then(.alarming)
                 }
                 
                 when(.coin) | then(.unlocked)
@@ -258,8 +258,8 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             define(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 when(.coin) {
                     then(.unlocked) {
-                        matching(RewardStyle.rewarding) | thankyou
-                        matching(RewardStyle.punishing) | idiot
+                        matching(Reward.rewarding) | thankyou
+                        matching(Reward.punishing) | idiot
                     }
                 }
                 
@@ -285,8 +285,8 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             
             State(.locked, adopts: resetable, onEntry: [lock]) {
                 Event(.pass) {
-                    If(EnforcementStyle.weak)   | NextState(.locked)
-                    If(EnforcementStyle.strong) | NextState(.alarming)
+                    If(Enforcement.weak)   | NextState(.locked)
+                    If(Enforcement.strong) | NextState(.alarming)
                 }
                 
                 Event(.coin) | NextState(.unlocked)
@@ -294,8 +294,8 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             
             State(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 NextState(.unlocked) {
-                    If(RewardStyle.rewarding) | Event(.coin) | thankyou
-                    If(RewardStyle.punishing) | Event(.coin) | idiot
+                    If(Reward.rewarding) | Event(.coin) | thankyou
+                    If(Reward.punishing) | Event(.coin) | idiot
                 }
                 
                 Event(.pass) | NextState(.locked)
@@ -315,8 +315,8 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             
             define(.locked, adopts: resetable, onEntry: [lock]) {
                 when(.pass) {
-                    matching(EnforcementStyle.weak)   | then(.locked)
-                    matching(EnforcementStyle.strong) | then(.alarming)
+                    matching(Enforcement.weak)   | then(.locked)
+                    matching(Enforcement.strong) | then(.alarming)
                 }
                 
                 when(.coin) | then(.unlocked)
@@ -325,11 +325,11 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             define(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 then(.unlocked) {
                     actions(thankyou) {
-                        matching(RewardStyle.rewarding) | when(.coin)
+                        matching(Reward.rewarding) | when(.coin)
                     }
                     
                     actions(idiot) {
-                        matching(RewardStyle.punishing) | when(.coin)
+                        matching(Reward.punishing) | when(.coin)
                     }
                 }
                 

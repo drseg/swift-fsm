@@ -29,7 +29,7 @@ typealias DefaultIO = (match: Match,
                        state: AnyTraceable?,
                        actions: [Action])
 
-func defaultIOOutput(
+func makeDefaultIO(
     match: Match = Match(),
     event: AnyTraceable? = nil,
     state: AnyTraceable? = nil,

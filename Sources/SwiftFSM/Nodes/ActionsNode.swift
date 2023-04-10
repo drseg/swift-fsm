@@ -29,7 +29,7 @@ class ActionsNodeBase {
 
 class ActionsNode: ActionsNodeBase, Node {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        makeOutput(rest) ??? defaultIOOutput(actions: actions)
+        makeOutput(rest) ??? makeDefaultIO(actions: actions)
     }
 }
 

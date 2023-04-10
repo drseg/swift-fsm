@@ -23,12 +23,17 @@ class Match {
     
     let matchAny: [[AnyPredicate]]
     let matchAll: [AnyPredicate]
+    let condition: (() -> Bool)?
     
     let file: String
     let line: Int
     
     var next: Match? = nil
     var originalSelf: Match? = nil
+    
+    convenience init(_ condition: @escaping () -> Bool, file: String = #file, line: Int = #line) {
+        self.init(any: [], all: [], condition: condition, file: file, line: line)
+    }
     
     convenience init(any: AnyPP..., all: AnyPP..., file: String = #file, line: Int = #line) {
         self.init(any: any.erased(), all: all.erased(), file: file, line: line)
@@ -41,13 +46,21 @@ class Match {
     init(any: [AnyPredicate], all: [AnyPredicate], file: String = #file, line: Int = #line) {
         self.matchAny = [any].filter { !$0.isEmpty }
         self.matchAll = all
+        self.condition = nil
         self.file = file
         self.line = line
     }
     
-    init(any: [[AnyPredicate]], all: [AnyPredicate], file: String = #file, line: Int = #line) {
+    init(
+        any: [[AnyPredicate]],
+        all: [AnyPredicate],
+        condition: (() -> Bool)? = nil,
+        file: String = #file,
+        line: Int = #line
+    ) {
         self.matchAny = any
         self.matchAll = all
+        self.condition = condition
         self.file = file
         self.line = line
     }

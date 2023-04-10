@@ -29,7 +29,7 @@ class MatchNodeBase {
 
 class MatchNode: MatchNodeBase, Node {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
-        makeOutput(rest) ??? defaultIOOutput(match: match)
+        makeOutput(rest) ??? makeDefaultIO(match: match)
     }
 }
 
