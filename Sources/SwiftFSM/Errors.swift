@@ -1,5 +1,5 @@
 //
-//  NodeErrors.swift
+//  Errors.swift
 //
 //  Created by Daniel Segall on 14/03/2023.
 //
@@ -118,9 +118,11 @@ class DuplicateMatchTypes: MatchError, LocalizedError {
             let dupes = duplicates(\.type)
             let predicates = predicatesString(separator: " AND ")
             
-            dupes.count > 1
-            ? "'matching(\(predicates))' is ambiguous - types \(dupes) appear multiple times"
-            : "'matching(\(predicates))' is ambiguous - type \(dupes) appears multiple times"
+            let typesAppear = dupes.count > 1
+            ? "types \(dupes) appear"
+            : "type \(dupes) appears"
+            
+            "'matching(\(predicates))' is ambiguous - \(typesAppear) multiple times"
         }
     }
     
@@ -270,7 +272,7 @@ extension ResultBuilder {
 
 @resultBuilder struct StringBuilder: ResultBuilder { typealias T = String }
 extension String {
-    init(@StringBuilder _ b:  () -> [String]) {
+    init(@StringBuilder _ b: () -> [String]) {
         self.init(b().joined(separator: "\n"))
     }
 }

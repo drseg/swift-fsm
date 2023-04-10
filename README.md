@@ -1,7 +1,7 @@
 # Swift FSM
 **Friendly Finite State Machine Syntax for Swift, iOS and macOS**
 
-Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is a pure Swift syntax for declaring and operating a Finite State Machine (FSM). Unlike Uncle Bob’s SMC, the FSM itself is declared inside your Swift code, rather than as a separate text file, and compiles and runs directly alongside all your other project code.
+Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is a pure Swift syntax for declaring and operating a Finite State Machine (FSM). Unlike Uncle Bob’s SMC, the FSM is declared inside your Swift code, rather than as a separate text file, and compiles and runs directly alongside all your other project code.
 
 This guide is reasonably complete, but does presume some familiarity with FSMs and specifically the SMC syntax linked above, as well as Swift [`@resultBuilder`][2] syntax.
 
@@ -408,11 +408,11 @@ define(.locked) {
 
 ### Limitations of `@resultBuilder` Implementation
 
-The `@resultBuilder` blocks in SwiftFSM do not control flow logic. Though is it possible to enable such logic, it would be misleading in this case:
+The `@resultBuilder` blocks in SwiftFSM do not support control flow logic. Though is it possible to enable such logic, it would be misleading:
 
 ```swift
 define(.locked) {
-	if something { // ⛔️ intentionally does not compile
+    if something { // ⛔️ does not compile
         when(.pass) | then(.unlocked) | unlock
     } else {
         when(.pass) | then(.alarming) | alarmOn
@@ -421,11 +421,9 @@ define(.locked) {
 }
 ```
 
-If the `if/else` block were evaluated at runtime, this would indeed be a useful syntax. However what we are really doing inside these blocks is *compiling* our state transition table. The use of `if` and `else` in this manner are therefore akin to the conditional compilation statements `#if/#else` - based on a value at compile time, either one transition or the other will be compiled into the table, and the other one will be omitted entirely.
+If the `if/else` block were evaluated by the FSM at transition time, this would indeed be a useful syntax. However what we are really doing inside these blocks is *compiling* our state transition table. The use of `if` and `else` in this manner is more akin to the conditional compilation statements `#if/#else` - based on a value defined at compile time, either one transition or the other will be selected and only that transition will be added to the table.
 
-As it is almost impossible that one would want to make such a statement to the FSM compiler, this syntax is disallowed entirely. 
-
-If you *do* have a use for this, please open an issue and let me know. See the [Expanded Syntax][26] section for alternative syntax that enables runtime rather than compile time conditional statements.
+If you *do* have a use for this kind of conditional compilation, please open an issue and let me know. See the [Expanded Syntax][26] section for alternative syntax that enables the FSM to evaluate conditional statements at transition time.
 
 ### Runtime Errors
 
@@ -983,7 +981,7 @@ If all you need is to make a specific transition conditional on some particular 
 
 ```swift
 define(.locked) {
-	condition(complicatedDecisionTree) | when(.pass) | then(.locked) | lock 
+    condition(complicatedDecisionTree) | when(.pass) | then(.locked) | lock 
 }
 ```
 
@@ -1071,9 +1069,7 @@ See [Implicit Clashes][29]
 
 Adding predicates has no effect on the performance of `handleEvent()`. To maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
 
-The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m^n) where m is the average number of cases per predicate, and n is number of`Predicate` types.
-
-Using three predicates, each with 10 cases each, would therefore require 1,000 operations to calculate all possible combinations.
+The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m^n) where m is the average number of cases per predicate, and n is number of`Predicate` types. Using three predicates with 10 cases each would therefore require 1,000 operations.
 
 [1]:	https://github.com/unclebob/CC_SMC
 [2]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder
