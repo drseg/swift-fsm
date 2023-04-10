@@ -47,8 +47,16 @@ class FSM<State: Hashable, Event: Hashable> {
         state = initialState
     }
     
-    func buildTable(@Builder _ table: () -> [Syntax.Define<State>]) throws {
-        let transitionNode = ActionsResolvingNode(rest: table().map(\.node))
+    func buildTable(
+        file: String = #file,
+        line: Int = #line,
+        @Builder _ block: () -> [Syntax.Define<State>]
+    ) throws {
+        guard table.isEmpty else {
+            throw makeError(TableAlreadyBuiltError(file: file, line: line))
+        }
+        
+        let transitionNode = ActionsResolvingNode(rest: block().map(\.node))
         let validationNode = SemanticValidationNode(rest: [transitionNode])
         let tableNode = MatchResolvingNode(rest: [validationNode])
         let result = tableNode.finalised()
@@ -58,20 +66,26 @@ class FSM<State: Hashable, Event: Hashable> {
     }
     
     func checkForErrors(_ result: (output: [MatchResolvingNode.Output], errors: [Error])) throws {
-        #warning("also need to check that buildTable hasn't already been called")
-        
         if !result.errors.isEmpty {
-            throw SwiftFSMError(errors: result.errors)
+            throw makeError(result.errors)
         }
         
         if result.output.isEmpty {
-            throw SwiftFSMError(errors: [EmptyTableError()])
+            throw makeError(EmptyTableError())
         }
         
         let stateEvent = (result.output[0].state, result.output[0].event)
         if deepDescription(stateEvent).contains("NSObject") {
-            throw SwiftFSMError(errors: [NSObjectError()])
+            throw makeError(NSObjectError())
         }
+    }
+    
+    func makeError(_ error: Error) -> SwiftFSMError {
+        makeError([error])
+    }
+    
+    func makeError(_ errors: [Error]) -> SwiftFSMError {
+        SwiftFSMError(errors: errors)
     }
     
     func makeTable(_ output: [MatchResolvingNode.Output]) {

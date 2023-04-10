@@ -193,6 +193,15 @@ struct NSObjectError: LocalizedError {
     }
 }
 
+struct TableAlreadyBuiltError: LocalizedError {
+    let file: String
+    let line: Int
+    
+    var errorDescription: String? {
+        "Duplicate call to method buildTable in file \(file) at line \(line)"
+    }
+}
+
 extension Match {
     var asArray: [Match] {
         [originalSelf?.removingNext ?? removingNext] + (next?.asArray ?? [])

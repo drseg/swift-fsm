@@ -131,6 +131,11 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
+    func testTableAlreadyBuiltError() {
+        e = TableAlreadyBuiltError(file: "f", line: 1)
+        e.assertDescription("Duplicate call to method buildTable in file f at line 1")
+    }
+    
     func testSingleMatchAsArray() {
         let array = try? Match(any: P.a).finalised().get() .asArray
         XCTAssertEqual(array, [Match(any: P.a)])

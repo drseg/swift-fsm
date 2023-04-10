@@ -18,12 +18,14 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
         _ type: T.Type,
         count: Int = 1,
         line: UInt = #line,
-        block: () throws -> ()
+        block: () throws -> (),
+        completion: (T?) -> () = { _ in }
     ) {
         XCTAssertThrowsError(try block(), line: line) {
             let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(count, errors?.count, line: line)
             XCTAssertTrue(errors?.first is T, String(describing: errors), line: line)
+            completion(errors?.first as? T)
         }
     }
     
@@ -64,6 +66,16 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertNoThrow(
             try fsm.buildTable { define(1) { when(1.1) | then(2) } }
         )
+    }
+    
+    func testCallingBuildTableTwiceThrows() throws {
+        try fsm.buildTable { define(1) { when(1.1) | then(2) } }
+        assertThrowsError(TableAlreadyBuiltError.self) {
+            try fsm.buildTable(file: "f", line: 1) { define(1) { when(1.1) | then(2) } }
+        } completion: {
+            XCTAssertEqual("f", $0?.file)
+            XCTAssertEqual(1, $0?.line)
+        }
     }
     
     var actionsOutput = ""
