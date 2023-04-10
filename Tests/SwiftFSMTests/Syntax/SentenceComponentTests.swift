@@ -48,6 +48,14 @@ final class ComponentTests: SyntaxTestsBase {
         assertMatching(m7, any: P.a, P.b, all: Q.a, R.a, sutLine: -1)
         assertMatching(m8, any: P.a, P.b, all: Q.a, R.a, sutLine: -1)
     }
+    
+    func testCondition() {
+        let c1 = condition({ true }); let l1 = #line
+        let c2 = Condition({ true }); let l2 = #line
+        
+        assertCondition(c1, expected: true, sutLine: l1)
+        assertCondition(c2, expected: true, sutLine: l2)
+    }
             
     func testWhen() {
         let w1 = when(1, or: 2); let l1 = #line

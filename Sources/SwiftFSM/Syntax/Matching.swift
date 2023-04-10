@@ -6,39 +6,89 @@
 
 import Foundation
 
+protocol Conditional {
+    var node: MatchNode { get }
+    var file: String { get }
+    var line: Int { get }
+    var name: String { get }
+}
+
+extension Conditional {
+    static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
+        .init(node: rhs.node.appending(lhs.node))
+    }
+    
+    static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
+        .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
+    }
+    
+    static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
+        .init(node: rhs.node.appending(lhs.node))
+    }
+    
+    static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
+        .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
+    }
+    
+    static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingActions {
+        return .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+    }
+    
+    var blockNode: MatchBlockNode {
+        MatchBlockNode(match: node.match,
+                       rest: node.rest,
+                       caller: name,
+                       file: file,
+                       line: line)
+    }
+    
+    func callAsFunction(
+        @Internal.MWTABuilder _ block: () -> [any MWTA]
+    ) -> Internal.MWTASentence {
+        .init(blockNode, block)
+    }
+    
+    func callAsFunction(
+        @Internal.MWABuilder _ block: () -> [any MWA]
+    ) -> Internal.MWASentence {
+        .init(blockNode, block)
+    }
+    
+    func callAsFunction(
+        @Internal.MTABuilder _ block: () -> [any MTA]
+    ) -> Internal.MTASentence {
+        .init(blockNode, block)
+    }
+}
+
 extension Syntax.Expanded {
-    struct Matching {
-        static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
-            .init(node: rhs.node.appending(lhs.node))
-        }
-        
-        static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
-            .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
-        }
-        
-        static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
-            .init(node: rhs.node.appending(lhs.node))
-        }
-        
-        static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
-            .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
-        }
-        
-        static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingActions {
-            return .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
-        }
-        
+    struct Condition: Conditional {
         let node: MatchNode
         let file: String
         let line: Int
         
-        var blockNode: MatchBlockNode {
-            MatchBlockNode(match: node.match,
-                           rest: node.rest,
-                           caller: "matching",
-                           file: file,
-                           line: line)
+        let name = "condition"
+        
+        init(
+            _ condition: @escaping () -> Bool,
+            file: String = #file,
+            line: Int = #line
+        ) {
+            let match = Match(condition: condition,
+                              file: file,
+                              line: line)
+            self.node = MatchNode(match: match, rest: [])
+            self.file = file
+            self.line = line
         }
+    }
+    
+    struct Matching: Conditional {
+        let node: MatchNode
+        let file: String
+        let line: Int
+        
+        let name = "matching"
         
         init(
             _ first: any Predicate,
@@ -78,24 +128,6 @@ extension Syntax.Expanded {
             self.node = MatchNode(match: match, rest: [])
             self.file = file
             self.line = line
-        }
-        
-        func callAsFunction(
-            @Internal.MWTABuilder _ block: () -> [any MWTA]
-        ) -> Internal.MWTASentence {
-            .init(blockNode, block)
-        }
-        
-        func callAsFunction(
-            @Internal.MWABuilder _ block: () -> [any MWA]
-        ) -> Internal.MWASentence {
-            .init(blockNode, block)
-        }
-        
-        func callAsFunction(
-            @Internal.MTABuilder _ block: () -> [any MTA]
-        ) -> Internal.MTASentence {
-            .init(blockNode, block)
         }
     }
 }

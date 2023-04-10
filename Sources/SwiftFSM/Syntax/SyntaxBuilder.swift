@@ -138,6 +138,7 @@ protocol ExpandedSyntaxBuilder: SyntaxBuilder { }
 
 extension ExpandedSyntaxBuilder {
     typealias Matching = Syntax.Expanded.Matching
+    typealias Condition = Syntax.Expanded.Condition
     
     func matching(
         _ first: any Predicate,
@@ -147,6 +148,14 @@ extension ExpandedSyntaxBuilder {
         line: Int = #line
     ) -> Matching {
         .init(first, or: or, and: and, file: file, line: line)
+    }
+    
+    func condition(
+        _ condition: @escaping () -> Bool,
+        file: String = #file,
+        line: Int = #line
+    ) -> Condition {
+        .init(condition, file: file, line: line)
     }
     
     func matching(
@@ -160,6 +169,15 @@ extension ExpandedSyntaxBuilder {
         Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
     
+    func condition(
+        _ condition: @escaping () -> Bool,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [any MWTA]
+    ) -> Internal.MWTASentence {
+        Condition(condition, file: file, line: line).callAsFunction(block)
+    }
+    
     func matching(
         _ first: any Predicate,
         or: any Predicate...,
@@ -171,6 +189,15 @@ extension ExpandedSyntaxBuilder {
         Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
     
+    func condition(
+        _ condition: @escaping () -> Bool,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWABuilder _ block: () -> [any MWA]
+    ) -> Internal.MWASentence {
+        Condition(condition, file: file, line: line).callAsFunction(block)
+    }
+    
     func matching(
         _ first: any Predicate,
         or: any Predicate...,
@@ -180,5 +207,14 @@ extension ExpandedSyntaxBuilder {
         @Internal.MTABuilder _ block: () -> [any MTA]
     ) -> Internal.MTASentence {
         Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
+    }
+    
+    func condition(
+        _ condition: @escaping () -> Bool,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> [any MTA]
+    ) -> Internal.MTASentence {
+        Condition(condition, file: file, line: line).callAsFunction(block)
     }
 }

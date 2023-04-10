@@ -14,6 +14,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     typealias Define = Syntax.Define<StateType>
     typealias Matching = Syntax.Expanded.Matching
+    typealias Condition = Syntax.Expanded.Condition
     typealias When = Syntax.When<EventType>
     typealias Then = Syntax.Then<StateType>
     typealias Actions = Syntax.Actions
@@ -46,10 +47,31 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
                         xctLine: xl)
     }
     
+    func assertCondition(
+        _ c: Condition,
+        expected: Bool,
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
+        sutLine sl: Int,
+        xctLine xl: UInt = #line
+    ) {
+        XCTAssertTrue(c.node.rest.isEmpty, file: xf, line: xl)
+        XCTAssertEqual(expected, c.node.match.condition(), file: xf, line: xl)
+        assertMatchNode(c.node,
+                        any: [],
+                        all: [],
+                        sutFile: sf,
+                        xctFile: xf,
+                        sutLine: sl,
+                        xctLine: xl)
+    }
+    
     func assertMatchNode(
         _ node: MatchNodeBase,
         any: [[any Predicate]] = [],
         all: [any Predicate] = [],
+        condition: Bool = true,
+        caller: String = "matching",
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
@@ -59,12 +81,13 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         
         XCTAssertEqual(any, node.match.matchAny, file: xf, line: xl)
         XCTAssertEqual(all.erased(), node.match.matchAll, file: xf, line: xl)
+        XCTAssertEqual(condition, node.match.condition(), file: xf, line: xl)
         XCTAssertEqual(node.match.file, sf, file: xf, line: xl)
         XCTAssertEqual(node.match.line, sl, file: xf, line: xl)
         
         if let node = node as? MatchBlockNode {
             assertNeverEmptyNode(node,
-                                 caller: "matching",
+                                 caller: caller,
                                  sutFile: sf,
                                  xctFile: xf,
                                  sutLine: sl,
