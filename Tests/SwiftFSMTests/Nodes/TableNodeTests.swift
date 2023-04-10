@@ -152,7 +152,7 @@ class MatchResolvingNodeTests: DefineConsumer {
         guard assertCount(result.errors, expected: 0) else { return }
         guard assertCount(result.output, expected: 1) else { return }
         
-        XCTAssertEqual(false, result.output.first?.condition())
+        XCTAssertEqual(false, result.output.first?.condition?())
     }
 }
 

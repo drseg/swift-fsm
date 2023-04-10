@@ -147,6 +147,13 @@ final class ErrorTests: SyntaxNodeTests {
         XCTAssertEqual(array, [Match(), Match(any: R.a), Match(any: P.a)])
     }
     
+    func testMatchDescriptionWithCondition() {
+        let match = Match(condition: { true }, file: "f", line: 1)
+        
+        XCTAssertEqual("condition(() -> Bool) @f: 1",
+                       match.errorDescription)
+    }
+    
     func testMatchDescriptionWithNoPredicates() {
         let match = Match(file: "f", line: 1)
         

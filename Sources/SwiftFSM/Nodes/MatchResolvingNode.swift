@@ -7,7 +7,7 @@
 import Foundation
 
 final class MatchResolvingNode: Node {
-    typealias Output = (condition: () -> Bool,
+    typealias Output = (condition: (() -> Bool)?,
                         state: AnyTraceable,
                         predicates: PredicateSet,
                         event: AnyTraceable,

@@ -203,6 +203,10 @@ extension Match {
     }
     
     var errorDescription: String {
+        guard condition == nil else {
+            return "condition(() -> Bool) @\(file): \(line)"
+        }
+        
         let or = matchAny.reduce([String]()) { result, predicates in
             let firstPredicateString = predicates.first!.description
             

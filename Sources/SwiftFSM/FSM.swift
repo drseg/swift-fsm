@@ -32,7 +32,7 @@ class FSM<State: Hashable, Event: Hashable> {
     }
     
     struct Value {
-        let condition: () -> Bool,
+        let condition: (() -> Bool)?,
             state: AnyHashable,
             predicates: PredicateSet,
             event: AnyHashable,
@@ -94,7 +94,7 @@ class FSM<State: Hashable, Event: Hashable> {
         if let transition = table[Key(state: state,
                                       predicates: Set(predicates.erased()),
                                       event: event)],
-           transition.condition()
+           transition.condition?() ?? true
         {
             state = transition.nextState
             transition.actions.forEach { $0() }

@@ -12,7 +12,8 @@ class Match {
     
     let matchAny: [[AnyPredicate]]
     let matchAll: [AnyPredicate]
-    let condition: () -> Bool
+    
+    let condition: (() -> Bool)?
     
     let file: String
     let line: Int
@@ -44,7 +45,7 @@ class Match {
     init(
         any: [[AnyPredicate]],
         all: [AnyPredicate],
-        condition: @escaping () -> Bool = { true },
+        condition: (() -> Bool)? = nil,
         file: String = #file,
         line: Int = #line
     ) {
@@ -116,9 +117,18 @@ class Match {
     }
     
     func adding(_ other: Match) -> Match {
+        let condition: (() -> Bool)? = {
+            switch (self.condition == nil, other.condition == nil) {
+            case (true, true): return nil
+            case (true, false): return other.condition!
+            case (false, true): return self.condition!
+            case (false, false): return { self.condition!() && other.condition!() }
+            }
+        }()
+        
         let m = Match(any: matchAny + other.matchAny,
                       all: matchAll + other.matchAll,
-                      condition: { self.condition() && other.condition() },
+                      condition: condition,
                       file: file,
                       line: line)
         m.next = next

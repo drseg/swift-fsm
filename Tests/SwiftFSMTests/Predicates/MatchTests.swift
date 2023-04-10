@@ -43,9 +43,9 @@ class BasicTests: MatchTests {
     }
     
     func testConditionInit() {
-        XCTAssertTrue(Match().condition())
-        XCTAssertTrue(Match(condition: { true }).condition())
-        XCTAssertFalse(Match(condition: { false }).condition())
+        XCTAssertEqual(nil, Match().condition?())
+        XCTAssertEqual(true, Match(condition: { true }).condition?())
+        XCTAssertEqual(false, Match(condition: { false }).condition?())
     }
     
     func testEquatable() {
@@ -139,12 +139,12 @@ class AdditionTests: MatchTests {
         let m2 = Match(condition: { false })
         let m3 = Match()
         
-        XCTAssertTrue(m1.adding(m1).condition())
-        XCTAssertTrue(m3.adding(m3).condition())
-        XCTAssertTrue(m1.adding(m3).condition())
+        XCTAssertEqual(true, m1.adding(m1).condition?())
+        XCTAssertEqual(nil, m3.adding(m3).condition?())
+        XCTAssertEqual(true, m1.adding(m3).condition?())
         
-        XCTAssertFalse(m1.adding(m2).condition())
-        XCTAssertFalse(m2.adding(m3).condition())
+        XCTAssertEqual(false, m1.adding(m2).condition?())
+        XCTAssertEqual(false, m2.adding(m3).condition?())
     }
 }
 

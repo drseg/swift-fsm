@@ -56,10 +56,9 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         xctLine xl: UInt = #line
     ) {
         XCTAssertTrue(c.node.rest.isEmpty, file: xf, line: xl)
-        XCTAssertEqual(expected, c.node.match.condition(), file: xf, line: xl)
+        XCTAssertEqual(expected, c.node.match.condition?(), file: xf, line: xl)
         assertMatchNode(c.node,
-                        any: [],
-                        all: [],
+                        condition: expected,
                         sutFile: sf,
                         xctFile: xf,
                         sutLine: sl,
@@ -70,7 +69,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ node: MatchNodeBase,
         any: [[any Predicate]] = [],
         all: [any Predicate] = [],
-        condition: Bool = true,
+        condition: Bool? = nil,
         caller: String = "matching",
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
@@ -81,7 +80,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         
         XCTAssertEqual(any, node.match.matchAny, file: xf, line: xl)
         XCTAssertEqual(all.erased(), node.match.matchAll, file: xf, line: xl)
-        XCTAssertEqual(condition, node.match.condition(), file: xf, line: xl)
+        XCTAssertEqual(condition, node.match.condition?(), file: xf, line: xl)
         XCTAssertEqual(node.match.file, sf, file: xf, line: xl)
         XCTAssertEqual(node.match.line, sl, file: xf, line: xl)
         
