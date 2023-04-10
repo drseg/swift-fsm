@@ -35,7 +35,7 @@ class BasicTests: MatchTests {
         }
         
         assertFileAndLine(Match(file: f, line: l))
-        assertFileAndLine(Match({ true }, file: f, line: l))
+        assertFileAndLine(Match(condition: { true }, file: f, line: l))
         assertFileAndLine(Match(any: p1, file: f, line: l))
         assertFileAndLine(Match(any: [[p1]], file: f, line: l))
         assertFileAndLine(Match(any: [p1.erased()], all: [], file: f, line: l))
@@ -43,8 +43,9 @@ class BasicTests: MatchTests {
     }
     
     func testConditionInit() {
-        XCTAssertTrue(Match({ true }).condition!())
-        XCTAssertFalse(Match({ false }).condition!())
+        XCTAssertTrue(Match().condition())
+        XCTAssertTrue(Match(condition: { true }).condition())
+        XCTAssertFalse(Match(condition: { false }).condition())
     }
     
     func testEquatable() {
@@ -56,7 +57,7 @@ class BasicTests: MatchTests {
         XCTAssertEqual(Match(any: p1, p2, all: q1, r1),
                        Match(any: p2, p1, all: r1, q1))
         
-        XCTAssertEqual(Match({ true }), Match({ false }))
+        XCTAssertEqual(Match(condition: { true }), Match(condition: { false }))
         
         XCTAssertNotEqual(Match(any: p1, p2, all: q1, r1),
                           Match(any: p1, s2, all: q1, r1))
@@ -131,6 +132,19 @@ class AdditionTests: MatchTests {
         
         XCTAssertEqual(m1 + m2, Match(any: [[p1, p2], [r1, r2]],
                                       all: q1, q2, s1, s2))
+    }
+    
+    func testAddingConditions() {
+        let m1 = Match(condition: { true })
+        let m2 = Match(condition: { false })
+        let m3 = Match()
+        
+        XCTAssertTrue((m1 + m1).condition())
+        XCTAssertTrue((m3 + m3).condition())
+        XCTAssertTrue((m1 + m3).condition())
+        
+        XCTAssertFalse((m1 + m2).condition())
+        XCTAssertFalse((m2 + m3).condition())
     }
 }
 

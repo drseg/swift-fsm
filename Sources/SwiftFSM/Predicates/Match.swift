@@ -13,6 +13,7 @@ class Match {
     static func + (self: Match, next: Match) -> Match {
         let m = Match(any: self.matchAny + next.matchAny,
                       all: self.matchAll + next.matchAll,
+                      condition: { self.condition() && next.condition() },
                       file: self.file,
                       line: self.line)
         m.next = self.next
@@ -23,7 +24,7 @@ class Match {
     
     let matchAny: [[AnyPredicate]]
     let matchAll: [AnyPredicate]
-    let condition: (() -> Bool)?
+    let condition: () -> Bool
     
     let file: String
     let line: Int
@@ -31,7 +32,7 @@ class Match {
     var next: Match? = nil
     var originalSelf: Match? = nil
     
-    convenience init(_ condition: @escaping () -> Bool, file: String = #file, line: Int = #line) {
+    convenience init(condition: @escaping () -> Bool, file: String = #file, line: Int = #line) {
         self.init(any: [], all: [], condition: condition, file: file, line: line)
     }
     
@@ -43,18 +44,19 @@ class Match {
         self.init(any: any.map { $0.erased() }, all: all.erased(), file: file, line: line)
     }
     
-    init(any: [AnyPredicate], all: [AnyPredicate], file: String = #file, line: Int = #line) {
-        self.matchAny = [any].filter { !$0.isEmpty }
-        self.matchAll = all
-        self.condition = nil
-        self.file = file
-        self.line = line
+    convenience init(
+        any: [AnyPredicate],
+        all: [AnyPredicate],
+        file: String = #file,
+        line: Int = #line
+    ) {
+        self.init(any: [any].filter { !$0.isEmpty }, all: all, file: file, line: line)
     }
     
     init(
         any: [[AnyPredicate]],
         all: [AnyPredicate],
-        condition: (() -> Bool)? = nil,
+        condition: @escaping () -> Bool = { true },
         file: String = #file,
         line: Int = #line
     ) {
