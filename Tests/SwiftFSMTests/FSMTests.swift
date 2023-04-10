@@ -169,17 +169,28 @@ class FSMIntegrationTests: XCTestCase, ExpandedSyntaxBuilder {
 }
 
 final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
+    func assertEventAction(_ e: EventType, _ a: String, line: UInt = #line) {
+        assertEventAction(e, a.isEmpty ? [] : [a], line: line)
+    }
+    
+    func assertEventAction(_ e: EventType, _ a: [String], line: UInt = #line) {
+        actual += a
+        fsm.handleEvent(e)
+        XCTAssertEqual(actions, actual, line: line)
+    }
+    
+    func assertTurnstile() {
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.pass,  "lock")
+        assertEventAction(.pass,  "alarmOn")
+        assertEventAction(.reset, ["alarmOff", "lock"])
+        assertEventAction(.coin,  "unlock")
+        assertEventAction(.coin,  "thankyou")
+        assertEventAction(.coin,  "thankyou")
+        assertEventAction(.reset, "lock")
+    }
+    
     func testTurnstile() throws {
-        func assertEventAction(_ e: EventType, _ a: String, line: UInt = #line) {
-            assertEventAction(e, [a], line: line)
-        }
-        
-        func assertEventAction(_ e: EventType, _ a: [String], line: UInt = #line) {
-            actual += a
-            fsm.handleEvent(e)
-            XCTAssertEqual(actions, actual, line: line)
-        }
-                
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -198,14 +209,48 @@ final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.pass,  "lock")
-        assertEventAction(.pass,  "alarmOn")
-        assertEventAction(.reset, ["alarmOff", "lock"])
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.coin,  "thankyou")
-        assertEventAction(.coin,  "thankyou")
-        assertEventAction(.reset, "lock")
+        assertTurnstile()
+    }
+    
+    func testConditionTurnstile() throws {
+        var bool = false
+        
+        try fsm.buildTable {
+            let resetable = SuperState {
+                condition { bool } | when(.reset) | then(.locked)
+            }
+            
+            define(.locked, adopts: resetable, onEntry: [lock]) {
+                condition { bool } | when(.coin) | then(.unlocked)
+                condition { bool } | when(.pass) | then(.alarming)
+            }
+            
+            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+                condition { bool } | when(.coin) | then(.unlocked) | thankyou
+                condition { bool } | when(.pass) | then(.locked)
+            }
+            
+            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+        }
+        
+        assertEventAction(.coin,  "")
+        assertEventAction(.pass,  "")
+        assertEventAction(.reset,  "")
+
+        fsm.state = AnyHashable(StateType.unlocked)
+        
+        assertEventAction(.coin,  "")
+        assertEventAction(.pass,  "")
+        assertEventAction(.reset,  "")
+        
+        fsm.state = AnyHashable(StateType.alarming)
+        
+        assertEventAction(.reset,  "")
+
+        fsm.state = AnyHashable(StateType.locked)
+        bool = true
+        
+        assertTurnstile()
     }
 }
 
