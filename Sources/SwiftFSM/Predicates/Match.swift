@@ -10,18 +10,6 @@ class Match {
     typealias Result = Swift.Result<Match, MatchError>
     typealias AnyPP = any Predicate
     
-    static func + (self: Match, next: Match) -> Match {
-        let m = Match(any: self.matchAny + next.matchAny,
-                      all: self.matchAll + next.matchAll,
-                      condition: { self.condition() && next.condition() },
-                      file: self.file,
-                      line: self.line)
-        m.next = self.next
-        m.originalSelf = self
-        
-        return m
-    }
-    
     let matchAny: [[AnyPredicate]]
     let matchAll: [AnyPredicate]
     let condition: () -> Bool
@@ -80,7 +68,7 @@ class Match {
         
         switch (firstResult, restResult) {
         case (.success, .success(let rest)):
-            return (self + rest).validate().appending(file: rest.file, line: rest.line)
+            return (adding(rest)).validate().appending(file: rest.file, line: rest.line)
             
         case (.failure, .failure(let e)):
             return firstResult.appending(files: e.files, lines: e.lines)
@@ -125,6 +113,18 @@ class Match {
         }
         
         return .success(self)
+    }
+    
+    func adding(_ other: Match) -> Match {
+        let m = Match(any: matchAny + other.matchAny,
+                      all: matchAll + other.matchAll,
+                      condition: { [unowned self] in self.condition() && other.condition() },
+                      file: file,
+                      line: line)
+        m.next = next
+        m.originalSelf = self
+        
+        return m
     }
     
     func allPredicateCombinations(_ ps: PredicateSets) -> Set<PredicateResult> {

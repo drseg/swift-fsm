@@ -78,43 +78,43 @@ class AdditionTests: MatchTests {
         let m1 = Match(file: "1", line: 1)
         let m2 = Match(file: "2", line: 2)
         
-        XCTAssertEqual((m1 + m2).file, "1")
-        XCTAssertEqual((m2 + m1).file, "2")
-        
-        XCTAssertEqual((m1 + m2).line, 1)
-        XCTAssertEqual((m2 + m1).line, 2)
+        XCTAssertEqual(m1.adding(m2).file, "1")
+        XCTAssertEqual(m2.adding(m1).file, "2")
+    
+        XCTAssertEqual(m1.adding(m2).line, 1)
+        XCTAssertEqual(m2.adding(m1).line, 2)
     }
     
     func testAddingEmptyMatches() {
-        XCTAssertEqual(Match() + Match(), Match())
+        XCTAssertEqual(Match().adding(Match()), Match())
     }
     
     func testAddingAnyToEmpty() {
-        XCTAssertEqual(Match() + Match(any: p1, p2),
+        XCTAssertEqual(Match().adding(Match(any: p1, p2)),
                        Match(any: p1, p2))
     }
     
     func testAddingAllToEmpty() {
-        XCTAssertEqual(Match() + Match(all: p1), Match(all: p1))
+        XCTAssertEqual(Match().adding(Match(all: p1)), Match(all: p1))
     }
     
     func testAddingAnyAndAllToEmpty() {
         let addend = Match(any: p1, p2, all: q1, q2)
-        XCTAssertEqual(Match() + addend, addend)
+        XCTAssertEqual(Match().adding(addend), addend)
     }
     
     func testAddingAnytoAny() {
         let m1 = Match(any: p1, p2)
         let m2 = Match(any: q1, q2)
         
-        XCTAssertEqual(m1 + m2, Match(any: [[p1, p2], [q1, q2]]))
+        XCTAssertEqual(m1.adding(m2), Match(any: [[p1, p2], [q1, q2]]))
     }
     
     func testAddingAlltoAny() {
         let m1 = Match(any: q1, q2)
         let m2 = Match(all: p1, p2)
         
-        XCTAssertEqual(m1 + m2, Match(any: q1, q2,
+        XCTAssertEqual(m1.adding(m2), Match(any: q1, q2,
                                       all: p1, p2))
     }
     
@@ -122,7 +122,7 @@ class AdditionTests: MatchTests {
         let m1 = Match(any: q1, q2)
         let m2 = Match(any: r1, r2, all: p1, p2)
         
-        XCTAssertEqual(m1 + m2, Match(any: [[q1, q2], [r1, r2]],
+        XCTAssertEqual(m1.adding(m2), Match(any: [[q1, q2], [r1, r2]],
                                       all: p1, p2))
     }
     
@@ -130,7 +130,7 @@ class AdditionTests: MatchTests {
         let m1 = Match(any: p1, p2, all: q1, q2)
         let m2 = Match(any: r1, r2, all: s1, s2)
         
-        XCTAssertEqual(m1 + m2, Match(any: [[p1, p2], [r1, r2]],
+        XCTAssertEqual(m1.adding(m2), Match(any: [[p1, p2], [r1, r2]],
                                       all: q1, q2, s1, s2))
     }
     
@@ -139,12 +139,12 @@ class AdditionTests: MatchTests {
         let m2 = Match(condition: { false })
         let m3 = Match()
         
-        XCTAssertTrue((m1 + m1).condition())
-        XCTAssertTrue((m3 + m3).condition())
-        XCTAssertTrue((m1 + m3).condition())
+        XCTAssertTrue(m1.adding(m1).condition())
+        XCTAssertTrue(m3.adding(m3).condition())
+        XCTAssertTrue(m1.adding(m3).condition())
         
-        XCTAssertFalse((m1 + m2).condition())
-        XCTAssertFalse((m2 + m3).condition())
+        XCTAssertFalse(m1.adding(m2).condition())
+        XCTAssertFalse(m2.adding(m3).condition())
     }
 }
 
