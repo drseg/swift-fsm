@@ -144,5 +144,15 @@ class MatchResolvingNodeTests: DefineConsumer {
         assertError(result, expected: [makeOutput(s1, Match(any: P.a), [P.a, Q.a], e1, s2),
                                        makeOutput(s1, Match(any: Q.a), [P.a, Q.a], e1, s3)])
     }
+    
+    func testPassesConditionToOutput() {
+        let d1 = defineNode(s1, Match(condition: { false }), e1, s2)
+        let result = tableNode(rest: [d1]).finalised()
+        
+        guard assertCount(result.errors, expected: 0) else { return }
+        guard assertCount(result.output, expected: 1) else { return }
+        
+        XCTAssertEqual(false, result.output.first?.condition())
+    }
 }
 

@@ -32,7 +32,8 @@ class FSM<State: Hashable, Event: Hashable> {
     }
     
     struct Value {
-        let state: AnyHashable,
+        let condition: () -> Bool,
+            state: AnyHashable,
             predicates: PredicateSet,
             event: AnyHashable,
             nextState: AnyHashable,
@@ -75,7 +76,8 @@ class FSM<State: Hashable, Event: Hashable> {
     
     func makeTable(_ output: [MatchResolvingNode.Output]) {
         output.forEach {
-            let value = Value(state: $0.state.base,
+            let value = Value(condition: $0.condition,
+                              state: $0.state.base,
                               predicates: $0.predicates,
                               event: $0.event.base,
                               nextState: $0.nextState.base,
@@ -91,7 +93,9 @@ class FSM<State: Hashable, Event: Hashable> {
     func handleEvent(_ event: Event, predicates: [any Predicate]) {
         if let transition = table[Key(state: state,
                                       predicates: Set(predicates.erased()),
-                                      event: event)] {
+                                      event: event)],
+           transition.condition()
+        {
             state = transition.nextState
             transition.actions.forEach { $0() }
         }

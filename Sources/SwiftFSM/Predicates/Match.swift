@@ -118,7 +118,7 @@ class Match {
     func adding(_ other: Match) -> Match {
         let m = Match(any: matchAny + other.matchAny,
                       all: matchAll + other.matchAll,
-                      condition: { [unowned self] in self.condition() && other.condition() },
+                      condition: { self.condition() && other.condition() },
                       file: file,
                       line: line)
         m.next = next

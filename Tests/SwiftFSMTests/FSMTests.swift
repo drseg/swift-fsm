@@ -82,9 +82,13 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
         fsm.state = 1
     }
     
+    func pass() {
+        actionsOutput = "pass"
+    }
+    
     func testHandleEventWithoutPredicate() throws {
         try fsm.buildTable {
-            define(1) { when(1.1) | then(2) | { self.actionsOutput = "pass" } }
+            define(1) { when(1.1) | then(2) | pass }
         }
         
         assertHandleEvent(1.1, state: 2, output: "pass")
@@ -93,8 +97,8 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
     
     func testHandleEventWithSinglePredicate() throws {
         try fsm.buildTable {
-            define(1) { matching(P.a) | when(1.1) | then(2) | { self.actionsOutput = "pass" } }
-            define(1) { matching(P.b) | when(1.1) | then(3) | { self.actionsOutput = "pass" } }
+            define(1) { matching(P.a) | when(1.1) | then(2) | pass }
+            define(1) { matching(P.b) | when(1.1) | then(3) | pass }
         }
         
         assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
@@ -102,10 +106,6 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
     }
     
     func testHandlEventWithMultiplePredicates() throws {
-        func pass() {
-            actionsOutput = "pass"
-        }
-        
         try fsm.buildTable {
             define(1) { matching(P.a, or: Q.a) | when(1.1) | then(2) | pass }
             define(1) { matching(P.b, or: Q.b) | when(1.1) | then(3) | pass }
@@ -118,6 +118,18 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
         assertHandleEvent(1.1, predicates: Q.b, state: 3, output: "pass")
         
         assertHandleEvent(1.1, predicates: P.b, Q.b, state: 4, output: "pass")
+    }
+    
+    func testHandlEventWithCondition() throws {
+        try fsm.buildTable {
+            define(1) { condition { false } | when(1.1) | then(2) | pass }
+            define(2) { condition { true  } | when(1.1) | then(3) | pass }
+
+        }
+        
+        assertHandleEvent(1.1, state: 1, output: "")
+        fsm.state = 2
+        assertHandleEvent(1.1, state: 3, output: "pass")
     }
 }
 
