@@ -26,8 +26,9 @@ This guide is reasonably complete, but does presume some familiarity with FSMs a
 	- [Deduplication][19]
 	- [Chained Blocks][20]
 	- [Complex Predicates][21]
-	- [Runtime Errors][22]
-	- [Predicate Performance][23]
+	- [Condition Statements][22]
+	- [Runtime Errors][23]
+	- [Predicate Performance][24]
 
 ## Requirements
 
@@ -357,7 +358,7 @@ In contrast, Swift FSM entry and exit actions are only invoked if there is a sta
 
 All statements must be made in the form `define { when | then | actions }`. Any reordering will not compile.
 
-See [Expanded Syntax][24] below for exceptions to this rule.
+See [Expanded Syntax][25] below for exceptions to this rule.
 
 ### Syntax Variations
 
@@ -405,6 +406,27 @@ define(.locked) {
 }
 ```
 
+### Limitations of `@resultBuilder` Implementation
+
+The `@resultBuilder` blocks in SwiftFSM do not control flow logic. Though is it possible to enable such logic, it would be misleading in this case:
+
+```swift
+define(.locked) {
+	if something { // ⛔️ intentionally does not compile
+        when(.pass) | then(.unlocked) | unlock
+    } else {
+        when(.pass) | then(.alarming) | alarmOn
+    }
+    ...
+}
+```
+
+If the `if/else` block were evaluated at runtime, this would indeed be a useful syntax. However what we are really doing inside these blocks is *compiling* our state transition table. The use of `if` and `else` in this manner are therefore akin to the conditional compilation statements `#if/#else` - based on a value at compile time, either one transition or the other will be compiled into the table, and the other one will be omitted entirely.
+
+As it is almost impossible that one would want to make such a statement to the FSM compiler, this syntax is disallowed entirely. 
+
+If you *do* have a use for this, please open an issue and let me know. See the [Expanded Syntax][26] section for alternative syntax that enables runtime rather than compile time conditional statements.
+
 ### Runtime Errors
 
 #### Empty Blocks
@@ -433,6 +455,10 @@ try fsm.buildTable {
 // 💥 error: duplicate transitions
 ```
 
+#### Duplicate `buildTable` Calls
+
+Any additional calls to `fsm.buildTable { }` will throw a `TableAlreadyBuiltError`, as the expected behaviour of such a call is undefined.
+
 #### Logical Clashes
 
 A logical clash occurs when two transitions share the same start state and event, but their next states differ:
@@ -456,7 +482,7 @@ Thought the two transitions are clearly distinct from one another, from a logica
 
 This is not an issue for most Swift types, as `Hashable` conformance will have to be declared explicitly. `NSObject` however already conforms to `Hashable`, and is hashed *by instance identity*, rather than by value. Therefore, an error will be thrown if Swift FSM detects any trace of `NSObject` anywhere near your `State` or `Event` types. 
 
-This is very much an edge case and it is extremely unlikely that you will ever fall foul of this rule, unless you do so intentionally. Nonetheless, the check is quite exhaustive - If you would like to see how this check works, see the dependency [Reflective Equality][25].
+This is very much an edge case and it is extremely unlikely that you will ever fall foul of this rule, unless you do so intentionally. Nonetheless, the check is quite exhaustive - If you would like to see how this check works, see the dependency [Reflective Equality][27].
 
 ### Performance
 
@@ -773,7 +799,7 @@ They can be divided into two groups - blocks that can be logically chained (or A
 
 #### Discrete Blocks - `when` and `then`
 
-Each transition can only respond to a single event, and transition to a single state. Therefore multiple `when {}` and `then {}` blocks cannot be AND-ed together.
+Each transition can only respond to a single event, and transition to a single state. Therefore multiple `when { }` and `then { }` blocks cannot be AND-ed together.
 
 ```swift
 define(.locked) {
@@ -949,6 +975,60 @@ define(.locked) {
 }
 ```
 
+### Condition Statements
+
+Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve the problem at hand.
+
+If all you need is to make a specific transition conditional on some particular logic at runtime, then the `condition` statement can suffice. Some FSM implementations call this a `guard` statement, however the name `condition` was chosen here as `guard` is a reserved word in Swift.
+
+```swift
+define(.locked) {
+	condition(complicatedDecisionTree) | when(.pass) | then(.locked) | lock 
+}
+```
+
+Here, `complicatedDecisionTree()` receives a block that returns a `Bool`. If it is `true`, the transition is executed, and if it is not, nothing happens.
+
+The keyword `condition` is syntactically interchangeable with `matching` - it works with pipe and block syntax, and is chainable by AND.
+
+`matching` and `condition` blocks can also be combined freely:
+
+```swift
+define(.locked) {
+    condition({ reward == .positive }) {
+        matching(Enforcement.weak)   | then(.unlocked) | action
+        matching(Enforcement.strong) | then(.locked)   | otherAction
+    }
+}
+```
+
+The *advantage* of `condition` over `matching` (assuming that either will suffice) is that the overhead of using`condition` is significantly lower (see [Predicate Performance][28] for details). You can express conditional logic without needing to create new `Predicate` types and pass them to `handleEvent`.
+
+The *disadvantage* of `condition` versus `matching` is that it is more limited in the kinds of logic it can express:
+
+```swift
+define(.locked) {
+    when(.coin) {
+        matching(Enforcement.weak)   | then(.unlocked) | action
+        matching(Enforcement.strong) | then(.locked)   | otherAction
+    }
+} // ✅ all good here
+
+...
+
+define(.locked) {
+    when(.coin) {
+        condition { enforcement == .weak   } | then(.unlocked) | action
+        condition { enforcement == .strong } | then(.locked)   | otherAction
+    }
+} // 💥 error: logical clash
+
+```
+
+The FSM has no way to distinguish between different `condition` statements - it cannot ‘see into’ the `() -> Bool` blocks, and must therefore evaluate the statements as if they did not exist. 
+
+What therefore remains is two statements `define(.locked) { when(.coin) | ... }` that both transition to different states - the FSM has no way to understand which one to call, and must therefore `throw`.
+
 ### Runtime Errors
 
 In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs no error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance. It is the caller’s responsibility to ensure that the predicates passed to `handleEvent` and the predicates used in the transition table are of the same type and number.
@@ -985,7 +1065,7 @@ matching(A.a, or: A.b) { // ✅
 
 #### Implicit Clash Error
 
-See [Implicit Clashes][26]
+See [Implicit Clashes][29]
 
 ### Predicate Performance
 
@@ -1016,8 +1096,11 @@ Using three predicates, each with 10 cases each, would therefore require 1,000 o
 [19]:	#deduplication
 [20]:	#chained-blocks
 [21]:	#complex-predicates
-[22]:	#error-handling
-[23]:	#predicate-performance
-[24]:	#expanded-syntax "Expanded Syntax"
-[25]:	https://github.com/drseg/reflective-equality
-[26]:	#implicit-clashes
+[22]:	#condition-statements
+[23]:	#error-handling
+[24]:	#predicate-performance
+[25]:	#expanded-syntax "Expanded Syntax"
+[26]:	#expanded-syntax
+[27]:	https://github.com/drseg/reflective-equality
+[28]:	#predicate-performance
+[29]:	#implicit-clashes
