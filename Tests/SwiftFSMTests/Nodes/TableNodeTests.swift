@@ -15,15 +15,16 @@ class MatchResolvingNodeTests: DefineConsumer {
                                          nextState: AnyTraceable,
                                          actionsOutput: String)
     
-    typealias PTN = MatchResolvingNode
+    typealias MRN = MatchResolvingNode
     typealias SVN = SemanticValidationNode
     typealias Key = MatchResolvingNode.ImplicitClashesKey
-    typealias TableNodeResult = (output: [PTN.Output], errors: [Error])
+    typealias TableNodeResult = (output: [MRN.Output], errors: [Error])
     
     enum P: Predicate { case a, b }
     enum Q: Predicate { case a, b }
+    enum R: Predicate { case a, b }
     
-    func tableNode(rest: [any Node<DefineNode.Output>]) -> PTN {
+    func matchResolvingNode(rest: [any Node<DefineNode.Output>]) -> MRN {
         .init(rest: [SVN(rest: [ActionsResolvingNode(rest: rest)])])
     }
     
@@ -58,7 +59,7 @@ class MatchResolvingNodeTests: DefineConsumer {
         expected: [ExpectedTableNodeOutput],
         line: UInt = #line
     ) {
-        guard let clashError = result.errors[0] as? PTN.ImplicitClashesError else {
+        guard let clashError = result.errors[0] as? MRN.ImplicitClashesError else {
             XCTFail("unexpected error \(result.errors[0])", line: line)
             return
         }
@@ -82,7 +83,7 @@ class MatchResolvingNodeTests: DefineConsumer {
     
     func assertEqual(
         _ lhs: ExpectedTableNodeOutput?,
-        _ rhs: PTN.Output?,
+        _ rhs: MRN.Output?,
         line: UInt = #line
     ) {
         XCTAssertEqual(lhs?.state, rhs?.state, line: line)
@@ -95,7 +96,7 @@ class MatchResolvingNodeTests: DefineConsumer {
     
     func assertEqual(
         _ lhs: ExpectedTableNodeOutput?,
-        _ rhs: PTN.ErrorOutput?,
+        _ rhs: MRN.ErrorOutput?,
         line: UInt = #line
     ) {
         XCTAssertEqual(lhs?.state, rhs?.state, line: line)
@@ -105,7 +106,7 @@ class MatchResolvingNodeTests: DefineConsumer {
     }
     
     func testEmptyNode() {
-        let result = tableNode(rest: []).finalised()
+        let result = matchResolvingNode(rest: []).finalised()
         
         assertCount(result.output, expected: 0)
         assertCount(result.errors, expected: 0)
@@ -113,7 +114,7 @@ class MatchResolvingNodeTests: DefineConsumer {
     
     func testTableWithNoMatches() {
         let d1 = defineNode(s1, Match(), e1, s2)
-        let result = tableNode(rest: [d1]).finalised()
+        let result = matchResolvingNode(rest: [d1]).finalised()
 
         assertCount(result.output, expected: 1)
         assertResult(result, expected: makeOutput(s1, Match(), [], e1, s2))
@@ -122,7 +123,7 @@ class MatchResolvingNodeTests: DefineConsumer {
     func testImplicitMatch() {
         let d1 = defineNode(s1, Match(), e1, s2)
         let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
-        let result = tableNode(rest: [d1, d2]).finalised()
+        let result = matchResolvingNode(rest: [d1, d2]).finalised()
         
         assertCount(result.output, expected: 2)
         
@@ -133,10 +134,10 @@ class MatchResolvingNodeTests: DefineConsumer {
     func testImplicitMatchClash() {
         let d1 = defineNode(s1, Match(any: P.a), e1, s2)
         let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
-        let result = tableNode(rest: [d1, d2]).finalised()
+        let result = matchResolvingNode(rest: [d1, d2]).finalised()
 
         guard assertCount(result.errors, expected: 1) else { return }
-        guard let clashError = result.errors[0] as? PTN.ImplicitClashesError else {
+        guard let clashError = result.errors[0] as? MRN.ImplicitClashesError else {
             XCTFail("unexpected error \(result.errors[0])"); return
         }
         
@@ -145,9 +146,20 @@ class MatchResolvingNodeTests: DefineConsumer {
                                        makeOutput(s1, Match(any: Q.a), [P.a, Q.a], e1, s3)])
     }
     
+    func testMoreImplicitMatchClashes() throws {
+        throw XCTSkip("What does P.a OR R.a mean? Is it valid?")
+        
+        let d1 = defineNode(s1, Match(any: P.a, R.a), e1, s2)
+        let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
+        let result = matchResolvingNode(rest: [d1, d2]).finalised()
+        
+        XCTAssertFalse(result.errors.isEmpty)
+        print(result.output)
+    }
+    
     func testPassesConditionToOutput() {
         let d1 = defineNode(s1, Match(condition: { false }), e1, s2)
-        let result = tableNode(rest: [d1]).finalised()
+        let result = matchResolvingNode(rest: [d1]).finalised()
         
         guard assertCount(result.errors, expected: 0) else { return }
         guard assertCount(result.output, expected: 1) else { return }

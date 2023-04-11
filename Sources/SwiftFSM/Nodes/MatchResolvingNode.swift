@@ -86,6 +86,7 @@ final class MatchResolvingNode: Node {
     
     func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Output] {
         var clashes = ImplicitClashesDictionary()
+        let allCases = rest.allCases()
         
         let result = rest.reduce(into: [RankedOutput]()) { result, input in
             func appendInput(_ predicateResult: PredicateResult = PredicateResult()) {
@@ -122,7 +123,7 @@ final class MatchResolvingNode: Node {
                 }
             }
             
-            let allPredicateCombinations = input.match.allPredicateCombinations(rest.allCases)
+            let allPredicateCombinations = input.match.allPredicateCombinations(allCases)
             guard !allPredicateCombinations.isEmpty else {
                 appendInput(); return
             }
@@ -150,7 +151,7 @@ extension PredicateResult {
 }
 
 extension [SemanticValidationNode.Output] {
-    var allCases: PredicateSets {
+    func allCases() -> PredicateSets {
         let matches = map(\.match)
         let anys = matches.map(\.matchAny)
         let alls = matches.map(\.matchAll)
