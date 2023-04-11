@@ -137,13 +137,31 @@ class Match {
         return m
     }
     
-    func allPredicateCombinations(_ ps: PredicateSets) -> Set<PredicateResult> {
-        func makeResult(_ p: PredicateSet) -> PredicateResult {
-            .init(predicates: p, rank: anyAndAll.first?.count ?? 0)
+    func newPredicateCombinations(_ predicatePool: PredicateSets) -> Set<RankedPredicates> {
+        let anyAndAll = combineAnyAndAll().removingEmpties
+        
+        return predicatePool.reduce(into: []) { result, poolElement in
+            func insertPoolElement(rank: Int) {
+                result.insert(.init(poolElement, rank: rank))
+            }
+            
+            guard !anyAndAll.isEmpty else { insertPoolElement(rank: 0); return }
+            
+            anyAndAll.forEach {
+                if $0.allSatisfy(poolElement.contains) {
+                    insertPoolElement(rank: $0.count)
+                }
+            }
+        }
+    }
+    
+    func allPredicateCombinations(_ ps: PredicateSets) -> Set<RankedPredicates> {
+        func makeResult(_ p: PredicateSet) -> RankedPredicates {
+            .init(p, rank: anyAndAll.first?.count ?? 0)
         }
         
         let anyAndAll = combineAnyAndAll()
-        return ps.reduce(into: Set<PredicateResult>()) { result, p in
+        return ps.reduce(into: Set<RankedPredicates>()) { result, p in
             let filtered = removeDuplicates(p)
             if anyAndAll.isEmpty {
                 result.insert(makeResult(filtered))
@@ -156,9 +174,9 @@ class Match {
     }
     
     func combineAnyAndAll() -> PredicateSets {
-        matchAny.combinations().reduce(into: [[AnyPredicate]]()) {
-           $0.append(matchAll + $1)
-       }.asSets ??? [matchAll].asSets
+        matchAny.combinations().reduce(into: PredicateSets()) {
+            $0.insert(Set(matchAll + $1))
+        } ??? [matchAll].asSets
     }
     
     func removeDuplicates(_ p: PredicateSet) -> PredicateSet {
@@ -196,9 +214,14 @@ extension Match: Hashable {
     }
 }
 
-struct PredicateResult: Hashable {
+struct RankedPredicates: Hashable {
     let predicates: PredicateSet
     let rank: Int
+    
+    init(_ predicates: PredicateSet, rank: Int) {
+        self.predicates = predicates
+        self.rank = rank
+    }
 }
 
 extension Match.Result {
@@ -222,7 +245,7 @@ protocol PossiblyEmpty {
 }
 
 extension Set: PossiblyEmpty { }
-extension PredicateResult: PossiblyEmpty {
+extension RankedPredicates: PossiblyEmpty {
     var isEmpty: Bool { predicates.isEmpty }
 }
 

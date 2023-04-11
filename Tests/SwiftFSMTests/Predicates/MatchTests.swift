@@ -282,6 +282,139 @@ class ValidationTests: MatchTests {
     }
 }
 
+class NewMatchCombinationsTests: MatchTests {
+    var predicatePool: PredicateSets!
+    
+    override func setUp() {
+        predicatePool = [[Q.a, R.a, S.a],
+                         [Q.b, R.a, S.a],
+                         [Q.a, R.b, S.a],
+                         [Q.b, R.b, S.a],
+                         [Q.a, R.a, S.b],
+                         [Q.b, R.a, S.b],
+                         [Q.a, R.b, S.b],
+                         [Q.b, R.b, S.b]].erasedSets
+    }
+    
+    func assertCombinations(
+        match: Match,
+        predicatePool: PredicateSets,
+        expected: [[any Predicate]],
+        eachRank: Int = 0,
+        line: UInt = #line
+    ) {
+        let allCombinations = match.newPredicateCombinations(predicatePool)
+        let allRanks = allCombinations.map(\.rank)
+        let allPredicates = Set(allCombinations.map(\.predicates))
+        
+        XCTAssertEqual(allPredicates, expected.erasedSets, line: line)
+        XCTAssertTrue(allRanks.allSatisfy { $0 == eachRank },
+                      "expected \(eachRank), got \(allRanks)", line: line)
+    }
+    
+    func testEmpties() {
+        assertCombinations(match: Match(), predicatePool: [], expected: [])
+        assertCombinations(match: Match(all: Q.a), predicatePool: [], expected: [])
+    }
+    
+    func testNoMatch() {
+        assertCombinations(match: Match(all: P.a),
+                           predicatePool: predicatePool,
+                           expected: [])
+    }
+    
+    func testNoPredicateMatchesEntirePool() {
+        assertCombinations(match: Match(),
+                           predicatePool: predicatePool,
+                           expected: [[Q.a, R.a, S.a],
+                                      [Q.b, R.a, S.a],
+                                      [Q.a, R.b, S.a],
+                                      [Q.b, R.b, S.a],
+                                      [Q.a, R.a, S.b],
+                                      [Q.b, R.a, S.b],
+                                      [Q.a, R.b, S.b],
+                                      [Q.b, R.b, S.b]])
+    }
+    
+    func testAll_SinglePredicate() {
+        assertCombinations(match: Match(all: Q.a),
+                           predicatePool: predicatePool,
+                           expected: [[Q.a, R.a, S.a],
+                                      [Q.a, R.b, S.a],
+                                      [Q.a, R.a, S.b],
+                                      [Q.a, R.b, S.b]],
+                           eachRank: 1)
+    }
+    
+    func testAll_MultiPredicate() {
+        assertCombinations(match: Match(all: Q.a, R.a),
+                           predicatePool: predicatePool,
+                           expected: [[Q.a, R.a, S.a],
+                                      [Q.a, R.a, S.b]],
+                           eachRank: 2)
+        
+        assertCombinations(match: Match(all: Q.a, R.a, S.a),
+                           predicatePool: predicatePool,
+                           expected: [[Q.a, R.a, S.a]],
+                           eachRank: 3)
+    }
+    
+    func testAny_MultiPredicate() {
+        assertCombinations(match: Match(any: Q.a, Q.b),
+                           predicatePool: predicatePool,
+                           expected: [[Q.a, R.a, S.a],
+                                      [Q.b, R.a, S.a],
+                                      [Q.a, R.b, S.a],
+                                      [Q.b, R.b, S.a],
+                                      [Q.a, R.a, S.b],
+                                      [Q.b, R.a, S.b],
+                                      [Q.a, R.b, S.b],
+                                      [Q.b, R.b, S.b]],
+                           eachRank: 1)
+        
+        assertCombinations(match: Match(any: Q.a, R.a),
+                           predicatePool: predicatePool,
+                           expected: [[Q.a, R.a, S.a],
+                                      [Q.b, R.a, S.a],
+                                      [Q.a, R.b, S.a],
+                                      [Q.a, R.a, S.b],
+                                      [Q.b, R.a, S.b],
+                                      [Q.a, R.b, S.b]],
+                           eachRank: 1)
+    }
+    
+    func testMultiAny() {
+        assertCombinations(match: Match(any: [[Q.a, Q.b], [R.a, R.b]]),
+                           predicatePool: predicatePool,
+                           expected: [[Q.a, R.a, S.a],
+                                      [Q.b, R.a, S.a],
+                                      [Q.a, R.b, S.a],
+                                      [Q.b, R.b, S.a],
+                                      [Q.a, R.a, S.b],
+                                      [Q.b, R.a, S.b],
+                                      [Q.a, R.b, S.b],
+                                      [Q.b, R.b, S.b]],
+                           eachRank: 2)
+    }
+    
+    func testAnyAndAll() {
+        assertCombinations(match: Match(any: Q.a, Q.b, all: R.a),
+                           predicatePool: predicatePool,
+                           expected: [[Q.a, R.a, S.a],
+                                      [Q.b, R.a, S.a],
+                                      [Q.a, R.a, S.b],
+                                      [Q.b, R.a, S.b]],
+                           eachRank: 2)
+        
+        assertCombinations(match: Match(any: Q.a, R.a, all: S.a),
+                           predicatePool: predicatePool,
+                           expected: [[Q.a, R.a, S.a],
+                                      [Q.b, R.a, S.a],
+                                      [Q.a, R.b, S.a]],
+                           eachRank: 2)
+    }
+}
+
 class MatchCombinationsTests: MatchTests {
     func testAllEmpty() {
         XCTAssertEqual(Match().allPredicateCombinations([]), [])

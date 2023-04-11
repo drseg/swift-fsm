@@ -22,7 +22,7 @@ final class MatchResolvingNode: Node {
     struct RankedOutput {
         let state: AnyTraceable,
             match: Match,
-            predicateResult: PredicateResult,
+            predicateResult: RankedPredicates,
             event: AnyTraceable,
             nextState: AnyTraceable,
             actions: [Action]
@@ -89,7 +89,7 @@ final class MatchResolvingNode: Node {
         let allCases = rest.allCases()
         
         let result = rest.reduce(into: [RankedOutput]()) { result, input in
-            func appendInput(_ predicateResult: PredicateResult = PredicateResult()) {
+            func appendInput(_ predicateResult: RankedPredicates = RankedPredicates()) {
                 let ro = RankedOutput(state: input.state,
                                       match: input.match,
                                       predicateResult: predicateResult,
@@ -143,7 +143,7 @@ final class MatchResolvingNode: Node {
     }
 }
 
-extension PredicateResult {
+extension RankedPredicates {
     init() {
         predicates = []
         rank = 0
