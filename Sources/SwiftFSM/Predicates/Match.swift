@@ -83,10 +83,8 @@ class Match {
     }
     
     func validate() -> Result {
-        func failure<C: Collection>(
-            duplicates: C,
-            type: MatchError.Type
-        ) -> Result where C.Element == AnyPredicate {
+        func failure<C: Collection>(duplicates: C, type: MatchError.Type) -> Result
+        where C.Element == AnyPredicate {
             .failure(
                 type.init(
                     predicates: duplicates,
@@ -117,14 +115,14 @@ class Match {
     }
     
     func adding(_ other: Match) -> Match {
-        let condition: (() -> Bool)? = {
+        var condition: (() -> Bool)? {
             switch (self.condition == nil, other.condition == nil) {
-            case (true, true): return nil
-            case (true, false): return other.condition!
-            case (false, true): return self.condition!
-            case (false, false): return { self.condition!() && other.condition!() }
+            case (true, true)   : return nil
+            case (true, false)  : return other.condition!
+            case (false, true)  : return self.condition!
+            case (false, false) : return { self.condition!() && other.condition!() }
             }
-        }()
+        }
         
         let m = Match(any: matchAny + other.matchAny,
                       all: matchAll + other.matchAll,
@@ -137,7 +135,7 @@ class Match {
         return m
     }
     
-    func newPredicateCombinations(_ predicatePool: PredicateSets) -> Set<RankedPredicates> {
+    func allPredicateCombinations(_ predicatePool: PredicateSets) -> Set<RankedPredicates> {
         let anyAndAll = combineAnyAndAll().removingEmpties
         
         return predicatePool.reduce(into: []) { result, poolElement in
@@ -155,37 +153,10 @@ class Match {
         }
     }
     
-    func allPredicateCombinations(_ ps: PredicateSets) -> Set<RankedPredicates> {
-        func makeResult(_ p: PredicateSet) -> RankedPredicates {
-            .init(p, rank: anyAndAll.first?.count ?? 0)
-        }
-        
-        let anyAndAll = combineAnyAndAll()
-        return ps.reduce(into: Set<RankedPredicates>()) { result, p in
-            let filtered = removeDuplicates(p)
-            if anyAndAll.isEmpty {
-                result.insert(makeResult(filtered))
-            } else {
-                anyAndAll.forEach {
-                    result.insert(makeResult(filtered.union($0)))
-                }
-            }
-        }.removingEmpties ??? Set(anyAndAll.map(makeResult))
-    }
-    
     func combineAnyAndAll() -> PredicateSets {
         matchAny.combinations().reduce(into: PredicateSets()) {
             $0.insert(Set(matchAll + $1))
         } ??? [matchAll].asSets
-    }
-    
-    func removeDuplicates(_ p: PredicateSet) -> PredicateSet {
-        var filtered = p
-        let includedTypes = (matchAny.flattened + matchAll).uniqueElementTypes
-        while let existing = filtered.first(where: { includedTypes.contains($0.type) }) {
-            filtered.remove(existing)
-        }
-        return filtered
     }
 }
 
@@ -238,18 +209,7 @@ extension Collection where Element: Collection & Hashable, Element.Element: Hash
     var asSets: Set<Set<Element.Element>> {
         Set(map(Set.init)).removingEmpties
     }
-}
-
-protocol PossiblyEmpty {
-    var isEmpty: Bool { get }
-}
-
-extension Set: PossiblyEmpty { }
-extension RankedPredicates: PossiblyEmpty {
-    var isEmpty: Bool { predicates.isEmpty }
-}
-
-extension Collection where Element: PossiblyEmpty & Hashable {
+    
     var removingEmpties: Set<Element> {
         Set(filter { !$0.isEmpty })
     }

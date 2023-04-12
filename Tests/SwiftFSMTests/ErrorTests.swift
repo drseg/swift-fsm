@@ -10,6 +10,13 @@ import XCTest
 final class ErrorTests: SyntaxNodeTests {
     var e: Error!
     
+    func testFileName() {
+        XCTAssertEqual("", "".name)
+        XCTAssertEqual("test", "test".name)
+        XCTAssertEqual("test", "/test".name)
+        XCTAssertEqual("test", "// ///test".name)
+    }
+    
     func testSwiftFSMError() {
         e = SwiftFSMError(errors: ["Error1", "Error2"])
         let message = String {
@@ -28,7 +35,7 @@ final class ErrorTests: SyntaxNodeTests {
     }
 
     func testEmptyBlockError() {
-        e = EmptyBuilderError(caller: "caller", file: "testfile", line: 10)
+        e = EmptyBuilderError(caller: "caller", file: "/testfile", line: 10)
         e.assertDescription(
             "Empty @resultBuilder block passed to 'caller' in testfile at line 10"
         )
@@ -36,7 +43,7 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testDuplicateMatchTypes() {
         e = DuplicateMatchTypes(predicates: [P.a, P.b].erased(),
-                                files: ["f1"],
+                                files: ["/f1"],
                                 lines: [1])
         e.assertDescription(
             String {
@@ -48,7 +55,7 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testDuplicateMatchTypesThroughAddition() {
         e = DuplicateMatchTypes(predicates: [P.a, P.b, Q.a, Q.b].erased(),
-                                files: ["f1", "f2"],
+                                files: ["/f1", "/f2"],
                                 lines: [1, 2])
         e.assertDescription(
             String {
@@ -63,7 +70,7 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testDuplicateMatchValues() {
         e = DuplicateAnyValues(predicates: [P.a, P.a, P.b, P.b].erased(),
-                               files: ["f1"],
+                               files: ["/f1"],
                                lines: [1])
         e.assertDescription(
             String {
@@ -75,7 +82,7 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testDuplicateMatchValuesThroughAddition() {
         e = DuplicateAnyValues(predicates: [P.a, P.a, P.b, P.b].erased(),
-                               files: ["f1", "f2"],
+                               files: ["/f1", "/f2"],
                                lines: [1, 2])
         e.assertDescription(
             String {
@@ -89,7 +96,7 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testDuplicateMatchAnyAllValues() {
         e = DuplicateAnyAllValues(predicates: [P.a, P.a, P.b, P.b].erased(),
-                                  files: ["f1"],
+                                  files: ["/f1"],
                                   lines: [1])
         e.assertDescription(
             "'matching' statement at file f1, line 1 contains multiple instances of P.a, P.b"
@@ -98,7 +105,7 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testDuplicateMatchAnyAllValuesThroughAddition() {
         e = DuplicateAnyAllValues(predicates: [P.a, P.a, P.b, P.b].erased(),
-                                  files: ["f1", "f2"],
+                                  files: ["/f1", "/f2"],
                                   lines: [1, 2])
         e.assertDescription(
             String {
@@ -132,7 +139,7 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testTableAlreadyBuiltError() {
-        e = TableAlreadyBuiltError(file: "f", line: 1)
+        e = TableAlreadyBuiltError(file: "/f", line: 1)
         e.assertDescription("Duplicate call to method buildTable in file f at line 1")
     }
     
@@ -153,7 +160,7 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testMatchDescriptionWithCondition() {
-        let match = Match(condition: { true }, file: "f", line: 1)
+        let match = Match(condition: { true }, file: "/f", line: 1)
         
         XCTAssertEqual("condition(() -> Bool) @f: 1",
                        match.errorDescription)
@@ -167,36 +174,36 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testMatchDescriptionWithOrOnly() {
-        let match = Match(any: [[P.a, P.b]], file: "f", line: 1)
+        let match = Match(any: [[P.a, P.b]], file: "/f", line: 1)
         
         XCTAssertEqual("matching((P.a OR P.b)) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithMultipleOrOnly() {
-        let match = Match(any: [[P.a, P.b], [Q.a, Q.b]], file: "f", line: 1)
+        let match = Match(any: [[P.a, P.b], [Q.a, Q.b]], file: "/f", line: 1)
         
         XCTAssertEqual("matching((P.a OR P.b) AND (Q.a OR Q.b)) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithAndOnly() {
-        let match = Match(all: R.a, S.a, file: "f", line: 1)
+        let match = Match(all: R.a, S.a, file: "/f", line: 1)
         
         XCTAssertEqual("matching(R.a AND S.a) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithOrAndAnd() {
-        let match = Match(any: [[P.a, P.b]], all: R.a, S.a, file: "f", line: 1)
+        let match = Match(any: [[P.a, P.b]], all: R.a, S.a, file: "/f", line: 1)
         
         XCTAssertEqual("matching((P.a OR P.b) AND R.a AND S.a) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithNext() {
-        let match = try? Match(any: [[Q.a, Q.b]], file: "2", line: 2)
-            .prepend(Match(any: [[P.a, P.b]], all: R.a, S.a, file: "1", line: 1))
+        let match = try? Match(any: [[Q.a, Q.b]], file: "/2", line: 2)
+            .prepend(Match(any: [[P.a, P.b]], all: R.a, S.a, file: "/1", line: 1))
             .finalised()
             .get()
 
@@ -211,10 +218,10 @@ final class ErrorTests: SyntaxNodeTests {
     
     typealias SVN = SemanticValidationNode
     
-    func s1(_ line: Int) -> AnyTraceable { AnyTraceable("s1", file: "fs", line: line) }
-    func m1(_ line: Int) -> Match { Match(any: P.a, all: Q.a, R.a, file: "fm", line: line) }
-    func e1(_ line: Int) -> AnyTraceable { AnyTraceable("e1", file: "fe", line: line) }
-    func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "fns", line: line) }
+    func s1(_ line: Int) -> AnyTraceable { AnyTraceable("s1", file: "/fs", line: line) }
+    func m1(_ line: Int) -> Match { Match(any: P.a, all: Q.a, R.a, file: "/fm", line: line) }
+    func e1(_ line: Int) -> AnyTraceable { AnyTraceable("e1", file: "/fe", line: line) }
+    func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "/fns", line: line) }
     
     func testSVNDuplicatesError() {
         let k1 = SVN.DuplicatesKey((s1(0), m1(0), e1(0), s2(0), []))
@@ -295,8 +302,8 @@ final class ErrorTests: SyntaxNodeTests {
     typealias MRN = MatchResolvingNode
 
     func testMRNClashesError() {
-        let m1 = Match(any: P.a, file: "fm", line: 2)
-        let m2 = Match(any: Q.a, file: "fm", line: 6)
+        let m1 = Match(any: P.a, file: "/fm", line: 2)
+        let m2 = Match(any: Q.a, file: "/fm", line: 6)
 
         let pr1 = Set([P.a.erased(), Q.a.erased()])
         let pr2 = Set([R.a.erased(), S.a.erased()])

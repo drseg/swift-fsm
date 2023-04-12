@@ -96,7 +96,7 @@ class MatchError: Error {
     
     var filesAndLines: String {
         zip(files, lines).reduce([]) {
-            $0 + [("file \($1.0), line \($1.1)")]
+            $0 + [("file \($1.0.name), line \($1.1)")]
         }.joined(separator: "\n")
     }
     
@@ -172,7 +172,7 @@ struct EmptyBuilderError: LocalizedError, Equatable {
     }
     
     var errorDescription: String? {
-        "Empty @resultBuilder block passed to '\(caller)' in \(file) at line \(line)"
+        "Empty @resultBuilder block passed to '\(caller)' in \(file.name) at line \(line)"
     }
 }
 
@@ -200,7 +200,7 @@ struct TableAlreadyBuiltError: LocalizedError {
     let line: Int
     
     var errorDescription: String? {
-        "Duplicate call to method buildTable in file \(file) at line \(line)"
+        "Duplicate call to method buildTable in file \(file.name) at line \(line)"
     }
 }
 
@@ -215,7 +215,7 @@ extension Match {
     
     var errorDescription: String {
         guard condition == nil else {
-            return "condition(() -> Bool) @\(file): \(line)"
+            return "condition(() -> Bool) @\(file.name): \(line)"
         }
         
         let or = matchAny.reduce([String]()) { result, predicates in
@@ -238,7 +238,7 @@ extension Match {
         
         let components = asArray
         guard components.count > 1 else {
-            return summary + " @\(file): \(line)"
+            return summary + " @\(file.name): \(line)"
         }
         
         return String {
@@ -251,7 +251,7 @@ extension Match {
 
 extension AnyTraceable {
     var fileAndLine: String {
-        "@\(file): \(line)"
+        "@\(file.name): \(line)"
     }
     
     var defineDescription: String { description("define") }
@@ -274,5 +274,11 @@ extension ResultBuilder {
 extension String {
     init(@StringBuilder _ b: () -> [String]) {
         self.init(b().joined(separator: "\n"))
+    }
+}
+
+extension String {
+    var name: String {
+        split(separator: "/").map(String.init).last ?? self
     }
 }

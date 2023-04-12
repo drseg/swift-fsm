@@ -119,17 +119,12 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
     
     func testHandlEventWithMultiplePredicates() throws {
         try fsm.buildTable {
-            define(1) { matching(P.a, or: Q.a) | when(1.1) | then(2) | pass }
-            define(1) { matching(P.b, or: Q.b) | when(1.1) | then(3) | pass }
-            define(1) { matching(P.b, and: Q.b) | when(1.1) | then(4) | pass }
+            define(1) { matching(P.a, or: Q.a)  | when(1.1) | then(2) | pass }
+            define(1) { matching(P.b, and: Q.b) | when(1.1) | then(3) | pass }
         }
         
-        assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
-        assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
-        assertHandleEvent(1.1, predicates: Q.a, state: 2, output: "pass")
-        assertHandleEvent(1.1, predicates: Q.b, state: 3, output: "pass")
-        
-        assertHandleEvent(1.1, predicates: P.b, Q.b, state: 4, output: "pass")
+        assertHandleEvent(1.1, predicates: P.a, Q.b, state: 2, output: "pass")
+        assertHandleEvent(1.1, predicates: P.b, Q.b, state: 3, output: "pass")
     }
     
     func testHandlEventWithCondition() throws {

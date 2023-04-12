@@ -146,15 +146,12 @@ class MatchResolvingNodeTests: DefineConsumer {
                                        makeOutput(s1, Match(any: Q.a), [P.a, Q.a], e1, s3)])
     }
     
-    func testMoreImplicitMatchClashes() throws {
-        throw XCTSkip("What does P.a OR R.a mean? Is it valid?")
-        
+    func testMoreSubtleImplicitMatchClashes() throws {
         let d1 = defineNode(s1, Match(any: P.a, R.a), e1, s2)
         let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
         let result = matchResolvingNode(rest: [d1, d2]).finalised()
         
         XCTAssertFalse(result.errors.isEmpty)
-        print(result.output)
     }
     
     func testPassesConditionToOutput() {
