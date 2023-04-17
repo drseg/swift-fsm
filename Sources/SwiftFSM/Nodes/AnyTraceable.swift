@@ -1,9 +1,3 @@
-//
-//  AnyTraceable.swift
-//  
-//  Created by Daniel Segall on 21/03/2023.
-//
-
 import Foundation
 
 struct AnyTraceable {

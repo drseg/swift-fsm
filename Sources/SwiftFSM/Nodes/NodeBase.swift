@@ -1,9 +1,3 @@
-//
-//  Nodes.swift
-//
-//  Created by Daniel Segall on 20/02/2023.
-//
-
 import Foundation
 
 protocol NodeBase {

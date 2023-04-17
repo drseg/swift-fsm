@@ -1,9 +1,3 @@
-//
-//  ResultBuilder.swift
-//
-//  Created by Daniel Segall on 21/02/2023.
-//
-
 import Foundation
 
 protocol ResultBuilder {

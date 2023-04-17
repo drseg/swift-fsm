@@ -1,9 +1,3 @@
-//
-//  NodeTestConvenience.swift
-//
-//  Created by Daniel Segall on 04/04/2023.
-//
-
 import XCTest
 @testable import SwiftFSM
 

@@ -1,9 +1,3 @@
-//
-//  CombinationsTests.swift
-//  
-//  Created by Daniel Segall on 24/03/2023.
-//
-
 import XCTest
 @testable import SwiftFSM
 

@@ -1,9 +1,3 @@
-//
-//  Errors.swift
-//
-//  Created by Daniel Segall on 14/03/2023.
-//
-
 import Foundation
 
 protocol ValidationError: LocalizedError {}

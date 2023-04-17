@@ -1,9 +1,3 @@
-//
-//  ActionsNode.swift
-//
-//  Created by Daniel Segall on 19/02/2023.
-//
-
 import Foundation
 
 class ActionsNodeBase {

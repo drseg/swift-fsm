@@ -1,9 +1,3 @@
-//
-//  Combinations.swift
-//
-//  Created by Daniel Segall on 24/03/2023.
-//
-
 import Foundation
 
 extension Collection where Element: Collection {

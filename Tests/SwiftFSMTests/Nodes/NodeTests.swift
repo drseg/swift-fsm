@@ -1,9 +1,3 @@
-//
-//  NodeTests.swift
-//
-//  Created by Daniel Segall on 20/02/2023.
-//
-
 import XCTest
 @testable import SwiftFSM
 

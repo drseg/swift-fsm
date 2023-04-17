@@ -1,9 +1,3 @@
-//
-//  ActionsResolvingNode.swift
-//
-//  Created by Daniel Segall on 17/03/2023.
-//
-
 import Foundation
 
 struct IntermediateIO {

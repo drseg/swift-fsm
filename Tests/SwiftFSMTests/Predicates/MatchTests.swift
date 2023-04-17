@@ -1,9 +1,3 @@
-//
-//  MatchTests.swift
-//
-//  Created by Daniel Segall on 22/02/2023.
-//
-
 import XCTest
 @testable import SwiftFSM
 

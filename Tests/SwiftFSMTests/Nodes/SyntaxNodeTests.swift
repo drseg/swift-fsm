@@ -1,9 +1,3 @@
-//
-//  SwiftFSMTests.swift
-//  
-//  Created by Daniel Segall on 19/02/2023.
-//
-
 import XCTest
 import Algorithms
 @testable import SwiftFSM

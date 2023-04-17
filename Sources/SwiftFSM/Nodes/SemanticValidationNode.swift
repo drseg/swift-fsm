@@ -1,9 +1,3 @@
-//
-//  SemanticValidationNode.swift
-//  
-//  Created by Daniel Segall on 18/03/2023.
-//
-
 import Foundation
 
 protocol SVNKey {

@@ -1,9 +1,3 @@
-//
-//  Match.swift
-//  
-//  Created by Daniel Segall on 22/02/2023.
-//
-
 import Foundation
 
 class Match {
