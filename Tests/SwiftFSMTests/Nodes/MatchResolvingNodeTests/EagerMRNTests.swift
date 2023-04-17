@@ -1,17 +1,8 @@
 import XCTest
 @testable import SwiftFSM
 
-class EagerMatchResolvingNodeTests: DefineConsumer {
-    struct ExpectedTableNodeOutput {
-        let state: AnyHashable,
-            match: Match,
-            predicates: PredicateSet,
-            event: AnyHashable,
-            nextState: AnyHashable,
-            actionsOutput: String
-    }
-    
-    struct ExpectedTableNodeError {
+class EagerMatchResolvingNodeTests: MRNTestBase {
+    struct ExpectedMRNError {
         let state: AnyTraceable,
             match: Match,
             predicates: PredicateSet,
@@ -19,11 +10,8 @@ class EagerMatchResolvingNodeTests: DefineConsumer {
             nextState: AnyTraceable,
             actionsOutput: String
     }
-    
-    typealias MRN = EagerMatchResolvingNode
-    typealias SVN = SemanticValidationNode
+
     typealias Key = EagerMatchResolvingNode.ImplicitClashesKey
-    typealias TableNodeResult = (output: [MRN.Output], errors: [Error])
     
     enum P: Predicate { case a, b }
     enum Q: Predicate { case a, b }
@@ -33,22 +21,6 @@ class EagerMatchResolvingNodeTests: DefineConsumer {
         .init(rest: [SVN(rest: [ActionsResolvingNode(rest: rest)])])
     }
     
-    func makeOutput(
-        _ g: AnyTraceable,
-        _ m: Match,
-        _ p: [any Predicate],
-        _ w: AnyTraceable,
-        _ t: AnyTraceable,
-        _ a: String = "12"
-    ) -> ExpectedTableNodeOutput {
-        .init(state: g.base,
-              match: m,
-              predicates: Set(p.erased()),
-              event: w.base,
-              nextState: t.base,
-              actionsOutput: a)
-    }
-    
     func makeErrorOutput(
         _ g: AnyTraceable,
         _ m: Match,
@@ -56,7 +28,7 @@ class EagerMatchResolvingNodeTests: DefineConsumer {
         _ w: AnyTraceable,
         _ t: AnyTraceable,
         _ a: String = "12"
-    ) -> ExpectedTableNodeError {
+    ) -> ExpectedMRNError {
         .init(state: g,
               match: m,
               predicates: Set(p.erased()),
@@ -65,24 +37,9 @@ class EagerMatchResolvingNodeTests: DefineConsumer {
               actionsOutput: a)
     }
     
-    func assertResult(
-        _ result: TableNodeResult,
-        expected: ExpectedTableNodeOutput,
-        line: UInt = #line
-    ) {
-        assertCount(result.errors, expected: 0, line: line)
-        
-        assertEqual(expected, result.output.first {
-            $0.state == expected.state &&
-            $0.predicates == expected.predicates &&
-            $0.event == expected.event &&
-            $0.nextState == expected.nextState
-        }, line: line)
-    }
-    
     func assertError(
-        _ result: TableNodeResult,
-        expected: [ExpectedTableNodeError],
+        _ result: MRNResult,
+        expected: [ExpectedMRNError],
         line: UInt = #line
     ) {
         guard let clashError = result.errors[0] as? MRN.ImplicitClashesError else {
@@ -108,20 +65,7 @@ class EagerMatchResolvingNodeTests: DefineConsumer {
     }
     
     func assertEqual(
-        _ lhs: ExpectedTableNodeOutput?,
-        _ rhs: MRN.Output?,
-        line: UInt = #line
-    ) {
-        XCTAssertEqual(lhs?.state, rhs?.state, line: line)
-        XCTAssertEqual(lhs?.predicates, rhs?.predicates, line: line)
-        XCTAssertEqual(lhs?.event, rhs?.event, line: line)
-        XCTAssertEqual(lhs?.nextState, rhs?.nextState, line: line)
-        
-        assertActions(rhs?.actions, expectedOutput: lhs?.actionsOutput, line: line)
-    }
-    
-    func assertEqual(
-        _ lhs: ExpectedTableNodeError?,
+        _ lhs: ExpectedMRNError?,
         _ rhs: MRN.ErrorOutput?,
         line: UInt = #line
     ) {
@@ -143,7 +87,12 @@ class EagerMatchResolvingNodeTests: DefineConsumer {
         let result = matchResolvingNode(rest: [d]).finalised()
 
         assertCount(result.output, expected: 1)
-        assertResult(result, expected: makeOutput(s1, Match(), [], e1, s2))
+        assertResult(result, expected: makeOutput(c: nil,
+                                                  g: s1,
+                                                  m: Match(),
+                                                  p: [],
+                                                  w: e1,
+                                                  t: s2))
     }
     
     func testMatchCondition() {
@@ -160,8 +109,19 @@ class EagerMatchResolvingNodeTests: DefineConsumer {
         
         assertCount(result.output, expected: 2)
         
-        assertResult(result, expected: makeOutput(s1, Match(), [Q.b], e1, s2))
-        assertResult(result, expected: makeOutput(s1, Match(any: Q.a), [Q.a], e1, s3))
+        assertResult(result, expected: makeOutput(c: nil,
+                                                  g: s1,
+                                                  m: Match(),
+                                                  p: [Q.b],
+                                                  w: e1,
+                                                  t: s2))
+        
+        assertResult(result, expected: makeOutput(c: nil,
+                                                  g: s1,
+                                                  m: Match(any: Q.a),
+                                                  p: [Q.a],
+                                                  w: e1,
+                                                  t: s3))
     }
     
     func testImplicitMatchClash() {

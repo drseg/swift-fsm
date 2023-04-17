@@ -1,60 +1,77 @@
 import XCTest
 @testable import SwiftFSM
 
-class NodeTestConvenience: DefineConsumer {
+class StringableNodeTestTests: StringableNodeTest {
+    func assertToString(
+        _ expected: String,
+        _ actual: any NodeBase,
+        fileAndLine: Bool = false,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(expected,
+                       toString(actual, printFileAndLine: fileAndLine),
+                       file: file,
+                       line: line)
+        
+        XCTAssertEqual("", actionsOutput, file: file, line: line)
+        XCTAssertEqual("", onExitOutput, file: file, line: line)
+        XCTAssertEqual("", onEntryOutput, file: file, line: line)
+    }
+    
+    func entry() { onEntryOutput = "entry" }
+    func exit()  { onExitOutput = "exit"   }
+    
     func testSingleNodeWithNoRest() {
-        XCTAssertEqual("A: 12", toString(actionsNode))
+        assertToString("A: 12", actionsNode)
     }
     
     func testThenNodeWithSingleActionsNode() {
-        XCTAssertEqual(String {
+        assertToString(String {
             "T: S1 {"
             "  A: 12"
             "}"
-        }, toString(thenNode))
-        
-        XCTAssertEqual("", actionsOutput)
+        }, thenNode)
     }
     
     func testThenNodeWithSingleActionsNodeFileAndLine() {
-        XCTAssertEqual(String {
+        assertToString(String {
             "T: S1 (null -1) {"
             "  A: 12"
             "}"
-        }, toString(thenNode, printFileAndLine: true))
+        }, thenNode, fileAndLine: true)
     }
     
     func testThenNodeWithDefaultArgumentAndSingleActionsNode() {
-        let t = ThenNode(state: nil, rest: [actionsNode])
-        XCTAssertEqual(String {
+        assertToString(String {
             "T: default {"
             "  A: 12"
             "}"
-        }, toString(t))
+        }, ThenNode(state: nil, rest: [actionsNode]))
     }
     
     func testWhenNodeWithThenAndActionsNodes() {
-        XCTAssertEqual(String {
+        assertToString(String {
             "W: E1, E2 {"
             "  T: S1 {"
             "    A: 12"
             "  }"
             "}"
-        }, toString(whenNode))
+        }, whenNode)
     }
     
     func testWhenNodeWithThenAndActionsNodesFileAndLine() {
-        XCTAssertEqual(String {
+        assertToString(String {
             "W: E1 (null -1), E2 (null -1) {"
             "  T: S1 (null -1) {"
             "    A: 12"
             "  }"
             "}"
-        }, toString(whenNode, printFileAndLine: true))
+        }, whenNode, fileAndLine: true)
     }
     
     func testGivenNodeWithMatchWhenThenActionsNodes() {
-        XCTAssertEqual(String {
+        assertToString(String {
             "G: S1, S2 {"
             "  M: any: [[P.a]], all: [Q.a] {"
             "    W: E1, E2 {"
@@ -64,11 +81,11 @@ class NodeTestConvenience: DefineConsumer {
             "    }"
             "  }"
             "}"
-        }, toString(givenNode(thenState: s1, actionsNode: actionsNode)))
+        }, givenNode(thenState: s1, actionsNode: actionsNode))
     }
     
     func testGivenNodeWithMatchWhenThenActionsNodesFileAndLine() {
-        XCTAssertEqual(String {
+        assertToString(String {
             "G: S1 (null -1), S2 (null -1) {"
             "  M: any: [[P.a]], all: [Q.a] (null -1) {"
             "    W: E1 (null -1), E2 (null -1) {"
@@ -78,15 +95,11 @@ class NodeTestConvenience: DefineConsumer {
             "    }"
             "  }"
             "}"
-        }, toString(givenNode(thenState: s1, actionsNode: actionsNode), printFileAndLine: true))
+        }, givenNode(thenState: s1, actionsNode: actionsNode), fileAndLine: true)
     }
     
-    func entry() { onEntryOutput = "entry" }
-    func exit()  { onExitOutput = "exit"   }
-    
     func testDefineNodeWithGivenMatchWhenThenActions() {
-        let d = defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])
-        XCTAssertEqual(String {
+        assertToString(String {
             "D: entry exit {"
             "  G: S1 {"
             "    M: any: [[P.a]], all: [Q.a] {"
@@ -98,15 +111,11 @@ class NodeTestConvenience: DefineConsumer {
             "    }"
             "  }"
             "}"
-        }, toString(d))
-        
-        XCTAssertEqual("", onExitOutput)
-        XCTAssertEqual("", onEntryOutput)
+        }, defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit]))
     }
     
     func testDefineNodeWithGivenMatchWhenThenActionsFileAndLine() {
-        let d = defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])
-        XCTAssertEqual(String {
+        assertToString(String {
             "D: entry exit (null -1) {"
             "  G: S1 (null -1) {"
             "    M: any: [[P.a]], all: [Q.a] (null -1) {"
@@ -118,38 +127,123 @@ class NodeTestConvenience: DefineConsumer {
             "    }"
             "  }"
             "}"
-        }, toString(d, printFileAndLine: true))
+        }, defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit]), fileAndLine: true)
+    }
+    
+    func testActionsResolvingNode() {
+        assertToString(String {
+            "ARN: {"
+            "  D: entry exit {"
+            "    G: S1 {"
+            "      M: any: [[P.a]], all: [Q.a] {"
+            "        W: E1 {"
+            "          T: S2 {"
+            "            A: 12"
+            "          }"
+            "        }"
+            "      }"
+            "    }"
+            "  }"
+            "}"
+        }, ActionsResolvingNode(rest: [defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])]))
+    }
+    
+    func testSemanticValidationNode() {
+        let a = ActionsResolvingNode(rest: [defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])])
+        let svn = SemanticValidationNode(rest: [a])
+        
+        assertToString(String {
+            "SVN: {"
+            "  ARN: {"
+            "    D: entry exit {"
+            "      G: S1 {"
+            "        M: any: [[P.a]], all: [Q.a] {"
+            "          W: E1 {"
+            "            T: S2 {"
+            "              A: 12"
+            "            }"
+            "          }"
+            "        }"
+            "      }"
+            "    }"
+            "  }"
+            "}"
+        }, svn)
     }
     
     func testActionsBlockNodeFileAndLine() {
         let a = ActionsBlockNode(actions: actions, rest: [], file: "null", line: -1)
-        XCTAssertEqual("A: 12 (null -1)", toString(a, printFileAndLine: true))
+        assertToString("A: 12 (null -1)", a, fileAndLine: true)
     }
     
     func testThenBlockNodeFileAndLine() {
         let t = ThenBlockNode(state: s1, rest: [], file: "null", line: -1)
-        XCTAssertEqual("T (null -1): S1 (null -1)", toString(t, printFileAndLine: true))
+        assertToString("T (null -1): S1 (null -1)", t, fileAndLine: true)
     }
     
     func testWhenBlockNodeFileAndLine() {
         let w = WhenBlockNode(events: [e1], rest: [], file: "null", line: -1)
-        XCTAssertEqual("W (null -1): E1 (null -1)", toString(w, printFileAndLine: true))
+        assertToString("W (null -1): E1 (null -1)", w, fileAndLine: true)
     }
     
     func testMatchBlockNodeFileAndLine() {
         let w = MatchBlockNode(match: m1, file: "null", line: -1)
-        XCTAssertEqual("M (null -1): any: [[P.a]], all: [Q.a] (null -1)",
-                       toString(w, printFileAndLine: true))
+        assertToString("M (null -1): any: [[P.a]], all: [Q.a] (null -1)",
+                       w, fileAndLine: true)
     }
     
     func testThenNodeWithMultipleActionsNodes() {
-        let n = ThenNode(state: s1, rest: [actionsNode, actionsNode])
-        XCTAssertEqual(String {
+        assertToString(String {
             "T: S1 {"
             "  A: 12"
             "  A: 12"
             "}"
-        }, toString(n))
+        }, ThenNode(state: s1, rest: [actionsNode, actionsNode]))
+    }
+    
+    func testAssertEqual() {
+        let t1 = ThenNode(state: AnyTraceable("", file: "f", line: 1))
+        let t2 = ThenNode(state: AnyTraceable("", file: "f", line: 2))
+        let t3 = ThenNode(state: AnyTraceable("", file: "g", line: 1))
+        
+        assertEqual(t1, t1)
+        assertEqualFileAndLine(t1, t1)
+        
+        assertEqual(t1, t2)
+        assertEqual(t1, t3)
+        assertEqual(t2, t3)
+        
+        XCTExpectFailure {
+            assertEqual(t1, whenNode)
+            assertEqualFileAndLine(t1, whenNode)
+
+            assertEqualFileAndLine(t1, t2)
+            assertEqualFileAndLine(t1, t3)
+            assertEqualFileAndLine(t2, t3)
+        }
+    }
+}
+
+class StringableNodeTest: DefineConsumer {
+    func assertEqual(
+        _ lhs: any NodeBase,
+        _ rhs: any NodeBase,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(toString(lhs), toString(rhs), file: file, line: line)
+    }
+    
+    func assertEqualFileAndLine(
+        _ lhs: any NodeBase,
+        _ rhs: any NodeBase,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(toString(lhs, printFileAndLine: true),
+                       toString(rhs, printFileAndLine: true),
+                       file: file,
+                       line: line)
     }
     
     func toString(_ n: any NodeBase, printFileAndLine: Bool = false, indent: Int = 0) -> String {
@@ -246,6 +340,14 @@ class NodeTestConvenience: DefineConsumer {
             }
             onEntryOutput = ""
             onExitOutput = ""
+        }
+        
+        if n is ActionsResolvingNode {
+            output.append("ARN:")
+        }
+        
+        if n is SemanticValidationNode {
+            output.append("SVN:")
         }
         
         addRest()

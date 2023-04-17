@@ -38,7 +38,11 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     var m1: Match {
-        Match(any: P.a, all: Q.a, file: "null", line: -1)
+        Match(any: [[P.a.erased()]],
+              all: [Q.a.erased()],
+              condition: { false },
+              file: "null",
+              line: -1)
     }
     
     func givenNode(thenState: AnyTraceable?, actionsNode: ActionsNode) -> GivenNode {
