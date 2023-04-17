@@ -10,7 +10,7 @@ struct GivenNode: Node {
         
         init(
             _ state: AnyTraceable,
-             _ match: Match,
+            _ match: Match,
             _ event: AnyTraceable,
             _ nextState: AnyTraceable,
             _ actions: [Action]

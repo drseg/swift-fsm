@@ -67,31 +67,8 @@ final class EagerMatchResolvingNode: Node {
         }
     }
     
-    struct ImplicitClashesError: ValidationError {
+    struct ImplicitClashesError: Error {
         let clashes: ImplicitClashesDictionary
-        
-        var errorDescription: String? {
-            String {
-                "The FSM table contains implicit logical clashes (total: \(clashes.count))"
-                for (i, clashGroup) in clashes.sorted(by: {
-                    $0.key.state.line < $1.key.state.line
-                }).enumerated() {
-                    let predicates = clashGroup.key.predicates.reduce([]) {
-                        $0 + [$1.description]
-                    }.sorted().joined(separator: " AND ")
-                    
-                    ""
-                    "Multiple clashing statements imply the same predicates (\(predicates))"
-                    ""
-                    eachGroupDescription("Context \(i + 1):", clashGroup) { c in
-                        c.state.defineDescription
-                        c.match.errorDescription
-                        c.event.whenDescription
-                        c.nextState.thenDescription
-                    }
-                }
-            }
-        }
     }
     
     struct ImplicitClashesKey: Hashable {

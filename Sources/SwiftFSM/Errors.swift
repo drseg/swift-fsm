@@ -1,39 +1,5 @@
 import Foundation
 
-protocol ValidationError: LocalizedError {}
-extension ValidationError {
-    func description<K: Hashable, V: Collection>(
-        _ header: String,
-        _ dict: [K: V],
-        @StringBuilder _ eachGroup: (V.Element) -> [String]
-    ) -> String {
-        String {
-            header + " (total: \(dict.count)):"
-            for (i, e) in dict.enumerated() {
-                ""
-                eachGroupDescription("Group \(i + 1):", e, eachGroup)
-            }
-        }
-    }
-    
-    func eachGroupDescription<K: Hashable, V: Collection>(
-        _ header: String,
-        _ group: (K, V),
-        @StringBuilder _ eachGroup: (V.Element) -> [String]
-    ) -> String {
-        String {
-            header
-            ""
-            for (i, e) in group.1.enumerated() {
-                eachGroup(e)
-                if i < group.1.count - 1 {
-                    ""
-                }
-            }
-        }
-    }
-}
-
 struct SwiftFSMError: LocalizedError, CustomStringConvertible {
     let errors: [Error]
     var description: String { localizedDescription }
@@ -195,6 +161,86 @@ struct TableAlreadyBuiltError: LocalizedError {
     
     var errorDescription: String? {
         "Duplicate call to method buildTable in file \(file.name) at line \(line)"
+    }
+}
+
+protocol ValidationError: LocalizedError {}
+extension ValidationError {
+    func description<K: Hashable, V: Collection>(
+        _ header: String,
+        _ dict: [K: V],
+        @StringBuilder _ eachGroup: (V.Element) -> [String]
+    ) -> String {
+        String {
+            header + " (total: \(dict.count)):"
+            for (i, e) in dict.enumerated() {
+                ""
+                eachGroupDescription("Group \(i + 1):", e, eachGroup)
+            }
+        }
+    }
+    
+    func eachGroupDescription<K: Hashable, V: Collection>(
+        _ header: String,
+        _ group: (K, V),
+        @StringBuilder _ eachGroup: (V.Element) -> [String]
+    ) -> String {
+        String {
+            header
+            ""
+            for (i, e) in group.1.enumerated() {
+                eachGroup(e)
+                if i < group.1.count - 1 {
+                    ""
+                }
+            }
+        }
+    }
+}
+
+extension SemanticValidationNode.DuplicatesError: ValidationError {
+    var errorDescription: String? {
+        description("The FSM table contains duplicate groups", duplicates) {
+            $0.state.defineDescription
+            $0.match.errorDescription
+            $0.event.whenDescription
+            $0.nextState.thenDescription
+        }
+    }
+}
+
+extension SemanticValidationNode.ClashError: ValidationError {
+    var errorDescription: String? {
+        description("The FSM table contains logical clash groups", clashes) {
+            $0.state.defineDescription
+            $0.match.errorDescription
+            $0.event.whenDescription
+        }
+    }
+}
+
+extension EagerMatchResolvingNode.ImplicitClashesError: ValidationError {
+    var errorDescription: String? {
+        String {
+            "The FSM table contains implicit logical clashes (total: \(clashes.count))"
+            for (i, clashGroup) in clashes.sorted(by: {
+                $0.key.state.line < $1.key.state.line
+            }).enumerated() {
+                let predicates = clashGroup.key.predicates.reduce([]) {
+                    $0 + [$1.description]
+                }.sorted().joined(separator: " AND ")
+                
+                ""
+                "Multiple clashing statements imply the same predicates (\(predicates))"
+                ""
+                eachGroupDescription("Context \(i + 1):", clashGroup) { c in
+                    c.state.defineDescription
+                    c.match.errorDescription
+                    c.event.whenDescription
+                    c.nextState.thenDescription
+                }
+            }
+        }
     }
 }
 

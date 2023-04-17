@@ -5,29 +5,12 @@ protocol SVNKey {
 }
 
 class SemanticValidationNode: Node {
-    struct DuplicatesError: ValidationError {
+    struct DuplicatesError: Error {
         let duplicates: DuplicatesDictionary
-        
-        var errorDescription: String? {
-            description("The FSM table contains duplicate groups", duplicates) {
-                $0.state.defineDescription
-                $0.match.errorDescription
-                $0.event.whenDescription
-                $0.nextState.thenDescription
-            }
-        }
     }
     
-    struct ClashError: ValidationError {
+    struct ClashError: Error {
         let clashes: ClashesDictionary
-        
-        var errorDescription: String? {
-            description("The FSM table contains logical clash groups", clashes) {
-                $0.state.defineDescription
-                $0.match.errorDescription
-                $0.event.whenDescription
-            }
-        }
     }
     
     struct DuplicatesKey: SVNKey, Hashable {
