@@ -7,13 +7,32 @@
 import Foundation
 
 final class DefineNode: NeverEmptyNode {
-    typealias Output = (state: AnyTraceable,
-                        match: Match,
-                        event: AnyTraceable,
-                        nextState: AnyTraceable,
-                        actions: [Action],
-                        onEntry: [Action],
-                        onExit: [Action])
+    struct Output {
+        let state: AnyTraceable,
+            match: Match,
+            event: AnyTraceable,
+            nextState: AnyTraceable,
+            actions: [Action],
+            onEntry: [Action],
+            onExit: [Action]
+        
+        init(_ state: AnyTraceable,
+             _ match: Match,
+             _ event: AnyTraceable,
+             _ nextState: AnyTraceable,
+             _ actions: [Action],
+             _ onEntry: [Action],
+             _ onExit: [Action]
+        ) {
+            self.state = state
+            self.match = match
+            self.event = event
+            self.nextState = nextState
+            self.actions = actions
+            self.onEntry = onEntry
+            self.onExit = onExit
+        }
+    }
     
     let onEntry: [Action]
     let onExit: [Action]
@@ -45,13 +64,7 @@ final class DefineNode: NeverEmptyNode {
         let output = rest.reduce(into: [Output]()) {
             if let match = finalise($1.match) {
                 $0.append(
-                    (state: $1.state,
-                     match: match,
-                     event: $1.event,
-                     nextState: $1.nextState,
-                     actions: $1.actions,
-                     onEntry: onEntry,
-                     onExit: onExit)
+                    Output($1.state, match, $1.event, $1.nextState, $1.actions, onEntry, onExit)
                 )
             }
         }

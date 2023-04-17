@@ -30,12 +30,7 @@ class WhenNodeBase {
     
     func makeOutput(_ rest: [DefaultIO], _ event: AnyTraceable) -> [DefaultIO] {
         rest.reduce(into: []) {
-            $0.append(
-                (match: $1.match,
-                 event: event,
-                 state: $1.state,
-                 actions: $1.actions)
-            )
+            $0.append(DefaultIO($1.match, event, $1.state, $1.actions))
         }
     }
 }

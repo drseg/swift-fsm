@@ -201,8 +201,8 @@ class SyntaxNodeTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty, file: file, line: line)
         XCTAssertEqual(result.count, 2, file: file, line: line)
         
-        assertEqual(result[0], (Match(), e1, s1, []), file: file, line: line)
-        assertEqual(result[1], (Match(), e2, s1, []), file: file, line: line)
+        assertEqual(result[0], DefaultIO(Match(), e1, s1, []), file: file, line: line)
+        assertEqual(result[1], DefaultIO(Match(), e2, s1, []), file: file, line: line)
         
         assertActions(result.map(\.actions).flattened,
                       expectedOutput: "1212",
@@ -222,7 +222,7 @@ class SyntaxNodeTests: XCTestCase {
         let errors = finalised.1
         
         assertEqual(lhs: expected,
-                    rhs: result.map { ($0.match, $0.state, $0.event, $0.nextState) },
+                    rhs: result.map { MSES($0.match, $0.state, $0.event, $0.nextState) },
                     file: file,
                     line: line)
         
@@ -243,7 +243,7 @@ class SyntaxNodeTests: XCTestCase {
         let errors = finalised.1
         
         assertEqual(lhs: expected,
-                    rhs: result.map { ($0.match, $0.state, $0.event, $0.nextState) },
+                    rhs: result.map { MSES($0.match, $0.state, $0.event, $0.nextState) },
                     file: file,
                     line: line)
         
@@ -382,7 +382,19 @@ extension MatchNode: DefaultIONode {
     }
 }
 
-typealias MSES = (match: Match, state: AnyTraceable, event: AnyTraceable, nextState: AnyTraceable)
+struct MSES {
+    let match: Match,
+        state: AnyTraceable,
+        event: AnyTraceable,
+        nextState: AnyTraceable
+    
+    init(_ match: Match, _ state: AnyTraceable, _ event: AnyTraceable, _ nextState: AnyTraceable) {
+        self.match = match
+        self.state = state
+        self.event = event
+        self.nextState = nextState
+    }
+}
 
 extension [MSES] {
     var description: String {

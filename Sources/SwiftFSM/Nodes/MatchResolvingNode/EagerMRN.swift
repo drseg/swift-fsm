@@ -6,18 +6,50 @@
 
 import Foundation
 
-final class EagerMatchResolvingNode: Node {
-    typealias Output = (condition: (() -> Bool)?,
-                        state: AnyTraceable,
-                        predicates: PredicateSet,
-                        event: AnyTraceable,
-                        nextState: AnyTraceable,
-                        actions: [Action])
+struct Transition {
+    let condition: (() -> Bool)?,
+        state: AnyHashable,
+        predicates: PredicateSet,
+        event: AnyHashable,
+        nextState: AnyHashable,
+        actions: [Action]
     
-    typealias ErrorOutput = (state: AnyTraceable,
-                             match: Match,
-                             event: AnyTraceable,
-                             nextState: AnyTraceable)
+    init(
+        _ condition: (() -> Bool)?,
+        _ state: AnyHashable,
+        _ predicates: PredicateSet,
+        _ event: AnyHashable,
+        _ nextState: AnyHashable,
+        _ actions: [Action]
+    ) {
+        self.condition = condition
+        self.state = state
+        self.predicates = predicates
+        self.event = event
+        self.nextState = nextState
+        self.actions = actions
+    }
+}
+
+final class EagerMatchResolvingNode: Node {
+    struct ErrorOutput {
+        let state: AnyTraceable,
+            match: Match,
+            event: AnyTraceable,
+            nextState: AnyTraceable
+        
+        init(
+            _ state: AnyTraceable,
+            _ match: Match,
+            _ event: AnyTraceable,
+            _ nextState: AnyTraceable
+        ) {
+            self.state = state
+            self.match = match
+            self.event = event
+            self.nextState = nextState
+        }
+    }
     
     struct RankedOutput {
         let state: AnyTraceable,
@@ -27,12 +59,17 @@ final class EagerMatchResolvingNode: Node {
             nextState: AnyTraceable,
             actions: [Action]
         
-        var toOutput: Output {
-            (match.condition, state, predicateResult.predicates, event, nextState, actions)
+        var toTransition: Transition {
+            Transition(match.condition,
+                       state.base,
+                       predicateResult.predicates,
+                       event.base,
+                       nextState.base,
+                       actions)
         }
         
         var toErrorOutput: ErrorOutput {
-            (state, match, event, nextState)
+            ErrorOutput(state, match, event, nextState)
         }
     }
     
@@ -68,9 +105,15 @@ final class EagerMatchResolvingNode: Node {
             predicates: PredicateSet,
             event: AnyTraceable
         
-        init(_ output: Output) {
+        init(_ state: AnyTraceable, _ predicates: PredicateSet, _ event: AnyTraceable) {
+            self.state = state
+            self.predicates = predicates
+            self.event = event
+        }
+        
+        init(_ output: RankedOutput) {
             self.state = output.state
-            self.predicates = output.predicates
+            self.predicates = output.predicateResult.predicates
             self.event = output.event
         }
     }
@@ -84,7 +127,7 @@ final class EagerMatchResolvingNode: Node {
         self.rest = rest
     }
     
-    func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Output] {
+    func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
         var clashes = ImplicitClashesDictionary()
         let allCases = rest.allCases()
         
@@ -102,8 +145,7 @@ final class EagerMatchResolvingNode: Node {
                 }
                 
                 func isClash(_ lhs: RankedOutput) -> Bool {
-                    ImplicitClashesKey(lhs.toOutput) ==
-                    ImplicitClashesKey(ro.toOutput)
+                    ImplicitClashesKey(lhs) == ImplicitClashesKey(ro)
                 }
                 
                 func highestRank(_ lhs: RankedOutput, _ rhs: RankedOutput) -> RankedOutput {
@@ -116,7 +158,7 @@ final class EagerMatchResolvingNode: Node {
                 
                 else {
                     if let clash = result.first(where: isClash) {
-                        let key = ImplicitClashesKey(ro.toOutput)
+                        let key = ImplicitClashesKey(ro)
                         clashes[key] = (clashes[key] ?? [clash.toErrorOutput]) + [ro.toErrorOutput]
                     }
                     result.append(ro)
@@ -135,7 +177,7 @@ final class EagerMatchResolvingNode: Node {
             errors.append(ImplicitClashesError(clashes: clashes))
         }
         
-        return result.map(\.toOutput)
+        return result.map(\.toTransition)
     }
     
     func validate() -> [Error] {

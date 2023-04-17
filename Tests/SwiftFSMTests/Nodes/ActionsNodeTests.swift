@@ -15,7 +15,7 @@ final class ActionsNodeTests: SyntaxNodeTests {
         
         XCTAssertTrue(errors.isEmpty)
         guard assertCount(output, expected: 1) else { return }
-        assertEqual((match: Match(), event: nil, state: nil, actions: actions), output.first)
+        assertEqual(DefaultIO(Match(), nil, nil, actions), output.first)
     }
     
     func testEmptyActionsBlockIsError() {

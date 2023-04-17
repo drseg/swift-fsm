@@ -7,6 +7,8 @@
 import XCTest
 @testable import SwiftFSM
 
+typealias EMRN = EagerMatchResolvingNode
+
 final class ErrorTests: SyntaxNodeTests {
     var e: Error!
     
@@ -224,11 +226,11 @@ final class ErrorTests: SyntaxNodeTests {
     func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "/fns", line: line) }
     
     func testSVNDuplicatesError() {
-        let k1 = SVN.DuplicatesKey((s1(0), m1(0), e1(0), s2(0), []))
-        let k2 = SVN.DuplicatesKey((s2(0), m1(0), e1(0), s2(0), []))
+        let k1 = SVN.DuplicatesKey(IntermediateIO(s1(0), m1(0), e1(0), s2(0), []))
+        let k2 = SVN.DuplicatesKey(IntermediateIO(s2(0), m1(0), e1(0), s2(0), []))
 
-        let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
-                                   (s1(5), m1(6), e1(7), s2(8), [])]
+        let values: [SVN.Input] = [IntermediateIO(s1(1), m1(2), e1(3), s2(4), []),
+                                   IntermediateIO(s1(5), m1(6), e1(7), s2(8), [])]
         let duplicates = [k1: values, k2: values]
         
         e = SVN.DuplicatesError(duplicates: duplicates)
@@ -264,11 +266,11 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testSVNClashesError() {
-        let k1 = SVN.ClashesKey((s1(0), m1(0), e1(0), s2(0), []))
-        let k2 = SVN.ClashesKey((s2(0), m1(0), e1(0), s2(0), []))
+        let k1 = SVN.ClashesKey(IntermediateIO(s1(0), m1(0), e1(0), s2(0), []))
+        let k2 = SVN.ClashesKey(IntermediateIO(s2(0), m1(0), e1(0), s2(0), []))
 
-        let values: [SVN.Input] = [(s1(1), m1(2), e1(3), s2(4), []),
-                                   (s2(5), m1(6), e1(7), s2(8), [])]
+        let values: [SVN.Input] = [IntermediateIO(s1(1), m1(2), e1(3), s2(4), []),
+                                   IntermediateIO(s2(5), m1(6), e1(7), s2(8), [])]
         let clashes = [k1: values, k2: values]
         
         e = SVN.ClashError(clashes: clashes)
@@ -298,21 +300,19 @@ final class ErrorTests: SyntaxNodeTests {
             }
         )
     }
-    
-    typealias EMRN = EagerMatchResolvingNode
 
     func testMRNClashesError() {
         let m1 = Match(any: P.a, file: "/fm", line: 2)
         let m2 = Match(any: Q.a, file: "/fm", line: 6)
-
+        
         let pr1 = Set([P.a.erased(), Q.a.erased()])
         let pr2 = Set([R.a.erased(), S.a.erased()])
-
-        let k1 = EMRN.ImplicitClashesKey(({ true }, s1(-1), pr1, e1(0), s2(0), []))
-        let k2 = EMRN.ImplicitClashesKey(({ true }, s2(0), pr2, e1(0), s2(0), []))
         
-        let values: [EMRN.ErrorOutput] = [(s1(1), m1, e1(3), s2(4)),
-                                         (s1(5), m2, e1(7), s2(8))]
+        let k1 = EMRN.ImplicitClashesKey(s1(-1), pr1, e1(0))
+        let k2 = EMRN.ImplicitClashesKey(s2(0), pr2, e1(0))
+        
+        let values = [EMRN.ErrorOutput(s1(1), m1, e1(3), s2(4)),
+                      EMRN.ErrorOutput(s1(5), m2, e1(7), s2(8))]
         let clashes = [k1: values, k2: values]
         
         e = EMRN.ImplicitClashesError(clashes: clashes)

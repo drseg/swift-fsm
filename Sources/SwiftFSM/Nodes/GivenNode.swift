@@ -7,11 +7,27 @@
 import Foundation
 
 struct GivenNode: Node {
-    typealias Output = (state: AnyTraceable,
-                        match: Match,
-                        event: AnyTraceable,
-                        nextState: AnyTraceable,
-                        actions: [Action])
+    struct Output {
+        let state: AnyTraceable,
+            match: Match,
+            event: AnyTraceable,
+            nextState: AnyTraceable,
+            actions: [Action]
+        
+        init(
+            _ state: AnyTraceable,
+             _ match: Match,
+            _ event: AnyTraceable,
+            _ nextState: AnyTraceable,
+            _ actions: [Action]
+        ) {
+            self.state = state
+            self.match = match
+            self.event = event
+            self.nextState = nextState
+            self.actions = actions
+        }
+    }
     
     let states: [AnyTraceable]
     var rest: [any Node<DefaultIO>] = []
@@ -19,13 +35,7 @@ struct GivenNode: Node {
     func combinedWithRest(_ rest: [DefaultIO]) -> [Output] {
         states.reduce(into: []) { result, state in
             rest.forEach {
-                result.append(
-                    (state: state,
-                     match: $0.match,
-                     event: $0.event!,
-                     nextState: $0.state ?? state,
-                     actions: $0.actions)
-                )
+                result.append(Output(state, $0.match, $0.event!, $0.state ?? state, $0.actions))
             }
         }
     }

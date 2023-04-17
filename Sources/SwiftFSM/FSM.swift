@@ -24,23 +24,14 @@ class FSM<State: Hashable, Event: Hashable> {
             self.event = event
         }
         
-        init(_ value: Value) {
+        init(_ value: Transition) {
             state = value.state
             predicates = value.predicates
             event = value.event
         }
     }
     
-    struct Value {
-        let condition: (() -> Bool)?,
-            state: AnyHashable,
-            predicates: PredicateSet,
-            event: AnyHashable,
-            nextState: AnyHashable,
-            actions: [Action]
-    }
-    
-    var table: [Key: Value] = [:]
+    var table: [Key: Transition] = [:]
     var state: AnyHashable
     
     init(initialState: State) {
@@ -88,16 +79,8 @@ class FSM<State: Hashable, Event: Hashable> {
         SwiftFSMError(errors: errors)
     }
     
-    func makeTable(_ output: [EagerMatchResolvingNode.Output]) {
-        output.forEach {
-            let value = Value(condition: $0.condition,
-                              state: $0.state.base,
-                              predicates: $0.predicates,
-                              event: $0.event.base,
-                              nextState: $0.nextState.base,
-                              actions: $0.actions)
-            table[Key(value)] = value
-        }
+    func makeTable(_ output: [Transition]) {
+        output.forEach { table[Key($0)] = $0 }
     }
     
     func handleEvent(_ event: Event, predicates: any Predicate...) {

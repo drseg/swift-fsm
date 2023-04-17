@@ -17,10 +17,7 @@ class ThenNodeBase {
     
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: []) {
-            $0.append((match: $1.match,
-                       event: $1.event,
-                       state: state,
-                       actions: $1.actions))
+            $0.append(DefaultIO($1.match, $1.event, state, $1.actions))
         }
     }
 }

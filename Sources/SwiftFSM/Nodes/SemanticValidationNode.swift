@@ -65,12 +65,6 @@ class SemanticValidationNode: Node {
     typealias DuplicatesDictionary = [DuplicatesKey: [Input]]
     typealias ClashesDictionary = [ClashesKey: [Input]]
     
-    typealias Output = (state: AnyTraceable,
-                        match: Match,
-                        event: AnyTraceable,
-                        nextState: AnyTraceable,
-                        actions: [Action])
-    
     var rest: [any Node<Input>]
     var errors: [Error] = []
     
@@ -78,7 +72,7 @@ class SemanticValidationNode: Node {
         self.rest = rest
     }
     
-    func combinedWithRest(_ rest: [ActionsResolvingNode.Output]) -> [Output] {
+    func combinedWithRest(_ rest: [ActionsResolvingNode.Output]) -> [IntermediateIO] {
         var duplicates = DuplicatesDictionary()
         var clashes = ClashesDictionary()
     

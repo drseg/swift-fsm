@@ -24,10 +24,19 @@ extension NeverEmptyNode {
     }
 }
 
-typealias DefaultIO = (match: Match,
-                       event: AnyTraceable?,
-                       state: AnyTraceable?,
-                       actions: [Action])
+struct DefaultIO {
+    let match: Match,
+        event: AnyTraceable?,
+        state: AnyTraceable?,
+        actions: [Action]
+    
+    init(_ match: Match, _ event: AnyTraceable?, _ state: AnyTraceable?, _ actions: [Action]) {
+        self.match = match
+        self.event = event
+        self.state = state
+        self.actions = actions
+    }
+}
 
 func makeDefaultIO(
     match: Match = Match(),
@@ -35,7 +44,7 @@ func makeDefaultIO(
     state: AnyTraceable? = nil,
     actions: [Action] = []
 ) -> [DefaultIO] {
-    [(match: match, event: event, state: state, actions: actions)]
+    [DefaultIO(match, event, state, actions)]
 }
 
 infix operator ???: AdditionPrecedence

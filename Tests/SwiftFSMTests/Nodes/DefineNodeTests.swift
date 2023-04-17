@@ -54,10 +54,10 @@ final class DefineNodeTests: SyntaxNodeTests {
                            rest: [givenNode(thenState: s3,
                                             actionsNode: ActionsNode(actions: []))])
         
-        let expected = [(m1, s1, e1, s3),
-                        (m1, s1, e2, s3),
-                        (m1, s2, e1, s3),
-                        (m1, s2, e2, s3)]
+        let expected = [MSES(m1, s1, e1, s3),
+                        MSES(m1, s1, e2, s3),
+                        MSES(m1, s2, e1, s3),
+                        MSES(m1, s2, e2, s3)]
         
         assertDefineNode(expected: expected,
                          actionsOutput: "",
@@ -74,10 +74,10 @@ final class DefineNodeTests: SyntaxNodeTests {
                            onExit: [])
         d.rest.append(g)
         
-        let expected = [(m1, s1, e1, s3),
-                        (m1, s1, e2, s3),
-                        (m1, s2, e1, s3),
-                        (m1, s2, e2, s3)]
+        let expected = [MSES(m1, s1, e1, s3),
+                        MSES(m1, s1, e2, s3),
+                        MSES(m1, s2, e1, s3),
+                        MSES(m1, s2, e2, s3)]
         
         assertDefineNode(expected: expected,
                          actionsOutput: "",
@@ -92,14 +92,14 @@ final class DefineNodeTests: SyntaxNodeTests {
                                   givenNode(thenState: s3,
                                             actionsNode: actionsNode)])
         
-        let expected = [(m1, s1, e1, s3),
-                        (m1, s1, e2, s3),
-                        (m1, s2, e1, s3),
-                        (m1, s2, e2, s3),
-                        (m1, s1, e1, s3),
-                        (m1, s1, e2, s3),
-                        (m1, s2, e1, s3),
-                        (m1, s2, e2, s3)]
+        let expected = [MSES(m1, s1, e1, s3),
+                        MSES(m1, s1, e2, s3),
+                        MSES(m1, s2, e1, s3),
+                        MSES(m1, s2, e2, s3),
+                        MSES(m1, s1, e1, s3),
+                        MSES(m1, s1, e2, s3),
+                        MSES(m1, s2, e1, s3),
+                        MSES(m1, s2, e2, s3)]
         
         assertDefineNode(
             expected: expected,
@@ -114,10 +114,10 @@ final class DefineNodeTests: SyntaxNodeTests {
                            rest: [givenNode(thenState: nil,
                                             actionsNode: actionsNode)])
         
-        let expected = [(m1, s1, e1, s1),
-                        (m1, s1, e2, s1),
-                        (m1, s2, e1, s2),
-                        (m1, s2, e2, s2)]
+        let expected = [MSES(m1, s1, e1, s1),
+                        MSES(m1, s1, e2, s1),
+                        MSES(m1, s2, e1, s2),
+                        MSES(m1, s2, e2, s2)]
         
         assertDefineNode(expected: expected,
                          actionsOutput: "",

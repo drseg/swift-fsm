@@ -21,10 +21,10 @@ final class GivenNodeTests: SyntaxNodeTests {
     }
 
     func testGivenNodeFinalisesFillingInEmptyNextStates() {
-        let expected = [(m1, s1, e1, s1),
-                        (m1, s1, e2, s1),
-                        (m1, s2, e1, s2),
-                        (m1, s2, e2, s2)]
+        let expected = [MSES(m1, s1, e1, s1),
+                        MSES(m1, s1, e2, s1),
+                        MSES(m1, s2, e1, s2),
+                        MSES(m1, s2, e2, s2)]
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
@@ -32,10 +32,10 @@ final class GivenNodeTests: SyntaxNodeTests {
     }
     
     func testGivenNodeFinalisesWithNextStates() {
-        let expected = [(m1, s1, e1, s3),
-                        (m1, s1, e2, s3),
-                        (m1, s2, e1, s3),
-                        (m1, s2, e2, s3)]
+        let expected = [MSES(m1, s1, e1, s3),
+                        MSES(m1, s1, e2, s3),
+                        MSES(m1, s2, e1, s3),
+                        MSES (m1, s2, e2, s3)]
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
@@ -49,10 +49,10 @@ final class GivenNodeTests: SyntaxNodeTests {
         var g = GivenNode(states: [s1, s2])
         g.rest.append(m)
         
-        let expected = [(m1, s1, e1, s3),
-                        (m1, s1, e2, s3),
-                        (m1, s2, e1, s3),
-                        (m1, s2, e2, s3)]
+        let expected = [MSES(m1, s1, e1, s3),
+                        MSES(m1, s1, e2, s3),
+                        MSES(m1, s2, e1, s3),
+                        MSES(m1, s2, e2, s3)]
         
         assertGivenNode(expected: expected,
                         actionsOutput: "12121212",
@@ -65,14 +65,14 @@ final class GivenNodeTests: SyntaxNodeTests {
         let m = MatchNode(match: m1, rest: [w, w])
         let g = GivenNode(states: [s1, s2], rest: [m])
         
-        let expected = [(m1, s1, e1, s3),
-                        (m1, s1, e2, s3),
-                        (m1, s1, e1, s3),
-                        (m1, s1, e2, s3),
-                        (m1, s2, e1, s3),
-                        (m1, s2, e2, s3),
-                        (m1, s2, e1, s3),
-                        (m1, s2, e2, s3)]
+        let expected = [MSES(m1, s1, e1, s3),
+                        MSES(m1, s1, e2, s3),
+                        MSES(m1, s1, e1, s3),
+                        MSES(m1, s1, e2, s3),
+                        MSES(m1, s2, e1, s3),
+                        MSES(m1, s2, e2, s3),
+                        MSES(m1, s2, e1, s3),
+                        MSES(m1, s2, e2, s3)]
         
         assertGivenNode(expected: expected,
                         actionsOutput: "1212121212121212",
