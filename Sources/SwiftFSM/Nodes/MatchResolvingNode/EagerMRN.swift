@@ -6,7 +6,7 @@
 
 import Foundation
 
-final class MatchResolvingNode: Node {
+final class EagerMatchResolvingNode: Node {
     typealias Output = (condition: (() -> Bool)?,
                         state: AnyTraceable,
                         predicates: PredicateSet,

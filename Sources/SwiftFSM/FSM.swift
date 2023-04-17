@@ -58,14 +58,14 @@ class FSM<State: Hashable, Event: Hashable> {
         
         let transitionNode = ActionsResolvingNode(rest: block().map(\.node))
         let validationNode = SemanticValidationNode(rest: [transitionNode])
-        let tableNode = MatchResolvingNode(rest: [validationNode])
+        let tableNode = EagerMatchResolvingNode(rest: [validationNode])
         let result = tableNode.finalised()
         
         try checkForErrors(result)
         makeTable(result.output)
     }
     
-    func checkForErrors(_ result: (output: [MatchResolvingNode.Output], errors: [Error])) throws {
+    func checkForErrors(_ result: (output: [EagerMatchResolvingNode.Output], errors: [Error])) throws {
         if !result.errors.isEmpty {
             throw makeError(result.errors)
         }
@@ -88,7 +88,7 @@ class FSM<State: Hashable, Event: Hashable> {
         SwiftFSMError(errors: errors)
     }
     
-    func makeTable(_ output: [MatchResolvingNode.Output]) {
+    func makeTable(_ output: [EagerMatchResolvingNode.Output]) {
         output.forEach {
             let value = Value(condition: $0.condition,
                               state: $0.state.base,

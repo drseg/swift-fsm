@@ -566,7 +566,7 @@ final class FSMIntegrationTests_Errors: FSMIntegrationTests {
             let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(1, errors?.count)
             
-            let error = errors?.first as? MatchResolvingNode.ImplicitClashesError
+            let error = errors?.first as? EagerMatchResolvingNode.ImplicitClashesError
             let clashes = error?.clashes.values
             XCTAssertEqual(1, clashes?.count)
             

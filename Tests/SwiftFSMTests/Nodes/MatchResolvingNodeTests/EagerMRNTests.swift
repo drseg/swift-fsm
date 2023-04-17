@@ -1,5 +1,5 @@
 //
-//  TableNodeTests.swift
+//  EagerMatchResolvingNodeTests.swift
 //
 //  Created by Daniel Segall on 20/03/2023.
 //
@@ -7,7 +7,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class MatchResolvingNodeTests: DefineConsumer {
+class EagerMatchResolvingNodeTests: DefineConsumer {
     typealias ExpectedTableNodeOutput = (state: AnyTraceable,
                                          match: Match,
                                          predicates: PredicateSet,
@@ -15,9 +15,9 @@ class MatchResolvingNodeTests: DefineConsumer {
                                          nextState: AnyTraceable,
                                          actionsOutput: String)
     
-    typealias MRN = MatchResolvingNode
+    typealias MRN = EagerMatchResolvingNode
     typealias SVN = SemanticValidationNode
-    typealias Key = MatchResolvingNode.ImplicitClashesKey
+    typealias Key = EagerMatchResolvingNode.ImplicitClashesKey
     typealias TableNodeResult = (output: [MRN.Output], errors: [Error])
     
     enum P: Predicate { case a, b }
@@ -36,7 +36,12 @@ class MatchResolvingNodeTests: DefineConsumer {
         _ t: AnyTraceable,
         _ a: String = "12"
     ) -> ExpectedTableNodeOutput {
-        (state: g, match: m, predicates: Set(p.erased()), event: w, nextState: t, actionsOutput: a)
+        (state: g,
+         match: m,
+         predicates: Set(p.erased()),
+         event: w,
+         nextState: t,
+         actionsOutput: a)
     }
     
     func assertResult(
@@ -113,11 +118,18 @@ class MatchResolvingNodeTests: DefineConsumer {
     }
     
     func testTableWithNoMatches() {
-        let d1 = defineNode(s1, Match(), e1, s2)
-        let result = matchResolvingNode(rest: [d1]).finalised()
+        let d = defineNode(s1, Match(), e1, s2)
+        let result = matchResolvingNode(rest: [d]).finalised()
 
         assertCount(result.output, expected: 1)
         assertResult(result, expected: makeOutput(s1, Match(), [], e1, s2))
+    }
+    
+    func testMatchCondition() {
+        let d = defineNode(s1, Match(condition: { false }), e1, s2)
+        let result = matchResolvingNode(rest: [d]).finalised()
+        
+        XCTAssertEqual(false, result.output.first?.condition?())
     }
     
     func testImplicitMatch() {
@@ -149,9 +161,13 @@ class MatchResolvingNodeTests: DefineConsumer {
     func testMoreSubtleImplicitMatchClashes() throws {
         let d1 = defineNode(s1, Match(any: P.a, R.a), e1, s2)
         let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
-        let result = matchResolvingNode(rest: [d1, d2]).finalised()
+        let d3 = defineNode(s1, Match(any: Q.a, S.a), e1, s1)
         
-        XCTAssertFalse(result.errors.isEmpty)
+        let r1 = matchResolvingNode(rest: [d1, d2]).finalised()
+        let r2 = matchResolvingNode(rest: [d1, d3]).finalised()
+        
+        XCTAssertFalse(r1.errors.isEmpty)
+        XCTAssertFalse(r2.errors.isEmpty)
     }
     
     func testPassesConditionToOutput() {
