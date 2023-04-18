@@ -53,6 +53,24 @@ class MRNTestBase: StringableNodeTest {
               actionsOutput: a)
     }
     
+    func makeOutput(
+        c: Bool? = false,
+        g: AnyTraceable,
+        m: Match,
+        p: Set<AnyPredicate>,
+        w: AnyTraceable,
+        t: AnyTraceable,
+        a: String = "12"
+    ) -> ExpectedMRNOutput {
+        .init(condition: c,
+              state: g.base,
+              match: m,
+              predicates: p,
+              event: w.base,
+              nextState: t.base,
+              actionsOutput: a)
+    }
+    
     func assertResult(
         _ result: MRNResult,
         expected: ExpectedMRNOutput,

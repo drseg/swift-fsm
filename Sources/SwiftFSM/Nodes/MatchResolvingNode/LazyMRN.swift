@@ -10,20 +10,15 @@ final class LazyMatchResolvingNode: Node {
     func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
         do {
             return try rest.reduce(into: [Transition]()) { result, input in
-                func isClash(_ t: Transition) -> Bool {
-                    result
-                        .filter   { $0.clashes(with: t) }
-                        .contains { $0.predicateTypesOverlap(with: t) }
-                }
-                
                 func appendTransition(predicates: PredicateSet) throws {
-                    let t = Transition(input.match.condition,
-                                       input.state.base,
-                                       predicates,
-                                       input.event.base,
-                                       input.nextState.base,
-                                       input.actions)
-                    guard !isClash(t) else { throw "" }
+                    func isClash() -> Bool {
+                        result
+                            .filter   { $0.clashes(with: t) }
+                            .contains { $0.predicateTypesOverlap(with: t) }
+                    }
+                    
+                    let t = Transition(io: input, predicates: predicates)
+                    guard !isClash() else { throw "" }
                     result.append(t)
                 }
                 
@@ -43,12 +38,21 @@ final class LazyMatchResolvingNode: Node {
 }
 
 extension Transition {
+    init(io: IntermediateIO, predicates p: PredicateSet) {
+        condition = io.match.condition
+        state = io.state.base
+        predicates = p
+        event = io.event.base
+        nextState = io.nextState.base
+        actions = io.actions
+    }
+    
     var predicateTypes: Set<String> {
         Set(predicates.map(\.type))
     }
     
     func clashes(with t: Transition) -> Bool {
-        (state, event, nextState) == (t.state, t.event, t.nextState)
+        (state, event) == (t.state, t.event)
     }
     
     func predicateTypesOverlap(with t: Transition) -> Bool {
