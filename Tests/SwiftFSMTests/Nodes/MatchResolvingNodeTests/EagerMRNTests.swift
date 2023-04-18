@@ -17,8 +17,8 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     enum Q: Predicate { case a, b }
     enum R: Predicate { case a, b }
     
-    func matchResolvingNode(rest: [any Node<DefineNode.Output>]) -> MRN {
-        .init(rest: [SVN(rest: [ActionsResolvingNode(rest: rest)])])
+    func matchResolvingNode(rest: [any Node<DefineNode.Output>]) -> EMRN {
+        .init(rest: [SVN(rest: [ARN(rest: rest)])])
     }
     
     func makeErrorOutput(
@@ -42,7 +42,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         expected: [ExpectedMRNError],
         line: UInt = #line
     ) {
-        guard let clashError = result.errors[0] as? MRN.ImplicitClashesError else {
+        guard let clashError = result.errors[0] as? EMRN.ImplicitClashesError else {
             XCTFail("unexpected error \(result.errors[0])", line: line)
             return
         }
@@ -66,7 +66,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     func assertEqual(
         _ lhs: ExpectedMRNError?,
-        _ rhs: MRN.ErrorOutput?,
+        _ rhs: EMRN.ErrorOutput?,
         line: UInt = #line
     ) {
         XCTAssertEqual(lhs?.state, rhs?.state, line: line)
@@ -130,7 +130,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         let result = matchResolvingNode(rest: [d1, d2]).finalised()
 
         guard assertCount(result.errors, expected: 1) else { return }
-        guard let clashError = result.errors[0] as? MRN.ImplicitClashesError else {
+        guard let clashError = result.errors[0] as? EMRN.ImplicitClashesError else {
             XCTFail("unexpected error \(result.errors[0])"); return
         }
         

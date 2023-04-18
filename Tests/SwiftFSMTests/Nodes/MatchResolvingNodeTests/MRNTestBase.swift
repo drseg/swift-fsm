@@ -2,6 +2,11 @@ import XCTest
 @testable import SwiftFSM
 
 class MRNTestBase: StringableNodeTest {
+    typealias ARN = ActionsResolvingNode
+    typealias EMRN = EagerMatchResolvingNode
+    typealias SVN = SemanticValidationNode
+    typealias MRNResult = (output: [Transition], errors: [Error])
+    
     struct ExpectedMRNOutput {
         let condition: Bool?,
             state: AnyHashable,
@@ -29,10 +34,6 @@ class MRNTestBase: StringableNodeTest {
             self.actionsOutput = actionsOutput
         }
     }
-    
-    typealias MRN = EagerMatchResolvingNode
-    typealias SVN = SemanticValidationNode
-    typealias MRNResult = (output: [Transition], errors: [Error])
     
     func makeOutput(
         c: Bool? = false,
