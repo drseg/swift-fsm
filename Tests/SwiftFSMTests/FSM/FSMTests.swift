@@ -2,11 +2,47 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
-    typealias StateType = Int
-    typealias EventType = Double
+class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase {
+    typealias StateType = State
+    typealias EventType = Event
     
-    var fsm: FSM<StateType, EventType> = FSM(initialState: 1)
+    var fsm: (any FSMProtocol<StateType, EventType>)!
+    
+    override func setUp() {
+        fsm = makeSUT(initialState: initialState)
+    }
+    
+    var initialState: State {
+        fatalError("subclasses must implement")
+    }
+    
+    func makeSUT<State: Hashable, Event: Hashable>(
+        initialState: State
+    ) -> any FSMProtocol<State, Event> {
+        fatalError("subclasses must implement")
+    }
+}
+
+class LazyFSMTests: FSMTests {
+    override func setUpWithError() throws {
+        throw XCTSkip("not ready yet")
+    }
+    
+    override func makeSUT<State: Hashable, Event: Hashable>(
+        initialState: State
+    ) -> any FSMProtocol<State, Event> {
+        FSM<State, Event>(initialState: initialState)
+    }
+}
+
+class FSMTests: FSMTestsBase<Int, Double>, ExpandedSyntaxBuilder {
+    override var initialState: Int { 1 }
+    
+    override func makeSUT<State: Hashable, Event: Hashable>(
+        initialState: State
+    ) -> any FSMProtocol<State, Event> {
+        FSM<State, Event>(initialState: initialState)
+    }
     
     func assertThrowsError<T: Error>(
         _ type: T.Type,
@@ -32,36 +68,36 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
             try fsm.buildTable { }
         }
     }
-    
+
     func testThrowsErrorsFromNodes() {
         assertThrowsError(EmptyBuilderError.self) {
             try fsm.buildTable { define(1) { } }
         }
     }
-    
+
     func testThrowsNSObjectError()  {
-        let fsm1 = FSM<NSObject, Int>(initialState: NSObject())
-        let fsm2 = FSM<Int, NSObject>(initialState: 1)
-        
+        let fsm1: any FSMProtocol<NSObject, Int> = makeSUT(initialState: NSObject())
+        let fsm2: any FSMProtocol<Int, NSObject> = makeSUT(initialState: 1)
+
         assertThrowsError(NSObjectError.self) {
             try fsm1.buildTable {
                 Syntax.Define(NSObject()) { Syntax.When(1) | Syntax.Then(NSObject()) }
             }
         }
-        
+
         assertThrowsError(NSObjectError.self) {
             try fsm2.buildTable {
                 Syntax.Define(1) { Syntax.When(NSObject()) | Syntax.Then(2) }
             }
         }
     }
-    
+
     func testValidTableDoesNotThrow() {
         XCTAssertNoThrow(
             try fsm.buildTable { define(1) { when(1.1) | then(2) } }
         )
     }
-    
+
     func testCallingBuildTableTwiceThrows() throws {
         try fsm.buildTable { define(1) { when(1.1) | then(2) } }
         assertThrowsError(TableAlreadyBuiltError.self) {
@@ -71,7 +107,7 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
             XCTAssertEqual(1, $0?.line)
         }
     }
-    
+
     var actionsOutput = ""
     func assertHandleEvent(
         _ event: EventType,
@@ -83,69 +119,69 @@ final class FSMTests: XCTestCase, ExpandedSyntaxBuilder {
         fsm.handleEvent(event, predicates: predicates)
         XCTAssertEqual(state, fsm.state, line: line)
         XCTAssertEqual(output, actionsOutput, line: line)
-        
+
         actionsOutput = ""
         fsm.state = 1
     }
-    
+
     func pass() {
         actionsOutput = "pass"
     }
-    
+
     func testHandleEventWithoutPredicate() throws {
         try fsm.buildTable {
             define(1) { when(1.1) | then(2) | pass }
         }
-        
+
         assertHandleEvent(1.1, state: 2, output: "pass")
         assertHandleEvent(1.2, state: 1, output: "")
     }
-    
+
     func testHandleEventWithSinglePredicate() throws {
         try fsm.buildTable {
             define(1) { matching(P.a) | when(1.1) | then(2) | pass }
             define(1) { matching(P.b) | when(1.1) | then(3) | pass }
         }
-        
+
         assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
         assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
     }
-    
+
     func testHandlEventWithMultiplePredicates() throws {
         try fsm.buildTable {
             define(1) { matching(P.a, or: Q.a)  | when(1.1) | then(2) | pass }
             define(1) { matching(P.b, and: Q.b) | when(1.1) | then(3) | pass }
         }
-        
+
         assertHandleEvent(1.1, predicates: P.a, Q.b, state: 2, output: "pass")
         assertHandleEvent(1.1, predicates: P.b, Q.b, state: 3, output: "pass")
     }
-    
+
     func testHandlEventWithCondition() throws {
         try fsm.buildTable {
             define(1) { condition { false } | when(1.1) | then(2) | pass }
             define(2) { condition { true  } | when(1.1) | then(3) | pass }
-
         }
-        
+
         assertHandleEvent(1.1, state: 1, output: "")
         fsm.state = 2
         assertHandleEvent(1.1, state: 3, output: "pass")
     }
 }
 
-class FSMIntegrationTests: XCTestCase, ExpandedSyntaxBuilder {
-    enum StateType: String, CustomStringConvertible {
-        case locked, unlocked, alarming
-        var description: String { rawValue  }
-    }
+enum TurnstileState: String, CustomStringConvertible {
+    case locked, unlocked, alarming
+    var description: String { rawValue  }
+}
 
-    enum EventType: String, CustomStringConvertible {
-        case reset, coin, pass
-        var description: String { rawValue }
-    }
-    
+enum TurnstileEvent: String, CustomStringConvertible {
+    case reset, coin, pass
+    var description: String { rawValue }
+}
+
+class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent>, ExpandedSyntaxBuilder {
     var actions = [String]()
+    var actual = [String]()
     
     func alarmOn()  { actions.append("alarmOn")  }
     func alarmOff() { actions.append("alarmOff") }
@@ -153,8 +189,13 @@ class FSMIntegrationTests: XCTestCase, ExpandedSyntaxBuilder {
     func unlock()   { actions.append("unlock")   }
     func thankyou() { actions.append("thankyou") }
     
-    let fsm = FSM<StateType, EventType>(initialState: .locked)
-    var actual = [String]()
+    override var initialState: TurnstileState { .locked }
+    
+    override func makeSUT<State: Hashable, Event: Hashable>(
+        initialState: State
+    ) -> any FSMProtocol<State, Event> {
+        FSM<State, Event>(initialState: initialState)
+    }
 }
 
 final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {

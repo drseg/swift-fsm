@@ -6,7 +6,7 @@ final class LazyMatchResolvingNode: MRNBase, Node {
             return try rest.reduce(into: []) { result, input in
                 func appendTransition(predicates: PredicateSet) throws {
                     let t = Transition(io: input, predicates: predicates)
-                    guard !result.hasClash(t) else { throw "" }
+                    guard !result.containsClash(t) else { throw "" }
                     result.append(t)
                 }
                 
@@ -55,7 +55,7 @@ extension Transition {
 }
 
 extension [Transition] {
-    func hasClash(_ t: Transition) -> Bool {
+    func containsClash(_ t: Transition) -> Bool {
         filter {
             t.clashes(with: $0) &&
             t.predicates.count == $0.predicates.count
