@@ -84,9 +84,9 @@ extension Syntax.Expanded {
         
         let name = "matching"
         
-        init(
-            _ first: any Predicate,
-            or: any Predicate...,
+        init<P: Predicate>(
+            _ first: P,
+            or: P...,
             and: any Predicate...,
             file: String = #file,
             line: Int = #line
@@ -94,9 +94,9 @@ extension Syntax.Expanded {
             self.init(first, or: or, and: and, file: file, line: line)
         }
         
-        init(
-            _ first: any Predicate,
-            or: [any Predicate],
+        init<P: Predicate>(
+            _ first: P,
+            or: [P],
             and: [any Predicate],
             file: String = #file,
             line: Int = #line

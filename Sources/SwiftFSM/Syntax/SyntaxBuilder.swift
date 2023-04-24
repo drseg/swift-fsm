@@ -134,9 +134,9 @@ extension ExpandedSyntaxBuilder {
     typealias Matching = Syntax.Expanded.Matching
     typealias Condition = Syntax.Expanded.Condition
     
-    func matching(
-        _ first: any Predicate,
-        or: any Predicate...,
+    func matching<P: Predicate>(
+        _ first: P,
+        or: P...,
         and: any Predicate...,
         file: String = #file,
         line: Int = #line
@@ -152,9 +152,9 @@ extension ExpandedSyntaxBuilder {
         .init(condition, file: file, line: line)
     }
     
-    func matching(
-        _ first: any Predicate,
-        or: any Predicate...,
+    func matching<P: Predicate>(
+        _ first: P,
+        or: P...,
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
@@ -172,9 +172,9 @@ extension ExpandedSyntaxBuilder {
         Condition(condition, file: file, line: line).callAsFunction(block)
     }
     
-    func matching(
-        _ first: any Predicate,
-        or: any Predicate...,
+    func matching<P: Predicate>(
+        _ first: P,
+        or: P...,
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
@@ -192,9 +192,9 @@ extension ExpandedSyntaxBuilder {
         Condition(condition, file: file, line: line).callAsFunction(block)
     }
     
-    func matching(
-        _ first: any Predicate,
-        or: any Predicate...,
+    func matching<P: Predicate>(
+        _ first: P,
+        or: P...,
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
