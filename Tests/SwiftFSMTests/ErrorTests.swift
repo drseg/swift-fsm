@@ -113,6 +113,19 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
+    func testConflictingMatchAnyvalues() {
+        e = ConflictingAnyTypes(predicates: [P.a, R.a].erased(),
+                                files: ["/f1"],
+                                lines: [1])
+        
+        e.assertDescription(
+            String {
+                "'matching(P.a OR R.a)' is ambiguous - 'OR' values must be the same type"
+                "This combination was found in a 'matching' statement at file f1, line 1"
+            }
+        )
+    }
+    
     func testEmptyTableError() {
         e = EmptyTableError()
         e.assertDescription(

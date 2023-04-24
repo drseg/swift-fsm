@@ -2,7 +2,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase {
+class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder {
     typealias StateType = State
     typealias EventType = Event
     
@@ -31,11 +31,11 @@ class LazyFSMTests: FSMTests {
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State
     ) -> any FSMProtocol<State, Event> {
-        FSM<State, Event>(initialState: initialState)
+        LazyFSM<State, Event>(initialState: initialState)
     }
 }
 
-class FSMTests: FSMTestsBase<Int, Double>, ExpandedSyntaxBuilder {
+class FSMTests: FSMTestsBase<Int, Double> {
     override var initialState: Int { 1 }
     
     override func makeSUT<State: Hashable, Event: Hashable>(
@@ -149,12 +149,12 @@ class FSMTests: FSMTestsBase<Int, Double>, ExpandedSyntaxBuilder {
 
     func testHandlEventWithMultiplePredicates() throws {
         try fsm.buildTable {
-            define(1) { matching(P.a, or: Q.a)  | when(1.1) | then(2) | pass }
-            define(1) { matching(P.b, and: Q.b) | when(1.1) | then(3) | pass }
+            define(1) { matching(P.a, or: P.b)  | when(1.1) | then(2) | pass }
+            define(1) { matching(Q.a, and: R.a) | when(1.1) | then(3) | pass }
         }
 
-        assertHandleEvent(1.1, predicates: P.a, Q.b, state: 2, output: "pass")
-        assertHandleEvent(1.1, predicates: P.b, Q.b, state: 3, output: "pass")
+        assertHandleEvent(1.1, predicates: P.a, Q.b, R.a, state: 2, output: "pass")
+        assertHandleEvent(1.1, predicates: P.a, Q.a, R.a, state: 3, output: "pass")
     }
 
     func testHandlEventWithCondition() throws {
@@ -179,7 +179,7 @@ enum TurnstileEvent: String, CustomStringConvertible {
     var description: String { rawValue }
 }
 
-class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent>, ExpandedSyntaxBuilder {
+class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     var actions = [String]()
     var actual = [String]()
     

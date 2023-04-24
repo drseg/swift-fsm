@@ -105,6 +105,17 @@ class DuplicateAnyValues: MatchError, LocalizedError {
     }
 }
 
+class ConflictingAnyTypes: MatchError, LocalizedError {
+    var errorDescription: String? {
+        String {
+            let predicates = predicatesString(separator: " OR ")
+            
+            "'matching(\(predicates))' is ambiguous - 'OR' values must be the same type"
+            "This combination was found in a 'matching' statement at \(filesAndLines)"
+        }
+    }
+}
+
 class DuplicateAnyAllValues: MatchError, LocalizedError {
     var errorDescription: String? {
         String {

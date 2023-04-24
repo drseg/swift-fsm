@@ -75,21 +75,15 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     
     func testImplicitMatchClashes() {
         assertNotMatchClash(Match(), Match(all: P.a))
+        assertNotMatchClash(Match(), Match(all: P.a, Q.a))
         assertNotMatchClash(Match(all: P.a), Match(all: Q.a, S.a))
         
         assertNotMatchClash(Match(all: P.a), Match(all: P.b))
         assertNotMatchClash(Match(all: P.a), Match(all: P.b, Q.b))
         assertNotMatchClash(Match(all: P.a, Q.a), Match(all: P.b, Q.b))
-        
+                
         assertMatchClash(Match(all: P.a), Match(all: Q.a))
         assertMatchClash(Match(all: P.a), Match(any: Q.a))
-        
         assertMatchClash(Match(all: P.a, R.a), Match(all: Q.a, S.a))
-        assertMatchClash(Match(any: P.a, R.a), Match(any: Q.a, S.a))
-        
-        assertMatchClash(Match(all: P.a), Match(any: Q.a, S.a))
-        
-        assertMatchClash(Match(all: P.a), Match(any: P.b, Q.b))
-        assertMatchClash(Match(any: P.a, Q.a), Match(any: P.b, Q.b))
     }
 }

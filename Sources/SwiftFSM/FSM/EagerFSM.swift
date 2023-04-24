@@ -11,10 +11,6 @@ class FSM<State: Hashable, Event: Hashable>: FSMProtocol {
         self.state = initialState
     }
     
-    func handleEvent(_ event: Event, predicates: any Predicate...) {
-        handleEvent(event, predicates: predicates)
-    }
-    
     func handleEvent(_ event: Event, predicates: [any Predicate]) {
         if let transition = table[FSMKey(state: state,
                                          predicates: Set(predicates.erased()),

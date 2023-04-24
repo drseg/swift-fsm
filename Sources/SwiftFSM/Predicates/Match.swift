@@ -77,11 +77,11 @@ class Match {
     }
     
     func validate() -> Result {
-        func failure<C: Collection>(duplicates: C, type: MatchError.Type) -> Result
+        func failure<C: Collection>(predicates: C, type: MatchError.Type) -> Result
         where C.Element == AnyPredicate {
             .failure(
                 type.init(
-                    predicates: duplicates,
+                    predicates: predicates,
                     files: [file],
                     lines: [line]
                 )
@@ -89,20 +89,24 @@ class Match {
         }
         
         guard matchAll.areUniquelyTyped else {
-            return failure(duplicates: matchAll, type: DuplicateMatchTypes.self)
+            return failure(predicates: matchAll, type: DuplicateMatchTypes.self)
         }
         
         guard matchAny.flattened.elementsAreUnique else {
-            return failure(duplicates: matchAny.flattened, type: DuplicateAnyValues.self)
+            return failure(predicates: matchAny.flattened, type: DuplicateAnyValues.self)
         }
         
         guard matchAny.hasNoDuplicateTypes else {
-            return failure(duplicates: matchAny.flattened, type: DuplicateMatchTypes.self)
+            return failure(predicates: matchAny.flattened, type: DuplicateMatchTypes.self)
+        }
+        
+        guard matchAny.hasNoConflictingTypes else {
+            return failure(predicates: matchAny.flattened, type: ConflictingAnyTypes.self)
         }
             
         let duplicates = matchAll.filter { matchAny.flattened.contains($0) }
         guard duplicates.isEmpty else {
-            return failure(duplicates: duplicates, type: DuplicateAnyAllValues.self)
+            return failure(predicates: duplicates, type: DuplicateAnyAllValues.self)
         }
         
         return .success(self)
@@ -208,3 +212,32 @@ extension Collection where Element: Collection & Hashable, Element.Element: Hash
         Set(filter { !$0.isEmpty })
     }
 }
+
+extension [[AnyPredicate]] {
+    var hasNoConflictingTypes: Bool {
+        allSatisfy { eachAny in
+            eachAny.allSatisfy {
+                $0.type == eachAny.first!.type
+            }
+        }
+    }
+    
+    var hasNoDuplicateTypes: Bool {
+        var anyOf = map { $0.map(\.type) }
+        
+        while anyOf.count > 1 {
+            let first = anyOf.first!
+            let rest = anyOf.dropFirst()
+            
+            for type in first {
+                if rest.flattened.contains(type) {
+                    return false
+                }
+            }
+            anyOf = rest.map { $0 }
+        }
+        
+        return true
+    }
+}
+

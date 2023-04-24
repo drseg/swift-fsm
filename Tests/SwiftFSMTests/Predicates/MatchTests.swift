@@ -200,6 +200,13 @@ class ValidationTests: MatchTests {
         XCTAssertEqual(Match().finalised(), .success(Match()))
     }
     
+    func testAny_WithMultipleTypes() {
+        assert(match: Match(any: p1, q1, file: "f", line: 1),
+               is: ConflictingAnyTypes(predicates: [p1, q1].erased(),
+                                       files: ["f"],
+                                       lines: [1]))
+    }
+    
     func testAll_WithDuplicateTypes() {
         assertHasDuplicateTypes(Match(all: p1, p2))
     }
@@ -225,14 +232,6 @@ class ValidationTests: MatchTests {
     func testAll_AddingAll_FormingDuplicateTypes() {
         assertDuplicateTypesWhenAdded(Match(all: p1, q1),
                                       Match(all: p1, q1))
-    }
-    
-    func assertHasDuplicateValues(_ m: Match, line: UInt = #line) {
-        let error =  DuplicateAnyValues(predicates: [p1].erased(),
-                                        files: [m.file],
-                                        lines: [m.line])
-        
-        assert(match: m, is: error, line: line)
     }
     
     func testAny_All_WithSamePredicates() {

@@ -75,23 +75,3 @@ extension Collection where Element == AnyPredicate {
         Set(map(\.type))
     }
 }
-
-extension [[AnyPredicate]] {
-    var hasNoDuplicateTypes: Bool {
-        var anyOf = map { $0.map(\.type) }
-        
-        while anyOf.count > 1 {
-            let first = anyOf.first!
-            let rest = anyOf.dropFirst()
-            
-            for type in first {
-                if rest.flattened.contains(type) {
-                    return false
-                }
-            }
-            anyOf = rest.map { $0 }
-        }
-        
-        return true
-    }
-}

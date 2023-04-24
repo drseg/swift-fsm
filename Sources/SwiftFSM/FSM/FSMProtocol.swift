@@ -45,6 +45,10 @@ protocol FSMProtocol<State, Event>: AnyObject {
 }
 
 extension FSMProtocol {
+    func handleEvent(_ event: Event, predicates: any Predicate...) {
+        handleEvent(event, predicates: predicates)
+    }
+    
     func buildTable(
         file: String = #file,
         line: Int = #line,
