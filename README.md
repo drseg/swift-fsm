@@ -684,6 +684,23 @@ define(.locked) {
     matching(Enforcement.strong) | when(.coin) | then(.locked)
 ```
 
+Following the same reasoning, connecting different types using the word ‘or’ is also not allowed:
+
+```swift
+define(.locked) {
+    matching(Enforcement.weak, or: Reward.negative) | when(.coin) | then(.unlocked)
+}
+
+// ⛔️ error: does not compile, because it implies:
+
+define(.locked) {
+    matching(Enforcement.weak) | when(.coin) | then(.unlocked)
+    matching(Reward.negative)  | when(.coin) | then(.unlocked)
+}
+```
+
+If we were to call `handleEvent(.coin, predicates: Enforcement.weak, Reward.negative)` with such a table, there would be no reasonable way to decide which transition to perform. Unlike implicit clashes, this analogous scenario can be checked at compile time, and therefore will not occur at runtime.
+
 ### Deduplication
 
 In the following case, `when(.pass)` is duplicated:
@@ -909,6 +926,7 @@ enum C: Predicate { case x, y, z }
 matching(A.x)... // if A.x
 matching(A.x, or: A.y)... // if A.x OR A.y
 matching(A.x, or: A.y, A.z)... // if A.x OR A.y OR A.z
+matching(A.x, or: B.x)... // 💥 error: cannot match A.x AND A.y simultaneously
 
 matching(A.x, and: B.x)... // if A.x AND B.x
 matching(A.x, and: A.y)... // 💥 error: cannot match A.x AND A.y simultaneously
@@ -927,7 +945,7 @@ In Swift FSM, the word ‘and’ means that we expect both predicates to be pres
 
 For clarity, it can be useful to think of `matching(A.x, and: A.y)` as meaning `matching(A.x, andSimultaneously: A.y)`. In terms of a `when` statement to which it is analogous, it would be as meaningless as saying `when(.coin, and: .pass)` - the event is either `.coin` or `.pass`, it cannot be both.
 
-The word ‘or’ is more permissive - `matching(A.x, or: A.y)` can be thought of as `matching(anyOneOf: A.x, A.y)`.
+The word ‘or’ is more permissive - `matching(A.x, or: A.y)` can be thought of as `matching(anyOneOf: A.x, A.y)`. For an explanation of why `matching(A.x, or: B.x)` is not allowed, see [Implicit Clashes][28].
 
 **Important** - remember that nested `matching` statements are combined by AND-ing them together, which makes it particularly easy inadvertently to create a conflict.
 
@@ -1000,7 +1018,7 @@ define(.locked) {
 }
 ```
 
-The *advantage* of `condition` over `matching` (assuming that either will suffice) is that the overhead of using`condition` is significantly lower (see [Predicate Performance][28] for details). You can express conditional logic without needing to create new `Predicate` types and pass them to `handleEvent`.
+The *advantage* of `condition` over `matching` (assuming that either will suffice) is that the overhead of using`condition` is significantly lower (see [Predicate Performance][29] for details). You can express conditional logic without needing to create new `Predicate` types and pass them to `handleEvent`.
 
 The *disadvantage* of `condition` versus `matching` is that it is more limited in the kinds of logic it can express:
 
@@ -1045,6 +1063,9 @@ matching(A.a, or: B.a, and: A.b) // 💥 error: cannot match A.a AND A.b simulta
 
 matching(A.a, and: A.a) // 💥 error: duplicate predicate
 matching(A.a, or: A.a)  // 💥 error: duplicate predicate
+
+matching(A.x, or: B.x)... // 💥 error: OR types must be the same
+matching(A.x, and: A.y)... // 💥 error: cannot match A.x AND A.y simultaneously
 ```
 
 The second is when AND-ing multiple `matching` statements through the use of blocks:
@@ -1063,7 +1084,7 @@ matching(A.a, or: A.b) { // ✅
 
 #### Implicit Clash Error
 
-See [Implicit Clashes][29]
+See [Implicit Clashes][30]
 
 ### Predicate Performance
 
@@ -1102,8 +1123,9 @@ Performance in the lazy case of `handleEvent()` increases from O(1) to O(n!), wh
 [22]:	#condition-statements
 [23]:	#error-handling
 [24]:	#predicate-performance
-[25]:	#expanded-syntax "Expanded Syntax"
+[25]:	#expanded-syntax
 [26]:	#expanded-syntax
 [27]:	https://github.com/drseg/reflective-equality
-[28]:	#predicate-performance
-[29]:	#implicit-clashes
+[28]:	#implicit-clashes
+[29]:	#predicate-performance
+[30]:	#implicit-clashes
