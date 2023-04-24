@@ -1,30 +1,12 @@
 import Foundation
 
-final class LazyMatchResolvingNode: Node {
-    var rest: [any Node<Input>]
-    var errors: [Error] = []
-    
-    init(rest: [any Node<Input>] = []) {
-        self.rest = rest
-    }
-    
+final class LazyMatchResolvingNode: MRNBase, Node {
     func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
         do {
-            return try rest.reduce(into: [Transition]()) { result, input in
+            return try rest.reduce(into: []) { result, input in
                 func appendTransition(predicates: PredicateSet) throws {
-                    func isClash() -> Bool {
-                        result
-                            .filter   {
-                                $0.clashes(with: t) &&
-                                $0.predicates.count == t.predicates.count
-                            }
-                            .contains {
-                                $0.predicateTypesOverlap(with: t)
-                            }
-                    }
-                    
                     let t = Transition(io: input, predicates: predicates)
-                    guard !isClash() else { throw "" }
+                    guard !result.hasClash(t) else { throw "" }
                     result.append(t)
                 }
                 
@@ -38,14 +20,12 @@ final class LazyMatchResolvingNode: Node {
                     }
                 }
             }
-        } catch {
+        }
+        
+        catch {
             errors = EagerMatchResolvingNode(rest: self.rest).finalised().errors
             return []
         }
-    }
-    
-    func validate() -> [Error] {
-        errors
     }
 }
 
@@ -71,5 +51,17 @@ extension Transition {
         predicateTypes
             .intersection(t.predicateTypes)
             .isEmpty
+    }
+}
+
+extension [Transition] {
+    func hasClash(_ t: Transition) -> Bool {
+        filter {
+            t.clashes(with: $0) &&
+            t.predicates.count == $0.predicates.count
+        }
+        .contains {
+            t.predicateTypesOverlap(with: $0)
+        }
     }
 }

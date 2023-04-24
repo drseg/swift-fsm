@@ -11,10 +11,11 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     func assertNotMatchClash(_ m1: Match, _ m2: Match, line: UInt = #line) {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
+        
         let p1 = m1.combineAnyAndAll().first ?? []
         let p2 = m2.combineAnyAndAll().first ?? []
-        let sut = makeSUT(rest: [d1, d2])
-        let result = sut.finalised()
+        
+        let result = makeSUT(rest: [d1, d2]).finalised()
         
         guard
             assertCount(result.errors, expected: 0, line: line),
@@ -33,8 +34,7 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     func assertMatchClash(_ m1: Match, _ m2: Match, line: UInt = #line) {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
-        let sut = makeSUT(rest: [d1, d2])
-        let finalised = sut.finalised()
+        let finalised = makeSUT(rest: [d1, d2]).finalised()
         
         guard
             assertCount(finalised.output, expected: 0, line: line),
