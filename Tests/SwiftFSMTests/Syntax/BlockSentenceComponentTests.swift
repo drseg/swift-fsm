@@ -634,11 +634,11 @@ class MatchingBlockTests: DefaultIOBlockTests {
         assertMWTABlock(m5, any: [Q.a, Q.b], nodeLine: l5)
         assertMWTABlock(m6, any: [Q.a, Q.b], nodeLine: l6)
         
-        let l7 = #line; let m7 = matching(Q.a, or: Q.b, and: Q.a, R.a) { mwtaBlock }
-        let l8 = #line; let m8 = Matching(Q.a, or: Q.b, and: Q.a, R.a) { mwtaBlock }
+        let l7 = #line; let m7 = matching(Q.a, or: Q.b, and: R.a, S.a) { mwtaBlock }
+        let l8 = #line; let m8 = Matching(Q.a, or: Q.b, and: R.a, S.a) { mwtaBlock }
         
-        assertMWTABlock(m7, any: [Q.a, Q.b], all: [Q.a, R.a], nodeLine: l7)
-        assertMWTABlock(m8, any: [Q.a, Q.b], all: [Q.a, R.a], nodeLine: l8)
+        assertMWTABlock(m7, any: [Q.a, Q.b], all: [R.a, S.a], nodeLine: l7)
+        assertMWTABlock(m8, any: [Q.a, Q.b], all: [R.a, S.a], nodeLine: l8)
     }
 
     func testMWABlocks() {
@@ -675,11 +675,11 @@ class MatchingBlockTests: DefaultIOBlockTests {
         assertMWABlock(m5, any: [Q.a, Q.b], nodeLine: l5)
         assertMWABlock(m6, any: [Q.a, Q.b], nodeLine: l6)
         
-        let l7 = #line; let m7 = matching(Q.a, or: Q.b, and: Q.a, R.a)  { mwaBlock }
-        let l8 = #line; let m8 = Matching(Q.a, or: Q.b, and: Q.a, R.a)  { mwaBlock }
+        let l7 = #line; let m7 = matching(Q.a, or: Q.b, and: R.a, S.a)  { mwaBlock }
+        let l8 = #line; let m8 = Matching(Q.a, or: Q.b, and: R.a, S.a)  { mwaBlock }
 
-        assertMWABlock(m7, any: [Q.a, Q.b], all: [Q.a, R.a], nodeLine: l7)
-        assertMWABlock(m8, any: [Q.a, Q.b], all: [Q.a, R.a], nodeLine: l8)
+        assertMWABlock(m7, any: [Q.a, Q.b], all: [R.a, S.a], nodeLine: l7)
+        assertMWABlock(m8, any: [Q.a, Q.b], all: [R.a, S.a], nodeLine: l8)
     }
 
     func testMTABlocks() {
@@ -716,11 +716,11 @@ class MatchingBlockTests: DefaultIOBlockTests {
         assertMTABlock(m5, any: [Q.a, Q.b], nodeLine: l5)
         assertMTABlock(m6, any: [Q.a, Q.b], nodeLine: l6)
         
-        let l7 = #line; let m7 = matching(Q.a, or: Q.b, and: Q.a, R.a)  { mtaBlock }
-        let l8 = #line; let m8 = Matching(Q.a, or: Q.b, and: Q.a, R.a)  { mtaBlock }
+        let l7 = #line; let m7 = matching(Q.a, or: Q.b, and: R.a, S.a)  { mtaBlock }
+        let l8 = #line; let m8 = Matching(Q.a, or: Q.b, and: R.a, S.a)  { mtaBlock }
 
-        assertMTABlock(m7, any: [Q.a, Q.b], all: [Q.a, R.a], nodeLine: l7)
-        assertMTABlock(m8, any: [Q.a, Q.b], all: [Q.a, R.a], nodeLine: l8)
+        assertMTABlock(m7, any: [Q.a, Q.b], all: [R.a, S.a], nodeLine: l7)
+        assertMTABlock(m8, any: [Q.a, Q.b], all: [R.a, S.a], nodeLine: l8)
     }
 
     func testCompoundMWTABlocks() {
