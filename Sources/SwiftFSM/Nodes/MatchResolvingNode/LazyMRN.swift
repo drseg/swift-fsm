@@ -2,6 +2,7 @@ import Foundation
 
 final class LazyMatchResolvingNode: Node {
     var rest: [any Node<Input>]
+    var errors: [Error] = []
     
     init(rest: [any Node<Input>] = []) {
         self.rest = rest
@@ -13,8 +14,13 @@ final class LazyMatchResolvingNode: Node {
                 func appendTransition(predicates: PredicateSet) throws {
                     func isClash() -> Bool {
                         result
-                            .filter   { $0.clashes(with: t) }
-                            .contains { $0.predicateTypesOverlap(with: t) }
+                            .filter   {
+                                $0.clashes(with: t) &&
+                                $0.predicates.count == t.predicates.count
+                            }
+                            .contains {
+                                $0.predicateTypesOverlap(with: t)
+                            }
                     }
                     
                     let t = Transition(io: input, predicates: predicates)
@@ -23,6 +29,7 @@ final class LazyMatchResolvingNode: Node {
                 }
                 
                 let anyAndAll = input.match.combineAnyAndAll()
+                
                 if anyAndAll.isEmpty {
                     try appendTransition(predicates: [])
                 } else {
@@ -32,8 +39,13 @@ final class LazyMatchResolvingNode: Node {
                 }
             }
         } catch {
+            errors = EagerMatchResolvingNode(rest: self.rest).finalised().errors
             return []
         }
+    }
+    
+    func validate() -> [Error] {
+        errors
     }
 }
 
