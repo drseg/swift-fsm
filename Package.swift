@@ -22,9 +22,10 @@ let package = Package(
         .target(
             name: "SwiftFSM",
             dependencies:
-                [.product(name: "ReflectiveEquality", package: "reflective-equality")]),
+                [.product(name: "ReflectiveEquality", package: "reflective-equality"),
+                 .product(name: "Algorithms", package: "swift-algorithms")]),
         .testTarget(
             name: "SwiftFSMTests",
-            dependencies: ["SwiftFSM", .product(name: "Algorithms", package: "swift-algorithms")]),
+            dependencies: ["SwiftFSM"]),
     ]
 )
