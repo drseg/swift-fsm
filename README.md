@@ -958,7 +958,7 @@ enum C: Predicate { case x, y, z }
 matching(A.x)... // if A.x
 matching(A.x, or: A.y)... // if A.x OR A.y
 matching(A.x, or: A.y, A.z)... // if A.x OR A.y OR A.z
-matching(A.x, or: B.x)... // 💥 error: OR types must be the same
+matching(A.x, or: B.x)... // ⛔️ does not compile: OR types must be the same
 
 matching(A.x, and: B.x)... // if A.x AND B.x
 matching(A.x, and: A.y)... // 💥 error: cannot match A.x AND A.y simultaneously
@@ -993,7 +993,7 @@ define(.locked) {
 
 This AND-ing behaviour also applies to OR statements: 
 
-```
+```swift
 define(.locked) {
     matching(A.x, or: A.y) {
         matching(A.z) {
@@ -1097,7 +1097,7 @@ matching(A.a, or: B.a, and: A.b) // 💥 error: cannot match A.a AND A.b simulta
 matching(A.a, and: A.a) // 💥 error: duplicate predicate
 matching(A.a, or: A.a)  // 💥 error: duplicate predicate
 
-matching(A.x, or: B.x)... // 💥 error: OR types must be the same
+matching(A.x, or: B.x)... // ⛔️ does not compile: OR types must be the same
 matching(A.x, and: A.y)... // 💥 error: cannot match A.x AND A.y simultaneously
 ```
 
