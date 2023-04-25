@@ -430,6 +430,10 @@ If you *do* have a use for this kind of conditional compilation, please open an 
 
 ### Runtime Errors
 
+**Important** - most Swift FSM function calls and initialisers have an additional two arguments `file: String`  and `line: Int` that are populated with the default values `#file` and `#line`. This is similar to the system used by XCTest assertions, and allows Swift FSM to produce errors that can pinpoint the exact location of the problematic statement/s. 
+
+There is no way to capture this information whilst hiding them from autocomplete - therefore, note that, unlike XCTest assertions, _there are no circumstances in which it could be useful or necessary to pass in your own values as arguments_.
+
 #### Empty Blocks
 
 All blocks must have at least one statement in them, otherwise an error will be thrown:
