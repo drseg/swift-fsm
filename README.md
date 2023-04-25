@@ -1003,9 +1003,9 @@ define(.locked) {
 }
 ```
 
-Here, `complicatedDecisionTree()` receives a block that returns a `Bool`. If it is `true`, the transition is executed, and if it is not, nothing happens.
+Here, `complicatedDecisionTree()` is a function that returns a `Bool`. If it is `true`, the transition is executed, and if it is not, nothing happens.
 
-The keyword `condition` is syntactically interchangeable with `matching` - it works with pipe and block syntax, and is chainable by AND.
+The keyword `condition` is syntactically interchangeable with `matching` - it works with pipe and block syntax, and is chainable (conditions are AND-ed together).
 
 `matching` and `condition` blocks can also be combined freely:
 
@@ -1092,11 +1092,13 @@ Adding predicates has no effect on the performance of `handleEvent()`. To mainta
 
 The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m^n) where m is the average number of cases per predicate, and n is number of`Predicate` types. Using three predicates with 10 cases each would therefore require 1,000 operations *for each transition in the table*.
 
+#### Lazy FSM
+
 For small tables, or tables with only a few total `Predicate` cases, this eager algorithm is still likely to be the preferable option. For tables with a large number of transition statements, and/or a large number of `Predicate` cases, the lazy solution may be more performant overall. 
 
-Replacing the `FSM` class with `LazyFSM` will do away with the entire combinatorics algorithm, which will result in much smaller tables internally, and much faster table compile time. The cost is at the call to `handleEvent()` where some extra lookup operations are needed to find the correct transition.
+Replacing the `FSM` class with `LazyFSM` will do away with the entire combinatorics algorithm, which will result in much smaller tables internally, and much faster table compile time. The cost is at the call to `handleEvent()` where multiple lookup operations are needed to find the correct transition.
 
-Performance in the lazy case of `handleEvent()` increases from O(1) to O(n!), which initially seems rather terrifying. However `n` in this case is the number of `Predicate` *types* used, regardless of the number of cases. Taking the same example as previously, using three predicates with 10 cases each, each call to `handleEvent()` would need to perform somewhere between a minimum of 1 operation, and a maximum of 3! or 6 operations. Using more than three `Predicate` types in this case is not advisable.
+Performance of the `LazyFSM` implementation of `handleEvent()` increases from O(1) to O(n!), where `n` is the number of `Predicate` *types* used, regardless of the number of cases. Taking the same example as previously, using three predicates with 10 cases each, each call to `handleEvent()` would need to perform somewhere between a minimum of 1 operation, and a maximum of `3! + 1` or 7 operations. Using more than three `Predicate` types in this case is therefore not advisable.
 
 
 [1]:	https://github.com/unclebob/CC_SMC
