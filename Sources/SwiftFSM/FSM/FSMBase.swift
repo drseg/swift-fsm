@@ -24,38 +24,39 @@ struct FSMKey: Hashable {
     }
 }
 
-class FSMBase<State: Hashable> {
+open class FSMBase<State: Hashable, Event: Hashable> {
     var table: [FSMKey: Transition] = [:]
     var state: AnyHashable
     
-    required init(initialState: State) {
+    public func handleEvent(_ event: Event, predicates: [any Predicate]) {
+        fatalError("subclasses must implement")
+    }
+    
+    func makeMRN(rest: [any Node<IntermediateIO>]) -> MRNBase {
+        fatalError("subclasses must implement")
+    }
+    
+    init(initialState: State) {
         self.state = initialState
     }
-}
-
-protocol FSMProtocol<State, Event>: AnyObject {
-    associatedtype State: Hashable
-    associatedtype Event: Hashable
-    associatedtype MRN: MRNBase
     
-    var table: [FSMKey: Transition] { get set }
-    var state: AnyHashable { get set }
-    
-    init(initialState: State)
-
-    func buildTable(
-        file: String,
-        line: Int,
-        @TableBuilder<State> _ block: () -> [Syntax.Define<State>]
-    ) throws
-    
-    func handleEvent(_ event: Event, predicates: any Predicate...)
-    func handleEvent(_ event: Event, predicates: [any Predicate])
-}
-
-extension FSMProtocol {
-    func handleEvent(_ event: Event, predicates: any Predicate...) {
+    public func handleEvent(_ event: Event, predicates: any Predicate...) {
         handleEvent(event, predicates: predicates)
+    }
+    
+    @discardableResult
+    func _handleEvent(_ event: Event, predicates: [any Predicate]) -> Bool {
+        if let transition = table[FSMKey(state: state,
+                                         predicates: Set(predicates.erased()),
+                                         event: event)],
+           transition.condition?() ?? true
+        {
+            state = transition.nextState
+            transition.actions.forEach { $0() }
+            return true
+        }
+        
+        return false
     }
     
     func buildTable(
@@ -69,7 +70,7 @@ extension FSMProtocol {
         
         let transitionNode = ActionsResolvingNode(rest: block().map(\.node))
         let validationNode = SemanticValidationNode(rest: [transitionNode])
-        let tableNode = MRN.init(rest: [validationNode])
+        let tableNode = makeMRN(rest: [validationNode])
         let result = (tableNode as! any Node<Transition>).finalised()
         
         try checkForErrors(result)
@@ -101,20 +102,5 @@ extension FSMProtocol {
     
     func makeError(_ errors: [Error]) -> SwiftFSMError {
         SwiftFSMError(errors: errors)
-    }
-    
-    @discardableResult
-    func _handleEvent(_ event: Event, predicates: [any Predicate]) -> Bool {
-        if let transition = table[FSMKey(state: state,
-                                         predicates: Set(predicates.erased()),
-                                         event: event)],
-           transition.condition?() ?? true
-        {
-            state = transition.nextState
-            transition.actions.forEach { $0() }
-            return true
-        }
-        
-        return false
     }
 }

@@ -1,10 +1,16 @@
 import Foundation
 import Algorithms
 
-class LazyFSM<State: Hashable, Event: Hashable>: FSMBase<State>, FSMProtocol {
-    typealias MRN = LazyMatchResolvingNode
+open class LazyFSM<State: Hashable, Event: Hashable>: FSMBase<State, Event>  {
+    public override init(initialState: State) {
+        super.init(initialState: initialState)
+    }
     
-    func handleEvent(_ event: Event, predicates: [any Predicate]) {
+    override func makeMRN(rest: [any Node<IntermediateIO>]) -> MRNBase {
+        LazyMatchResolvingNode(rest: rest)
+    }
+    
+    public override func handleEvent(_ event: Event, predicates: [any Predicate]) {
         for p in makeCombinations(predicates) {
             if _handleEvent(event, predicates: p) { return }
         }

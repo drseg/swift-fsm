@@ -6,7 +6,7 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     typealias StateType = State
     typealias EventType = Event
     
-    var fsm: (any FSMProtocol<StateType, EventType>)!
+    var fsm: FSMBase<StateType, EventType>!
     
     override func setUp() {
         fsm = makeSUT(initialState: initialState)
@@ -18,7 +18,7 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     
     func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State
-    ) -> any FSMProtocol<State, Event> {
+    ) -> FSMBase<State, Event> {
         fatalError("subclasses must implement")
     }
 }
@@ -26,7 +26,7 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
 class LazyFSMTests: FSMTests {
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State
-    ) -> any FSMProtocol<State, Event> {
+    ) -> FSMBase<State, Event> {
         LazyFSM<State, Event>(initialState: initialState)
     }
     
@@ -48,7 +48,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
     
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State
-    ) -> any FSMProtocol<State, Event> {
+    ) -> FSMBase<State, Event> {
         FSM<State, Event>(initialState: initialState)
     }
     
@@ -84,8 +84,8 @@ class FSMTests: FSMTestsBase<Int, Double> {
     }
 
     func testThrowsNSObjectError()  {
-        let fsm1: any FSMProtocol<NSObject, Int> = makeSUT(initialState: NSObject())
-        let fsm2: any FSMProtocol<Int, NSObject> = makeSUT(initialState: 1)
+        let fsm1: FSMBase<NSObject, Int> = makeSUT(initialState: NSObject())
+        let fsm2: FSMBase<Int, NSObject> = makeSUT(initialState: 1)
 
         assertThrowsError(NSObjectError.self) {
             try fsm1.buildTable {

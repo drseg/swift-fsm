@@ -26,7 +26,7 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State
-    ) -> any FSMProtocol<State, Event> {
+    ) -> FSMBase<State, Event> {
         FSM<State, Event>(initialState: initialState)
     }
 }
@@ -34,7 +34,7 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
 final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State
-    ) -> any FSMProtocol<State, Event> {
+    ) -> FSMBase<State, Event> {
         LazyFSM<State, Event>(initialState: initialState)
     }
 }
@@ -128,7 +128,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
 class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State
-    ) -> any FSMProtocol<State, Event> {
+    ) -> FSMBase<State, Event> {
         LazyFSM<State, Event>(initialState: initialState)
     }
 }
@@ -294,7 +294,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
 class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State
-    ) -> any FSMProtocol<State, Event> {
+    ) -> FSMBase<State, Event> {
         LazyFSM<State, Event>(initialState: initialState)
     }
 }
@@ -345,7 +345,7 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
 class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State
-    ) -> any FSMProtocol<State, Event> {
+    ) -> FSMBase<State, Event> {
         LazyFSM<State, Event>(initialState: initialState)
     }
 }
