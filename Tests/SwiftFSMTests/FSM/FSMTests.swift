@@ -222,7 +222,15 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     }
 }
 
-final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
+final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
+    override func makeSUT<State: Hashable, Event: Hashable>(
+        initialState: State
+    ) -> any FSMProtocol<State, Event> {
+        LazyFSM<State, Event>(initialState: initialState)
+    }
+}
+
+class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     func assertEventAction(_ e: EventType, _ a: String, line: UInt = #line) {
         assertEventAction(e, a.isEmpty ? [] : [a], line: line)
     }
@@ -308,7 +316,15 @@ final class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     }
 }
 
-final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
+class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
+    override func makeSUT<State: Hashable, Event: Hashable>(
+        initialState: State
+    ) -> any FSMProtocol<State, Event> {
+        LazyFSM<State, Event>(initialState: initialState)
+    }
+}
+
+class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     enum Enforcement: Predicate { case strong, weak }
     enum Reward: Predicate { case punishing, rewarding }
     
@@ -466,7 +482,15 @@ final class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     }
 }
 
-final class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
+class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
+    override func makeSUT<State: Hashable, Event: Hashable>(
+        initialState: State
+    ) -> any FSMProtocol<State, Event> {
+        LazyFSM<State, Event>(initialState: initialState)
+    }
+}
+
+class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
     func testMultiplePredicateBlocks() throws {
         try fsm.buildTable {
             define(.locked) {
@@ -509,7 +533,15 @@ final class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
     }
 }
 
-final class FSMIntegrationTests_Errors: FSMIntegrationTests {
+class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
+    override func makeSUT<State: Hashable, Event: Hashable>(
+        initialState: State
+    ) -> any FSMProtocol<State, Event> {
+        LazyFSM<State, Event>(initialState: initialState)
+    }
+}
+
+class FSMIntegrationTests_Errors: FSMIntegrationTests {
     func assertEmptyError(_ e: EmptyBuilderError?,
                      expectedCaller: String,
                      expectedLine: Int,
