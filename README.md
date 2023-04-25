@@ -32,7 +32,7 @@ This guide is reasonably complete, but does presume some familiarity with FSMs a
 
 ## Requirements
 
-Swift FSM is a Swift package, importable through the Swift Package Manager, and requires macOS 12.6 and/or iOS 15.6 or later, alongside Swift 5.6 or later.
+Swift FSM is a Swift package, importable through the Swift Package Manager, and requires macOS 13 and/or iOS 16 or later, alongside Swift 5.7 or later.
 
 ## Basic Syntax
 
@@ -660,6 +660,8 @@ matching(Reward.negative)    | when(.coin) | then(.unlocked)
 
 ### Implicit Clashes
 
+#### Between Predicates
+
 ```swift
 define(.locked) {
     matching(Enforcement.weak) | when(.coin) | then(.unlocked)
@@ -684,7 +686,30 @@ define(.locked) {
     matching(Enforcement.strong) | when(.coin) | then(.locked)
 ```
 
-Following the same reasoning, connecting different types using the word ‘or’ is also not allowed:
+We can break the deadlock by adding some disambiguation:
+
+```swift
+define(.locked) {
+    matching(Enforcement.weak, and: Reward.positive) | when(.coin) | then(.unlocked)
+    matching(Reward.negative)                        | when(.coin) | then(.locked)
+}
+
+// ✅ inferred as:
+
+define(.locked) {
+    matching(Enforcement.weak,   and: Reward.positive) | when(.coin) | then(.unlocked)
+
+    matching(Enforcement.weak,   and: Reward.negative) | when(.coin) | then(.locked)
+    matching(Enforcement.strong, and: Reward.positive) | when(.coin) | then(.locked)
+    matching(Enforcement.strong, and: Reward.nevagive) | when(.coin) | then(.locked)
+}
+```
+
+In this case, Swift FSM breaks the tie by deferring to the more deeply specified statement (in this case, the first statement, which specifies two predicates, versus the second statement’s single predicate). This is a general inference rule - if two statements potentially clash, they will throw if they both specify the same number of predicates (Swift FSM cannot break the tie), otherwise the more specified option will always be preferred.
+
+#### Within Predicates
+
+Following the inference logic, connecting different types using the word ‘or’ is also not allowed:
 
 ```swift
 define(.locked) {
@@ -694,8 +719,8 @@ define(.locked) {
 // ⛔️ error: does not compile, because it implies:
 
 define(.locked) {
-    matching(Enforcement.weak) | when(.coin) | then(.unlocked)
-    matching(Reward.negative)  | when(.coin) | then(.unlocked)
+    matching(Enforcement.weak) | when(.coin) | then(.unlocked) // ⛔️ clash
+    matching(Reward.negative)  | when(.coin) | then(.unlocked) // ⛔️ clash
 }
 ```
 
@@ -926,7 +951,7 @@ enum C: Predicate { case x, y, z }
 matching(A.x)... // if A.x
 matching(A.x, or: A.y)... // if A.x OR A.y
 matching(A.x, or: A.y, A.z)... // if A.x OR A.y OR A.z
-matching(A.x, or: B.x)... // 💥 error: cannot match A.x AND A.y simultaneously
+matching(A.x, or: B.x)... // 💥 error: OR types must be the same
 
 matching(A.x, and: B.x)... // if A.x AND B.x
 matching(A.x, and: A.y)... // 💥 error: cannot match A.x AND A.y simultaneously
@@ -947,7 +972,7 @@ For clarity, it can be useful to think of `matching(A.x, and: A.y)` as meaning `
 
 The word ‘or’ is more permissive - `matching(A.x, or: A.y)` can be thought of as `matching(anyOneOf: A.x, A.y)`. For an explanation of why `matching(A.x, or: B.x)` is not allowed, see [Implicit Clashes][28].
 
-**Important** - remember that nested `matching` statements are combined by AND-ing them together, which makes it particularly easy inadvertently to create a conflict.
+**Important** - remember that nested `matching` statements are combined by AND-ing them together, which makes it possible inadvertently to create a conflict.
 
 ```swift
 define(.locked) {
@@ -961,12 +986,13 @@ define(.locked) {
 
 This AND-ing behaviour also applies to OR statements: 
 
-```swift
+```
 define(.locked) {
     matching(A.x, or: A.y) {
         matching(A.z) {
             // 💥 error: cannot match A.x AND A.y simultaneously 
-            // 💥 error: cannot match A.y AND A.z simultaneously 
+            // 💥 error: cannot match A.x AND A.z simultaneously
+            // 💥 error: cannot match A.y AND A.z simultaneously  
         }
     }
 }
@@ -993,9 +1019,9 @@ define(.locked) {
 
 ### Condition Statements
 
-Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve the problem at hand.
+Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem.
 
-If all you need is to make a specific transition conditional on some particular logic at runtime, then the `condition` statement can suffice. Some FSM implementations call this a `guard` statement, however the name `condition` was chosen here as `guard` is a reserved word in Swift.
+If you need to make a specific transition conditional at runtime, then the `condition` statement may suffice. Some FSM implementations call this a `guard` statement, however the name `condition` was chosen here as `guard` is a reserved word in Swift.
 
 ```swift
 define(.locked) {
@@ -1003,7 +1029,7 @@ define(.locked) {
 }
 ```
 
-Here, `complicatedDecisionTree()` is a function that returns a `Bool`. If it is `true`, the transition is executed, and if it is not, nothing happens.
+Here, `complicatedDecisionTree()` is a function that returns a `Bool`. If it is `true`, the transition is executed, and if it is not, nothing is executed.
 
 The keyword `condition` is syntactically interchangeable with `matching` - it works with pipe and block syntax, and is chainable (conditions are AND-ed together).
 
@@ -1018,9 +1044,9 @@ define(.locked) {
 }
 ```
 
-The *advantage* of `condition` over `matching` (assuming that either will suffice) is that the overhead of using`condition` is significantly lower (see [Predicate Performance][29] for details). You can express conditional logic without needing to create new `Predicate` types and pass them to `handleEvent`.
+The advantage of `condition` over `matching` (assuming that either will suffice) is that the overhead of using`condition` is significantly lower (see [Predicate Performance][29] for details). You can express conditional logic without needing to create new `Predicate` types and pass them to `handleEvent`.
 
-The *disadvantage* of `condition` versus `matching` is that it is more limited in the kinds of logic it can express:
+The disadvantage of `condition` versus `matching` is that it is more limited in the kinds of logic it can express:
 
 ```swift
 define(.locked) {
@@ -1094,9 +1120,9 @@ The performance of `fsm.buildTransitions { }` is dominated by this, assuming any
 
 #### Lazy FSM
 
-For small tables, or tables with only a few total `Predicate` cases, this eager algorithm is still likely to be the preferable option. For tables with a large number of transition statements, and/or a large number of `Predicate` cases, the lazy solution may be more performant overall. 
+For small tables, or tables with only a few total `Predicate` cases, this eager algorithm is likely to be the preferred option. For tables with a large number of transition statements, and/or a large number of `Predicate` cases, there is an alternative lazy solution that may be more performant overall. 
 
-Replacing the `FSM` class with `LazyFSM` will do away with the entire combinatorics algorithm, which will result in much smaller tables internally, and much faster table compile time. The cost is at the call to `handleEvent()` where multiple lookup operations are needed to find the correct transition.
+Replacing the `FSM` class with `LazyFSM` will do away with the look-ahead combinatorics algorithm described above. The result is smaller tables internally, and faster table compile time. The cost is at the call to `handleEvent()` where multiple lookup operations are needed to find the correct transition. These two systems therefore make opposite tradeoffs - the eager system does all of its work at table compile time, whereas the lazy system saves on compile time space and performance resources by doing its work at transition run time.
 
 Performance of the `LazyFSM` implementation of `handleEvent()` increases from O(1) to O(n!), where `n` is the number of `Predicate` *types* used, regardless of the number of cases. Taking the same example as previously, using three predicates with 10 cases each, each call to `handleEvent()` would need to perform somewhere between a minimum of 1 operation, and a maximum of `3! + 1` or 7 operations. Using more than three `Predicate` types in this case is therefore not advisable.
 
