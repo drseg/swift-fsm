@@ -29,17 +29,9 @@ enum Internal {
         let node: ThenNode
     }
     
-    struct MatchingActions: MA {
-        let node: any Node<DefaultIO>
-    }
-    
-    struct MatchingWhenActions: MWA {
-        let node: any Node<DefaultIO>
-    }
-    
-    struct MatchingThenActions: MTA {
-        let node: any Node<DefaultIO>
-    }
+    class MatchingActions: MA { }
+    class MatchingWhenActions: MWA { }
+    class MatchingThenActions: MTA { }
     
     struct MatchingWhenThen {
         static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenThenActions {
@@ -49,67 +41,71 @@ enum Internal {
         let node: ThenNode
     }
     
-    struct MatchingWhenThenActions: MWTA {
-        let node: any Node<DefaultIO>
-    }
+    class MatchingWhenThenActions: MWTA { }
     
-    class BlockSentence {
-        let node: any Node<DefaultIO>
-
-        init<N: Node>(_ n: N, _ block: () -> [any Sentence])
-        where N.Input == DefaultIO, N.Input == N.Output {
-            var n = n
-            n.rest = block().nodes
-            node = n
-        }
-        
-        init(
-            _ actions: [Action],
-            file: String = #file,
-            line: Int = #line,
-            _ block: () -> [any Sentence]
-        ) {
-            node = ActionsBlockNode(actions: actions,
-                                    rest: block().nodes,
-                                    caller: "actions",
-                                    file: file,
-                                    line: line)
-        }
-    }
-    
-    final class MWTASentence: BlockSentence, MWTA { }
-    final class MWASentence:  BlockSentence, MWA  { }
-    final class MTASentence:  BlockSentence, MTA  { }
+    final class MWTASentence: MWTA, BlockSentence { }
+    final class MWASentence:  MWA, BlockSentence  { }
+    final class MTASentence:  MTA, BlockSentence  { }
     
     @resultBuilder
     struct MWTABuilder: ResultBuilder {
-        typealias T = any MWTA
+        typealias T = MWTA
     }
     
     @resultBuilder
     struct MWABuilder: ResultBuilder {
-        typealias T = any MWA
+        typealias T = MWA
     }
     
     @resultBuilder
     struct MTABuilder: ResultBuilder {
-        typealias T = any MTA
+        typealias T = MTA
     }
     
     @resultBuilder
     struct MABuilder: ResultBuilder {
-        typealias T = any MA
+        typealias T = MA
     }
 }
 
-protocol Sentence {
-    var node: any Node<DefaultIO> { get }
+protocol BlockSentence {
+    init(node: any Node<DefaultIO>)
 }
 
-protocol MWTA: Sentence { }
-protocol MWA: Sentence { }
-protocol MTA: Sentence { }
-protocol MA: Sentence { }
+extension BlockSentence {
+    init<N: Node>(_ n: N, _ block: () -> [Sentence])
+    where N.Input == DefaultIO, N.Input == N.Output {
+        var n = n
+        n.rest = block().nodes
+        self.init(node: n)
+    }
+    
+    init(
+        _ actions: [Action],
+        file: String = #file,
+        line: Int = #line,
+        _ block: () -> [Sentence]
+    ) {
+        self.init(node: ActionsBlockNode(actions: actions,
+                                rest: block().nodes,
+                                caller: "actions",
+                                file: file,
+                                line: line))
+    }
+}
+
+class Sentence {
+    let node: any Node<DefaultIO>
+    
+    init(node: any Node<DefaultIO>) {
+        self.node = node
+    }
+}
+
+class MWTA: Sentence { }
+class MWA: Sentence { }
+class MTA: Sentence { }
+class MA: Sentence { }
 
 extension Node {
     func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {
@@ -121,6 +117,6 @@ extension Node {
 
 extension Array {
     var nodes: [any Node<DefaultIO>] {
-        map { ($0 as! any Sentence).node }
+        map { ($0 as! Sentence).node }
     }
 }

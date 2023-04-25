@@ -71,7 +71,7 @@ class BlockTests: SyntaxTestsBase {
 }
 
 class BlockComponentTests: BlockTests {
-    func buildMWTA(@MWTABuilder _ block: () -> [any MWTA]) -> [any MWTA] {
+    func buildMWTA(@MWTABuilder _ block: () -> [MWTA]) -> [MWTA] {
         block()
     }
     
@@ -312,17 +312,17 @@ class BlockComponentTests: BlockTests {
 }
 
 class DefaultIOBlockTests: BlockTests {
-    let mwtaLine = #line; @MWTABuilder var mwtaBlock: [any MWTA] {
+    let mwtaLine = #line; @MWTABuilder var mwtaBlock: [MWTA] {
         Matching(P.a) | When(1, or: 2) | Then(1) | pass
                         When(1, or: 2) | Then(1) | pass
     }
     
-    let mwaLine = #line; @MWABuilder var mwaBlock: [any MWA] {
+    let mwaLine = #line; @MWABuilder var mwaBlock: [MWA] {
         Matching(P.a) | When(1, or: 2) | pass
                         When(1, or: 2) | pass
     }
     
-    let mtaLine = #line; @MTABuilder var mtaBlock: [any MTA] {
+    let mtaLine = #line; @MTABuilder var mtaBlock: [MTA] {
         Matching(P.a) | Then(1) | pass
                         Then(1) | pass
     }

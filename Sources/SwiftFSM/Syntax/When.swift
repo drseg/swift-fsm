@@ -45,13 +45,13 @@ extension Syntax {
         }
         
         func callAsFunction(
-            @Internal.MTABuilder _ block: () -> [any MTA]
+            @Internal.MTABuilder _ block: () -> [MTA]
         ) -> Internal.MWTASentence {
             .init(blockNode, block)
         }
         
         func callAsFunction(
-            @Internal.MABuilder _ block: () -> [any MA]
+            @Internal.MABuilder _ block: () -> [MA]
         ) -> Internal.MWASentence {
             .init(blockNode, block)
         }

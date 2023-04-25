@@ -18,7 +18,7 @@ struct SuperState {
         adopts superStates: SuperState...,
         onEntry: [Action] = [],
         onExit: [Action] = [],
-        @Internal.MWTABuilder _ block: () -> [any MWTA]
+        @Internal.MWTABuilder _ block: () -> [MWTA]
     ) {
         self.init(nodes: block().nodes,
                   superStates: superStates,

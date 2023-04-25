@@ -37,19 +37,19 @@ extension Conditional {
     }
     
     func callAsFunction(
-        @Internal.MWTABuilder _ block: () -> [any MWTA]
+        @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
         .init(blockNode, block)
     }
     
     func callAsFunction(
-        @Internal.MWABuilder _ block: () -> [any MWA]
+        @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
         .init(blockNode, block)
     }
     
     func callAsFunction(
-        @Internal.MTABuilder _ block: () -> [any MTA]
+        @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
         .init(blockNode, block)
     }

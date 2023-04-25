@@ -31,7 +31,7 @@ extension SyntaxBuilder {
         onExit: [Action] = [],
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [any MWTA]
+        @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Syntax.Define<StateType> {
         .init(state: state,
               adopts: superStates,
@@ -56,7 +56,7 @@ extension SyntaxBuilder {
         or rest: EventType...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [any MTA]
+        @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MWTASentence {
         Syntax.When.init([first] + rest, file: file, line: line).callAsFunction(block)
     }
@@ -66,7 +66,7 @@ extension SyntaxBuilder {
         or rest: EventType...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MABuilder _ block: () -> [any MA]
+        @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MWASentence {
         Syntax.When.init([first] + rest, file: file, line: line).callAsFunction(block)
     }
@@ -83,7 +83,7 @@ extension SyntaxBuilder {
         _ state: StateType? = nil,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [any MWA]
+        @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWTASentence {
         Syntax.Then(state, file: file, line: line).callAsFunction(block)
     }
@@ -92,7 +92,7 @@ extension SyntaxBuilder {
         _ state: StateType? = nil,
         file: String = #file,
         line: Int = #line,
-        @Internal.MABuilder _ block: () -> [any MA]
+        @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MTASentence {
         Syntax.Then(state, file: file, line: line).callAsFunction(block)
     }
@@ -102,7 +102,7 @@ extension SyntaxBuilder {
         _ aRest: Action...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [any MWTA]
+        @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line).callAsFunction(block)
     }
@@ -112,7 +112,7 @@ extension SyntaxBuilder {
         _ aRest: Action...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [any MWA]
+        @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line).callAsFunction(block)
     }
@@ -122,7 +122,7 @@ extension SyntaxBuilder {
         _ aRest: Action...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [any MTA]
+        @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
         Syntax.Actions([a1] + aRest, file: file, line: line).callAsFunction(block)
     }
@@ -158,7 +158,7 @@ extension ExpandedSyntaxBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [any MWTA]
+        @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
         Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
@@ -167,7 +167,7 @@ extension ExpandedSyntaxBuilder {
         _ condition: @escaping () -> Bool,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [any MWTA]
+        @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
         Condition(condition, file: file, line: line).callAsFunction(block)
     }
@@ -178,7 +178,7 @@ extension ExpandedSyntaxBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [any MWA]
+        @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
         Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
@@ -187,7 +187,7 @@ extension ExpandedSyntaxBuilder {
         _ condition: @escaping () -> Bool,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [any MWA]
+        @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
         Condition(condition, file: file, line: line).callAsFunction(block)
     }
@@ -198,7 +198,7 @@ extension ExpandedSyntaxBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [any MTA]
+        @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
         Matching(first, or: or, and: and, file: file, line: line).callAsFunction(block)
     }
@@ -207,7 +207,7 @@ extension ExpandedSyntaxBuilder {
         _ condition: @escaping () -> Bool,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [any MTA]
+        @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
         Condition(condition, file: file, line: line).callAsFunction(block)
     }

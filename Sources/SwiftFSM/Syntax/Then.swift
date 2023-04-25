@@ -29,13 +29,13 @@ extension Syntax {
         }
         
         func callAsFunction(
-            @Internal.MWABuilder _ block: () -> [any MWA]
+            @Internal.MWABuilder _ block: () -> [MWA]
         ) -> Internal.MWTASentence {
             .init(blockNode, block)
         }
         
         func callAsFunction(
-            @Internal.MABuilder _ block: () -> [any MA]
+            @Internal.MABuilder _ block: () -> [MA]
         ) -> Internal.MTASentence {
             .init(blockNode, block)
         }
