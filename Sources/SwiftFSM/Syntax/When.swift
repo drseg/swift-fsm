@@ -24,12 +24,12 @@ public extension Syntax {
         }
         
         public init(
-            _ first: Event,
-            or rest: Event...,
+            _ event: Event,
+            or otherEvents: Event...,
             file: String = #file,
             line: Int = #line
         ) {
-            self.init([first] + rest, file: file, line: line)
+            self.init([event] + otherEvents, file: file, line: line)
         }
         
         internal init(

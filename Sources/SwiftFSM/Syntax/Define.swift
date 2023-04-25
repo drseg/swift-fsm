@@ -5,15 +5,15 @@ public extension Syntax {
         let node: DefineNode
         
         public init(_ state: State,
-             adopts superStates: SuperState,
-             _ rest: SuperState...,
+             adopts superState: SuperState,
+             _ andSuperStates: SuperState...,
              onEntry: [Action],
              onExit: [Action],
              file: String = #file,
              line: Int = #line
         ) {
             self.init(state,
-                      adopts: [superStates] + rest,
+                      adopts: [superState] + andSuperStates,
                       onEntry: onEntry,
                       onExit: onExit,
                       elements: [],

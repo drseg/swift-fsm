@@ -6,12 +6,12 @@ public struct SuperState {
     var onExit: [Action]
 
     public init(
-        adopts superStates: SuperState,
-        _ rest: SuperState...,
+        adopts superState: SuperState,
+        _ andSuperStates: SuperState...,
         onEntry: [Action] = [],
         onExit: [Action] = []
     ) {
-        self.init(superStates: [superStates] + rest, onEntry: onEntry, onExit: onExit)
+        self.init(superStates: [superState] + andSuperStates, onEntry: onEntry, onExit: onExit)
     }
     
     public init(
