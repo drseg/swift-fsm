@@ -59,7 +59,7 @@ open class FSMBase<State: Hashable, Event: Hashable> {
         return false
     }
     
-    func buildTable(
+    public func buildTable(
         file: String = #file,
         line: Int = #line,
         @TableBuilder<State> _ block: () -> [Syntax.Define<State>]
