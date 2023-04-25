@@ -1150,7 +1150,7 @@ To help, here is a brief list of common errors you are likely to encounter if yo
 
 [1]:	https://github.com/unclebob/CC_SMC
 [2]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder
-[3]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/basicoperators/
+[3]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators/
 [4]:	#requirements
 [5]:	#basic-syntax
 [6]:	#optional-arguments

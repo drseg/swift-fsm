@@ -4,11 +4,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftFSM",
+    name: "swift-fsm",
     platforms: [
-            .macOS(.v13),
-            .iOS(.v16)
-        ],
+        .macOS(.v13),
+        .iOS(.v16)
+    ],
     products: [
         .library(
             name: "SwiftFSM",
