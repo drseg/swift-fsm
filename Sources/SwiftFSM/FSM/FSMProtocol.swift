@@ -24,6 +24,15 @@ struct FSMKey: Hashable {
     }
 }
 
+class FSMBase<State: Hashable> {
+    var table: [FSMKey: Transition] = [:]
+    var state: AnyHashable
+    
+    required init(initialState: State) {
+        self.state = initialState
+    }
+}
+
 protocol FSMProtocol<State, Event>: AnyObject {
     associatedtype State: Hashable
     associatedtype Event: Hashable
@@ -92,5 +101,20 @@ extension FSMProtocol {
     
     func makeError(_ errors: [Error]) -> SwiftFSMError {
         SwiftFSMError(errors: errors)
+    }
+    
+    @discardableResult
+    func _handleEvent(_ event: Event, predicates: [any Predicate]) -> Bool {
+        if let transition = table[FSMKey(state: state,
+                                         predicates: Set(predicates.erased()),
+                                         event: event)],
+           transition.condition?() ?? true
+        {
+            state = transition.nextState
+            transition.actions.forEach { $0() }
+            return true
+        }
+        
+        return false
     }
 }

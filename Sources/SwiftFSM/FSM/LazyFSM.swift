@@ -1,16 +1,18 @@
 import Foundation
+import Algorithms
 
-class LazyFSM<State: Hashable, Event: Hashable>: FSMProtocol {
+class LazyFSM<State: Hashable, Event: Hashable>: FSMBase<State>, FSMProtocol {
     typealias MRN = LazyMatchResolvingNode
     
-    var table: [FSMKey: Transition] = [:]
-    var state: AnyHashable
-    
-    required init(initialState: State) {
-        self.state = initialState
+    func handleEvent(_ event: Event, predicates: [any Predicate]) {
+        for p in makeCombinations(predicates) {
+            if _handleEvent(event, predicates: p) { return }
+        }
     }
     
-    func handleEvent(_ event: Event, predicates: [any Predicate]) {
-        
+    func makeCombinations(_ predicates: [any Predicate]) -> [[any Predicate]] {
+        return (0..<predicates.count).reversed().reduce(into: [predicates]) {
+            $0.append(contentsOf: predicates.combinations(ofCount: $1))
+        }
     }
 }
