@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "6E0881C6-B000-4A98-BB5A-1DD6663DE788",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftFSMTests",
+        "name" : "SwiftFSMTests"
+      }
+    }
+  ],
+  "version" : 1
+}
