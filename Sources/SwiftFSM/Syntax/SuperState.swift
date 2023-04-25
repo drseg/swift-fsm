@@ -1,11 +1,11 @@
 import Foundation
 
-struct SuperState {
+public struct SuperState {
     var nodes: [any Node<DefaultIO>]
     var onEntry: [Action]
     var onExit: [Action]
 
-    init(
+    public init(
         adopts superStates: SuperState,
         _ rest: SuperState...,
         onEntry: [Action] = [],
@@ -14,7 +14,7 @@ struct SuperState {
         self.init(superStates: [superStates] + rest, onEntry: onEntry, onExit: onExit)
     }
     
-    init(
+    public init(
         adopts superStates: SuperState...,
         onEntry: [Action] = [],
         onExit: [Action] = [],

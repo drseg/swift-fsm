@@ -1,6 +1,6 @@
 import Foundation
 
-typealias Action = () -> ()
+public typealias Action = () -> ()
 
 protocol NeverEmptyNode: Node {
     var caller: String { get }

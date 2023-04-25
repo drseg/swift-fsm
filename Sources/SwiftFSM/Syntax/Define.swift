@@ -1,10 +1,10 @@
 import Foundation
 
-extension Syntax {
+public extension Syntax {
     struct Define<State: Hashable> {
         let node: DefineNode
         
-        init(_ state: State,
+        public init(_ state: State,
              adopts superStates: SuperState,
              _ rest: SuperState...,
              onEntry: [Action],
@@ -21,7 +21,7 @@ extension Syntax {
                       line: line)
         }
         
-        init(_ state: State,
+        public init(_ state: State,
              adopts superStates: SuperState...,
              onEntry: [Action] = [],
              onExit: [Action] = [],
@@ -38,7 +38,7 @@ extension Syntax {
                       block)
         }
         
-        init(state: State,
+        public init(state: State,
              adopts superStates: [SuperState] = [],
              onEntry: [Action],
              onExit: [Action],
@@ -57,7 +57,7 @@ extension Syntax {
                       line: line)
         }
         
-        init(_ state: State,
+        internal init(_ state: State,
              adopts superStates: [SuperState],
              onEntry: [Action],
              onExit: [Action],

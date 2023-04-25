@@ -1,10 +1,10 @@
 import Foundation
 
-protocol ResultBuilder {
+public protocol ResultBuilder {
     associatedtype T
 }
 
-extension ResultBuilder {
+public extension ResultBuilder {
     static func buildExpression( _ row: [T]) -> [T] {
         row
     }

@@ -1,11 +1,11 @@
 import Foundation
 
-protocol SyntaxBuilder {
+public protocol SyntaxBuilder {
     associatedtype StateType: Hashable
     associatedtype EventType: Hashable
 }
 
-extension SyntaxBuilder {
+public extension SyntaxBuilder {
     func define(
         _ state: StateType,
         adopts superStates: SuperState,
@@ -128,9 +128,9 @@ extension SyntaxBuilder {
     }
 }
 
-protocol ExpandedSyntaxBuilder: SyntaxBuilder { }
+public protocol ExpandedSyntaxBuilder: SyntaxBuilder { }
 
-extension ExpandedSyntaxBuilder {
+public extension ExpandedSyntaxBuilder {
     typealias Matching = Syntax.Expanded.Matching
     typealias Condition = Syntax.Expanded.Condition
     

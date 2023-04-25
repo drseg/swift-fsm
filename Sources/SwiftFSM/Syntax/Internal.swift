@@ -1,70 +1,70 @@
 import Foundation
 
-enum Syntax {
-    enum Expanded { }
+public enum Syntax {
+    public enum Expanded { }
 }
 
-enum Internal {
-    struct MatchingWhen {
-        static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThen {
+public enum Internal {
+    public struct MatchingWhen {
+        public static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThen {
             .init(node: rhs.node.appending(lhs.node))
         }
         
-        static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenActions {
+        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
-        static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThenActions {
+        public static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
         
         let node: WhenNode
     }
     
-    struct MatchingThen {
-        static func | (lhs: Self, rhs: @escaping Action) -> MatchingThenActions {
+    public struct MatchingThen {
+        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
         let node: ThenNode
     }
     
-    class MatchingActions: MA { }
-    class MatchingWhenActions: MWA { }
-    class MatchingThenActions: MTA { }
+    public final class MatchingActions: MA { }
+    public final class MatchingWhenActions: MWA { }
+    public final class MatchingThenActions: MTA { }
     
-    struct MatchingWhenThen {
-        static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenThenActions {
+    public struct MatchingWhenThen {
+        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
         let node: ThenNode
     }
     
-    class MatchingWhenThenActions: MWTA { }
+    public class MatchingWhenThenActions: MWTA { }
     
-    final class MWTASentence: MWTA, BlockSentence { }
-    final class MWASentence:  MWA, BlockSentence  { }
-    final class MTASentence:  MTA, BlockSentence  { }
+    public final class MWTASentence: MWTA, BlockSentence { }
+    public final class MWASentence:  MWA, BlockSentence  { }
+    public final class MTASentence:  MTA, BlockSentence  { }
     
     @resultBuilder
-    struct MWTABuilder: ResultBuilder {
-        typealias T = MWTA
+    public struct MWTABuilder: ResultBuilder {
+        public typealias T = MWTA
     }
     
     @resultBuilder
-    struct MWABuilder: ResultBuilder {
-        typealias T = MWA
+    public struct MWABuilder: ResultBuilder {
+        public typealias T = MWA
     }
     
     @resultBuilder
-    struct MTABuilder: ResultBuilder {
-        typealias T = MTA
+    public struct MTABuilder: ResultBuilder {
+        public typealias T = MTA
     }
     
     @resultBuilder
-    struct MABuilder: ResultBuilder {
-        typealias T = MA
+    public struct MABuilder: ResultBuilder {
+        public typealias T = MA
     }
 }
 
@@ -94,7 +94,7 @@ extension BlockSentence {
     }
 }
 
-class Sentence {
+public class Sentence {
     let node: any Node<DefaultIO>
     
     init(node: any Node<DefaultIO>) {
@@ -102,10 +102,10 @@ class Sentence {
     }
 }
 
-class MWTA: Sentence { }
-class MWA: Sentence { }
-class MTA: Sentence { }
-class MA: Sentence { }
+public class MWTA: Sentence { }
+public class MWA: Sentence { }
+public class MTA: Sentence { }
+public class MA: Sentence { }
 
 extension Node {
     func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {

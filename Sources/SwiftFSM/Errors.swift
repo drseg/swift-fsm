@@ -4,7 +4,7 @@ struct SwiftFSMError: LocalizedError, CustomStringConvertible {
     let errors: [Error]
     var description: String { localizedDescription }
     
-    var errorDescription: String? {
+    public var errorDescription: String? {
         String {
             "- SwiftFSM Errors -"
             ""
@@ -86,7 +86,7 @@ class DuplicateMatchTypes: MatchError, LocalizedError {
         }
     }
     
-    var errorDescription: String? {
+    public var errorDescription: String? {
         String {
             firstLine
             duplicatesList
@@ -95,7 +95,7 @@ class DuplicateMatchTypes: MatchError, LocalizedError {
 }
 
 class DuplicateAnyValues: MatchError, LocalizedError {
-    var errorDescription: String? {
+    public var errorDescription: String? {
         String {
             let dupes = duplicates(\.description)
             let predicates = predicatesString(separator: " OR ")
@@ -117,7 +117,7 @@ class ConflictingAnyTypes: MatchError, LocalizedError {
 }
 
 class DuplicateAnyAllValues: MatchError, LocalizedError {
-    var errorDescription: String? {
+    public var errorDescription: String? {
         String {
             let dupes = duplicates(\.description)
             if files.count > 1 {
@@ -142,19 +142,19 @@ struct EmptyBuilderError: LocalizedError, Equatable {
         self.line = line
     }
     
-    var errorDescription: String? {
+    public var errorDescription: String? {
         "Empty @resultBuilder block passed to '\(caller)' in \(file.name) at line \(line)"
     }
 }
 
 struct EmptyTableError: LocalizedError {
-    var errorDescription: String? {
+    public var errorDescription: String? {
         "FSM tables must have at least one 'define' statement in them"
     }
 }
 
 struct NSObjectError: LocalizedError {
-    var errorDescription: String? {
+    public var errorDescription: String? {
         String {
             "'State' and 'Event' types cannot:"
             ""

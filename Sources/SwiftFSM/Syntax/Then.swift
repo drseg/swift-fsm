@@ -1,8 +1,8 @@
 import Foundation
 
-extension Syntax {
+public extension Syntax {
     struct Then<State: Hashable> {
-        static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingThenActions {
+        public static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
@@ -18,7 +18,7 @@ extension Syntax {
                           line: line)
         }
         
-        init(_ state: State? = nil, file: String = #file, line: Int = #line) {
+        public init(_ state: State? = nil, file: String = #file, line: Int = #line) {
             node = ThenNode(
                 state: state != nil ? AnyTraceable(state,
                                                    file: file,
@@ -28,13 +28,13 @@ extension Syntax {
             self.line = line
         }
         
-        func callAsFunction(
+        public func callAsFunction(
             @Internal.MWABuilder _ block: () -> [MWA]
         ) -> Internal.MWTASentence {
             .init(blockNode, block)
         }
         
-        func callAsFunction(
+        public func callAsFunction(
             @Internal.MABuilder _ block: () -> [MA]
         ) -> Internal.MTASentence {
             .init(blockNode, block)

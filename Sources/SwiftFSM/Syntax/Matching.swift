@@ -1,30 +1,29 @@
 import Foundation
 
-protocol Conditional {
-    var node: MatchNode { get }
-    var file: String { get }
-    var line: Int { get }
-    var name: String { get }
-}
-
-extension Conditional {
-    static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
+public class Conditional {
+    var node: MatchNode!
+    var file: String!
+    var line: Int!
+    
+    var name: String { "TILT" }
+    
+    public static func |<E: Hashable> (lhs: Conditional, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
         .init(node: rhs.node.appending(lhs.node))
     }
     
-    static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
+    public static func |<E: Hashable> (lhs: Conditional, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
     
-    static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
+    public static func |<S: Hashable> (lhs: Conditional, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
         .init(node: rhs.node.appending(lhs.node))
     }
     
-    static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
+    public static func |<S: Hashable> (lhs: Conditional, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
     
-    static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingActions {
+    public static func | (lhs: Conditional, rhs: @escaping Action) -> Internal.MatchingActions {
         return .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
     }
     
@@ -36,38 +35,35 @@ extension Conditional {
                        line: line)
     }
     
-    func callAsFunction(
+    public func callAsFunction(
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
         .init(blockNode, block)
     }
     
-    func callAsFunction(
+    public func callAsFunction(
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
         .init(blockNode, block)
     }
     
-    func callAsFunction(
+    public func callAsFunction(
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
         .init(blockNode, block)
     }
 }
 
-extension Syntax.Expanded {
-    struct Condition: Conditional {
-        let node: MatchNode
-        let file: String
-        let line: Int
+public extension Syntax.Expanded {
+    final class Condition: Conditional {
+        override var name: String { "condition" }
         
-        let name = "condition"
-        
-        init(
+        public init(
             _ condition: @escaping () -> Bool,
             file: String = #file,
             line: Int = #line
         ) {
+            super.init()
             let match = Match(condition: condition,
                               file: file,
                               line: line)
@@ -77,14 +73,10 @@ extension Syntax.Expanded {
         }
     }
     
-    struct Matching: Conditional {
-        let node: MatchNode
-        let file: String
-        let line: Int
+    final class Matching: Conditional {
+        override var name: String { "matching" }
         
-        let name = "matching"
-        
-        init<P: Predicate>(
+        public convenience init<P: Predicate>(
             _ first: P,
             or: P...,
             and: any Predicate...,
@@ -94,7 +86,7 @@ extension Syntax.Expanded {
             self.init(first, or: or, and: and, file: file, line: line)
         }
         
-        init<P: Predicate>(
+        public convenience init<P: Predicate>(
             _ first: P,
             or: [P],
             and: [any Predicate],
@@ -114,6 +106,7 @@ extension Syntax.Expanded {
             file: String = #file,
             line: Int = #line
         ) {
+            super.init()
             let match = Match(any: any.erased(),
                               all: all.erased(),
                               file: file,

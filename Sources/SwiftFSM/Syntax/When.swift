@@ -1,16 +1,16 @@
 import Foundation
 
-extension Syntax {
+public extension Syntax {
     struct When<Event: Hashable> {
-        static func |<S: Hashable> (lhs: Self, rhs: Then<S>) -> Internal.MatchingWhenThen {
+        public static func |<S: Hashable> (lhs: Self, rhs: Then<S>) -> Internal.MatchingWhenThen {
             .init(node: rhs.node.appending(lhs.node))
         }
         
-        static func |<S: Hashable> (lhs: Self, rhs: Then<S>) -> Internal.MatchingWhenThenActions {
+        public static func |<S: Hashable> (lhs: Self, rhs: Then<S>) -> Internal.MatchingWhenThenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
         
-        static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingWhenActions {
+        public static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingWhenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
@@ -23,7 +23,7 @@ extension Syntax {
                           line: node.line)
         }
         
-        init(
+        public init(
             _ first: Event,
             or rest: Event...,
             file: String = #file,
@@ -32,7 +32,7 @@ extension Syntax {
             self.init([first] + rest, file: file, line: line)
         }
         
-        init(
+        internal init(
             _ events: [Event],
             file: String,
             line: Int
@@ -44,13 +44,13 @@ extension Syntax {
             )
         }
         
-        func callAsFunction(
+        public func callAsFunction(
             @Internal.MTABuilder _ block: () -> [MTA]
         ) -> Internal.MWTASentence {
             .init(blockNode, block)
         }
         
-        func callAsFunction(
+        public func callAsFunction(
             @Internal.MABuilder _ block: () -> [MA]
         ) -> Internal.MWASentence {
             .init(blockNode, block)
