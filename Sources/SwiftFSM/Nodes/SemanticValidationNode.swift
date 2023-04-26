@@ -1,6 +1,6 @@
 import Foundation
 
-protocol SVNKey {
+protocol SVNKey: Hashable {
     init(_ input: SemanticValidationNode.Input)
 }
 
@@ -13,7 +13,7 @@ class SemanticValidationNode: Node {
         let clashes: ClashesDictionary
     }
     
-    struct DuplicatesKey: SVNKey, Hashable {
+    struct DuplicatesKey: SVNKey {
         let state: AnyTraceable,
             match: Match,
             event: AnyTraceable,
@@ -27,7 +27,7 @@ class SemanticValidationNode: Node {
         }
     }
     
-    struct ClashesKey: SVNKey, Hashable {
+    struct ClashesKey: SVNKey {
         let state: AnyTraceable,
             match: Match,
             event: AnyTraceable
@@ -53,13 +53,23 @@ class SemanticValidationNode: Node {
         var duplicates = DuplicatesDictionary()
         var clashes = ClashesDictionary()
     
-        let output = rest.reduce(into: [Output]()) { result, row in
+        var output = rest.reduce(into: [Output]()) { result, row in
             func isDuplicate(_ lhs: Input) -> Bool {
-                DuplicatesKey(lhs) == DuplicatesKey(row)
+                isError(lhs, keyType: DuplicatesKey.self)
             }
             
             func isClash(_ lhs: Input) -> Bool {
-                ClashesKey(lhs) == ClashesKey(row)
+                isError(lhs, keyType: ClashesKey.self)
+            }
+            
+            func isError<T: SVNKey>(_ lhs: Input, keyType: T.Type) -> Bool {
+                let haveClashingValues = T.init(lhs) == T.init(row)
+                let haveNoOverrides = !lhs.isOverride && !row.isOverride
+                let haveOverrides = lhs.isOverride || row.isOverride
+                let areSameGroup = lhs.groupID == row.groupID
+                
+                return haveClashingValues && haveNoOverrides ||
+                haveClashingValues && haveOverrides && areSameGroup
             }
             
             func add<T: SVNKey>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {
@@ -86,10 +96,59 @@ class SemanticValidationNode: Node {
             errors.append(ClashError(clashes: clashes))
         }
         
+        output = handleOverrides(in: output)
         return errors.isEmpty ? output : []
+    }
+    
+    private func handleOverrides(in output: [IntermediateIO]) -> [IntermediateIO] {
+        var reverseOutput = Array(output.reversed())
+        let overrides = reverseOutput.filter(\.isOverride)
+        
+        guard !overrides.isEmpty else { return output }
+        
+        var alreadyOverridden = [IntermediateIO]()
+        
+        overrides.forEach { override in
+            func isOverridden(_ candidate: IntermediateIO) -> Bool {
+                candidate.match == override.match && candidate.event == override.event
+            }
+            
+            guard !alreadyOverridden.contains(where: isOverridden) else { return }
+            
+            let indexAfterOverride = (reverseOutput.firstIndex { $0 == override } ?? 0) + 1
+            let prefixUpToOverride = reverseOutput.prefix(upTo: indexAfterOverride - 1)
+            
+            guard !prefixUpToOverride.contains(where: isOverridden) else {
+                errors.append("TEMP: override before overridden"); return
+            }
+            
+            var suffixFromOverride = Array(reverseOutput.suffix(from: indexAfterOverride))
+            
+            guard suffixFromOverride.contains(where: isOverridden) else {
+                errors.append("TEMP: nothing to override"); return
+            }
+            
+            suffixFromOverride.removeAll(where: isOverridden)
+            reverseOutput.replaceSubrange(indexAfterOverride..., with: suffixFromOverride)
+            
+            alreadyOverridden.append(override)
+        }
+        
+        return reverseOutput.reversed()
     }
     
     func validate() -> [Error] {
         errors
+    }
+}
+
+extension IntermediateIO: Equatable {
+    static func == (lhs: IntermediateIO, rhs: IntermediateIO) -> Bool {
+        lhs.state == rhs.state &&
+        lhs.match == rhs.match &&
+        lhs.event == rhs.event &&
+        lhs.nextState == rhs.nextState &&
+        lhs.groupID == rhs.groupID &&
+        lhs.isOverride == rhs.isOverride
     }
 }

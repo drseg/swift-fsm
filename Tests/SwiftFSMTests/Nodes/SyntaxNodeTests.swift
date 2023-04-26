@@ -329,12 +329,14 @@ class DefineConsumer: SyntaxNodeTests {
         _ w: AnyTraceable,
         _ t: AnyTraceable,
         entry: [Action]? = nil,
-        exit: [Action]? = nil
+        exit: [Action]? = nil,
+        groupID: UUID = testGroupID,
+        isOverride: Bool = false
     ) -> DefineNode {
-        let actions = ActionsNode(actions: actions)
-        let then = ThenNode(state: t, rest: [actions], groupID: testGroupID, isOverride: true)
-        let when = WhenNode(events: [w], rest: [then], groupID: testGroupID, isOverride: true)
-        let match = MatchNode(match: m, rest: [when], groupID: testGroupID, isOverride: true)
+        let actions = ActionsNode(actions: actions, groupID: groupID, isOverride: isOverride)
+        let then = ThenNode(state: t, rest: [actions], groupID: groupID, isOverride: isOverride)
+        let when = WhenNode(events: [w], rest: [then], groupID: groupID, isOverride: isOverride)
+        let match = MatchNode(match: m, rest: [when], groupID: groupID, isOverride: isOverride)
         let given = GivenNode(states: [g], rest: [match])
         
         return .init(onEntry: entry ?? [],
