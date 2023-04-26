@@ -145,11 +145,15 @@ class StringableNodeTestTests: StringableNodeTest {
             "    }"
             "  }"
             "}"
-        }, ActionsResolvingNode(rest: [defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])]))
+        }, ActionsResolvingNodeBase(
+            rest: [defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])])
+        )
     }
     
     func testSemanticValidationNode() {
-        let a = ActionsResolvingNode(rest: [defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])])
+        let a = ActionsResolvingNodeBase(
+            rest: [defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])]
+        )
         let svn = SemanticValidationNode(rest: [a])
         
         assertToString(String {
@@ -342,7 +346,7 @@ class StringableNodeTest: DefineConsumer {
             onExitOutput = ""
         }
         
-        if n is ActionsResolvingNode {
+        if n is ActionsResolvingNodeBase {
             output.append("ARN:")
         }
         

@@ -175,6 +175,12 @@ struct TableAlreadyBuiltError: LocalizedError {
     }
 }
 
+struct SetEntryExitActionsPolicyError: LocalizedError {
+    var errorDescription: String? {
+        "FSM.setEntryExitActionsPolicy() may only be called before building the FSM table"
+    }
+}
+
 protocol ValidationError: LocalizedError {}
 extension ValidationError {
     func description<K: Hashable, V: Collection>(

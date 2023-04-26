@@ -3,13 +3,14 @@ import XCTest
 
 class ActionsResolvingNodeTests: DefineConsumer {
     func testEmptyNode() {
-        let node = ActionsResolvingNode()
+        let node = ConditionalActionsResolvingNode()
         let finalised = node.finalised()
         XCTAssertTrue(finalised.output.isEmpty)
         XCTAssertTrue(finalised.errors.isEmpty)
     }
     
-    func assertNode(
+    func assertNode<T: ActionsResolvingNodeBase>(
+        type: T.Type,
         g: AnyTraceable,
         m: Match,
         w: AnyTraceable,
@@ -17,7 +18,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
         output: String,
         line: UInt = #line
     ) {
-        let node = ActionsResolvingNode(rest: [defineNode(g, m, w, t, exit: onExit)])
+        let node = T.init(rest: [defineNode(g, m, w, t, exit: onExit)])
         let finalised = node.finalised()
         XCTAssertTrue(finalised.errors.isEmpty, line: line)
         guard assertCount(finalised.output, expected: 1, line: line) else { return }
@@ -27,7 +28,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     }
     
     func assertResult(
-        _ result: ActionsResolvingNode.Output,
+        _ result: ConditionalActionsResolvingNode.Output,
         _ g: AnyTraceable,
         _ m: Match,
         _ w: AnyTraceable,
@@ -45,35 +46,50 @@ class ActionsResolvingNodeTests: DefineConsumer {
     
     let m = Match()
     
-    func testDoesNotAddExitActionsWithoutStateChange() {
-        assertNode(g: s1, m: m, w: e1, t: s1, output: "12")
+    func testConditionalDoesNotAddExitActionsWithoutStateChange() {
+        assertNode(type: ConditionalActionsResolvingNode.self,
+                   g: s1, m: m, w: e1, t: s1, output: "12")
     }
     
-    func testAddsExitActionsForStateChange() {
-        assertNode(g: s1, m: m, w: e1, t: s2, output: "12>>")
+    func testUnconditionalAddsExitActionsWithoutStateChange() {
+        assertNode(type: ActionsResolvingNode.self,
+                   g: s1, m: m, w: e1, t: s1, output: "12>>")
     }
     
-    func testdoesNotAddEntryActionsWithoutStateChange() {
-        let d1 = defineNode(s1, m, e1, s1, entry: [], exit: [])
-        let d2 = defineNode(s2, m, e1, s3, entry: onEntry, exit: [])
-        let result = ActionsResolvingNode(rest: [d1, d2]).finalised()
+    func testConditionalAddsExitActionsWithStateChange() {
+        assertNode(type: ConditionalActionsResolvingNode.self,
+                   g: s1, m: m, w: e1, t: s2, output: "12>>")
+    }
+    
+    func testConditionalDoesNotAddEntryActionsWithoutStateChange() {
+        let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: [])
+        let result = ConditionalActionsResolvingNode(rest: [d1]).finalised()
         
         XCTAssertTrue(result.errors.isEmpty)
-        guard assertCount(result.output, expected: 2) else { return }
+        guard assertCount(result.output, expected: 1) else { return }
         
         assertResult(result.output[0], s1, m, e1, s1, "12")
-        assertResult(result.output[1], s2, m, e1, s3, "12")
     }
     
-    func testAddsEntryActionsForStateChange() {
+    func testUnconditionalAddsEntryActionsWithoutStateChange() {
+        let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: onExit)
+        let result = ActionsResolvingNode(rest: [d1]).finalised()
+        
+        XCTAssertTrue(result.errors.isEmpty)
+        guard assertCount(result.output, expected: 1) else { return }
+        
+        assertResult(result.output[0], s1, m, e1, s1, "12>><<")
+    }
+    
+    func testConditionalAddsEntryActionsForStateChange() {
         let d1 = defineNode(s1, m, e1, s2)
-        let d2 = defineNode(s2, m, e1, s3, entry: onEntry)
-        let result = ActionsResolvingNode(rest: [d1, d2]).finalised()
+        let d2 = defineNode(s2, m, e1, s3, entry: onEntry, exit: onExit)
+        let result = ConditionalActionsResolvingNode(rest: [d1, d2]).finalised()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 2) else { return }
         
         assertResult(result.output[0], s1, m, e1, s2, "12<<")
-        assertResult(result.output[1], s2, m, e1, s3, "12")
+        assertResult(result.output[1], s2, m, e1, s3, "12>>")
     }
 }

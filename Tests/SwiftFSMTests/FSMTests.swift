@@ -180,6 +180,56 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
         assertHandleEvent(1.1, predicates: P.c, state: 3, output: "pass")
     }
+    
+    func onEntry() { actionsOutput += "entry" }
+    func onExit()  { actionsOutput += "exit" }
+    
+    func testHandleEventWithConditionalEntryExitActions() throws {
+        try fsm.buildTable {
+            define(1, onEntry: [onEntry], onExit: [onExit]) {
+                when(1.0) | then(1)
+                when(1.1) | then(2)
+            }
+            
+            define(2, onEntry: [onEntry], onExit: [onExit]) {
+                when(1.1) | then(1)
+            }
+        }
+        
+        assertHandleEvent(1.0, state: 1, output: "")
+        assertHandleEvent(1.1, state: 2, output: "exitentry")
+        fsm.state = 2
+        assertHandleEvent(1.1, state: 1, output: "exitentry")
+    }
+    
+    func testSetEntryExitActionsPolicyThrowsIfTableAlreadyBuilt() throws {
+        try fsm.buildTable {
+            define(1) { when(1.1) | then(2) }
+        }
+        
+        XCTAssertThrowsError(try fsm.setEntryExitActionsPolicy(.executeAlways)) {
+            XCTAssert(($0 as! SwiftFSMError).errors.first is SetEntryExitActionsPolicyError)
+        }
+    }
+    
+    func testHandleEventWithUnconditionalEntryExitActions() throws {
+        try fsm.setEntryExitActionsPolicy(.executeAlways)
+        try fsm.buildTable {
+            define(1, onEntry: [onEntry], onExit: [onExit]) {
+                when(1.0) | then(1)
+                when(1.1) | then(2)
+            }
+            
+            define(2, onEntry: [onEntry], onExit: [onExit]) {
+                when(1.1) | then(1)
+            }
+        }
+
+        assertHandleEvent(1.0, state: 1, output: "exitentry")
+        assertHandleEvent(1.1, state: 2, output: "exitentry")
+        fsm.state = 2
+        assertHandleEvent(1.1, state: 1, output: "exitentry")
+    }
 
     func testHandlEventWithCondition() throws {
         try fsm.buildTable {

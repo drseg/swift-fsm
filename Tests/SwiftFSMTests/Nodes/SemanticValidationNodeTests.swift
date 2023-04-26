@@ -9,8 +9,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
         _ m: Match,
         _ w: AnyTraceable,
         _ t: AnyTraceable
-    ) -> ActionsResolvingNode {
-        ActionsResolvingNode(rest: [defineNode(g, m, w, t)])
+    ) -> ActionsResolvingNodeBase {
+        ConditionalActionsResolvingNode(rest: [defineNode(g, m, w, t)])
     }
     
     func assertEqual(_ lhs: SVN.Output?, _ rhs: SVN.Output?, line: UInt = #line) {

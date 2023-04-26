@@ -25,6 +25,17 @@ struct FSMKey: Hashable {
 }
 
 open class FSMBase<State: Hashable, Event: Hashable> {
+    public enum EntryExitActionsPolicy {
+        case executeAlways, executeOnStateChangeOnly
+    }
+
+    var entryExitActionsPolicy = EntryExitActionsPolicy.executeOnStateChangeOnly
+    
+    public func setEntryExitActionsPolicy(_ newValue: EntryExitActionsPolicy) throws {
+        guard table.isEmpty else { throw makeError(SetEntryExitActionsPolicyError()) }
+        entryExitActionsPolicy = newValue
+    }
+    
     var table: [FSMKey: Transition] = [:]
     var state: AnyHashable
     
@@ -34,6 +45,13 @@ open class FSMBase<State: Hashable, Event: Hashable> {
     
     func makeMRN(rest: [any Node<IntermediateIO>]) -> MRNBase {
         fatalError("subclasses must implement")
+    }
+    
+    func makeARN(rest: [DefineNode]) -> ActionsResolvingNodeBase {
+        switch entryExitActionsPolicy {
+        case .executeAlways: return ActionsResolvingNode(rest: rest)
+        case .executeOnStateChangeOnly: return ConditionalActionsResolvingNode(rest: rest)
+        }
     }
     
     init(initialState: State) {
@@ -68,10 +86,10 @@ open class FSMBase<State: Hashable, Event: Hashable> {
             throw makeError(TableAlreadyBuiltError(file: file, line: line))
         }
         
-        let transitionNode = ActionsResolvingNode(rest: block().map(\.node))
-        let validationNode = SemanticValidationNode(rest: [transitionNode])
-        let tableNode = makeMRN(rest: [validationNode])
-        let result = (tableNode as! any Node<Transition>).finalised()
+        let arn = makeARN(rest: block().map(\.node))
+        let svn = SemanticValidationNode(rest: [arn])
+        let mrn = makeMRN(rest: [svn])
+        let result = (mrn as! any Node<Transition>).finalised()
         
         try checkForErrors(result)
         makeTable(result.output)
