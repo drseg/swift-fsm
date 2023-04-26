@@ -103,7 +103,6 @@ class SemanticValidationNode: Node {
     private func handleOverrides(in output: [IntermediateIO]) -> [IntermediateIO] {
         var reverseOutput = Array(output.reversed())
         let overrides = reverseOutput.filter(\.isOverride)
-        
         guard !overrides.isEmpty else { return output }
         
         var alreadyOverridden = [IntermediateIO]()
@@ -113,25 +112,31 @@ class SemanticValidationNode: Node {
                 candidate.match == override.match && candidate.event == override.event
             }
             
+            func overridesAreInOrder() -> Bool {
+                let prefix = Array(reverseOutput.prefix(upTo: indexAfterOverride - 1))
+                return !prefix.contains(where: isOverridden)
+            }
+            
+            func findSuffixFromOverride() -> [IntermediateIO]? {
+                let suffix = Array(reverseOutput.suffix(from: indexAfterOverride))
+                return suffix.contains(where: isOverridden) ? suffix : nil
+            }
+            
+            defer { alreadyOverridden.append(override) }
             guard !alreadyOverridden.contains(where: isOverridden) else { return }
             
-            let indexAfterOverride = (reverseOutput.firstIndex { $0 == override } ?? 0) + 1
-            let prefixUpToOverride = reverseOutput.prefix(upTo: indexAfterOverride - 1)
+            let indexAfterOverride = reverseOutput.firstIndex { $0 == override }! + 1
             
-            guard !prefixUpToOverride.contains(where: isOverridden) else {
+            guard overridesAreInOrder() else {
                 errors.append("TEMP: override before overridden"); return
             }
             
-            var suffixFromOverride = Array(reverseOutput.suffix(from: indexAfterOverride))
-            
-            guard suffixFromOverride.contains(where: isOverridden) else {
+            guard var suffixFromOverride = findSuffixFromOverride() else {
                 errors.append("TEMP: nothing to override"); return
             }
             
             suffixFromOverride.removeAll(where: isOverridden)
             reverseOutput.replaceSubrange(indexAfterOverride..., with: suffixFromOverride)
-            
-            alreadyOverridden.append(override)
         }
         
         return reverseOutput.reversed()
