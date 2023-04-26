@@ -29,13 +29,8 @@ open class FSMBase<State: Hashable, Event: Hashable> {
         case executeAlways, executeOnStateChangeOnly
     }
 
-    var entryExitActionsPolicy = EntryExitActionsPolicy.executeOnStateChangeOnly
-    
-    public func setEntryExitActionsPolicy(_ newValue: EntryExitActionsPolicy) throws {
-        guard table.isEmpty else { throw makeError(SetEntryExitActionsPolicyError()) }
-        entryExitActionsPolicy = newValue
-    }
-    
+    let entryExitActionsPolicy: EntryExitActionsPolicy
+
     var table: [FSMKey: Transition] = [:]
     var state: AnyHashable
     
@@ -54,8 +49,12 @@ open class FSMBase<State: Hashable, Event: Hashable> {
         }
     }
     
-    init(initialState: State) {
+    init(
+        initialState: State,
+        actionsPolicy: EntryExitActionsPolicy = .executeOnStateChangeOnly
+    ) {
         self.state = initialState
+        self.entryExitActionsPolicy = actionsPolicy
     }
     
     public func handleEvent(_ event: Event, predicates: any Predicate...) {

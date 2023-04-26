@@ -25,17 +25,19 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     override var initialState: TurnstileState { .locked }
     
     override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State
+        initialState: State,
+        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
     ) -> FSMBase<State, Event> {
-        FSM<State, Event>(initialState: initialState)
+        FSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
 
 final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
     override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State
+        initialState: State,
+        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
     ) -> FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState)
+        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
 
@@ -127,9 +129,10 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
 
 class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
     override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State
+        initialState: State,
+        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
     ) -> FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState)
+        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
 
@@ -293,9 +296,10 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
 
 class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
     override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State
+        initialState: State,
+        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
     ) -> FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState)
+        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
 
@@ -344,9 +348,10 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
 
 class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
     override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State
+        initialState: State,
+        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
     ) -> FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState)
+        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
 

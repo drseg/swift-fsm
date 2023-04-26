@@ -152,13 +152,6 @@ final class ErrorTests: SyntaxNodeTests {
         e.assertDescription("Duplicate call to method buildTable in file f at line 1")
     }
     
-    func testEntryExitPolicyError() {
-        e = SetEntryExitActionsPolicyError()
-        e.assertDescription(
-            "FSM.setEntryExitActionsPolicy() may only be called before building the FSM table"
-        )
-    }
-    
     func testSingleMatchAsArray() {
         let array = try? Match(any: P.a).finalised().get() .asArray
         XCTAssertEqual(array, [Match(any: P.a)])

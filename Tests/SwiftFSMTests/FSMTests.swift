@@ -17,7 +17,8 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     }
     
     func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State
+        initialState: State,
+        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
     ) -> FSMBase<State, Event> {
         fatalError("subclasses must implement")
     }
@@ -25,9 +26,10 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
 
 class LazyFSMTests: FSMTests {
     override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State
+        initialState: State,
+        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
     ) -> FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState)
+        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
     func testHandleEventEarlyReturn() throws {
@@ -47,9 +49,10 @@ class FSMTests: FSMTestsBase<Int, Double> {
     override var initialState: Int { 1 }
     
     override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State
+        initialState: State,
+        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
     ) -> FSMBase<State, Event> {
-        FSM<State, Event>(initialState: initialState)
+        FSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
     func assertThrowsError<T: Error>(
@@ -202,18 +205,8 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.1, state: 1, output: "exitentry")
     }
     
-    func testSetEntryExitActionsPolicyThrowsIfTableAlreadyBuilt() throws {
-        try fsm.buildTable {
-            define(1) { when(1.1) | then(2) }
-        }
-        
-        XCTAssertThrowsError(try fsm.setEntryExitActionsPolicy(.executeAlways)) {
-            XCTAssert(($0 as! SwiftFSMError).errors.first is SetEntryExitActionsPolicyError)
-        }
-    }
-    
     func testHandleEventWithUnconditionalEntryExitActions() throws {
-        try fsm.setEntryExitActionsPolicy(.executeAlways)
+        fsm = makeSUT(initialState: 1, actionsPolicy: .executeAlways)
         try fsm.buildTable {
             define(1, onEntry: [onEntry], onExit: [onExit]) {
                 when(1.0) | then(1)
