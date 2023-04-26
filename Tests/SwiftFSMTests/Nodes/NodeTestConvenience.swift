@@ -100,7 +100,7 @@ class StringableNodeTestTests: StringableNodeTest {
     
     func testDefineNodeWithGivenMatchWhenThenActions() {
         assertToString(String {
-            "D: entry exit {"
+            "D: entry: entry, exit: exit {"
             "  G: S1 {"
             "    M: any: [[P.a]], all: [Q.a] {"
             "      W: E1 {"
@@ -116,7 +116,7 @@ class StringableNodeTestTests: StringableNodeTest {
     
     func testDefineNodeWithGivenMatchWhenThenActionsFileAndLine() {
         assertToString(String {
-            "D: entry exit (null -1) {"
+            "D: entry: entry, exit: exit (null -1) {"
             "  G: S1 (null -1) {"
             "    M: any: [[P.a]], all: [Q.a] (null -1) {"
             "      W: E1 (null -1) {"
@@ -133,7 +133,7 @@ class StringableNodeTestTests: StringableNodeTest {
     func testActionsResolvingNode() {
         assertToString(String {
             "ARN: {"
-            "  D: entry exit {"
+            "  D: entry: entry, exit: exit {"
             "    G: S1 {"
             "      M: any: [[P.a]], all: [Q.a] {"
             "        W: E1 {"
@@ -159,7 +159,7 @@ class StringableNodeTestTests: StringableNodeTest {
         assertToString(String {
             "SVN: {"
             "  ARN: {"
-            "    D: entry exit {"
+            "    D: entry: entry, exit: exit {"
             "      G: S1 {"
             "        M: any: [[P.a]], all: [Q.a] {"
             "          W: E1 {"
@@ -275,7 +275,7 @@ class StringableNodeTest: DefineConsumer {
         
         if let n = n as? ActionsNodeBase {
             n.actions.executeAll()
-            output.append("A: \(actionsOutput)")
+            output.append("A: \(actionsOutput.formatted)")
             
             if let n = n as? ActionsBlockNode, printFileAndLine {
                 output.append(fileAndLine(n.file, n.line))
@@ -338,7 +338,7 @@ class StringableNodeTest: DefineConsumer {
         if let n = n as? DefineNode {
             n.onEntry.executeAll()
             n.onExit.executeAll()
-            output.append("D: \(onEntryOutput) \(onExitOutput)")
+            output.append("D: entry: \(onEntryOutput.formatted), exit: \(onExitOutput.formatted)")
             if printFileAndLine {
                 output.append(fileAndLine(n.file, n.line) )
             }
@@ -356,5 +356,11 @@ class StringableNodeTest: DefineConsumer {
         
         addRest()
         return output
+    }
+}
+
+private extension String {
+    var formatted: String {
+        self == "" ? "none" : self
     }
 }
