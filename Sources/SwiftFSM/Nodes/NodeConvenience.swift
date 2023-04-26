@@ -18,17 +18,38 @@ extension NeverEmptyNode {
     }
 }
 
+class OverridableNode {
+    let groupID: UUID
+    let isOverride: Bool
+    
+    init(groupID: UUID, isOverride: Bool) {
+        self.groupID = groupID
+        self.isOverride = isOverride
+    }
+}
+
 struct DefaultIO {
     let match: Match,
         event: AnyTraceable?,
         state: AnyTraceable?,
-        actions: [Action]
+        actions: [Action],
+        groupID: UUID,
+        isOverride: Bool
     
-    init(_ match: Match, _ event: AnyTraceable?, _ state: AnyTraceable?, _ actions: [Action]) {
+    init(
+        _ match: Match,
+        _ event: AnyTraceable?,
+        _ state: AnyTraceable?,
+        _ actions: [Action],
+        _ groupID: UUID = UUID(),
+        _ isOverride: Bool = false
+    ) {
         self.match = match
         self.event = event
         self.state = state
         self.actions = actions
+        self.groupID = groupID
+        self.isOverride = isOverride
     }
 }
 
@@ -36,9 +57,11 @@ func makeDefaultIO(
     match: Match = Match(),
     event: AnyTraceable? = nil,
     state: AnyTraceable? = nil,
-    actions: [Action] = []
+    actions: [Action] = [],
+    groupID: UUID = UUID(),
+    isOverride: Bool = false
 ) -> [DefaultIO] {
-    [DefaultIO(match, event, state, actions)]
+    [DefaultIO(match, event, state, actions, groupID, isOverride)]
 }
 
 infix operator ???: AdditionPrecedence

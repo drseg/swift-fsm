@@ -5,20 +5,26 @@ struct IntermediateIO {
         match: Match,
         event: AnyTraceable,
         nextState: AnyTraceable,
-        actions: [Action]
+        actions: [Action],
+        groupID: UUID,
+        isOverride: Bool
     
     init(
         _ state: AnyTraceable,
         _ match: Match,
         _ event: AnyTraceable,
         _ nextState: AnyTraceable,
-        _ actions: [Action]
+        _ actions: [Action],
+        _ groupID: UUID = UUID(),
+        _ isOverride: Bool = false
     ) {
         self.state = state
         self.match = match
         self.event = event
         self.nextState = nextState
         self.actions = actions
+        self.groupID = groupID
+        self.isOverride = isOverride
     }
 }
 
@@ -40,7 +46,13 @@ class ActionsResolvingNodeBase: Node {
             ? $1.actions + $1.onExit + (onEntry[$1.nextState] ?? [])
             : $1.actions
             
-            $0.append(IntermediateIO($1.state, $1.match, $1.event, $1.nextState, actions))
+            $0.append(IntermediateIO($1.state,
+                                     $1.match,
+                                     $1.event,
+                                     $1.nextState,
+                                     actions,
+                                     $1.groupID,
+                                     $1.isOverride))
         }
     }
     

@@ -8,7 +8,9 @@ final class DefineNode: NeverEmptyNode {
             nextState: AnyTraceable,
             actions: [Action],
             onEntry: [Action],
-            onExit: [Action]
+            onExit: [Action],
+            groupID: UUID,
+            isOverride: Bool
         
         init(_ state: AnyTraceable,
              _ match: Match,
@@ -16,7 +18,9 @@ final class DefineNode: NeverEmptyNode {
              _ nextState: AnyTraceable,
              _ actions: [Action],
              _ onEntry: [Action],
-             _ onExit: [Action]
+             _ onExit: [Action],
+             _ groupID: UUID,
+             _ isOverride: Bool
         ) {
             self.state = state
             self.match = match
@@ -25,6 +29,8 @@ final class DefineNode: NeverEmptyNode {
             self.actions = actions
             self.onEntry = onEntry
             self.onExit = onExit
+            self.groupID = groupID
+            self.isOverride = isOverride
         }
     }
     
@@ -58,7 +64,15 @@ final class DefineNode: NeverEmptyNode {
         let output = rest.reduce(into: [Output]()) {
             if let match = finalise($1.match) {
                 $0.append(
-                    Output($1.state, match, $1.event, $1.nextState, $1.actions, onEntry, onExit)
+                    Output($1.state,
+                           match,
+                           $1.event,
+                           $1.nextState,
+                           $1.actions,
+                           onEntry,
+                           onExit,
+                           $1.groupID,
+                           $1.isOverride)
                 )
             }
         }

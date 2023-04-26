@@ -1,17 +1,28 @@
 import Foundation
 
-class MatchNodeBase {
+class MatchNodeBase: OverridableNode {
     let match: Match
     var rest: [any Node<DefaultIO>]
     
-    init(match: Match, rest: [any Node<DefaultIO>] = []) {
+    init(
+        match: Match,
+        rest: [any Node<DefaultIO>] = [],
+        groupID: UUID = UUID(),
+        isOverride: Bool = false
+    ) {
         self.match = match
         self.rest = rest
+        super.init(groupID: groupID, isOverride: isOverride)
     }
     
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: []) {
-            $0.append(DefaultIO($1.match.prepend(match), $1.event, $1.state, $1.actions))
+            $0.append(DefaultIO($1.match.prepend(match),
+                                $1.event,
+                                $1.state,
+                                $1.actions,
+                                groupID,
+                                isOverride))
         }
     }
 }
@@ -30,6 +41,8 @@ class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
     init(
         match: Match,
         rest: [any Node<Input>] = [],
+        groupID: UUID = UUID(),
+        isOverride: Bool = false,
         caller: String = #function,
         file: String = #file,
         line: Int = #line
@@ -38,7 +51,10 @@ class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
         self.file = file
         self.line = line
         
-        super.init(match: match, rest: rest)
+        super.init(match: match,
+                   rest: rest,
+                   groupID: groupID,
+                   isOverride: isOverride)
     }
     
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {

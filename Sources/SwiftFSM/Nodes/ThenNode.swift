@@ -1,17 +1,28 @@
 import Foundation
 
-class ThenNodeBase {
+class ThenNodeBase: OverridableNode {
     let state: AnyTraceable?
     var rest: [any Node<DefaultIO>]
     
-    init(state: AnyTraceable?, rest: [any Node<DefaultIO>] = []) {
+    init(
+        state: AnyTraceable?,
+        rest: [any Node<DefaultIO>] = [],
+        groupID: UUID = UUID(),
+        isOverride: Bool = false
+    ) {
         self.state = state
         self.rest = rest
+        super.init(groupID: groupID, isOverride: isOverride)
     }
     
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: []) {
-            $0.append(DefaultIO($1.match, $1.event, state, $1.actions))
+            $0.append(DefaultIO($1.match,
+                                $1.event,
+                                state,
+                                $1.actions,
+                                groupID,
+                                isOverride))
         }
     }
 }
@@ -31,6 +42,8 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
         state: AnyTraceable?,
         rest: [any Node<Input>],
         caller: String = #function,
+        groupID: UUID = UUID(),
+        isOverride: Bool = false,
         file: String = #file,
         line: Int = #line
     ) {
@@ -38,7 +51,10 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
         self.file = file
         self.line = line
         
-        super.init(state: state, rest: rest)
+        super.init(state: state,
+                   rest: rest,
+                   groupID: groupID,
+                   isOverride: isOverride)
     }
     
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {

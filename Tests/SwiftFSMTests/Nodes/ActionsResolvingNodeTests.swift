@@ -40,6 +40,8 @@ class ActionsResolvingNodeTests: DefineConsumer {
         XCTAssertEqual(result.match, m, line: line)
         XCTAssertEqual(result.event, w, line: line)
         XCTAssertEqual(result.nextState, t, line: line)
+        XCTAssertEqual(result.groupID, testGroupID, line: line)
+        XCTAssertEqual(result.isOverride, true, line: line)
         
         assertActions(result.actions, expectedOutput: output, line: line)
     }

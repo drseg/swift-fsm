@@ -1,17 +1,28 @@
 import Foundation
 
-class ActionsNodeBase {
+class ActionsNodeBase: OverridableNode {
     let actions: [Action]
     var rest: [any Node<DefaultIO>]
     
-    init(actions: [Action] = [], rest: [any Node<DefaultIO>] = []) {
+    init(
+        actions: [Action] = [],
+        rest: [any Node<DefaultIO>] = [],
+        groupID: UUID = UUID(),
+        isOverride: Bool = false
+    ) {
         self.actions = actions
         self.rest = rest
+        super.init(groupID: groupID, isOverride: isOverride)
     }
     
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: []) {
-            $0.append(DefaultIO($1.match, $1.event, $1.state, actions + $1.actions))
+            $0.append(DefaultIO($1.match,
+                                $1.event,
+                                $1.state,
+                                actions + $1.actions,
+                                groupID,
+                                isOverride))
         }
     }
 }
@@ -30,6 +41,8 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
     init(
         actions: [Action],
         rest: [any Node<Input>],
+        groupID: UUID = UUID(),
+        isOverride: Bool = false,
         caller: String = #function,
         file: String = #file,
         line: Int = #line
@@ -38,7 +51,10 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
         self.file = file
         self.line = line
         
-        super.init(actions: actions, rest: rest)
+        super.init(actions: actions,
+                   rest: rest,
+                   groupID: groupID,
+                   isOverride: isOverride)
     }
     
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
