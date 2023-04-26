@@ -353,9 +353,11 @@ let s4 = SuperState(onEntry: [unlock, alarmOn]) {
 }
 ```
 
-**Important** - in SMC, entry and exit actions are invoked even if the state does not change. In the example above, this would mean that the unlock entry action would be called on all transitions into the `Unlocked` state, *even if the FSM is already in the `Unlocked` state*. 
+#### Configuring Entry and Exit Actions Behaviour
 
-In contrast, Swift FSM’s default behaviour is to invoke entry and exit actions _only if there is a state change_. In the example above, this means that, in the `.unlocked` state, after a `.coin` event, `unlock` will *not* be called.
+In SMC, entry and exit actions are invoked even if the state does not change. In the example above, this would mean that the unlock entry action would be called on all transitions into the `Unlocked` state, *even if the FSM is already in the `Unlocked` state*. 
+
+In contrast, **Swift FSM’s default behaviour is to invoke entry and exit actions _only if there is a state change_**. In the example above, this means that, in the `.unlocked` state, after a `.coin` event, `unlock` will *not* be called.
 
 This policy is configurable, by calling `try fsm.setEntryExitActionsPolicy(_newValue:)`. By default, the policy is `.executeOnStateChangeOnly`, however you can pass `.executeAlways` if you prefer the SMC behaviour.
 
