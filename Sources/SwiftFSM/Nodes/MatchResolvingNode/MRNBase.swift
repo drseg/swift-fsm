@@ -1,6 +1,6 @@
 import Foundation
 
-class MRNBase {
+class MRNBase: Node {
     var rest: [any Node<IntermediateIO>]
     var errors: [Error] = []
     
@@ -10,5 +10,9 @@ class MRNBase {
     
     func validate() -> [Error] {
         errors
+    }
+    
+    func combinedWithRest(_ rest: [IntermediateIO]) -> [Transition] {
+        fatalError("subclasses must implement")
     }
 }

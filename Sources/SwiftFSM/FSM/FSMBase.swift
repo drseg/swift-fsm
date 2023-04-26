@@ -61,6 +61,23 @@ open class FSMBase<State: Hashable, Event: Hashable> {
         handleEvent(event, predicates: predicates)
     }
     
+    public func buildTable(
+        file: String = #file,
+        line: Int = #line,
+        @TableBuilder<State> _ block: () -> [Syntax.Define<State>]
+    ) throws {
+        guard table.isEmpty else {
+            throw makeError(TableAlreadyBuiltError(file: file, line: line))
+        }
+        
+        let arn = makeARN(rest: block().map(\.node))
+        let svn = SemanticValidationNode(rest: [arn])
+        let result = makeMRN(rest: [svn]).finalised()
+        
+        try checkForErrors(result)
+        makeTable(result.output)
+    }
+    
     @discardableResult
     func _handleEvent(_ event: Event, predicates: [any Predicate]) -> Bool {
         if let transition = table[FSMKey(state: state,
@@ -76,23 +93,6 @@ open class FSMBase<State: Hashable, Event: Hashable> {
         return false
     }
     
-    public func buildTable(
-        file: String = #file,
-        line: Int = #line,
-        @TableBuilder<State> _ block: () -> [Syntax.Define<State>]
-    ) throws {
-        guard table.isEmpty else {
-            throw makeError(TableAlreadyBuiltError(file: file, line: line))
-        }
-        
-        let arn = makeARN(rest: block().map(\.node))
-        let svn = SemanticValidationNode(rest: [arn])
-        let mrn = makeMRN(rest: [svn])
-        let result = (mrn as! any Node<Transition>).finalised()
-        
-        try checkForErrors(result)
-        makeTable(result.output)
-    }
     
     func checkForErrors(_ result: (output: [Transition], errors: [Error])) throws {
         if !result.errors.isEmpty {

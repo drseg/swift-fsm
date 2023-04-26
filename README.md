@@ -359,7 +359,7 @@ In SMC, entry and exit actions are invoked even if the state does not change. In
 
 In contrast, **Swift FSM’s default behaviour is to invoke entry and exit actions _only if there is a state change_**. In the example above, this means that, in the `.unlocked` state, after a `.coin` event, `unlock` will *not* be called.
 
-This policy is configurable: passing `.executeAlways` as the second argument to `FSM.init`, e.g. `FSM<State, Event>(initialState: .locked, actionsPolicy: .executeAlways'` will replicate SMC entry/exit action behaviour. By default argument is `.executeOnStateChangeOnly`.
+This policy is configurable: passing `.executeAlways` as the second argument to `FSM.init`, e.g. `FSM<State, Event>(initialState: .locked, actionsPolicy: .executeAlways)'` will replicate SMC entry/exit action behaviour. The default argument is `.executeOnStateChangeOnly` and is not required.
 
 ### Syntax Order
 

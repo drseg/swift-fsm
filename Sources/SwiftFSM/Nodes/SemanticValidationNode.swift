@@ -49,7 +49,7 @@ class SemanticValidationNode: Node {
         self.rest = rest
     }
     
-    func combinedWithRest(_ rest: [ActionsResolvingNodeBase.Output]) -> [IntermediateIO] {
+    func combinedWithRest(_ rest: [IntermediateIO]) -> [IntermediateIO] {
         var duplicates = DuplicatesDictionary()
         var clashes = ClashesDictionary()
     

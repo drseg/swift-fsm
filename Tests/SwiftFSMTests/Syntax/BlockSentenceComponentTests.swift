@@ -287,7 +287,7 @@ class BlockComponentTests: BlockTests {
                           xctLine: line)
         }
         
-        let s = SuperState                 { when(1) | then(1) | pass }
+        let s = SuperState            { when(1) | then(1) | pass }
         let d1 = define(1, adopts: s) { when(2) | then(2) | pass }
         let d2 = Define(1, adopts: s) { when(2) | then(2) | pass }
         

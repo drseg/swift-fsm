@@ -25,7 +25,7 @@ struct Transition {
     }
 }
 
-final class EagerMatchResolvingNode: MRNBase, Node {
+final class EagerMatchResolvingNode: MRNBase {
     struct ErrorOutput {
         let state: AnyTraceable,
             match: Match,
@@ -91,7 +91,7 @@ final class EagerMatchResolvingNode: MRNBase, Node {
     
     typealias ImplicitClashesDictionary = [ImplicitClashesKey: [ErrorOutput]]
     
-    func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
+    override func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
         var clashes = ImplicitClashesDictionary()
         let allCases = rest.allCases()
         
