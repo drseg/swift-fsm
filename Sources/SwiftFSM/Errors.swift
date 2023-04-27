@@ -234,13 +234,17 @@ extension SemanticValidationNode.ClashError: ValidationError {
 extension SemanticValidationNode.OverrideError {
     func describeOverride(_ o: IntermediateIO) -> String {
         String {
-            let define = override.state.defineDescription + " {"
-            let matching = override.match.errorDescription + " | "
-            let when = override.event.whenDescription + " | "
-            let then = override.nextState.thenDescription + " }"
+            let define = override.state.defineDescription
+            let matching = override.match.errorDescription
+            let when = override.event.whenDescription
+            let then = override.nextState.thenDescription
             
-            define
-            "   override { " + matching + when + then
+            define + " {"
+            "   override {"
+            "       " + matching
+            "       " + when
+            "       " + then
+            "   }"
             "}"
         }
     }
