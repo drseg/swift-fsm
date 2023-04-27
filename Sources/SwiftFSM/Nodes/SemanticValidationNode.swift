@@ -68,8 +68,7 @@ class SemanticValidationNode: Node {
                 let haveOverrides = lhs.isOverride || row.isOverride
                 let areSameGroup = lhs.groupID == row.groupID
                 
-                return haveClashingValues && haveNoOverrides ||
-                haveClashingValues && haveOverrides && areSameGroup
+                return haveClashingValues && (haveNoOverrides || haveOverrides && areSameGroup)
             }
             
             func add<T: SVNKey>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {
@@ -122,8 +121,8 @@ class SemanticValidationNode: Node {
                 return suffix.contains(where: isOverridden) ? suffix : nil
             }
             
-            defer { alreadyOverridden.append(override) }
             guard !alreadyOverridden.contains(where: isOverridden) else { return }
+            alreadyOverridden.append(override)
             
             let indexAfterOverride = reverseOutput.firstIndex { $0 == override }! + 1
             
