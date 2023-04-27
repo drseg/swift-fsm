@@ -16,6 +16,7 @@ final class ErrorTests: SyntaxNodeTests {
     func testSwiftFSMError() {
         e = SwiftFSMError(errors: ["Error1", "Error2"])
         let message = String {
+            ""
             "- SwiftFSM Errors -"
             ""
             "2 errors were found:"

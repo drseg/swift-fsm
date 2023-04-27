@@ -6,6 +6,7 @@ struct SwiftFSMError: LocalizedError, CustomStringConvertible {
     
     public var errorDescription: String? {
         String {
+            ""
             "- SwiftFSM Errors -"
             ""
             "\(errors.count) errors were found:"
