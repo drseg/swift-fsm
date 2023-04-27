@@ -131,32 +131,35 @@ class SemanticValidationNode: Node {
                 candidate.event == override.event
             }
             
-            func findOutOfPlaceOverrides() -> [IntermediateIO]? {
-                let prefix = Array(reverseOutput.prefix(upTo: indexAfterOverride - 1))
-                let outOfPlaceOverrides = prefix.filter(isOverridden)
-                return outOfPlaceOverrides.isEmpty ? nil : outOfPlaceOverrides
-            }
-            
-            func findSuffixFromOverride() -> [IntermediateIO]? {
-                let suffix = Array(reverseOutput.suffix(from: indexAfterOverride))
-                return suffix.contains(where: isOverridden) ? suffix : nil
+            func handleOverrides() {
+                func findOutOfPlaceOverrides() -> [IntermediateIO]? {
+                    let prefix = Array(reverseOutput.prefix(upTo: indexAfterOverride - 1))
+                    let outOfPlaceOverrides = prefix.filter(isOverridden)
+                    return outOfPlaceOverrides.isEmpty ? nil : outOfPlaceOverrides
+                }
+                
+                func findSuffixFromOverride() -> [IntermediateIO]? {
+                    let suffix = Array(reverseOutput.suffix(from: indexAfterOverride))
+                    return suffix.contains(where: isOverridden) ? suffix : nil
+                }
+                
+                let indexAfterOverride = reverseOutput.firstIndex { $0 == override }! + 1
+                
+                if let outOfPlaceOverrides = findOutOfPlaceOverrides() {
+                    errors.append(OverrideOutOfOrder(override, outOfPlaceOverrides)); return
+                }
+                
+                guard var suffixFromOverride = findSuffixFromOverride() else {
+                    errors.append(NothingToOverride(override)); return
+                }
+                
+                suffixFromOverride.removeAll(where: isOverridden)
+                reverseOutput.replaceSubrange(indexAfterOverride..., with: suffixFromOverride)
             }
             
             guard !alreadyOverridden.contains(where: isOverridden) else { return }
             alreadyOverridden.append(override)
-            
-            let indexAfterOverride = reverseOutput.firstIndex { $0 == override }! + 1
-            
-            if let outOfPlaceOverrides = findOutOfPlaceOverrides() {
-                errors.append(OverrideOutOfOrder(override, outOfPlaceOverrides)); return
-            }
-            
-            guard var suffixFromOverride = findSuffixFromOverride() else {
-                errors.append(NothingToOverride(override)); return
-            }
-            
-            suffixFromOverride.removeAll(where: isOverridden)
-            reverseOutput.replaceSubrange(indexAfterOverride..., with: suffixFromOverride)
+            handleOverrides()
         }
         
         return reverseOutput.reversed()

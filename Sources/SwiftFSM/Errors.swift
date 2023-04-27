@@ -230,6 +230,49 @@ extension SemanticValidationNode.ClashError: ValidationError {
     }
 }
 
+extension SemanticValidationNode.OverrideError {
+    func describeOverride(_ o: IntermediateIO) -> String {
+        String {
+            let define = override.state.defineDescription + " {"
+            let matching = override.match.errorDescription + " | "
+            let when = override.event.whenDescription + " | "
+            let then = override.nextState.thenDescription + " }"
+            
+            define
+            "   override { " + matching + when + then
+            "}"
+        }
+    }
+}
+
+extension SemanticValidationNode.NothingToOverride: LocalizedError {
+    var errorDescription: String? {
+        String {
+            "Nothing To Override: the statement..."
+            ""
+            describeOverride(override)
+            ""
+            "...does not override anything"
+        }
+    }
+}
+
+extension SemanticValidationNode.OverrideOutOfOrder: LocalizedError {
+    var errorDescription: String? {
+        String {
+            "Overrides Out of Order: SuperState statement..."
+            ""
+            describeOverride(override)
+            ""
+            "...is attempting to override the following child statements:"
+            for child in outOfOrder {
+                ""
+                describeOverride(child)
+            }
+        }
+    }
+}
+
 extension EagerMatchResolvingNode.ImplicitClashesError: ValidationError {
     var errorDescription: String? {
         String {
@@ -281,7 +324,7 @@ extension Match {
         
         var summary: String
         switch (matchAll.isEmpty, matchAny.isEmpty) {
-        case (true, true): summary = "matching()"
+        case (true, true): summary = ""
         case (true, false): summary = "matching(\(or))"
         case (false, true): summary = "matching(\(and))"
         case (false, false): summary = "matching(\(or) AND \(and))"
@@ -289,7 +332,7 @@ extension Match {
         
         let components = asArray
         guard components.count > 1 else {
-            return summary + " @\(file.name): \(line)"
+            return summary + (summary.isEmpty ? "matching()" : " @\(file.name): \(line)")
         }
         
         return String {

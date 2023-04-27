@@ -178,7 +178,7 @@ final class ErrorTests: SyntaxNodeTests {
     func testMatchDescriptionWithNoPredicates() {
         let match = Match(file: "f", line: 1)
         
-        XCTAssertEqual("matching() @f: 1",
+        XCTAssertEqual("matching()",
                        match.errorDescription)
     }
     
@@ -304,6 +304,48 @@ final class ErrorTests: SyntaxNodeTests {
                 "define(s2) @fns: 5"
                 "matching(P.a AND Q.a AND R.a) @fm: 6"
                 "when(e1) @fe: 7"
+            }
+        )
+    }
+    
+    func testSVNNothingToOverrideError() {
+        let m = Match(all: P.a, file: "/fm", line: 2)
+        let override = IntermediateIO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
+        e = SVN.NothingToOverride(override)
+        e.assertDescription(
+            String {
+                "Nothing To Override: the statement..."
+                ""
+                "define(s1) @fs: 1 {"
+                "   override { matching(P.a) @fm: 2 | when(e1) @fe: 3 | then(s2) @fns: 4 }"
+                "}"
+                ""
+                "...does not override anything"
+            }
+        )
+    }
+    
+    func testSVNOutOfOrderOverrideError() {
+        let m = Match(all: P.a, file: "/fm", line: 2)
+        let override = IntermediateIO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
+        e = SVN.OverrideOutOfOrder(override, [override, override])
+        e.assertDescription(
+            String {
+                "Overrides Out of Order: SuperState statement..."
+                ""
+                "define(s1) @fs: 1 {"
+                "   override { matching(P.a) @fm: 2 | when(e1) @fe: 3 | then(s2) @fns: 4 }"
+                "}"
+                ""
+                "...is attempting to override the following child statements:"
+                ""
+                "define(s1) @fs: 1 {"
+                "   override { matching(P.a) @fm: 2 | when(e1) @fe: 3 | then(s2) @fns: 4 }"
+                "}"
+                ""
+                "define(s1) @fs: 1 {"
+                "   override { matching(P.a) @fm: 2 | when(e1) @fe: 3 | then(s2) @fns: 4 }"
+                "}"
             }
         )
     }
