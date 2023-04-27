@@ -33,7 +33,7 @@ This guide is reasonably complete, but does presume some familiarity with FSMs a
 
 ## Requirements
 
-Swift FSM is a Swift package, importable through the Swift Package Manager, requiring macOS 13 and/or iOS 16 or later, alongside Swift 5.7 or later. 
+Swift FSM is a Swift package, importable through the Swift Package Manager, requiring macOS 13.0 and/or iOS 16.0 or later, alongside Swift 5.7 or later. 
 
 It depends on two further packages - Apple’s [Algorithms][28], and ([in one very small and specific place][29]) my own [Reflective Equality][30]
 
@@ -249,7 +249,7 @@ try fsm.buildTable {
 
 If a `SuperState` instance is given, the `@resultBuilder` argument to `define` is optional.
 
-`SuperState` instances themselves can accept other `SuperState` instances, and will combine them together in the same way as `define`:
+`SuperState` instances themselves can adopt other `SuperState` instances, and will combine them together in the same way as `define`:
 
 ```swift
 let s1 = SuperState { when(.coin) | then(.unlocked) | unlock  }
@@ -267,7 +267,7 @@ let s4 = SuperState {
 
 #### Overriding SuperStates
 
-By default, transitions declared in a `SuperState` cannot be overridden in the `SuperState` or `define` statements that adopt them. The following code therefore assumes that the duplicate transition is accidental and throws:
+By default, transitions declared in a `SuperState` cannot be overridden in the `SuperState` or `define` statements that adopt them. The following code is assumed to be accidental and throws:
 
 ```swift
 let s1 = SuperState { when(.coin) | then(.unlocked) | unlock  }
@@ -278,8 +278,6 @@ let s2 = SuperState(adopts: s1) {
 define(.locked, adopts: s1) {
     when(.coin) | then(.locked) | beGrumpy // 💥 error: clashing transitions
 }
-
-
 ```
 
 If you wish to override a `SuperState` transition, you can do so by explicitly specifying a transition or group of transitions as such:
@@ -305,7 +303,7 @@ The `override` block indicates to Swift FSM that any transitions contained withi
 As multiple inheritance is allowed, overrides will replace all matching transitions:
 
 ```swift
-let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething  }
+let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething      }
 let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse  }
 
 define(.locked, adopts: s1, s2) {
@@ -318,7 +316,7 @@ define(.locked, adopts: s1, s2) {
 Without the `override`, this multiple inheritance would create duplicate transitions:
 
 ```swift
-let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething  }
+let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething      }
 let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse  }
 
 define(.locked, adopts: s1, s2) // 💥 error: duplicate transitions
@@ -361,7 +359,24 @@ define(.locked) {
 // 💥 error: duplicate transitions
 ```
 
-In this scope, the word override has no meaning and therefore is ignored by the error handler. What remains is simply two duplicate transitions.
+In this scope, the word override has no meaning and therefore is ignored by the error handler. What remains is therefore two duplicate transitions.
+
+#### Overriding Overrides
+
+Overrides in Swift FSM behave more or less as one might expect from the usual rules of inheritance. In a chain of overrides, where something is overridden that itself overrides something else, it is the last transition in that chain of overrides that will take precedence:
+
+```swift
+let s1 = SuperState { when(.coin) | then(.unlocked) | a1  }
+let s2 = SuperState(adopts: s1) { override { when(.coin) | then(.unlocked) | a2 } }
+let s3 = SuperState(adopts: s2) { override { when(.coin) | then(.unlocked) | a3 } }
+let s4 = SuperState(adopts: s3) { override { when(.coin) | then(.unlocked) | a4 } }
+
+define(.locked, adopts: s4) {
+    override { when(.coin) | then(.unlocked) | a5 } // ✅ takes precedence over others
+}
+
+fsm.handleEvent(.coin) // 'a5' is called
+```
 
 ### Entry and Exit Actions
 

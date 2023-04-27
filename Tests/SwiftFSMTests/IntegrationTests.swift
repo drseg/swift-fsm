@@ -159,6 +159,23 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         fsm.state = AnyHashable(StateType.alarming)
         assertEventAction(.reset, ["alarmOff", "lock"])
     }
+    
+    func testChainedOverrides() throws {
+        func fail() { XCTFail("should not have been called") }
+        
+        try fsm.buildTable {
+            let s1 = SuperState { when(.coin) | then(.unlocked) | fail  }
+            let s2 = SuperState(adopts: s1) { override { when(.coin) | then(.unlocked) | fail } }
+            let s3 = SuperState(adopts: s2) { override { when(.coin) | then(.unlocked) | fail } }
+            let s4 = SuperState(adopts: s3) { override { when(.coin) | then(.unlocked) | fail } }
+            
+            define(.locked, adopts: s4) {
+                override { when(.coin) | then(.unlocked) | unlock }
+            }
+        }
+
+        assertEventAction(.coin, "unlock")
+    }
 }
 
 class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
