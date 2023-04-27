@@ -144,12 +144,20 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             define(.unlocked, adopts: resetable, onEntry: [unlock]) {
                 when(.coin) | then(.unlocked) | thankyou
                 when(.pass) | then(.locked)
+                
+                override {
+                    when(.reset) | then(.locked) | lock
+                }
             }
             
             define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertEventAction(.reset, "thankyou")
+        fsm.state = AnyHashable(StateType.unlocked)
+        assertEventAction(.reset, ["lock", "lock"])
+        fsm.state = AnyHashable(StateType.alarming)
+        assertEventAction(.reset, ["alarmOff", "lock"])
     }
 }
 

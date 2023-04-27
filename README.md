@@ -265,7 +265,103 @@ let s4 = SuperState {
 }
 ```
 
-**Important** - SMC allows for both abstract (without a given state) and concrete (with a given state) Super States. It also allows for overriding transitions declared in a Super State. Swift FSM on the other hand only allows abstract Super States, defined using the `SuperState` struct, and any attempt to override a Super State transition will result in a duplicate transition error.
+#### Overriding SuperStates
+
+By default, transitions declared in a `SuperState` cannot be overridden in the `SuperState` or `define` statements that adopt them. The following code therefore assumes that the duplicate transition is accidental and throws:
+
+```swift
+let s1 = SuperState { when(.coin) | then(.unlocked) | unlock  }
+
+let s2 = SuperState(adopts: s1) { 
+    when(.coin) | then(.locked) | beGrumpy // 💥 error: clashing transitions
+
+define(.locked, adopts: s1) {
+    when(.coin) | then(.locked) | beGrumpy // 💥 error: clashing transitions
+}
+
+
+```
+
+If you wish to override a `SuperState` transition, you can do so by explicitly specifying a transition or group of transitions as such:
+
+```swift
+let s1 = SuperState { when(.coin) | then(.unlocked) | unlock  }
+
+let s2 = SuperState(adopts: s1) {
+    override { 
+        when(.coin) | then(.locked) | beGrumpy // ✅ replaces inherited transition
+    }
+}
+
+define(.locked, adopts: s1) {
+    override { 
+        when(.coin) | then(.locked) | beGrumpy // ✅ replaces inherited transition
+    }
+}
+```
+
+The `override` block indicates to Swift FSM that any transitions contained within it override any inherited transitions with the same initial states and events. 
+
+As multiple inheritance is allowed, overrides will replace all matching transitions:
+
+```swift
+let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething  }
+let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse  }
+
+define(.locked, adopts: s1, s2) {
+    override { 
+        when(.coin) | then(.locked) | doYetAnotherThing // ✅ replaces both inherited transitions
+    }
+}
+```
+
+Without the `override`, this multiple inheritance would create duplicate transitions:
+
+```swift
+let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething  }
+let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse  }
+
+define(.locked, adopts: s1, s2) // 💥 error: duplicate transitions
+```
+
+If there is nothing to override, the FSM will throw an error:
+
+```swift
+define(.locked) {
+    override { 
+        when(.coin) | then(.locked) | beGrumpy // 💥 error: nothing to override
+    }
+}
+```
+
+Writing the override in the parent rather than the child will also throw:
+
+```swift
+let s1 = SuperState {
+    override { 
+        when(.coin) | then(.locked) | beGrumpy
+    }
+}
+
+let s2 = SuperState(adopts: s1) { when(.coin) | then(.unlocked) | unlock }
+
+// 💥 error: overrides are out of order
+```
+
+Attempting to override within the same `SuperState` or `Define` statement will throw:
+
+```swift
+define(.locked) {
+    when(.coin) | then(.locked) | doSomething
+    override { 
+        when(.coin) | then(.locked) | doSomethingElse
+    }
+}
+
+// 💥 error: duplicate transitions
+```
+
+In this scope, the word override has no meaning and therefore is ignored by the error handler. What remains is simply two duplicate transitions.
 
 ### Entry and Exit Actions
 
