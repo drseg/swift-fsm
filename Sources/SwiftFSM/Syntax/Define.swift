@@ -78,7 +78,7 @@ public extension Syntax {
             
             if isValid {
                 let state = AnyTraceable(state, file: file, line: line)
-                let rest = superStates.map(\.nodes).flattened + elements.nodes
+                let rest = superStates.map(\.nodes).flattened + elements.nodes.withGroupID()
                 let gNode = GivenNode(states: [state], rest: rest)
                 
                 dNode.rest = [gNode]

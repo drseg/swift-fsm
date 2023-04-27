@@ -106,17 +106,31 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(Array(nodes.suffix(2)), sutLine: l1)
     }
     
-    func testSuperStateSetsAllNodesToSameGroup() {
-        let s = SuperState {
+    func assertGroupID(_ nodes: [any Node<DefaultIO>], line: UInt = #line) {
+        let output = nodes.map { $0.finalised().output }
+        XCTAssertEqual(3, output.count)
+        
+        let defineOutput = output.dropFirst().flattened
+        defineOutput.forEach {
+            XCTAssertEqual(defineOutput.first?.groupID, $0.groupID, line: line)
+        }
+        
+        XCTAssertNotEqual(output.flattened.first?.groupID,
+                          output.flattened.last?.groupID,
+                          line: line)
+    }
+    
+    func testSuperStateSetsGroupIDForOwnNodesOnly() {
+        let s1 = SuperState {
+            when(1) | then(1) | pass
+        }
+        
+        let s2 = SuperState(adopts: s1) {
             when(1) | then(2) | pass
             when(2) | then(3) | pass
         }
         
-        let output = s.nodes.map { $0.finalised().output }.flattened
-        XCTAssertEqual(2, output.count)
-        output.forEach {
-            XCTAssertEqual(output.first?.groupID, $0.groupID)
-        }
+        assertGroupID(s2.nodes)
     }
     
     func testSuperStateCombinesSuperStateNodesParentFirst() {
@@ -275,7 +289,7 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(Array(g2.rest.suffix(2)), sutLine: l1)
     }
     
-    func testDefineAddsBlockAndSuperStateNodesTogether() {
+    func testDefineAddsBlockAndSuperStateNodesTogetherParentFirst() {
         func assertDefine(_ n: DefineNode, line: UInt = #line) {
             func castRest<T: Node, U: Node>(_ n: [U], to: T.Type) -> [T] {
                 n.map { $0.rest }.flattened as! [T]
@@ -306,6 +320,20 @@ class BlockComponentTests: BlockTests {
         
         assertDefine(d1.node)
         assertDefine(d2.node)
+    }
+    
+    func testDefineSetsUniqueGroupIDForOwnNodesOnly() {
+        let s = SuperState {
+            when(1) | then(1) | pass
+        }
+        
+        let d = define(1, adopts: s) {
+            when(2) | then(2) | pass
+            when(3) | then(3) | pass
+        }
+        
+        let given = d.node.rest.first as! GivenNode
+        assertGroupID(given.rest)
     }
     
     func testOptionalActions() {
