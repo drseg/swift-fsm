@@ -13,6 +13,24 @@ class SemanticValidationNode: Node {
         let clashes: ClashesDictionary
     }
     
+    class OverrideError: Error {
+        let override: IntermediateIO
+        
+        init(_ override: IntermediateIO) {
+            self.override = override
+        }
+    }
+    
+    final class OverrideOutOfOrder: OverrideError {
+        let outOfOrder: [IntermediateIO]
+        
+        init(_ override: IntermediateIO, _ outOfOrder: [IntermediateIO]) {
+            self.outOfOrder = outOfOrder
+            super.init(override)
+        }
+    }
+    final class NothingToOverride: OverrideError { }
+    
     struct DuplicatesKey: SVNKey {
         let state: AnyTraceable,
             match: Match,
@@ -113,9 +131,10 @@ class SemanticValidationNode: Node {
                 candidate.event == override.event
             }
             
-            func overridesAreInOrder() -> Bool {
+            func findOutOfPlaceOverrides() -> [IntermediateIO]? {
                 let prefix = Array(reverseOutput.prefix(upTo: indexAfterOverride - 1))
-                return !prefix.contains(where: isOverridden)
+                let outOfPlaceOverrides = prefix.filter(isOverridden)
+                return outOfPlaceOverrides.isEmpty ? nil : outOfPlaceOverrides
             }
             
             func findSuffixFromOverride() -> [IntermediateIO]? {
@@ -128,12 +147,12 @@ class SemanticValidationNode: Node {
             
             let indexAfterOverride = reverseOutput.firstIndex { $0 == override }! + 1
             
-            guard overridesAreInOrder() else {
-                errors.append("TEMP: override before overridden"); return
+            if let outOfPlaceOverrides = findOutOfPlaceOverrides() {
+                errors.append(OverrideOutOfOrder(override, outOfPlaceOverrides)); return
             }
             
             guard var suffixFromOverride = findSuffixFromOverride() else {
-                errors.append("TEMP: nothing to override"); return
+                errors.append(NothingToOverride(override)); return
             }
             
             suffixFromOverride.removeAll(where: isOverridden)

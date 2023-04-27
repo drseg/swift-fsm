@@ -154,8 +154,10 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         }
         
         assertEventAction(.reset, "thankyou")
+        
         fsm.state = AnyHashable(StateType.unlocked)
         assertEventAction(.reset, ["lock", "lock"])
+        
         fsm.state = AnyHashable(StateType.alarming)
         assertEventAction(.reset, ["alarmOff", "lock"])
     }
