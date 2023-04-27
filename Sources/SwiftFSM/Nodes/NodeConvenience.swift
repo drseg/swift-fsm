@@ -19,7 +19,7 @@ extension NeverEmptyNode {
 }
 
 class OverridableNode {
-    let groupID: UUID
+    var groupID: UUID
     let isOverride: Bool
     
     init(groupID: UUID, isOverride: Bool) {

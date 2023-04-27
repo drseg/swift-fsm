@@ -41,7 +41,7 @@ public enum Internal {
         let node: ThenNode
     }
     
-    public class MatchingWhenThenActions: MWTA { }
+    public final class MatchingWhenThenActions: MWTA { }
     
     public final class MWTASentence: MWTA, BlockSentence { }
     public final class MWASentence:  MWA, BlockSentence  { }
@@ -87,10 +87,10 @@ extension BlockSentence {
         _ block: () -> [Sentence]
     ) {
         self.init(node: ActionsBlockNode(actions: actions,
-                                rest: block().nodes,
-                                caller: "actions",
-                                file: file,
-                                line: line))
+                                         rest: block().nodes,
+                                         caller: "actions",
+                                         file: file,
+                                         line: line))
     }
 }
 

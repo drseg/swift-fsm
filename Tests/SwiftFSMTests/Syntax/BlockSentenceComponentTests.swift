@@ -106,7 +106,20 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(Array(nodes.suffix(2)), sutLine: l1)
     }
     
-    func testSuperStateCombinesSuperStateNodes() {
+    func testSuperStateSetsAllNodesToSameGroup() {
+        let s = SuperState {
+            when(1) | then(2) | pass
+            when(2) | then(3) | pass
+        }
+        
+        let output = s.nodes.map { $0.finalised().output }.flattened
+        XCTAssertEqual(2, output.count)
+        output.forEach {
+            XCTAssertEqual(output.first?.groupID, $0.groupID)
+        }
+    }
+    
+    func testSuperStateCombinesSuperStateNodesParentFirst() {
         let l1 = #line + 1; let s1 = SuperState {
             matching(P.a) | when(1, or: 2) | then(1) | pass
             when(1, or: 2) | then(1) | pass
@@ -119,8 +132,8 @@ class BlockComponentTests: BlockTests {
         
         let nodes = s2.nodes
         XCTAssertEqual(4, nodes.count)
-        assertMWTAResult(Array(nodes.prefix(2)), sutLine: l2)
-        assertMWTAResult(Array(nodes.suffix(2)), sutLine: l1)
+        assertMWTAResult(Array(nodes.prefix(2)), sutLine: l1)
+        assertMWTAResult(Array(nodes.suffix(2)), sutLine: l2)
     }
     
     var entry: [Action] { [{ self.output += "entry" }] }

@@ -20,7 +20,7 @@ public struct SuperState {
         onExit: [Action] = [],
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) {
-        self.init(nodes: block().nodes,
+        self.init(nodes: block().nodes.withGroupID(),
                   superStates: superStates,
                   onEntry: onEntry,
                   onExit: onExit)
@@ -32,8 +32,16 @@ public struct SuperState {
         onEntry: [Action],
         onExit: [Action]
     ) {
-        self.nodes = nodes + superStates.map(\.nodes).flattened
-        self.onEntry = onEntry + superStates.map(\.onEntry).flattened
-        self.onExit = onExit + superStates.map(\.onExit).flattened
+        self.nodes = superStates.map(\.nodes).flattened + nodes
+        self.onEntry = superStates.map(\.onEntry).flattened + onEntry
+        self.onExit = superStates.map(\.onExit).flattened + onExit
+    }
+}
+
+extension [any Node<DefaultIO>] {
+    func withGroupID() -> Self {
+        let groupID = UUID()
+        (self as? [OverridableNode])?.forEach { $0.groupID = groupID }
+        return self
     }
 }
