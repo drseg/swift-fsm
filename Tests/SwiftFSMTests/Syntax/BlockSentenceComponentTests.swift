@@ -150,34 +150,37 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(Array(nodes.suffix(2)), sutLine: l2)
     }
     
-    var entry: [Action] { [{ self.output += "entry" }] }
-    var exit: [Action]  { [{ self.output += "exit"  }] }
+    var entry1: [Action] { [{ self.output += "entry1" }] }
+    var entry2: [Action] { [{ self.output += "entry2" }] }
+    
+    var exit1: [Action]  { [{ self.output += "exit1"  }] }
+    var exit2: [Action]  { [{ self.output += "exit2"  }] }
     
     func testSuperStateAddsEntryExitActions() {
-        let s1 = SuperState(onEntry: entry, onExit: exit) {
+        let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
             when(1, or: 2) | then(1) | pass
         }
         
         let s2 = SuperState(adopts: s1)
 
-        assertActions(s2.onEntry, expectedOutput: "entry")
-        assertActions(s2.onExit, expectedOutput: "exit")
+        assertActions(s2.onEntry, expectedOutput: "entry1")
+        assertActions(s2.onExit, expectedOutput: "exit1")
     }
     
     func testSuperStateCombinesEntryExitActions() {
-        let s1 = SuperState(onEntry: entry, onExit: exit) {
+        let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
             when(1, or: 2) | then(1) | pass
         }
         
-        let s2 = SuperState(adopts: s1, onEntry: entry, onExit: exit) {
+        let s2 = SuperState(adopts: s1, onEntry: entry2, onExit: exit2) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
             when(1, or: 2) | then(1) | pass
         }
         
-        assertActions(s2.onEntry, expectedOutput: "entryentry")
-        assertActions(s2.onExit, expectedOutput: "exitexit")
+        assertActions(s2.onEntry, expectedOutput: "entry1entry2")
+        assertActions(s2.onExit, expectedOutput: "exit1exit2")
     }
     
     func testSuperStateBlock() {
@@ -209,11 +212,8 @@ class BlockComponentTests: BlockTests {
             XCTAssertEqual([1], gNode.states.map(\.base))
             
             assertMWTAResult(gNode.rest, sutLine: el, xctLine: xl)
-            assertActions(d.node.onEntry + d.node.onExit, expectedOutput: "entryexit", xctLine: xl)
+            assertActions(d.node.onEntry + d.node.onExit, expectedOutput: "entry1exit1", xctLine: xl)
         }
-        
-        func entry() { output += "entry" }
-        func exit() { output += "exit" }
         
         func assertEmpty(_ d: Define, xctLine: UInt = #line) {
             XCTAssertEqual(0, d.node.rest.count, line: xctLine)
@@ -224,18 +224,18 @@ class BlockComponentTests: BlockTests {
                             when(1, or: 2) | then(1) | pass
         }
         
-        let l1 = #line; let d1 = define(1, adopts: s, onEntry: [entry], onExit: [exit])
-        let l2 = #line; let d2 = Define(1, adopts: s, onEntry: [entry], onExit: [exit])
+        let l1 = #line; let d1 = define(1, adopts: s, onEntry: entry1, onExit: exit1)
+        let l2 = #line; let d2 = Define(1, adopts: s, onEntry: entry1, onExit: exit1)
         
         assertDefine(d1, sutLine: l1, elementLine: l0)
         assertDefine(d2, sutLine: l2, elementLine: l0)
         
-        let l3 = #line; let d3 = define(1, onEntry: [entry], onExit: [exit]) {
+        let l3 = #line; let d3 = define(1, onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
                             when(1, or: 2) | then(1) | pass
         }
         
-        let l4 = #line; let d4 = Define(1, onEntry: [entry], onExit: [exit]) {
+        let l4 = #line; let d4 = Define(1, onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
                             when(1, or: 2) | then(1) | pass
         }
@@ -243,44 +243,44 @@ class BlockComponentTests: BlockTests {
         assertDefine(d3, sutLine: l3, elementLine: l3 + 1)
         assertDefine(d4, sutLine: l4, elementLine: l4 + 1)
         
-        let d5 = define(1, adopts: s, onEntry: [entry],  onExit: [exit]) { }
-        let d6 = Define(1, adopts: s, onEntry: [entry], onExit: [exit]) { }
+        let d5 = define(1, adopts: s, onEntry: entry1, onExit: exit1) { }
+        let d6 = Define(1, adopts: s, onEntry: entry1, onExit: exit1) { }
         
         // technically valid/non-empty but need to flag empty trailing block
         assertEmpty(d5)
         assertEmpty(d6)
         
-        let d7 = define(1, onEntry: [entry], onExit: [exit]) { }
-        let d8 = Define(1, onEntry: [entry], onExit: [exit]) { }
+        let d7 = define(1, onEntry: entry1, onExit: exit1) { }
+        let d8 = Define(1, onEntry: entry1, onExit: exit1) { }
         
         assertEmpty(d7)
         assertEmpty(d8)
     }
     
     func testDefineAddsSuperStateEntryExitActions() {
-        let s1 = SuperState(onEntry: entry, onExit: exit) {
+        let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
             when(1, or: 2) | then(1) | pass
         }
         
-        let d1 = define(1, adopts: s1, s1, onEntry: entry, onExit: exit)
-        let d2 = Define(1, adopts: s1, s1, onEntry: entry, onExit: exit)
+        let d1 = define(1, adopts: s1, s1, onEntry: entry2, onExit: exit2)
+        let d2 = Define(1, adopts: s1, s1, onEntry: entry2, onExit: exit2)
         
-        assertActions(d1.node.onEntry, expectedOutput: "entryentryentry")
-        assertActions(d1.node.onExit, expectedOutput: "exitexitexit")
-        assertActions(d2.node.onEntry, expectedOutput: "entryentryentry")
-        assertActions(d2.node.onExit, expectedOutput: "exitexitexit")
+        assertActions(d1.node.onEntry, expectedOutput: "entry1entry1entry2")
+        assertActions(d1.node.onExit, expectedOutput: "exit1exit1exit2")
+        assertActions(d2.node.onEntry, expectedOutput: "entry1entry1entry2")
+        assertActions(d2.node.onExit, expectedOutput: "exit1exit1exit2")
     }
     
     func testDefineAddsMultipleSuperStateNodes() {
-        let l1 = #line + 1; let s1 = SuperState(onEntry: entry, onExit: exit) {
+        let l1 = #line + 1; let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
             when(1, or: 2) | then(1) | pass
         }
         
-        let g1 = define(1, adopts: s1, s1, onEntry: entry, onExit: exit)
+        let g1 = define(1, adopts: s1, s1, onEntry: entry1, onExit: exit1)
             .node.rest[0] as! GivenNode
-        let g2 = Define(1, adopts: s1, s1, onEntry: entry, onExit: exit)
+        let g2 = Define(1, adopts: s1, s1, onEntry: entry1, onExit: exit1)
             .node.rest[0] as! GivenNode
 
         assertMWTAResult(Array(g1.rest.prefix(2)), sutLine: l1)

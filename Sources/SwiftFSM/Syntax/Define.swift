@@ -65,8 +65,8 @@ public extension Syntax {
              file: String = #file,
              line: Int = #line
         ) {
-            let onEntry = onEntry + superStates.map(\.onEntry).flattened
-            let onExit = onExit + superStates.map(\.onExit).flattened
+            let onEntry = superStates.map(\.onEntry).flattened + onEntry
+            let onExit = superStates.map(\.onExit).flattened + onExit
             
             let dNode = DefineNode(onEntry: onEntry,
                                    onExit: onExit,
