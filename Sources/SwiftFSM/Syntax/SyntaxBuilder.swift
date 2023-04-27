@@ -126,6 +126,12 @@ public extension SyntaxBuilder {
     ) -> Internal.MTASentence {
         Syntax.Actions([action] + otherActions, file: file, line: line).callAsFunction(block)
     }
+    
+    func override(
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> [MWTA] {
+        Override().callAsFunction(block)
+    }
 }
 
 public protocol ExpandedSyntaxBuilder: SyntaxBuilder { }

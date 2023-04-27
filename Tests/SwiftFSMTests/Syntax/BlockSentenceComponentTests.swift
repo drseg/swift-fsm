@@ -1120,3 +1120,15 @@ class ThenBlockTests: DefaultIOBlockTests {
         assert(w2, nodeLine: l2, restLine: l2)
     }
 }
+
+class OverrideBlockTests: DefaultIOBlockTests {
+    func test() {
+        let o1 = override { mwtaBlock }
+        let o2 = Override { mwtaBlock }
+        
+        let nodes = [o1, o2].flattened.nodes.map { $0 as! OverridableNode }
+        nodes.forEach {
+            XCTAssert($0.isOverride)
+        }
+    }
+}
