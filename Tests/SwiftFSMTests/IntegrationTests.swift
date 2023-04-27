@@ -125,6 +125,32 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         
         assertTurnstile()
     }
+    
+    func testOverrideTurnstile() throws {
+        try fsm.buildTable {
+            let resetable = SuperState {
+                when(.reset) | then(.locked)
+            }
+
+            define(.locked, adopts: resetable, onEntry: [lock]) {
+                when(.coin) | then(.unlocked)
+                when(.pass) | then(.alarming)
+                
+                override {
+                    when(.reset) | then(.locked) | thankyou
+                }
+            }
+            
+            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+                when(.coin) | then(.unlocked) | thankyou
+                when(.pass) | then(.locked)
+            }
+            
+            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+        }
+        
+        assertEventAction(.reset, "thankyou")
+    }
 }
 
 class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {

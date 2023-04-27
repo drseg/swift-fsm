@@ -130,6 +130,17 @@ final class SemanticValidationNodeTests: DefineConsumer {
         XCTAssertEqual(true, finalised.output.first?.isOverride)
     }
     
+    func testNoOutOfOrderErrorIfStatesDiffer() {
+        let d1 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: true)
+        let d3 = defineNode(s2, Match(), e1, s2, groupID: UUID(), isOverride: false)
+        let a = ARN(rest: [d1, d2, d3])
+        
+        let finalised = SVN(rest: [a]).finalised()
+        assertCount(finalised.errors, expected: 0)
+        assertCount(finalised.output, expected: 2)
+    }
+    
     func testOverrideChain() {
         let d1 = defineNode(s1, Match(), e1, s1, groupID: UUID(), isOverride: false)
         let d2 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: true)

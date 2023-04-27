@@ -108,7 +108,9 @@ class SemanticValidationNode: Node {
         
         overrides.forEach { override in
             func isOverridden(_ candidate: IntermediateIO) -> Bool {
-                candidate.match == override.match && candidate.event == override.event
+                candidate.state == override.state &&
+                candidate.match == override.match &&
+                candidate.event == override.event
             }
             
             func overridesAreInOrder() -> Bool {
