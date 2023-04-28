@@ -1315,7 +1315,7 @@ try fsm.buildTable {
 
 Here the order of `when` and `matching` is inverted. This is in essence no different to the previous error, but for some reason the compiler interprets the problem slightly differently. It selects a `|` overload from a completely unrelated module and then declares that it is being misused.
 
-The compiler is particularly unhelpful here, because it cannot help identify which pipe in the chain is causing the problem. Often it’s simpler just to delete and rewrite the statement than trying to figure out what the complaint is.
+The compiler is particularly unhelpful here, because it cannot help identify which pipe in the chain is causing the problem. Often it’s simpler just to delete and rewrite the statement rather than trying to figure out what the complaint is.
 
 ### General Swift Implosion Issues
 
@@ -1341,15 +1341,15 @@ try fsm.buildTable {
 
 You might recognise this as the original completed example from the [Entry and Exit Actions][38], with one small error dodo inserted at the end. This may or may not produce an appropriate error next to the dodo:
 
-> Cannot find '🦤' in scope
+> **Cannot find '🦤' in scope**
 
 What it will also do is generate multiple spurious errors and fixits in the `SuperState` declaration similar to this one:
 
-> Call to method ‘then’ in closure requires explicit use of ‘self’ to make capture semantics explicit
+> **Call to method ‘then’ in closure requires explicit use of ‘self’ to make capture semantics explicit**
 > 
-> Reference ‘self.’ explicitly [ Fix\ ]
+> **Reference ‘self.’ explicitly [ Fix ]**
 > 
-> Capture 'self' explicitly to enable implicit 'self' in this closure
+> **Capture 'self' explicitly to enable implicit 'self' in this closure**
 
 Ignore these errors, and if there is no other error shown, you may have to hunt about a bit to find the unrecognised argument.
 
