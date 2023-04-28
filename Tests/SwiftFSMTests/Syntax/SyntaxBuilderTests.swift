@@ -12,6 +12,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     typealias When = Syntax.When<EventType>
     typealias Then = Syntax.Then<StateType>
     typealias Actions = Syntax.Actions
+    typealias Override = Syntax.Override
     
     typealias MatchingWhenThen = Internal.MatchingWhenThen
     typealias MatchingWhen = Internal.MatchingWhen

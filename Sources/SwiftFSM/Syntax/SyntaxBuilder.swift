@@ -130,7 +130,7 @@ public extension SyntaxBuilder {
     func override(
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> [MWTA] {
-        Override().callAsFunction(block)
+        Syntax.Override().callAsFunction(block)
     }
 }
 
