@@ -231,7 +231,7 @@ extension SemanticValidationNode.ClashError: ValidationError {
     }
 }
 
-extension OverrideHandlingNode.OverrideError {
+extension SemanticValidationNode.OverrideError {
     func describe(_ o: IntermediateIO) -> String {
         String {
             let define = override.state.defineDescription
@@ -250,7 +250,7 @@ extension OverrideHandlingNode.OverrideError {
     }
 }
 
-extension OverrideHandlingNode.NothingToOverride: LocalizedError {
+extension SemanticValidationNode.NothingToOverride: LocalizedError {
     var errorDescription: String? {
         String {
             "Nothing To Override: the statement..."
@@ -262,7 +262,7 @@ extension OverrideHandlingNode.NothingToOverride: LocalizedError {
     }
 }
 
-extension OverrideHandlingNode.OverrideOutOfOrder: LocalizedError {
+extension SemanticValidationNode.OverrideOutOfOrder: LocalizedError {
     var errorDescription: String? {
         String {
             "Overrides Out of Order: SuperState statement..."

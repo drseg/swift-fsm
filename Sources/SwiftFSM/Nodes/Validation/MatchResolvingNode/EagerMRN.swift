@@ -91,10 +91,7 @@ final class EagerMatchResolvingNode: MRNBase {
     
     typealias ImplicitClashesDictionary = [ImplicitClashesKey: [ErrorOutput]]
     
-    override func combinedWithRest(
-        _ rest: [SemanticValidationNode.Output],
-        ignoreErrors: Bool
-    ) -> [Transition] {
+    override func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
         var clashes = ImplicitClashesDictionary()
         let allCases = rest.allCases()
         

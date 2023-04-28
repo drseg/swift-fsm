@@ -60,7 +60,7 @@ final class DefineNode: NeverEmptyNode {
         self.line = line
     }
     
-    func combinedWithRest(_ rest: [GivenNode.Output], ignoreErrors: Bool) -> [Output] {
+    func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         let output = rest.reduce(into: [Output]()) {
             if let match = finalise($1.match) {
                 $0.append(

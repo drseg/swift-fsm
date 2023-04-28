@@ -29,7 +29,6 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         case executeAlways, executeOnStateChangeOnly
     }
 
-    let ignoreErrors: Bool
     let entryExitActionsPolicy: EntryExitActionsPolicy
 
     var table: [FSMKey: Transition] = [:]
@@ -53,18 +52,10 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
     
     init(
         initialState: State,
-        actionsPolicy: EntryExitActionsPolicy = .executeOnStateChangeOnly,
-        ignoreErrors: Bool? = nil
+        actionsPolicy: EntryExitActionsPolicy = .executeOnStateChangeOnly
     ) {
-#if DEVELOPMENT
-        let ignoreErrorsDefault = false
-#else
-        let ignoreErrorsDefault = true
-#endif
-        
         self.state = initialState
         self.entryExitActionsPolicy = actionsPolicy
-        self.ignoreErrors = ignoreErrors ?? ignoreErrorsDefault
     }
     
     public func handleEvent(_ event: Event, predicates: any Predicate...) {
@@ -82,8 +73,7 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         
         let arn = makeARN(rest: block().map(\.node))
         let svn = SemanticValidationNode(rest: [arn])
-        let ohn = OverrideHandlingNode(rest: [svn])
-        let result = makeMRN(rest: [ohn]).finalised(ignoreErrors: ignoreErrors)
+        let result = makeMRN(rest: [svn]).finalised()
         
         try checkForErrors(result)
         makeTable(result.output)

@@ -55,15 +55,15 @@ class Match {
         return m
     }
     
-    func finalised(ignoreErrors: Bool = false) -> Result {
-        guard let next else { return self.validate(ignoreErrors) }
+    func finalised() -> Result {
+        guard let next else { return self.validate() }
         
-        let firstResult = self.validate(ignoreErrors)
+        let firstResult = self.validate()
         let restResult = next.finalised()
         
         switch (firstResult, restResult) {
         case (.success, .success(let rest)):
-            return (adding(rest)).validate(ignoreErrors).appending(file: rest.file, line: rest.line)
+            return (adding(rest)).validate().appending(file: rest.file, line: rest.line)
             
         case (.failure, .failure(let e)):
             return firstResult.appending(files: e.files, lines: e.lines)
@@ -76,7 +76,7 @@ class Match {
         }
     }
     
-    func validate(_ ignoreErrors: Bool) -> Result {
+    func validate() -> Result {
         func failure<C: Collection>(predicates: C, type: MatchError.Type) -> Result
         where C.Element == AnyPredicate {
             .failure(
@@ -88,27 +88,25 @@ class Match {
             )
         }
         
-        if !ignoreErrors {
-            guard matchAll.areUniquelyTyped else {
-                return failure(predicates: matchAll, type: DuplicateMatchTypes.self)
-            }
+        guard matchAll.areUniquelyTyped else {
+            return failure(predicates: matchAll, type: DuplicateMatchTypes.self)
+        }
+        
+        guard matchAny.flattened.elementsAreUnique else {
+            return failure(predicates: matchAny.flattened, type: DuplicateAnyValues.self)
+        }
+        
+        guard matchAny.hasNoDuplicateTypes else {
+            return failure(predicates: matchAny.flattened, type: DuplicateMatchTypes.self)
+        }
+        
+        guard matchAny.hasNoConflictingTypes else {
+            return failure(predicates: matchAny.flattened, type: ConflictingAnyTypes.self)
+        }
             
-            guard matchAny.flattened.elementsAreUnique else {
-                return failure(predicates: matchAny.flattened, type: DuplicateAnyValues.self)
-            }
-            
-            guard matchAny.hasNoDuplicateTypes else {
-                return failure(predicates: matchAny.flattened, type: DuplicateMatchTypes.self)
-            }
-            
-            guard matchAny.hasNoConflictingTypes else {
-                return failure(predicates: matchAny.flattened, type: ConflictingAnyTypes.self)
-            }
-            
-            let duplicates = matchAll.filter { matchAny.flattened.contains($0) }
-            guard duplicates.isEmpty else {
-                return failure(predicates: duplicates, type: DuplicateAnyAllValues.self)
-            }
+        let duplicates = matchAll.filter { matchAny.flattened.contains($0) }
+        guard duplicates.isEmpty else {
+            return failure(predicates: duplicates, type: DuplicateAnyAllValues.self)
         }
         
         return .success(self)

@@ -35,7 +35,7 @@ class ActionsResolvingNodeBase: Node {
         self.rest = rest
     }
     
-    func combinedWithRest(_ rest: [DefineNode.Output], ignoreErrors: Bool) -> [IntermediateIO] {
+    func combinedWithRest(_ rest: [DefineNode.Output]) -> [IntermediateIO] {
         var onEntry = [AnyTraceable: [Action]]()
         Set(rest.map(\.state)).forEach { state in
             onEntry[state] = rest.first { $0.state == state }?.onEntry

@@ -274,13 +274,6 @@ class ValidationTests: MatchTests {
                                                      files: [match.file],
                                                      lines: [match.line]))
     }
-    
-    func testRespectsErrorPolicy() {
-        let m = Match(all: p1, p1, p1)
-        
-        XCTAssertThrowsError(try m.finalised(ignoreErrors: false).get())
-        XCTAssertNoThrow(try m.finalised(ignoreErrors: true).get())
-    }
 }
 
 class MatchCombinationsTests: MatchTests {
@@ -422,7 +415,7 @@ extension MatchError: CustomStringConvertible {
     public var description: String {
         String {
             "Predicates: \(predicates)"
-            "Files: \(files.map { f in f.suffix { $0 != "/" } })"
+            "Files: \(files.map { URL(string: $0)!.lastPathComponent})"
             "Lines: \(lines)"
         }
     }

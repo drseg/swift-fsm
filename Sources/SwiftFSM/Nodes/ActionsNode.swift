@@ -28,7 +28,7 @@ class ActionsNodeBase: OverridableNode {
 }
 
 class ActionsNode: ActionsNodeBase, Node {
-    func combinedWithRest(_ rest: [DefaultIO], ignoreErrors: Bool) -> [DefaultIO] {
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest) ??? makeDefaultIO(actions: actions)
     }
 }
@@ -57,7 +57,7 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
                    isOverride: isOverride)
     }
     
-    func combinedWithRest(_ rest: [DefaultIO], ignoreErrors: Bool) -> [DefaultIO] {
+    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest)
     }
 }

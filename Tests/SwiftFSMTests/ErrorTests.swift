@@ -312,7 +312,7 @@ final class ErrorTests: SyntaxNodeTests {
     func testSVNNothingToOverrideError() {
         let m = Match(all: P.a, file: "/fm", line: 2)
         let override = IntermediateIO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
-        e = OHN.NothingToOverride(override)
+        e = SVN.NothingToOverride(override)
         e.assertDescription(
             String {
                 "Nothing To Override: the statement..."
@@ -333,7 +333,7 @@ final class ErrorTests: SyntaxNodeTests {
     func testSVNOutOfOrderOverrideError() {
         let m = Match(all: P.a, file: "/fm", line: 2)
         let override = IntermediateIO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
-        e = OHN.OverrideOutOfOrder(override, [override, override])
+        e = SVN.OverrideOutOfOrder(override, [override, override])
         e.assertDescription(
             String {
                 "Overrides Out of Order: SuperState statement..."

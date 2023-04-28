@@ -1,10 +1,10 @@
 import XCTest
 @testable import SwiftFSM
 
-typealias SVN = SemanticValidationNode
-typealias ARN = ActionsResolvingNodeBase
-
 final class SemanticValidationNodeTests: DefineConsumer {
+    typealias SVN = SemanticValidationNode
+    typealias ARN = ActionsResolvingNodeBase
+    
     func actionsResolvingNode(
         _ g: AnyTraceable,
         _ m: Match,
@@ -99,12 +99,83 @@ final class SemanticValidationNodeTests: DefineConsumer {
         assertActions(finalised.output[1].actions, expectedOutput: "12")
     }
     
-    func testRespectsErrorPolicy() {
-        let d = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: true)
-        let svn1 = SVN(rest: [ARN(rest: [d, d])])
-        let svn2 = SVN(rest: [ARN(rest: [d, d])])
+    func testErrorIfNothingToOverride() {
+        let id = UUID()
+        let d1 = defineNode(s1, Match(), e1, s2, groupID: id, isOverride: true)
+        let a = ARN(rest: [d1])
         
-        assertCount(svn1.finalised(ignoreErrors: false).errors, expected: 1)
-        assertCount(svn2.finalised(ignoreErrors: true).errors, expected: 0)
+        let finalised = SVN(rest: [a]).finalised()
+        assertCount(finalised.errors, expected: 1)
+        assertCount(finalised.output, expected: 0)
+        
+        guard let error = finalised.errors.first as? SVN.NothingToOverride else {
+            XCTFail(); return
+        }
+        
+        let expectedOverride = IntermediateIO(s1, Match(), e1, s2, [], id, true)
+        XCTAssertEqual(expectedOverride, error.override)
+    }
+    
+    func testErrorIfOverrideBeforeOverridden() {
+        let id1 = UUID()
+        let id2 = UUID()
+        
+        let d1 = defineNode(s1, Match(), e1, s2, groupID: id1, isOverride: true)
+        let d2 = defineNode(s1, Match(), e1, s2, groupID: id2, isOverride: false)
+        let a = ARN(rest: [d1, d2])
+        
+        let finalised = SVN(rest: [a]).finalised()
+        assertCount(finalised.errors, expected: 1)
+        assertCount(finalised.output, expected: 0)
+        
+        guard let error = finalised.errors.first as? SVN.OverrideOutOfOrder else {
+            XCTFail(); return
+        }
+        
+        let expectedOverride = IntermediateIO(s1, Match(), e1, s2, [], id1, true)
+        let expectedOutOfOrder = IntermediateIO(s1, Match(), e1, s2, [], id2, false)
+        
+        XCTAssertEqual(expectedOverride, error.override)
+        XCTAssertEqual([expectedOutOfOrder], error.outOfOrder)
+    }
+    
+    func testNoErrorIfValidOverride() {
+        let d1 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: true)
+        let a = ARN(rest: [d1, d2])
+        
+        let finalised = SVN(rest: [a]).finalised()
+        assertCount(finalised.errors, expected: 0)
+        assertCount(finalised.output, expected: 1)
+        
+        XCTAssertEqual(true, finalised.output.first?.isOverride)
+    }
+    
+    func testNoOutOfOrderErrorIfStatesDiffer() {
+        let d1 = defineNode(s1, Match(), e1, s1, groupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: true)
+        let d3 = defineNode(s2, Match(), e1, s3, groupID: UUID(), isOverride: false)
+        let a = ARN(rest: [d1, d2, d3])
+        
+        let finalised = SVN(rest: [a]).finalised()
+        assertCount(finalised.errors, expected: 0)
+        assertCount(finalised.output, expected: 2)
+        
+        XCTAssertEqual([s2, s3], finalised.output.map(\.nextState))
+    }
+    
+    func testOverrideChain() {
+        let d1 = defineNode(s1, Match(), e1, s1, groupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: true)
+        let d3 = defineNode(s1, Match(), e1, s3, groupID: UUID(), isOverride: true)
+
+        let a = ARN(rest: [d1, d2, d3])
+        
+        let finalised = SVN(rest: [a]).finalised()
+        assertCount(finalised.errors, expected: 0)
+        assertCount(finalised.output, expected: 1)
+                
+        XCTAssertEqual(true, finalised.output.first?.isOverride)
+        XCTAssertEqual(s3, finalised.output.first?.nextState)
     }
 }

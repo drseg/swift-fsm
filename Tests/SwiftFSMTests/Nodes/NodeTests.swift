@@ -9,8 +9,6 @@ class NodeTests: XCTestCase {
         var first: IOType
         var rest: [NodeType]
         
-        var errorSuppressionValues = [Bool]()
-        
         init(first: IOType, rest: [NodeType]) {
             self.first = first
             self.rest = rest
@@ -18,10 +16,8 @@ class NodeTests: XCTestCase {
         
         func validate() -> [Error] { ["E"] }
         
-        func combinedWithRest(_ rest: [IOType], ignoreErrors: Bool) -> [IOType] {
-            errorSuppressionValues.append(ignoreErrors)
-            
-            return rest.reduce(into: []) {
+        func combinedWithRest(_ rest: [IOType]) -> [IOType] {
+            rest.reduce(into: []) {
                 $0.append(first + $1)
             } ??? [first]
         }
@@ -53,16 +49,6 @@ class NodeTests: XCTestCase {
                                ["E", "E", "E", "E"]))
     }
     
-    @available(macOS 13, iOS 16, *)
-    func testSafeNodePassesErrorSuppressionCorrectly() {
-        let safeNode = SafeStringNode(first: "", rest: [])
-        
-        _ = safeNode.finalised(ignoreErrors: false)
-        _ = safeNode.finalised(ignoreErrors: true)
-        
-        XCTAssertEqual([false, true], safeNode.errorSuppressionValues)
-    }
-    
     func testUnsafeNodesCallCombineWithRestRecursively() {
         let n0 = UnsafeStringNode(first: "Then1", rest: [])
         let n1 = UnsafeStringNode(first: "Then2", rest: [])
@@ -83,15 +69,6 @@ class NodeTests: XCTestCase {
         let error = n2.finalised().errors.last as? String
         XCTAssertTrue((error ?? "").contains(UnsafeStringNode.name))
         XCTAssertTrue((error ?? "").contains(IntNode.name))
-    }
-    
-    func testUnsafeNodePassesErrorSuppressionCorrectly() {
-        let unsafeNode = UnsafeStringNode(first: "", rest: [])
-        
-        _ = unsafeNode.finalised(ignoreErrors: false)
-        _ = unsafeNode.finalised(ignoreErrors: true)
-        
-        XCTAssertEqual([false, true], unsafeNode.errorSuppressionValues)
     }
 }
 
