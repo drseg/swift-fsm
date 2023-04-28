@@ -1270,7 +1270,7 @@ For example:
 ```swift
 try fsm.buildTable {
      actions(thankyou) { } 
-//⛔️ No exact matches in call to static method 'buildExpression'
+// ⛔️ No exact matches in call to static method 'buildExpression'
 }
 ```
 
@@ -1343,13 +1343,9 @@ You might recognise this as the original completed example from the [Entry and E
 
 > “Cannot find '🦤' in scope”
 
-What it will also do is generate a pile of spurious errors and fixits in the `SuperState` declaration:
+What it will also do is generate multiple spurious errors and fixits in the `SuperState` declaration similar to this one:
 
 > “Call to method ‘then’ in closure requires explicit use of ‘self’ to make capture semantics explicit
-> Reference ‘self.’ explicitly [ Fix\ ]
-> Capture 'self' explicitly to enable implicit 'self' in this closure”
-> 
-> “Call to method ‘when’ in closure requires explicit use of ‘self’ to make capture semantics explicit
 > Reference ‘self.’ explicitly [ Fix\ ]
 > Capture 'self' explicitly to enable implicit 'self' in this closure”
 
