@@ -2,7 +2,7 @@ import Foundation
 
 
 public extension Syntax.Expanded {
-    class Conditional {
+    class _Conditional {
         var node: MatchNode!
         var file: String!
         var line: Int!
@@ -11,23 +11,23 @@ public extension Syntax.Expanded {
         
         fileprivate init() { }
         
-        public static func |<E: Hashable> (lhs: Conditional, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
+        public static func |<E: Hashable> (lhs: _Conditional, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
             .init(node: rhs.node.appending(lhs.node))
         }
         
-        public static func |<E: Hashable> (lhs: Conditional, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
+        public static func |<E: Hashable> (lhs: _Conditional, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
         
-        public static func |<S: Hashable> (lhs: Conditional, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
+        public static func |<S: Hashable> (lhs: _Conditional, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
             .init(node: rhs.node.appending(lhs.node))
         }
         
-        public static func |<S: Hashable> (lhs: Conditional, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
+        public static func |<S: Hashable> (lhs: _Conditional, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
         
-        public static func | (lhs: Conditional, rhs: @escaping Action) -> Internal.MatchingActions {
+        public static func | (lhs: _Conditional, rhs: @escaping Action) -> Internal.MatchingActions {
             return .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
         
@@ -58,7 +58,7 @@ public extension Syntax.Expanded {
         }
     }
     
-    final class Condition: Conditional {
+    final class Condition: _Conditional {
         override var name: String { "condition" }
         
         public init(
@@ -76,7 +76,7 @@ public extension Syntax.Expanded {
         }
     }
     
-    final class Matching: Conditional {
+    final class Matching: _Conditional {
         override var name: String { "matching" }
         
         public convenience init<P: Predicate>(
