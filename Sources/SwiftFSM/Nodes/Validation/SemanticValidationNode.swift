@@ -13,24 +13,6 @@ class SemanticValidationNode: Node {
         let clashes: ClashesDictionary
     }
     
-    class OverrideError: Error {
-        let override: IntermediateIO
-        
-        init(_ override: IntermediateIO) {
-            self.override = override
-        }
-    }
-    
-    final class OverrideOutOfOrder: OverrideError {
-        let outOfOrder: [IntermediateIO]
-        
-        init(_ override: IntermediateIO, _ outOfOrder: [IntermediateIO]) {
-            self.outOfOrder = outOfOrder
-            super.init(override)
-        }
-    }
-    final class NothingToOverride: OverrideError { }
-    
     struct DuplicatesKey: SVNKey {
         let state: AnyTraceable,
             match: Match,
@@ -68,10 +50,17 @@ class SemanticValidationNode: Node {
     }
     
     func combinedWithRest(_ rest: [IntermediateIO], ignoreErrors: Bool) -> [IntermediateIO] {
+        if !ignoreErrors {
+            validateInput(rest)
+        }
+        return errors.isEmpty ? rest : []
+    }
+    
+    private func validateInput(_ input: [IntermediateIO]) {
         var duplicates = DuplicatesDictionary()
         var clashes = ClashesDictionary()
     
-        var output = rest.reduce(into: [Output]()) { result, row in
+        _ = input.reduce(into: [Output]()) { validated, row in
             func isDuplicate(_ lhs: Input) -> Bool {
                 isError(lhs, keyType: DuplicatesKey.self)
             }
@@ -94,15 +83,15 @@ class SemanticValidationNode: Node {
                 dict[key] = (dict[key] ?? [existing]) + [row]
             }
             
-            if let dupe = result.first(where: isDuplicate) {
+            if let dupe = validated.first(where: isDuplicate) {
                 add(dupe, row: row, to: &duplicates)
             }
             
-            else if let clash = result.first(where: isClash) {
+            else if let clash = validated.first(where: isClash) {
                 add(clash, row: row, to: &clashes)
             }
             
-            result.append(row)
+            validated.append(row)
         }
         
         if !duplicates.isEmpty {
@@ -112,57 +101,6 @@ class SemanticValidationNode: Node {
         if !clashes.isEmpty {
             errors.append(ClashError(clashes: clashes))
         }
-        
-        output = handleOverrides(in: output)
-        return errors.isEmpty ? output : []
-    }
-    
-    private func handleOverrides(in output: [IntermediateIO]) -> [IntermediateIO] {
-        var reverseOutput = Array(output.reversed())
-        let overrides = reverseOutput.filter(\.isOverride)
-        guard !overrides.isEmpty else { return output }
-        
-        var alreadyOverridden = [IntermediateIO]()
-        
-        overrides.forEach { override in
-            func isOverridden(_ candidate: IntermediateIO) -> Bool {
-                candidate.state == override.state &&
-                candidate.match == override.match &&
-                candidate.event == override.event
-            }
-            
-            func handleOverrides() {
-                func findOutOfPlaceOverrides() -> [IntermediateIO]? {
-                    let prefix = Array(reverseOutput.prefix(upTo: indexAfterOverride - 1))
-                    let outOfPlaceOverrides = prefix.filter(isOverridden)
-                    return outOfPlaceOverrides.isEmpty ? nil : outOfPlaceOverrides
-                }
-                
-                func findSuffixFromOverride() -> [IntermediateIO]? {
-                    let suffix = Array(reverseOutput.suffix(from: indexAfterOverride))
-                    return suffix.contains(where: isOverridden) ? suffix : nil
-                }
-                
-                let indexAfterOverride = reverseOutput.firstIndex { $0 == override }! + 1
-                
-                if let outOfPlaceOverrides = findOutOfPlaceOverrides() {
-                    errors.append(OverrideOutOfOrder(override, outOfPlaceOverrides)); return
-                }
-                
-                guard var suffixFromOverride = findSuffixFromOverride() else {
-                    errors.append(NothingToOverride(override)); return
-                }
-                
-                suffixFromOverride.removeAll(where: isOverridden)
-                reverseOutput.replaceSubrange(indexAfterOverride..., with: suffixFromOverride)
-            }
-            
-            guard !alreadyOverridden.contains(where: isOverridden) else { return }
-            alreadyOverridden.append(override)
-            handleOverrides()
-        }
-        
-        return reverseOutput.reversed()
     }
     
     func validate() -> [Error] {

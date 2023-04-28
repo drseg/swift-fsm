@@ -28,7 +28,6 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
     public enum EntryExitActionsPolicy {
         case executeAlways, executeOnStateChangeOnly
     }
-    
 
     let ignoreErrors: Bool
     let entryExitActionsPolicy: EntryExitActionsPolicy
@@ -83,7 +82,8 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         
         let arn = makeARN(rest: block().map(\.node))
         let svn = SemanticValidationNode(rest: [arn])
-        let result = makeMRN(rest: [svn]).finalised(ignoreErrors: ignoreErrors)
+        let ohn = OverrideHandlingNode(rest: [svn])
+        let result = makeMRN(rest: [ohn]).finalised(ignoreErrors: ignoreErrors)
         
         try checkForErrors(result)
         makeTable(result.output)

@@ -274,6 +274,13 @@ class ValidationTests: MatchTests {
                                                      files: [match.file],
                                                      lines: [match.line]))
     }
+    
+    func testRespectsErrorPolicy() {
+        let m = Match(all: p1, p1, p1)
+        
+        XCTAssertThrowsError(try m.finalised(ignoreErrors: false).get())
+        XCTAssertNoThrow(try m.finalised(ignoreErrors: true).get())
+    }
 }
 
 class MatchCombinationsTests: MatchTests {
