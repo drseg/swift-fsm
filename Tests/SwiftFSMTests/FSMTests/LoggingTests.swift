@@ -51,7 +51,7 @@ class LoggerTests: XCTestCase {
     
     func testTransitionNotFoundString() {
         let output = logger.transitionNotFoundString(1, [])
-        XCTAssertEqual("SwiftFSM warning: no transition found for event '1'", output)
+        XCTAssertEqual("no transition found for event '1'", output)
     }
     
     func testTransitionNotFoundStringWithPredicate() {
@@ -61,7 +61,7 @@ class LoggerTests: XCTestCase {
         
         let output = logger.transitionNotFoundString(1, [P.a])
         XCTAssertEqual(
-            "SwiftFSM warning: no transition found for event '1' matching predicates [P.a]",
+            "no transition found for event '1' matching predicates [P.a]",
             output
         )
     }

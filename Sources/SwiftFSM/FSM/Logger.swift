@@ -3,7 +3,7 @@ import Foundation
 class Logger<Event: Hashable> {
     func transitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
 #if DEBUG
-        print(transitionNotFoundString(event, predicates))
+        warning(transitionNotFoundString(event, predicates))
 #endif
     }
     
@@ -11,7 +11,7 @@ class Logger<Event: Hashable> {
         _ event: Event,
         _ predicates: [any Predicate]
     ) -> String {
-        let warning = "SwiftFSM warning: no transition found for event '\(event)'"
+        let warning = "no transition found for event '\(event)'"
         
         return predicates.isEmpty
         ? warning
@@ -20,11 +20,23 @@ class Logger<Event: Hashable> {
     
     func transitionNotExecuted(_ t: Transition) {
 #if DEBUG
-        print(transitionNotExecutedString(t))
+        info(transitionNotExecutedString(t))
 #endif
     }
     
     func transitionNotExecutedString(_ t: Transition) -> String {
-        "SwiftFSM info: conditional transition \(t) not executed"
+        "conditional transition \(t) not executed"
+    }
+    
+    private func warning(_ s: String) {
+        print(intro + "warning: " + s)
+    }
+    
+    private func info(_ s: String) {
+        print(intro + "info: " + s)
+    }
+    
+    private var intro: String {
+        "SwiftFSM "
     }
 }
