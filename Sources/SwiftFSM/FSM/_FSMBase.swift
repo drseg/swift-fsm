@@ -24,7 +24,7 @@ struct FSMKey: Hashable {
     }
 }
 
-open class FSMBase<State: Hashable, Event: Hashable> {
+open class _FSMBase<State: Hashable, Event: Hashable> {
     public enum EntryExitActionsPolicy {
         case executeAlways, executeOnStateChangeOnly
     }
@@ -33,6 +33,7 @@ open class FSMBase<State: Hashable, Event: Hashable> {
 
     var table: [FSMKey: Transition] = [:]
     var state: AnyHashable
+    let logger = Logger<Event>()
     
     public func handleEvent(_ event: Event, predicates: [any Predicate]) {
         fatalError("subclasses must implement")
@@ -78,19 +79,24 @@ open class FSMBase<State: Hashable, Event: Hashable> {
         makeTable(result.output)
     }
     
+    enum TransitionResult {
+        case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
+    }
+    
     @discardableResult
-    func _handleEvent(_ event: Event, predicates: [any Predicate]) -> Bool {
+    func _handleEvent(_ event: Event, predicates: [any Predicate]) -> TransitionResult {
         if let transition = table[FSMKey(state: state,
                                          predicates: Set(predicates.erased()),
-                                         event: event)],
-           transition.condition?() ?? true
+                                         event: event)]
         {
+            guard transition.condition?() ?? true else { return .notExecuted(transition) }
+            
             state = transition.nextState
             transition.actions.forEach { $0() }
-            return true
+            return .executed
         }
         
-        return false
+        return .notFound(event, predicates)
     }
     
     
@@ -119,5 +125,13 @@ open class FSMBase<State: Hashable, Event: Hashable> {
     
     func makeError(_ errors: [Error]) -> SwiftFSMError {
         SwiftFSMError(errors: errors)
+    }
+    
+    func logTransitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
+        logger.transitionNotFound(event, predicates)
+    }
+    
+    func logTransitionNotExecuted(_ t: Transition) {
+        logger.transitionNotExecuted(t)
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 import Algorithms
 
-open class LazyFSM<State: Hashable, Event: Hashable>: FSMBase<State, Event>  {
+open class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>  {
     public override init(
         initialState: State,
         actionsPolicy: EntryExitActionsPolicy = .executeOnStateChangeOnly
@@ -15,8 +15,17 @@ open class LazyFSM<State: Hashable, Event: Hashable>: FSMBase<State, Event>  {
     
     public override func handleEvent(_ event: Event, predicates: [any Predicate]) {
         for p in makeCombinations(predicates) {
-            if _handleEvent(event, predicates: p) { return }
+            switch _handleEvent(event, predicates: p) {
+            case let .notExecuted(transition):
+                logTransitionNotExecuted(transition)
+            case .executed:
+                return
+            case .notFound:
+                break
+            }
         }
+        
+        logTransitionNotFound(event, predicates)
     }
     
     func makeCombinations(_ predicates: [any Predicate]) -> [[any Predicate]] {

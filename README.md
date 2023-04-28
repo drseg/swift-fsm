@@ -547,7 +547,7 @@ If you do have a use for this kind of conditional compilation, please open an is
 
 ### Runtime Errors
 
-**Important** - most Swift FSM function calls and initialisers have two additional `file: String = #file`  and `line: Int = #line`. This is similar to XCTest assertions, and allows Swift FSM to produce errors that can pinpoint the exact location of problematic statement/s. 
+**Important** - most Swift FSM function calls and initialisers take additional parameters `file: String = #file`  and `line: Int = #line`. This is similar to `XCTest` assertions, and allows Swift FSM to produce errors that pinpoint the location of problematic statement/s.
 
 As these cannot be hidden, please note that there are unlikely to be any circumstances in which it would be useful or necessary to override these default arguments with alternate values.
 
@@ -727,7 +727,7 @@ when(.coin) | then(.unlocked)
 
 In the above, no `Predicate` is specified, and its full meaning must therefore be inferred from context. The scope for contextual inference is the sum of the builder blocks for all `SuperState` and `define` calls inside `fsm.buildTable { }`.  
 
-In our example, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and Swift FSM will therefore to infer the absent `matching` statement as follows:
+In our example, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and Swift FSM will therefore infer the absent `matching` statement as follows:
 
 ```swift
 when(.coin) | then(.unlocked)
@@ -810,9 +810,7 @@ In Swift FSM, `matching(and:)` means that we expect both predicates to be presen
 
 Swift FSM expects exactly one instance of each `Predicate` type present in the table to be passed to each call to `handleEvent`, as in the example above, where `fsm.handleEvent(.coin, predicates: A.x, B.x, C.x)` contains a single instance of types `A`, `B` and `C`. Accordingly, `A.x AND A.y` should never occur - only one can be present. Therefore, predicates passed to `matching(and:)` must all be of a different type.  This cannot be checked at compile time, and therefore throws at runtime if violated.
 
-**OR:**
-
-In contrast, `or` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][35] for more information on this limitation).
+In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][35] for more information on this limitation).
 
 **Important** - nested `matching` statements are combined by AND-ing them together, which makes it possible inadvertently to create a conflict.
 
@@ -882,7 +880,7 @@ define(.locked) {
 
     matching(Reward.negative) | when(.coin) ...
 // inferred as:
-    matching(Enforcement.weak,   and: Reward.negative) | when(.coin) ... // 💥clash
+    matching(Enforcement.weak,   and: Reward.negative) | when(.coin) ... // 💥 clash
     matching(Enforcement.strong, and: Reward.negative) | when(.coin) ...
 ```
 
@@ -964,7 +962,6 @@ The full example would now be:
 
 ```swift
 try fsm.buildTable {
-    ...
     define(.locked) {
         when(.pass) {
             matching(Enforcement.weak)   | then(.locked)
@@ -973,7 +970,6 @@ try fsm.buildTable {
                 
         when(.coin) | then(.unlocked)
     }
-    ...
 }
 ```
 
@@ -1052,7 +1048,7 @@ actions(functionCalls) {
 }
 ```
 
-Our context blocks can be divided into two groups - those that can be logically chained (or AND-ed) together, and those that cannot.
+Our context blocks divide into two groups - those that can be logically chained (or AND-ed) together, and those that cannot.
 
 #### Discrete Blocks - `when` and `then`
 
@@ -1087,7 +1083,7 @@ define(.locked) {
 
 ```
 
-Additionally, there is a specific combination of  `when { }` and `then` that does not compile, as there is no situation where, in response to a single event (in this case, `.coin`), there could then be a transition to more than one state, unless a different `Predicate` is stated for each. 
+Additionally, there is a specific combination of  `when { }` and `then` that does not compile, as there is no situation where, in response to a single event (in this case, `.coin`), there could then be a transition to more than one state, unless a different `Predicate` is given for each. 
 
 ```swift
 define(.locked) {

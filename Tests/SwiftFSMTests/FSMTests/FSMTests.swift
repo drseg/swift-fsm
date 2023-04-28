@@ -6,7 +6,7 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     typealias StateType = State
     typealias EventType = Event
     
-    var fsm: FSMBase<StateType, EventType>!
+    var fsm: _FSMBase<StateType, EventType>!
     
     override func setUp() {
         fsm = makeSUT(initialState: initialState)
@@ -18,8 +18,8 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     
     func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State,
-        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
-    ) -> FSMBase<State, Event> {
+        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
+    ) -> _FSMBase<State, Event> {
         fatalError("subclasses must implement")
     }
 }
@@ -27,8 +27,8 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
 class LazyFSMTests: FSMTests {
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State,
-        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
-    ) -> FSMBase<State, Event> {
+        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
+    ) -> _FSMBase<State, Event> {
         LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
@@ -50,8 +50,8 @@ class FSMTests: FSMTestsBase<Int, Double> {
     
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State,
-        actionsPolicy: FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
-    ) -> FSMBase<State, Event> {
+        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
+    ) -> _FSMBase<State, Event> {
         FSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
@@ -87,8 +87,8 @@ class FSMTests: FSMTestsBase<Int, Double> {
     }
 
     func testThrowsNSObjectError()  {
-        let fsm1: FSMBase<NSObject, Int> = makeSUT(initialState: NSObject())
-        let fsm2: FSMBase<Int, NSObject> = makeSUT(initialState: 1)
+        let fsm1: _FSMBase<NSObject, Int> = makeSUT(initialState: NSObject())
+        let fsm2: _FSMBase<Int, NSObject> = makeSUT(initialState: 1)
 
         assertThrowsError(NSObjectError.self) {
             try fsm1.buildTable {
