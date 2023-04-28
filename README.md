@@ -629,7 +629,7 @@ try fsm.buildTable {
     ...
 }
 
-// some other file somewhere...
+// some other file...
 
 enum Enforcement: Predicate { case weak, strong }
 
@@ -1261,11 +1261,104 @@ To help, here is a brief list of common errors you are likely to encounter if yo
 
 ### Builder Issues
 
-\- 
+> **"No exact matches in call to static method 'buildExpression’”**
+
+This is a common compile time error in `@resultBuilder` blocks. It will occur if you feed the block an argument that it does not support. It is useful to remember that each line in such a block is actually an argument fed to a static method.
+
+For example:
+
+```swift
+try fsm.buildTable {
+     actions(thankyou) { } 
+//⛔️ No exact matches in call to static method 'buildExpression'
+}
+```
+
+Here an `actions` block is given as an argument to the hidden function `buildExpression` in the `@resultBuilder` supporting the `buildTable` function. `actions` returns a type for which no overload exists, and therefore cannot compile.
 
 ### Pipe Issues
 
-\- 
+> **“Cannot convert value of type \<T1\> to expected argument type \<T2\>”**
+
+This is common in situations where an unsupported argument is passed to a pipe overload. 
+
+For example:
+
+```swift
+try fsm.buildTable {
+    define(.locked) {
+        then(.locked) | unlock
+// ⛔️ Cannot convert value of type 'Syntax.Then<TurnstileState>' to expected argument type 'Internal.MatchingWhenThen'
+// ⛔️ No exact matches in call to static method 'buildExpression'
+    }
+}
+```
+
+Here no `matching` and/or `when` statement precede/s the call to `then(.locked)`.  There is no `|` overload that takes as its two arguments the output of `then(.locked)` on the left, and the block `() -> ()` on the right, and therefore cannot compile.
+
+The error unfortunately spits out some internal implementation details that cannot be hidden. Such unavoidable details are marked as such by their location inside the `Internal` namespace.
+
+It also produces a spurious secondary error - as it cannot work out what the output of `then(.locked) | unlock` is, it also declares that there is no overload available for `buildExpression`. This error is a result of the pipe error - fix the fundamental `|` error and this error will also disappear.
+
+> **“Referencing operator function '|' on 'SIMD' requires that 'Syntax.When\<TurnstileEvent\>' conform to 'SIMD’”**
+
+A personal favourite, from this:
+
+```swift
+try fsm.buildTable {
+    define(.locked) {
+        when(.coin) | matching(P.a) | then(.locked) | unlock
+// ⛔️ Referencing operator function '|' on 'SIMD' requires that 'Syntax.When<TurnstileEvent>' conform to 'SIMD’
+    }
+}
+```
+
+Here the order of `when` and `matching` is inverted. This is in essence no different to the previous error, but for some reason the compiler interprets the problem slightly differently. It selects a `|` overload from a completely unrelated module and then declares that it is being misused.
+
+The compiler is particularly unhelpful here, because it cannot help identify which pipe in the chain is causing the problem. Often it’s simpler just to delete and rewrite the statement than trying to figure out what the complaint is.
+
+### General Swift Implosion Issues
+
+```swift
+try fsm.buildTable {
+    let resetable = SuperState {
+        when(.reset) | then(.locked)
+    }
+
+    define(.locked, adopts: resetable, onEntry: [lock]) {
+        when(.coin) | then(.unlocked)
+        when(.pass) | then(.alarming)
+    }
+
+    define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+        when(.coin) | then(.unlocked) | thankyou
+        when(.pass) | then(.locked)
+    }
+
+    define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [🦤])
+}
+```
+
+You might recognise this as the original completed example from the [Entry and Exit Actions][38], with one small error dodo inserted at the end. This may or may not produce an appropriate error next to the dodo:
+
+> “Cannot find '🦤' in scope”
+
+What it will also do is generate a pile of spurious errors and fixits in the `SuperState` declaration:
+
+> “Call to method ‘then’ in closure requires explicit use of ‘self’ to make capture semantics explicit
+> Reference ‘self.’ explicitly [ Fix\ ]
+> Capture 'self' explicitly to enable implicit 'self' in this closure”
+> 
+> “Call to method ‘when’ in closure requires explicit use of ‘self’ to make capture semantics explicit
+> Reference ‘self.’ explicitly [ Fix\ ]
+> Capture 'self' explicitly to enable implicit 'self' in this closure”
+
+Ignore these errors, and if there is no other error shown, you may have to hunt about a bit to find the unrecognised argument.
+
+
+
+
+
 
 
 
@@ -1307,3 +1400,4 @@ To help, here is a brief list of common errors you are likely to encounter if yo
 [35]:	#implicit-clashes
 [36]:	#predicate-performance
 [37]:	#implicit-clashes
+[38]:	#entry-and-exit-actions
