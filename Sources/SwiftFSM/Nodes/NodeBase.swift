@@ -6,19 +6,21 @@ protocol NodeBase {
     
     typealias Result = (output: [Output], errors: [Error])
     
-    func finalised() -> Result
-    func combinedWithRest(_ rest: [Input]) -> [Output]
+    func finalised(ignoreErrors: Bool) -> Result
+    func combinedWithRest(_ rest: [Input], ignoreErrors: Bool) -> [Output]
     func validate() -> [Error]
     
     var _rest: [any NodeBase] { get }
 }
 
+
+
 extension NodeBase {
-    func finalised() -> Result {
+    func finalised(ignoreErrors: Bool = false) -> Result {
         var output = [Input](), errors = [Error]()
         
         _rest.forEach {
-            if let finalised = $0.finalised() as? ([Input], [Error])  {
+            if let finalised = $0.finalised(ignoreErrors: ignoreErrors) as? ([Input], [Error])  {
                 output.append(contentsOf: finalised.0)
                 errors.append(contentsOf: finalised.1)
             } else {
@@ -26,7 +28,8 @@ extension NodeBase {
             }
         }
         
-        return (combinedWithRest(output), validate() + errors)
+        return (combinedWithRest(output, ignoreErrors: ignoreErrors),
+                validate() + errors)
     }
     
     func errorMessage(_ n: any NodeBase) -> String {

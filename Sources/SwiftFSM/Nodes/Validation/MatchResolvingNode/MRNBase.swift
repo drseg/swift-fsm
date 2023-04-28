@@ -12,7 +12,7 @@ class MRNBase: Node {
         errors
     }
     
-    func combinedWithRest(_ rest: [IntermediateIO]) -> [Transition] {
+    func combinedWithRest(_ rest: [IntermediateIO], ignoreErrors: Bool) -> [Transition] {
         fatalError("subclasses must implement")
     }
 }

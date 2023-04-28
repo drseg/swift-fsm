@@ -415,7 +415,7 @@ extension MatchError: CustomStringConvertible {
     public var description: String {
         String {
             "Predicates: \(predicates)"
-            "Files: \(files.map { URL(string: $0)!.lastPathComponent})"
+            "Files: \(files.map { f in f.suffix { $0 != "/" } })"
             "Lines: \(lines)"
         }
     }

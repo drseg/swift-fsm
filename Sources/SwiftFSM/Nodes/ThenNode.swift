@@ -28,7 +28,7 @@ class ThenNodeBase: OverridableNode {
 }
 
 class ThenNode: ThenNodeBase, Node {
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWithRest(_ rest: [DefaultIO], ignoreErrors: Bool) -> [DefaultIO] {
         makeOutput(rest) ??? makeDefaultIO(state: state)
     }
 }
@@ -57,7 +57,7 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
                    isOverride: isOverride)
     }
     
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWithRest(_ rest: [DefaultIO], ignoreErrors: Bool) -> [DefaultIO] {
         makeOutput(rest)
     }
 }

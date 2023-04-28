@@ -3,9 +3,12 @@ import Foundation
 open class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
     public override init(
         initialState: State,
-        actionsPolicy: EntryExitActionsPolicy = .executeOnStateChangeOnly
+        actionsPolicy: EntryExitActionsPolicy = .executeOnStateChangeOnly,
+        ignoreErrors: Bool? = nil
     ) {
-        super.init(initialState: initialState, actionsPolicy: actionsPolicy)
+        super.init(initialState: initialState,
+                   actionsPolicy: actionsPolicy,
+                   ignoreErrors: ignoreErrors)
     }
     
     override func makeMRN(rest: [any Node<IntermediateIO>]) -> MRNBase {

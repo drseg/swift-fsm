@@ -32,7 +32,7 @@ struct GivenNode: Node {
     let states: [AnyTraceable]
     var rest: [any Node<DefaultIO>] = []
     
-    func combinedWithRest(_ rest: [DefaultIO]) -> [Output] {
+    func combinedWithRest(_ rest: [DefaultIO], ignoreErrors: Bool) -> [Output] {
         states.reduce(into: []) { result, state in
             rest.forEach {
                 result.append(Output(state,
