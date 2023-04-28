@@ -1238,15 +1238,19 @@ See [Implicit Clashes][36]
 
 Adding predicates has no effect on the performance of `handleEvent()`. To maintain this performance, it does significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
 
-The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated, performance is O(m^n) where m is the average number of cases per predicate, and n is number of`Predicate` types. Using three predicates with 10 cases each would therefore require 1,000 operations *for each transition in the table*.
+The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated and filtered for each transition, performance is O(m^n\*o) where m is the average number of cases per predicate, n is number of`Predicate` types and o is the number of transitions. 
+
+Using three`Predicate` types with 10 cases each in a table with 100 transitions would therefore require 100,000 operations to compile. In most real-world use cases, such a large number is unlikely to be reached. Nevertheless, Swift FSM provides a more performance-balanced alternative for such cases in the form of the `LazyFSM` class.
 
 #### Lazy FSM
 
-For small tables, or tables with only a few total `Predicate` cases, this eager algorithm is likely to be the preferred option. For tables with a large number of transition statements, and/or a large number of `Predicate` cases, there is an alternative lazy solution that may be more performant overall. 
+`LazyFSM` does away with the look-ahead combinatorics algorithm described above. The result is smaller tables internally, and faster table compile time. The cost is at the call to `handleEvent()` where multiple lookup operations are now needed to find the correct transition. 
 
-Replacing the `FSM` class with `LazyFSM` will do away with the look-ahead combinatorics algorithm described above. The result is smaller tables internally, and faster table compile time. The cost is at the call to `handleEvent()` where multiple lookup operations are needed to find the correct transition. These two systems therefore make opposite tradeoffs - the eager system does all of its work at table compile time, whereas the lazy system saves on compile time space and performance resources by doing its work at transition run time.
+Performance of`handleEvent()` decreases from O(1) to O(n!), where `n` is the number of `Predicate` *types* used (regardless of the number of cases). Inversely, performance of `buildTable { }` increases from O(m^n\*o) to O(n), where n is now the number of transitions. 
 
-Performance of the `LazyFSM` implementation of `handleEvent()` increases from O(1) to O(n!), where `n` is the number of `Predicate` *types* used, regardless of the number of cases. Taking the same example as previously, using three predicates with 10 cases each, each call to `handleEvent()` would need to perform somewhere between a minimum of 1 operation, and a maximum of `3! + 1` or 7 operations. Using more than three `Predicate` types in this case is therefore not advisable.
+Using three `Predicate` types with 10 cases each in a table with 100 transitions would now require 100 operations to compile (down from 100,000). Each call to `handleEvent()` would need to perform between 1 and `3! + 1` or 7 operations (up from 1). Using more than three `Predicate` types in this case is therefore not advisable.
+
+If no predicates are used, both implementations exhibit similarly fast performance. In most cases, `FSM` is likely to be the preferred solution, with `LazyFSM` reserved for especially large numbers of transitions and/or `Predicate` cases.
 
 ## Troubleshooting
 
