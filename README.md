@@ -1261,7 +1261,7 @@ To help, here is a brief list of common errors you are likely to encounter if yo
 
 ### Builder Issues
 
-> **"No exact matches in call to static method 'buildExpression’”**
+> **No exact matches in call to static method 'buildExpression’**
 
 This is a common compile time error in `@resultBuilder` blocks. It will occur if you feed the block an argument that it does not support. It is useful to remember that each line in such a block is actually an argument fed to a static method.
 
@@ -1278,7 +1278,7 @@ Here an `actions` block is given as an argument to the hidden function `buildExp
 
 ### Pipe Issues
 
-> **“Cannot convert value of type \<T1\> to expected argument type \<T2\>”**
+> **Cannot convert value of type \<T1\> to expected argument type \<T2\>**
 
 This is common in situations where an unsupported argument is passed to a pipe overload. 
 
@@ -1300,7 +1300,7 @@ The error unfortunately spits out some internal implementation details that cann
 
 It also produces a spurious secondary error - as it cannot work out what the output of `then(.locked) | unlock` is, it also declares that there is no overload available for `buildExpression`. This error is a result of the pipe error - fix the fundamental `|` error and this error will also disappear.
 
-> **“Referencing operator function '|' on 'SIMD' requires that 'Syntax.When\<TurnstileEvent\>' conform to 'SIMD’”**
+> **Referencing operator function '|' on 'SIMD' requires that 'Syntax.When\<TurnstileEvent\>' conform to 'SIMD’**
 
 A personal favourite, from this:
 
@@ -1341,13 +1341,15 @@ try fsm.buildTable {
 
 You might recognise this as the original completed example from the [Entry and Exit Actions][38], with one small error dodo inserted at the end. This may or may not produce an appropriate error next to the dodo:
 
-> “Cannot find '🦤' in scope”
+> Cannot find '🦤' in scope
 
 What it will also do is generate multiple spurious errors and fixits in the `SuperState` declaration similar to this one:
 
-> “Call to method ‘then’ in closure requires explicit use of ‘self’ to make capture semantics explicit
+> Call to method ‘then’ in closure requires explicit use of ‘self’ to make capture semantics explicit
+> 
 > Reference ‘self.’ explicitly [ Fix\ ]
-> Capture 'self' explicitly to enable implicit 'self' in this closure”
+> 
+> Capture 'self' explicitly to enable implicit 'self' in this closure
 
 Ignore these errors, and if there is no other error shown, you may have to hunt about a bit to find the unrecognised argument.
 
