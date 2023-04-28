@@ -70,6 +70,13 @@ class LoggerTests: XCTestCase {
         logger.transitionNotExecuted(Transition(nil, 1, [], 1, 1, []))
         assertStack(["transitionNotExecutedString"])
     }
+    
+    func testTransitionNotExecutedString() {
+        let output = logger.transitionNotExecutedString(Transition(nil, 1, [], 1, 1, []))
+        XCTAssertEqual(
+            "conditional transition { define(1) | matching([]) | when(1) | then(1) } not executed",
+            output)
+    }
 }
 
 class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {

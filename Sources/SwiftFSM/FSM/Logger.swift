@@ -25,18 +25,24 @@ class Logger<Event: Hashable> {
     }
     
     func transitionNotExecutedString(_ t: Transition) -> String {
-        "conditional transition \(t) not executed"
+        "conditional transition \(t.toString) not executed"
     }
     
     private func warning(_ s: String) {
-        print(intro + "warning: " + s)
+        print(intro + "Warning: " + s)
     }
     
     private func info(_ s: String) {
-        print(intro + "info: " + s)
+        print(intro + "Info: " + s)
     }
     
     private var intro: String {
-        "SwiftFSM "
+        "[\(Date().formatted(date: .omitted, time: .standard)) SwiftFSM] "
+    }
+}
+
+private extension Transition {
+    var toString: String {
+        "{ define(\(state)) | matching(\(predicates)) | when(\(event)) | then(\(nextState)) }"
     }
 }
