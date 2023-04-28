@@ -12,7 +12,8 @@ let package = Package(
     products: [
         .library(
             name: "SwiftFSM",
-            targets: ["SwiftFSM"]),
+            targets: ["SwiftFSM"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
@@ -23,9 +24,12 @@ let package = Package(
             name: "SwiftFSM",
             dependencies:
                 [.product(name: "ReflectiveEquality", package: "reflective-equality"),
-                 .product(name: "Algorithms", package: "swift-algorithms")]),
+                 .product(name: "Algorithms", package: "swift-algorithms")],
+            swiftSettings: [.define("DEVELOPMENT", .when(configuration: .debug))]
+        ),
         .testTarget(
             name: "SwiftFSMTests",
-            dependencies: ["SwiftFSM"]),
+            dependencies: ["SwiftFSM"]
+        ),
     ]
 )
