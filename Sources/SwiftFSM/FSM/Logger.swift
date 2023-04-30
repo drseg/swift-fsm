@@ -37,7 +37,11 @@ class Logger<Event: Hashable> {
     }
     
     private var intro: String {
-        "[\(Date().formatted(date: .omitted, time: .standard)) SwiftFSM] "
+        let formatter = DateFormatter()
+        formatter.dateFormat = "hh:mm:ss"
+        formatter.string(from: Date())
+        
+        return "[\(formatter.string(from: Date())) SwiftFSM] "
     }
 }
 
