@@ -1257,11 +1257,11 @@ Example for a 10^3\*100 table:
 
 ## Troubleshooting
 
-Though Swift FSM runtime errors contain verbose descriptions of the problem, including the exact files and lines where the original statements were made, nothing can be done to help with disambiguating compile time errors.
+Though Swift FSM runtime errors contain verbose descriptions of the problem, nothing can be done to help with disambiguating compile time errors.
 
-First, familiarity with how `@resultBuilder` works, and the kinds of compile time errors it tends to generate will be very helpful in understanding the errors you may encounter. Almost all Swift FSM-specific compile time errors will be produced by one of two sources - unrecognised arguments to the aforementioned `@resultBuilder`, and unrecognised arguments to the `|` operator overloaded by Swift FSM.
+First, familiarity with how `@resultBuilder` works, and the kinds of compile time errors it tends to generate will be very helpful in understanding the errors you may encounter. Almost all Swift FSM-specific compile time errors will be produced by unrecognised arguments to the aforementioned `@resultBuilder`, and unrecognised arguments to the `|` operator overloaded by Swift FSM.
 
-To help, here is a brief list of common errors you are likely to encounter if you try to build something that Swift FSM specifically disallows at compile time:
+To help, here is a brief list of common errors you are likely to encounter if you try to build something that Swift FSM disallows at compile time:
 
 ### Builder Issues
 
@@ -1278,7 +1278,7 @@ try fsm.buildTable {
 }
 ```
 
-Here an `actions` block is given as an argument to the hidden function `buildExpression` in the `@resultBuilder` supporting the `buildTable` function. `actions` returns a type for which no overload exists, and therefore cannot compile.
+Here an `actions` block is given as an argument to the hidden static function `buildExpression` on the `@resultBuilder` supporting the `buildTable` function. The `define` statement has been skipped, and `actions` returns a type not supported by this outer block, and therefore cannot compile.
 
 ### Pipe Issues
 
@@ -1302,7 +1302,7 @@ Here no `matching` and/or `when` statement precede/s the call to `then(.locked)`
 
 The error unfortunately spits out some internal implementation details that cannot be hidden. Such unavoidable details are marked as such by their location inside the `Internal` namespace.
 
-It also produces a spurious secondary error - as it cannot work out what the output of `then(.locked) | unlock` is, it also declares that there is no overload available for `buildExpression`. This error is a result of the pipe error - fix the fundamental `|` error and this error will also disappear.
+It also produces a secondary error - as it cannot work out what the output of `then(.locked) | unlock` is, it declares that there is no overload available for `buildExpression`. Fix the underlying `|` error and this error will also disappear.
 
 > **Referencing operator function '|' on 'SIMD' requires that 'Syntax.When\<TurnstileEvent\>' conform to 'SIMD’**
 
@@ -1317,11 +1317,11 @@ try fsm.buildTable {
 }
 ```
 
-Here the order of `when` and `matching` is inverted. This is in essence no different to the previous error, but for some reason the compiler interprets the problem slightly differently. It selects a `|` overload from a completely unrelated module and then declares that it is being misused.
+The order of `when` and `matching` is inverted and not supported. This no different to the previous error, but the compiler interprets the problem differently. It selects a `|` overload from an unrelated module and declares that it is being misused.
 
-The compiler is particularly unhelpful here, because it cannot help identify which pipe in the chain is causing the problem. Often it’s simpler just to delete and rewrite the statement rather than trying to figure out what the complaint is.
+The compiler cannot help identify which pipe in the chain is causing the problem. Often it’s simpler just to delete and rewrite the statement rather than trying to figure out what the complaint is.
 
-### General Swift Implosion Issues
+### Spurious Issues
 
 ```swift
 try fsm.buildTable {
@@ -1343,7 +1343,7 @@ try fsm.buildTable {
 }
 ```
 
-You might recognise this as the original completed example from the [Entry and Exit Actions][40], with one small error dodo inserted at the end. This may or may not produce an appropriate error next to the dodo:
+This is the original example from [Entry and Exit Actions][40], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
 
 > **Cannot find '🦤' in scope**
 
@@ -1355,7 +1355,7 @@ What it will also do is generate multiple spurious errors and fixits in the `Sup
 > 
 > **Capture 'self' explicitly to enable implicit 'self' in this closure**
 
-Ignore these errors, and if there is no other error shown, you may have to hunt about a bit to find the unrecognised argument.
+Ignore these errors, and if there is no other error shown, you may have to hunt about for the unrecognised argument.
 
 
 
