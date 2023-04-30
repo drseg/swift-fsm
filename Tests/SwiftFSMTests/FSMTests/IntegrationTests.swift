@@ -369,6 +369,10 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
                         }
                     }
                 }
+                
+                matching(P.a) {
+                    when(.coin) | then() | unlock
+                }
             }
         }
         
@@ -381,6 +385,10 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
         actions = []
         fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual([], actions)
+        
+        actions = []
+        fsm.handleEvent(.coin, predicates: P.a, Q.b, R.b, S.b, T.b, U.b, V.b)
+        XCTAssertEqual(["unlock"], actions)
     }
     
     func testMultiplActionsBlocks() throws {
@@ -573,6 +581,38 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             
             assertError(errors?.first as? MatchError, expectedFile: "1", expectedLine: 1)
             assertError(errors?.last as? MatchError, expectedFile: "2", expectedLine: 2)
+        }
+    }
+    
+    func testNothingToOverridesThrowErrors() {
+        XCTAssertThrowsError (
+            try fsm.buildTable {
+                define(.locked) {
+                    override { when(.coin) | then(.unlocked) }
+                }
+            }
+        ) {
+            let errors = ($0 as? SwiftFSMError)?.errors
+            XCTAssertEqual(1, errors?.count)
+            XCTAssert(errors?.first is SemanticValidationNode.NothingToOverride)
+        }
+    }
+    
+    func testOutOfOrderOverridesThrowErrors() {
+        XCTAssertThrowsError (
+            try fsm.buildTable {
+                let s = SuperState {
+                    override { when(.coin) | then(.unlocked) }
+                }
+                
+                define(.locked, adopts: s) {
+                    when(.coin) | then(.unlocked)
+                }
+            }
+        ) {
+            let errors = ($0 as? SwiftFSMError)?.errors
+            XCTAssertEqual(1, errors?.count)
+            XCTAssert(errors?.first is SemanticValidationNode.OverrideOutOfOrder)
         }
     }
 }
