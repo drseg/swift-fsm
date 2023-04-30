@@ -58,6 +58,10 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         self.entryExitActionsPolicy = actionsPolicy
     }
     
+    public func handleEvent(_ event: Event) {
+        handleEvent(event, predicates: [])
+    }
+    
     public func handleEvent(_ event: Event, predicates: any Predicate...) {
         handleEvent(event, predicates: predicates)
     }
