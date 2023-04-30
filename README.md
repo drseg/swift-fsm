@@ -34,7 +34,7 @@ This guide presumes some familiarity with FSMs and specifically the SMC syntax l
 
 Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13.0 and/or iOS 16.0 or later, alongside Swift 5.7 or later. 
 
-It has two dependencies - Apple’s [Algorithms][28], and ([in one very small and specific place][29]) my own [Reflective Equality][30]
+It has two dependencies - Apple’s [Algorithms][28], and ([in one small corner][29]) my own [Reflective Equality][30]
 
 ## Basic Syntax
 
@@ -139,7 +139,7 @@ The `|` (pipe) operator binds transitions together. It feeds the output of the l
 > fsm.handleEvent(.coin)
 > ```
 
-The `FSM` instance will look up the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, the `FSM` will call the `unlock` function and transition to the `unlocked` state.  If no transition is found, it will do nothing.
+The `FSM` instance will look up the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, the `FSM` will call the `unlock` function and transition to the `unlocked` state.  If no transition is found, it will do nothing, and if compiled for debugging, will print a warning message.
 
 ### Optional Arguments
 
