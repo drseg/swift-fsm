@@ -2,11 +2,11 @@ import Foundation
 
 class ThenNodeBase: OverridableNode {
     let state: AnyTraceable?
-    var rest: [any Node<DefaultIO>]
+    var rest: [any UnsafeNode]
     
     init(
         state: AnyTraceable?,
-        rest: [any Node<DefaultIO>] = [],
+        rest: [any UnsafeNode] = [],
         groupID: UUID = UUID(),
         isOverride: Bool = false
     ) {
@@ -27,7 +27,7 @@ class ThenNodeBase: OverridableNode {
     }
 }
 
-class ThenNode: ThenNodeBase, Node {
+class ThenNode: ThenNodeBase, UnsafeNode {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest) ??? makeDefaultIO(state: state)
     }
@@ -40,7 +40,7 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
     
     init(
         state: AnyTraceable?,
-        rest: [any Node<Input>],
+        rest: [any UnsafeNode],
         caller: String = #function,
         groupID: UUID = UUID(),
         isOverride: Bool = false,

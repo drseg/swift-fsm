@@ -69,11 +69,11 @@ public enum Internal {
 }
 
 protocol BlockSentence {
-    init(node: any Node<DefaultIO>)
+    init(node: any UnsafeNode)
 }
 
 extension BlockSentence {
-    init<N: Node>(_ n: N, _ block: () -> [Sentence])
+    init<N: UnsafeNode>(_ n: N, _ block: () -> [Sentence])
     where N.Input == DefaultIO, N.Input == N.Output {
         var n = n
         n.rest = block().nodes
@@ -95,9 +95,9 @@ extension BlockSentence {
 }
 
 public class Sentence {
-    let node: any Node<DefaultIO>
+    let node: any UnsafeNode
     
-    init(node: any Node<DefaultIO>) {
+    init(node: any UnsafeNode) {
         self.node = node
     }
 }
@@ -107,8 +107,8 @@ public class MWA: Sentence { }
 public class MTA: Sentence { }
 public class MA: Sentence { }
 
-extension Node {
-    func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {
+extension UnsafeNode {
+    func appending<Other: UnsafeNode>(_ other: Other) -> Self where Input == Other.Output {
         var this = self
         this.rest = [other]
         return this
@@ -116,7 +116,7 @@ extension Node {
 }
 
 extension Array {
-    var nodes: [any Node<DefaultIO>] {
+    var nodes: [any UnsafeNode] {
         map { ($0 as! Sentence).node }
     }
 }

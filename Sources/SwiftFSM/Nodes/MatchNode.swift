@@ -2,11 +2,11 @@ import Foundation
 
 class MatchNodeBase: OverridableNode {
     let match: Match
-    var rest: [any Node<DefaultIO>]
+    var rest: [any UnsafeNode]
     
     init(
         match: Match,
-        rest: [any Node<DefaultIO>] = [],
+        rest: [any UnsafeNode] = [],
         groupID: UUID = UUID(),
         isOverride: Bool = false
     ) {
@@ -27,7 +27,7 @@ class MatchNodeBase: OverridableNode {
     }
 }
 
-class MatchNode: MatchNodeBase, Node {
+class MatchNode: MatchNodeBase, UnsafeNode {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest) ??? makeDefaultIO(match: match)
     }
@@ -40,7 +40,7 @@ class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
     
     init(
         match: Match,
-        rest: [any Node<Input>] = [],
+        rest: [any UnsafeNode] = [],
         groupID: UUID = UUID(),
         isOverride: Bool = false,
         caller: String = #function,

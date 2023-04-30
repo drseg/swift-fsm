@@ -2,11 +2,11 @@ import Foundation
 
 class ActionsNodeBase: OverridableNode {
     let actions: [Action]
-    var rest: [any Node<DefaultIO>]
+    var rest: [any UnsafeNode]
     
     init(
         actions: [Action] = [],
-        rest: [any Node<DefaultIO>] = [],
+        rest: [any UnsafeNode] = [],
         groupID: UUID = UUID(),
         isOverride: Bool = false
     ) {
@@ -27,7 +27,7 @@ class ActionsNodeBase: OverridableNode {
     }
 }
 
-class ActionsNode: ActionsNodeBase, Node {
+class ActionsNode: ActionsNodeBase, UnsafeNode {
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest) ??? makeDefaultIO(actions: actions)
     }
@@ -40,7 +40,7 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
     
     init(
         actions: [Action],
-        rest: [any Node<Input>],
+        rest: [any UnsafeNode],
         groupID: UUID = UUID(),
         isOverride: Bool = false,
         caller: String = #function,

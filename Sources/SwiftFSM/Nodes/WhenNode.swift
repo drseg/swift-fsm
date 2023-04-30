@@ -2,7 +2,7 @@ import Foundation
 
 class WhenNodeBase: OverridableNode {
     let events: [AnyTraceable]
-    var rest: [any Node<DefaultIO>]
+    var rest: [any UnsafeNode]
     
     let caller: String
     let file: String
@@ -10,7 +10,7 @@ class WhenNodeBase: OverridableNode {
     
     init(
         events: [AnyTraceable],
-        rest: [any Node<DefaultIO>] = [],
+        rest: [any UnsafeNode] = [],
         groupID: UUID = UUID(),
         isOverride: Bool = false,
         caller: String = #function,

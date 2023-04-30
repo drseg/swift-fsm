@@ -9,7 +9,7 @@ open class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>  {
         super.init(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
-    override func makeMRN(rest: [any Node<IntermediateIO>]) -> MRNBase {
+    override func makeMRN(rest: [any UnsafeNode]) -> MRNBase {
         LazyMatchResolvingNode(rest: rest)
     }
     

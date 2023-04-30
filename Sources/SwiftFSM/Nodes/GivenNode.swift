@@ -1,6 +1,6 @@
 import Foundation
 
-struct GivenNode: Node {
+struct GivenNode: UnsafeNode {
     struct Output {
         let state: AnyTraceable,
             match: Match,
@@ -30,7 +30,7 @@ struct GivenNode: Node {
     }
     
     let states: [AnyTraceable]
-    var rest: [any Node<DefaultIO>] = []
+    var rest: [any UnsafeNode] = []
     
     func combinedWithRest(_ rest: [DefaultIO]) -> [Output] {
         states.reduce(into: []) { result, state in

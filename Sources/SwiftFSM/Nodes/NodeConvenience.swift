@@ -2,7 +2,7 @@ import Foundation
 
 public typealias Action = () -> ()
 
-protocol NeverEmptyNode: Node {
+protocol NeverEmptyNode: UnsafeNode {
     var caller: String { get }
     var file: String { get }
     var line: Int { get }

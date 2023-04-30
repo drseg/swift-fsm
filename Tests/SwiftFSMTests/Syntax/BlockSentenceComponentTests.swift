@@ -106,9 +106,9 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(Array(nodes.suffix(2)), sutLine: l1)
     }
     
-    func assertGroupID(_ nodes: [any Node<DefaultIO>], line: UInt = #line) {
-        let output = nodes.map { $0.finalised().output }
-        XCTAssertEqual(3, output.count)
+    func assertGroupID(_ nodes: [any UnsafeNode], line: UInt = #line) {
+        let output = nodes.compactMap { $0.finalised().output as? [DefaultIO] }
+        XCTAssertEqual(3, output.count, line: line)
         
         let defineOutput = output.dropFirst().flattened
         defineOutput.forEach {
@@ -291,7 +291,7 @@ class BlockComponentTests: BlockTests {
     
     func testDefineAddsBlockAndSuperStateNodesTogetherParentFirst() {
         func assertDefine(_ n: DefineNode, line: UInt = #line) {
-            func castRest<T: Node, U: Node>(_ n: [U], to: T.Type) -> [T] {
+            func castRest<T: UnsafeNode, U: UnsafeNode>(_ n: [U], to: T.Type) -> [T] {
                 n.map { $0.rest }.flattened as! [T]
             }
             
@@ -376,7 +376,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
         return (a1, a2)
     }
     
-    func abn(_ n: any Node<DefaultIO>) -> ActionsBlockNode {
+    func abn(_ n: any UnsafeNode) -> ActionsBlockNode {
         n as! ActionsBlockNode
     }
     
@@ -588,7 +588,7 @@ class MatchingBlockTests: DefaultIOBlockTests {
         return (a1, a2)
     }
     
-    func mbn(_ n: any Node<DefaultIO>) -> MatchBlockNode {
+    func mbn(_ n: any UnsafeNode) -> MatchBlockNode {
         n as! MatchBlockNode
     }
     
@@ -850,7 +850,7 @@ class ConditionBlockTests: DefaultIOBlockTests {
         return (a1, a2)
     }
     
-    func mbn(_ n: any Node<DefaultIO>) -> MatchBlockNode {
+    func mbn(_ n: any UnsafeNode) -> MatchBlockNode {
         n as! MatchBlockNode
     }
     

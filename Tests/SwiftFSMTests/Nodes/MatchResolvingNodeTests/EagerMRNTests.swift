@@ -17,7 +17,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     enum Q: Predicate { case a, b }
     enum R: Predicate { case a, b }
     
-    func matchResolvingNode(rest: [any Node<DefineNode.Output>]) -> EMRN {
+    func matchResolvingNode(rest: [any UnsafeNode]) -> EMRN {
         .init(rest: [SVN(rest: [ARN(rest: rest)])])
     }
     

@@ -1,10 +1,10 @@
 import Foundation
 
-class MRNBase: Node {
-    var rest: [any Node<IntermediateIO>]
+class MRNBase: UnsafeNode {
+    var rest: [any UnsafeNode]
     var errors: [Error] = []
     
-    required init(rest: [any Node<IntermediateIO>] = []) {
+    required init(rest: [any UnsafeNode] = []) {
         self.rest = rest
     }
     

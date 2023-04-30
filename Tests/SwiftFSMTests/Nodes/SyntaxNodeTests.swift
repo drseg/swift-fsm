@@ -130,7 +130,7 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func assertEmptyNodeWithoutError(
-        _ n: some Node,
+        _ n: some UnsafeNode,
         file: StaticString = #file,
         line: UInt = #line
     ) {
@@ -264,7 +264,7 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let nodeChains: [any Node<DefaultIO>] = {
+        let nodeChains: [any UnsafeNode] = {
             let nodes: [any DefaultIONode] =
             [MatchNode(match: Match(any: P.a, all: Q.a)),
              WhenNode(events: [e1]),
@@ -277,11 +277,11 @@ class SyntaxNodeTests: XCTestCase {
                     three = $1[2].copy(),
                     four = $1[3].copy()
                 
-                three.rest.append(four as! any Node<DefaultIO>)
-                two.rest.append(three as! any Node<DefaultIO>)
-                one.rest.append(two as! any Node<DefaultIO>)
+                three.rest.append(four)
+                two.rest.append(three)
+                one.rest.append(two)
                 
-                $0.append(one as! any Node<DefaultIO>)
+                $0.append(one)
             }
         }()
         
@@ -359,7 +359,7 @@ extension Collection {
 
 let testGroupID = UUID()
 
-protocol DefaultIONode: Node where Output == DefaultIO, Input == Output {
+protocol DefaultIONode: UnsafeNode where Output == DefaultIO, Input == Output {
     func copy() -> Self
 }
 

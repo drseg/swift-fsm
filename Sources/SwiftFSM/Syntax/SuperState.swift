@@ -1,7 +1,7 @@
 import Foundation
 
 public struct SuperState {
-    var nodes: [any Node<DefaultIO>]
+    var nodes: [any UnsafeNode]
     var onEntry: [Action]
     var onExit: [Action]
 
@@ -27,7 +27,7 @@ public struct SuperState {
     }
     
     private init(
-        nodes: [any Node<DefaultIO>] = [],
+        nodes: [any UnsafeNode] = [],
         superStates: [SuperState],
         onEntry: [Action],
         onExit: [Action]
@@ -38,7 +38,7 @@ public struct SuperState {
     }
 }
 
-extension [any Node<DefaultIO>] {
+extension [any UnsafeNode] {
     func withGroupID() -> Self {
         let groupID = UUID()
         (self as? [OverridableNode])?.forEach { $0.groupID = groupID }

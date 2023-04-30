@@ -4,7 +4,7 @@ protocol SVNKey: Hashable {
     init(_ input: SemanticValidationNode.Input)
 }
 
-class SemanticValidationNode: Node {
+class SemanticValidationNode: UnsafeNode {
     struct DuplicatesError: Error {
         let duplicates: DuplicatesDictionary
     }
@@ -60,10 +60,10 @@ class SemanticValidationNode: Node {
     typealias DuplicatesDictionary = [DuplicatesKey: [Input]]
     typealias ClashesDictionary = [ClashesKey: [Input]]
     
-    var rest: [any Node<Input>]
+    var rest: [any UnsafeNode]
     var errors: [Error] = []
     
-    init(rest: [any Node<Input>]) {
+    init(rest: [any UnsafeNode]) {
         self.rest = rest
     }
     

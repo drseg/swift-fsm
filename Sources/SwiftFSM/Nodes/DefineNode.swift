@@ -36,7 +36,7 @@ final class DefineNode: NeverEmptyNode {
     
     let onEntry: [Action]
     let onExit: [Action]
-    var rest: [any Node<GivenNode.Output>] = []
+    var rest: [any UnsafeNode] = []
     
     let caller: String
     let file: String
@@ -47,7 +47,7 @@ final class DefineNode: NeverEmptyNode {
     init(
         onEntry: [Action],
         onExit: [Action],
-        rest: [any Node<GivenNode.Output>] = [],
+        rest: [any UnsafeNode] = [],
         caller: String = #function,
         file: String = #file,
         line: Int = #line

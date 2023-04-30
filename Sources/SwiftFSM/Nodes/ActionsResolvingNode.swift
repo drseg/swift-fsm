@@ -28,10 +28,10 @@ struct IntermediateIO {
     }
 }
 
-class ActionsResolvingNodeBase: Node {
-    var rest: [any Node<Input>]
+class ActionsResolvingNodeBase: UnsafeNode {
+    var rest: [any UnsafeNode]
     
-    required init(rest: [any Node<Input>] = []) {
+    required init(rest: [any UnsafeNode] = []) {
         self.rest = rest
     }
     

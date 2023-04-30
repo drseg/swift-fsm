@@ -39,7 +39,7 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         fatalError("subclasses must implement")
     }
     
-    func makeMRN(rest: [any Node<IntermediateIO>]) -> MRNBase {
+    func makeMRN(rest: [any UnsafeNode]) -> MRNBase {
         fatalError("subclasses must implement")
     }
     

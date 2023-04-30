@@ -4,7 +4,7 @@ import XCTest
 class LazyMatchResolvingNodeTests: MRNTestBase {
     typealias LMRN = LazyMatchResolvingNode
     
-    func makeSUT(rest: [any Node<DefineNode.Output>]) -> LMRN {
+    func makeSUT(rest: [any UnsafeNode]) -> LMRN {
         .init(rest: [SVN(rest: [ARN(rest: rest)])])
     }
     

@@ -17,7 +17,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     typealias MatchingWhenThen = Internal.MatchingWhenThen
     typealias MatchingWhen = Internal.MatchingWhen
     
-    typealias AnyNode = any Node
+    typealias AnyNode = any UnsafeNode
 
     var output = ""
     
