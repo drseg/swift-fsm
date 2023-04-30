@@ -32,7 +32,7 @@ This guide presumes some familiarity with FSMs and specifically the SMC syntax l
 
 ## Requirements
 
-Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13.0 and/or iOS 16.0 or later, alongside Swift 5.7 or later. If you need support for older platforms, please check out the [iOS11-macOS10\_13 branch][28].
+Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13.0 and/or iOS 16.0 or later, alongside Swift 5.7 or later. If you need support for older platforms, please check out the [backport][28] branch.
 
 It has two dependencies - Apple’s [Algorithms][29], and ([in one small corner][30]) my own [Reflective Equality][31]
 
@@ -1388,7 +1388,7 @@ Ignore these errors, and if there is no other error shown, you may have to hunt 
 [25]:	#error-handling
 [26]:	#predicate-performance
 [27]:	#troubleshooting
-[28]:	https://github.com/drseg/swift-fsm/tree/iOS11-macOS10_13
+[28]:	https://github.com/drseg/swift-fsm/tree/backport
 [29]:	https://github.com/apple/swift-algorithms
 [30]:	#nsobject-error
 [31]:	https://github.com/drseg/reflective-equality
