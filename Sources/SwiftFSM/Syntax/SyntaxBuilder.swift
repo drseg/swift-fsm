@@ -42,6 +42,23 @@ public extension SyntaxBuilder {
               block)
     }
     
+    func define(
+        _ state: StateType,
+        onEntry: [Action] = [],
+        onExit: [Action] = [],
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> Syntax.Define<StateType> {
+        .init(state: state,
+              adopts: [],
+              onEntry: onEntry,
+              onExit: onExit,
+              file: file,
+              line: line,
+              block)
+    }
+    
     func when(
         _ event: EventType,
         or otherEvents: EventType...,
