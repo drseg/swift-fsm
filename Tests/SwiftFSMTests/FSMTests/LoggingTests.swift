@@ -80,8 +80,8 @@ class LoggerTests: XCTestCase {
 }
 
 class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
-    typealias StateType = Int
-    typealias EventType = Int
+    typealias State = Int
+    typealias Event = Int
     
     class FSMSpy: FSM<Int, Int>, LoggableFSM {
         var loggedEvents: [LogData] = []

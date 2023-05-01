@@ -3,14 +3,14 @@ import XCTest
 @testable import SwiftFSM
 
 class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
-    typealias StateType = Int
-    typealias EventType = Int
+    typealias State = Int
+    typealias Event = Int
     
-    typealias Define = Syntax.Define<StateType>
+    typealias Define = Syntax.Define<State>
     typealias Matching = Syntax.Expanded.Matching
     typealias Condition = Syntax.Expanded.Condition
-    typealias When = Syntax.When<EventType>
-    typealias Then = Syntax.Then<StateType>
+    typealias When = Syntax.When<Event>
+    typealias Then = Syntax.Then<State>
     typealias Actions = Syntax.Actions
     typealias Override = Syntax.Override
     
@@ -128,13 +128,13 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertThenNode(
         _ n: ThenNodeBase,
-        state: StateType?,
+        state: State?,
         sutFile sf: String? = nil,
         xctFile xf: StaticString = #file,
         sutLine sl: Int?,
         xctLine xl: UInt = #line
     ) {
-        XCTAssertEqual(state, n.state?.base as? StateType, file: xf, line: xl)
+        XCTAssertEqual(state, n.state?.base as? State, file: xf, line: xl)
         XCTAssertEqual(sf, n.state?.file, file: xf, line: xl)
         XCTAssertEqual(sl, n.state?.line, file: xf, line: xl)
         
@@ -151,7 +151,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     func assertActionsThenNode(
         _ n: ActionsNodeBase,
         expectedOutput eo: String,
-        state: StateType?,
+        state: State?,
         sutFile sf: String? = #file,
         xctFile xf: StaticString = #file,
         sutLine sl: Int?,

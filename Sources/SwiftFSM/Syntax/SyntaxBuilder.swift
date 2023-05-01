@@ -1,20 +1,20 @@
 import Foundation
 
 public protocol SyntaxBuilder {
-    associatedtype StateType: Hashable
-    associatedtype EventType: Hashable
+    associatedtype State: Hashable
+    associatedtype Event: Hashable
 }
 
 public extension SyntaxBuilder {
     func define(
-        _ state: StateType,
+        _ state: State,
         adopts superState: SuperState,
         _ andSuperStates: SuperState...,
         onEntry: [Action] = [],
         onExit: [Action] = [],
         file: String = #file,
         line: Int = #line
-    ) -> Syntax.Define<StateType> {
+    ) -> Syntax.Define<State> {
         .init(state,
               adopts: [superState] + andSuperStates,
               onEntry: onEntry,
@@ -25,14 +25,14 @@ public extension SyntaxBuilder {
     }
     
     func define(
-        _ state: StateType,
+        _ state: State,
         adopts superStates: SuperState...,
         onEntry: [Action] = [],
         onExit: [Action] = [],
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
-    ) -> Syntax.Define<StateType> {
+    ) -> Syntax.Define<State> {
         .init(state: state,
               adopts: superStates,
               onEntry: onEntry,
@@ -43,13 +43,13 @@ public extension SyntaxBuilder {
     }
     
     func define(
-        _ state: StateType,
+        _ state: State,
         onEntry: [Action] = [],
         onExit: [Action] = [],
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
-    ) -> Syntax.Define<StateType> {
+    ) -> Syntax.Define<State> {
         .init(state: state,
               adopts: [],
               onEntry: onEntry,
@@ -60,84 +60,84 @@ public extension SyntaxBuilder {
     }
     
     func when(
-        _ event: EventType,
-        or otherEvents: EventType...,
+        _ event: Event,
+        or otherEvents: Event...,
         file: String = #file,
         line: Int = #line
-    ) -> Syntax.When<EventType> {
+    ) -> Syntax.When<Event> {
         .init([event] + otherEvents, file: file, line: line)
     }
     
     func when(
-        _ event: EventType,
+        _ event: Event,
         file: String = #file,
         line: Int = #line
-    ) -> Syntax.When<EventType> {
+    ) -> Syntax.When<Event> {
         .init(event, file: file, line: line)
     }
     
     func when(
-        _ event: EventType,
-        or otherEvents: EventType...,
+        _ event: Event,
+        or otherEvents: Event...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MWTASentence {
-        Syntax.When<EventType>([event] + otherEvents, file: file, line: line).callAsFunction(block)
+        Syntax.When<Event>([event] + otherEvents, file: file, line: line).callAsFunction(block)
     }
     
     func when(
-        _ event: EventType,
+        _ event: Event,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MWTASentence {
-        Syntax.When<EventType>(event, file: file, line: line).callAsFunction(block)
+        Syntax.When<Event>(event, file: file, line: line).callAsFunction(block)
     }
     
     func when(
-        _ event: EventType,
-        or otherEvents: EventType...,
+        _ event: Event,
+        or otherEvents: Event...,
         file: String = #file,
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MWASentence {
-        Syntax.When<EventType>([event] + otherEvents, file: file, line: line).callAsFunction(block)
+        Syntax.When<Event>([event] + otherEvents, file: file, line: line).callAsFunction(block)
     }
     
     func when(
-        _ event: EventType,
+        _ event: Event,
         file: String = #file,
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MWASentence {
-        Syntax.When<EventType>(event, file: file, line: line).callAsFunction(block)
+        Syntax.When<Event>(event, file: file, line: line).callAsFunction(block)
     }
     
     func then(
-        _ state: StateType? = nil,
+        _ state: State? = nil,
         file: String = #file,
         line: Int = #line
-    ) -> Syntax.Then<StateType> {
+    ) -> Syntax.Then<State> {
         .init(state, file: file, line: line)
     }
     
     func then(
-        _ state: StateType? = nil,
+        _ state: State? = nil,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWTASentence {
-        Syntax.Then<StateType>(state, file: file, line: line).callAsFunction(block)
+        Syntax.Then<State>(state, file: file, line: line).callAsFunction(block)
     }
     
     func then(
-        _ state: StateType? = nil,
+        _ state: State? = nil,
         file: String = #file,
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MTASentence {
-        Syntax.Then<StateType>(state, file: file, line: line).callAsFunction(block)
+        Syntax.Then<State>(state, file: file, line: line).callAsFunction(block)
     }
     
     func actions(
