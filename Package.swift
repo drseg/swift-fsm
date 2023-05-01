@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
-        .package(url: "https://github.com/drseg/reflective-equality", branch: "main")
+        .package(url: "https://github.com/drseg/reflective-equality", from: "1.0.0")
     ],
     targets: [
         .target(

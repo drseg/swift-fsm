@@ -7,7 +7,7 @@ public extension Syntax.Expanded {
         var file: String!
         var line: Int!
         
-        var name: String { "TILT" }
+        var name: String { fatalError("subclasses must implement") }
         
         fileprivate init() { }
         

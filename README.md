@@ -1230,13 +1230,22 @@ See [Implicit Clashes][39]
 
 ### Predicate Performance
 
+Overview: operations per function call for a table with 100 transitions, 3 `Predicate` types, and 10 cases per `Predicate`
+
+|               | FSM     | LazyFSM | Schedule         |
+| :------------ | :------ | :------ | :--------------- |
+| `handleEvent` | 1       | 1-7     | Every transition |
+| `buildTable`  | 100,000 | 100     | Once on app load |
+
+#### FSM
+
 Adding predicates has no effect on the performance of `handleEvent()`, but does affect the performance of `fsm.buildTransitions { }`. By default, the FSM preserves `handleEvent()` runtime performance by doing significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
 
 The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated and filtered for each transition, performance is O(m^n\*o) where m is the average number of cases per predicate, n is number of`Predicate` types and o is the number of transitions. 
 
-Using three`Predicate` types with 10 cases each in a table with 100 transitions would therefore require 100,000 operations to compile. In most real-world use cases, such a large number is unlikely to be reached. Nevertheless, Swift FSM provides a more performance-balanced alternative for such cases in the form of the `LazyFSM` class.
+Using three`Predicate` types with 10 cases each in a table with 100 transitions would therefore require 100,000 operations to compile. In most real-world use cases, this is unlikely to be a problem. If your table is particularly large (see overview above), Swift FSM provides a more performance-balanced alternative for such cases in the form of the `LazyFSM` class.
 
-NB - there is no performance advantage to using the keyword `matching` less versus more often in your transition tables. Once the word `matching` appears in the table once, and a `Predicate` instance is passed to `handleEvent()`, the performance implications for the whole table will be as above.
+Note: there is no performance advantage to using the keyword `matching` in fewer versus more transitions in your transition tables. Once the word `matching` is used once, and a `Predicate` instance is passed to `handleEvent()`, the performance implications for the whole table will be as above.
 
 #### Lazy FSM
 
@@ -1246,14 +1255,7 @@ Performance of`handleEvent()` decreases from O(1) to O(n!), where `n` is the num
 
 Using three `Predicate` types with 10 cases each in a table with 100 transitions would now require 100 operations to compile (down from 100,000 by a factor of 1000). Each call to `handleEvent()` would need to perform between 1 and `3! + 1` or 7 operations (up from 1 by a factor of 1-7). Using more than three `Predicate` types in this case is therefore not advisable.
 
-The bottom line is that `LazyFSM` saves a lot more operations than it costs, but that cost is paid at runtime for each transition, rather than as a one-off cost at compile time. In most cases, `FSM` is likely to be the preferred solution, with `LazyFSM` reserved for especially large numbers of transitions and/or `Predicate` cases. If no predicates are used, both implementations exhibit similarly fast performance.
-
-Example for a 10^3\*100 table:
-
-|               | FSM     | LazyFSM | Schedule         |
-| :------------ | :------ | :------ | :--------------- |
-| `handleEvent` | 1       | 1-7     | Every transition |
-| `buildTable`  | 100,000 | 100     | Once on app load |
+Overall `LazyFSM` saves a lot more operations than it costs, but that cost is paid at runtime for each transition, rather than as a one-off cost at compile time. In most cases, `FSM` is likely to be the preferred solution, with `LazyFSM` reserved for especially large numbers of transitions and/or `Predicate` cases. If no predicates are used, both implementations exhibit similarly fast performance.
 
 ## Troubleshooting
 
