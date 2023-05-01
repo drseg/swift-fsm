@@ -83,7 +83,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MWTASentence {
-        Syntax.When<EventType>.init([event] + otherEvents, file: file, line: line).callAsFunction(block)
+        Syntax.When<EventType>([event] + otherEvents, file: file, line: line).callAsFunction(block)
     }
     
     func when(
@@ -92,7 +92,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MWTASentence {
-        Syntax.When<EventType>.init(event, file: file, line: line).callAsFunction(block)
+        Syntax.When<EventType>(event, file: file, line: line).callAsFunction(block)
     }
     
     func when(
@@ -102,7 +102,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MWASentence {
-        Syntax.When<EventType>.init([event] + otherEvents, file: file, line: line).callAsFunction(block)
+        Syntax.When<EventType>([event] + otherEvents, file: file, line: line).callAsFunction(block)
     }
     
     func when(
@@ -111,7 +111,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MWASentence {
-        Syntax.When<EventType>.init(event, file: file, line: line).callAsFunction(block)
+        Syntax.When<EventType>(event, file: file, line: line).callAsFunction(block)
     }
     
     func then(
@@ -128,7 +128,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWTASentence {
-        Syntax.Then(state, file: file, line: line).callAsFunction(block)
+        Syntax.Then<StateType>(state, file: file, line: line).callAsFunction(block)
     }
     
     func then(
@@ -137,7 +137,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MTASentence {
-        Syntax.Then(state, file: file, line: line).callAsFunction(block)
+        Syntax.Then<StateType>(state, file: file, line: line).callAsFunction(block)
     }
     
     func actions(
