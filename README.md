@@ -24,7 +24,7 @@ This guide presumes some familiarity with FSMs and specifically the SMC syntax l
 	- [Multiple Predicates][20]
 	- [Implicit Clashes][21]
 	- [Deduplication][22]
-	- [Chained Blocks][23]
+	- [Chaining Blocks][23]
 	- [Condition Statements][24]
 	- [Runtime Errors][25]
 	- [Predicate Performance][26]
@@ -1385,7 +1385,7 @@ Ignore these errors, and if there is no other error shown, you may have to hunt 
 [20]:	#multiple-predicates
 [21]:	#implicit-clashes
 [22]:	#deduplication
-[23]:	#chained-blocks
+[23]:	#chaining-blocks
 [24]:	#condition-statements
 [25]:	#error-handling
 [26]:	#predicate-performance
