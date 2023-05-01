@@ -5,7 +5,7 @@ name: Swift
 
 on:
   push:
-    branches: [ "master, backport" ]
+    branches: [ "master", "backport" ]
   pull_request:
     branches: [ "master" ]
 
