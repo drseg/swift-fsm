@@ -1,5 +1,5 @@
 # Swift FSM
-![Codecov](https://img.shields.io/codecov/c/github/drseg/swift-fsm) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drseg/swift-fsm/swift.yml?label=all%20tests) ![GitHub](https://img.shields.io/github/license/drseg/swift-fsm)
+[![codecov](https://codecov.io/gh/drseg/swift-fsm/branch/master/graph/badge.svg?token=4UV1D0M80T)](https://codecov.io/gh/drseg/swift-fsm) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drseg/swift-fsm/swift.yml?label=all%20tests) ![GitHub](https://img.shields.io/github/license/drseg/swift-fsm)
 
 **Friendly Finite State Machine Syntax for Swift, iOS and macOS**
 
