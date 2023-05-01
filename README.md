@@ -1,3 +1,4 @@
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drseg/swift-fsm/swift.yml?label=all%20tests) ![GitHub](https://img.shields.io/github/license/drseg/swift-fsm)
 # Swift FSM
 **Friendly Finite State Machine Syntax for Swift, iOS and macOS**
 
