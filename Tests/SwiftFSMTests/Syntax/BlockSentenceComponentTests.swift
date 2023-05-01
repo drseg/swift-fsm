@@ -1038,23 +1038,25 @@ class ConditionBlockTests: DefaultIOBlockTests {
 class WhenBlockTests: DefaultIOBlockTests {
     func assert(
         _ b: Internal.MWTASentence,
+        events: [Int] = [1, 2],
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt = #line
     ) {
         let node = b.node as! WhenBlockNode
-        assertWhenNode(node, sutLine: nl, xctLine: xl)
+        assertWhenNode(node, events: events, sutLine: nl, xctLine: xl)
         assertMTAResult(node.rest, sutLine: rl + 1, xctLine: xl)
     }
     
     func assert(
         _ b: Internal.MWASentence,
+        events: [Int] = [1, 2],
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt = #line
     ) {
         let node = b.node as! WhenBlockNode
-        assertWhenNode(node, sutLine: nl, xctLine: xl)
+        assertWhenNode(node, events: events, sutLine: nl, xctLine: xl)
         let actionsNode = node.rest.first as! ActionsNode
         assertActions(actionsNode.actions, expectedOutput: "pass")
         let matchNode = actionsNode.rest.first as! MatchNode
@@ -1064,17 +1066,25 @@ class WhenBlockTests: DefaultIOBlockTests {
     func testWhenBlockWithMTA() {
         let l1 = #line; let w1 = when(1, or: 2) { mtaBlock }
         let l2 = #line; let w2 = When(1, or: 2) { mtaBlock }
+        let l3 = #line; let w3 = when(1) { mtaBlock }
+        let l4 = #line; let w4 = When(1) { mtaBlock }
     
         assert(w1, nodeLine: l1, restLine: mtaLine)
         assert(w2, nodeLine: l2, restLine: mtaLine)
+        assert(w3, events: [1], nodeLine: l3, restLine: mtaLine)
+        assert(w4, events: [1], nodeLine: l4, restLine: mtaLine)
     }
     
     func testWhenBlockWithMA() {
         let l1 = #line; let w1 = when(1, or: 2) { Matching(P.a) | pass }
         let l2 = #line; let w2 = When(1, or: 2) { Matching(P.a) | pass }
+        let l3 = #line; let w3 = when(1) { Matching(P.a) | pass }
+        let l4 = #line; let w4 = When(1) { Matching(P.a) | pass }
         
         assert(w1, nodeLine: l1, restLine: l1)
         assert(w2, nodeLine: l2, restLine: l2)
+        assert(w3, events: [1], nodeLine: l3, restLine: l3)
+        assert(w4, events: [1], nodeLine: l4, restLine: l4)
     }
 }
 

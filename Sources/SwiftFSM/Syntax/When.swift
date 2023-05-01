@@ -32,7 +32,15 @@ public extension Syntax {
             self.init([event] + otherEvents, file: file, line: line)
         }
         
-        internal init(
+        public init(
+            _ event: Event,
+            file: String = #file,
+            line: Int = #line
+        ) {
+            self.init([event], file: file, line: line)
+        }
+        
+        public init(
             _ events: [Event],
             file: String,
             line: Int

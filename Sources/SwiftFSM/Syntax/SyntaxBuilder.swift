@@ -70,12 +70,29 @@ public extension SyntaxBuilder {
     
     func when(
         _ event: EventType,
+        file: String = #file,
+        line: Int = #line
+    ) -> Syntax.When<EventType> {
+        .init(event, file: file, line: line)
+    }
+    
+    func when(
+        _ event: EventType,
         or otherEvents: EventType...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MWTASentence {
-        Syntax.When.init([event] + otherEvents, file: file, line: line).callAsFunction(block)
+        Syntax.When<EventType>.init([event] + otherEvents, file: file, line: line).callAsFunction(block)
+    }
+    
+    func when(
+        _ event: EventType,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> [MTA]
+    ) -> Internal.MWTASentence {
+        Syntax.When<EventType>.init(event, file: file, line: line).callAsFunction(block)
     }
     
     func when(
@@ -85,7 +102,16 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MWASentence {
-        Syntax.When.init([event] + otherEvents, file: file, line: line).callAsFunction(block)
+        Syntax.When<EventType>.init([event] + otherEvents, file: file, line: line).callAsFunction(block)
+    }
+    
+    func when(
+        _ event: EventType,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MABuilder _ block: () -> [MA]
+    ) -> Internal.MWASentence {
+        Syntax.When<EventType>.init(event, file: file, line: line).callAsFunction(block)
     }
     
     func then(
