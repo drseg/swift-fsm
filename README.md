@@ -1,5 +1,6 @@
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drseg/swift-fsm/swift.yml?label=all%20tests) ![GitHub](https://img.shields.io/github/license/drseg/swift-fsm)
 # Swift FSM
+![Codecov](https://img.shields.io/codecov/c/github/drseg/swift-fsm) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drseg/swift-fsm/swift.yml?label=all%20tests) ![GitHub](https://img.shields.io/github/license/drseg/swift-fsm)
+
 **Friendly Finite State Machine Syntax for Swift, iOS and macOS**
 
 Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is a pure Swift DSL for declaring and operating a Finite State Machine (FSM).
