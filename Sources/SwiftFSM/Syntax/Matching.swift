@@ -81,6 +81,32 @@ public extension Syntax.Expanded {
         
         public convenience init<P: Predicate>(
             _ predicate: P,
+            file: String = #file,
+            line: Int = #line
+        ) {
+            self.init(predicate, or: [], and: [], file: file, line: line)
+        }
+        
+        public convenience init<P: Predicate>(
+            _ predicate: P,
+            or: P...,
+            file: String = #file,
+            line: Int = #line
+        ) {
+            self.init(predicate, or: or, and: [], file: file, line: line)
+        }
+        
+        public convenience init<P: Predicate>(
+            _ predicate: P,
+            and: any Predicate...,
+            file: String = #file,
+            line: Int = #line
+        ) {
+            self.init(predicate, or: [], and: and, file: file, line: line)
+        }
+        
+        public convenience init<P: Predicate>(
+            _ predicate: P,
             or: P...,
             and: any Predicate...,
             file: String = #file,

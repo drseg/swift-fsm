@@ -42,6 +42,23 @@ public extension SyntaxBuilder {
               block)
     }
     
+    func define(
+        _ state: StateType,
+        onEntry: [Action] = [],
+        onExit: [Action] = [],
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> Syntax.Define<StateType> {
+        .init(state: state,
+              adopts: [],
+              onEntry: onEntry,
+              onExit: onExit,
+              file: file,
+              line: line,
+              block)
+    }
+    
     func when(
         _ event: EventType,
         or otherEvents: EventType...,
@@ -53,12 +70,29 @@ public extension SyntaxBuilder {
     
     func when(
         _ event: EventType,
+        file: String = #file,
+        line: Int = #line
+    ) -> Syntax.When<EventType> {
+        .init(event, file: file, line: line)
+    }
+    
+    func when(
+        _ event: EventType,
         or otherEvents: EventType...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MWTASentence {
-        Syntax.When.init([event] + otherEvents, file: file, line: line).callAsFunction(block)
+        Syntax.When<EventType>([event] + otherEvents, file: file, line: line).callAsFunction(block)
+    }
+    
+    func when(
+        _ event: EventType,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> [MTA]
+    ) -> Internal.MWTASentence {
+        Syntax.When<EventType>(event, file: file, line: line).callAsFunction(block)
     }
     
     func when(
@@ -68,7 +102,16 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MWASentence {
-        Syntax.When.init([event] + otherEvents, file: file, line: line).callAsFunction(block)
+        Syntax.When<EventType>([event] + otherEvents, file: file, line: line).callAsFunction(block)
+    }
+    
+    func when(
+        _ event: EventType,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MABuilder _ block: () -> [MA]
+    ) -> Internal.MWASentence {
+        Syntax.When<EventType>(event, file: file, line: line).callAsFunction(block)
     }
     
     func then(
@@ -85,7 +128,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWTASentence {
-        Syntax.Then(state, file: file, line: line).callAsFunction(block)
+        Syntax.Then<StateType>(state, file: file, line: line).callAsFunction(block)
     }
     
     func then(
@@ -94,7 +137,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MTASentence {
-        Syntax.Then(state, file: file, line: line).callAsFunction(block)
+        Syntax.Then<StateType>(state, file: file, line: line).callAsFunction(block)
     }
     
     func actions(
@@ -142,6 +185,32 @@ public extension ExpandedSyntaxBuilder {
     
     func matching<P: Predicate>(
         _ predicate: P,
+        file: String = #file,
+        line: Int = #line
+    ) -> Matching {
+        .init(predicate, file: file, line: line)
+    }
+    
+    func matching<P: Predicate>(
+        _ predicate: P,
+        or: P...,
+        file: String = #file,
+        line: Int = #line
+    ) -> Matching {
+        .init(predicate, or: or, and: [], file: file, line: line)
+    }
+    
+    func matching<P: Predicate>(
+        _ predicate: P,
+        and: P...,
+        file: String = #file,
+        line: Int = #line
+    ) -> Matching {
+        .init(predicate, or: [], and: and, file: file, line: line)
+    }
+    
+    func matching<P: Predicate>(
+        _ predicate: P,
         or: P...,
         and: any Predicate...,
         file: String = #file,
@@ -160,6 +229,25 @@ public extension ExpandedSyntaxBuilder {
     
     func matching<P: Predicate>(
         _ predicate: P,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> Internal.MWTASentence {
+        Matching(predicate, file: file, line: line).callAsFunction(block)
+    }
+    
+    func matching<P: Predicate>(
+        _ predicate: P,
+        or: P...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> Internal.MWTASentence {
+        Matching(predicate, or: or, and: [], file: file, line: line).callAsFunction(block)
+    }
+    
+    func matching<P: Predicate>(
+        _ predicate: P,
         or: P...,
         and: any Predicate...,
         file: String = #file,
@@ -180,6 +268,25 @@ public extension ExpandedSyntaxBuilder {
     
     func matching<P: Predicate>(
         _ predicate: P,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWABuilder _ block: () -> [MWA]
+    ) -> Internal.MWASentence {
+        Matching(predicate, file: file, line: line).callAsFunction(block)
+    }
+    
+    func matching<P: Predicate>(
+        _ predicate: P,
+        or: P...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWABuilder _ block: () -> [MWA]
+    ) -> Internal.MWASentence {
+        Matching(predicate, or: or, and: [], file: file, line: line).callAsFunction(block)
+    }
+    
+    func matching<P: Predicate>(
+        _ predicate: P,
         or: P...,
         and: any Predicate...,
         file: String = #file,
@@ -196,6 +303,25 @@ public extension ExpandedSyntaxBuilder {
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
         Condition(condition, file: file, line: line).callAsFunction(block)
+    }
+    
+    func matching<P: Predicate>(
+        _ predicate: P,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> [MTA]
+    ) -> Internal.MTASentence {
+        Matching(predicate, file: file, line: line).callAsFunction(block)
+    }
+    
+    func matching<P: Predicate>(
+        _ predicate: P,
+        or: P...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> [MTA]
+    ) -> Internal.MTASentence {
+        Matching(predicate, or: or, and: [], file: file, line: line).callAsFunction(block)
     }
     
     func matching<P: Predicate>(

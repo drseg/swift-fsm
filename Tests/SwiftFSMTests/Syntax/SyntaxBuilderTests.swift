@@ -91,25 +91,30 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertWhen(
         _ w: When,
+        events: [Int] = [1, 2],
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
         XCTAssertTrue(w.node.rest.isEmpty, file: xf, line: xl)
-        assertWhenNode(w.node, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
+        assertWhenNode(w.node, events: events, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
     }
     
     func assertWhenNode(
         _ node: WhenNodeBase,
+        events: [Int] = [1, 2],
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
-        XCTAssertEqual([1, 2], node.events.map(\.base), file: xf, line: xl)
-        XCTAssertEqual([sf, sf], node.events.map(\.file), file: xf, line: xl)
-        XCTAssertEqual([sl, sl], node.events.map(\.line), file: xf, line: xl)
+        let files = [String](repeating: sf, count: events.count)
+        let lines = [Int](repeating: sl, count: events.count)
+        
+        XCTAssertEqual(events, node.events.map(\.base), file: xf, line: xl)
+        XCTAssertEqual(files, node.events.map(\.file), file: xf, line: xl)
+        XCTAssertEqual(lines, node.events.map(\.line), file: xf, line: xl)
         
         if let node = node as? any NeverEmptyNode {
             assertNeverEmptyNode(node,

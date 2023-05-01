@@ -53,9 +53,13 @@ final class ComponentTests: SyntaxTestsBase {
     func testWhen() {
         let w1 = when(1, or: 2); let l1 = #line
         let w2 = When(1, or: 2); let l2 = #line
+        let w3 = when(1); let l3 = #line
+        let w4 = When(1); let l4 = #line
         
         assertWhen(w1, sutLine: l1)
         assertWhen(w2, sutLine: l2)
+        assertWhen(w3, events: [1], sutLine: l3)
+        assertWhen(w4, events: [1], sutLine: l4)
     }
     
     func testThen() {
