@@ -3,10 +3,10 @@ import XCTest
 @testable import SwiftFSM
 
 class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder {
-    typealias StateType = State
+    typealias State = State
     typealias EventType = Event
     
-    var fsm: _FSMBase<StateType, EventType>!
+    var fsm: _FSMBase<State, EventType>!
     
     override func setUp() {
         fsm = makeSUT(initialState: initialState)
@@ -123,7 +123,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
     func assertHandleEvent(
         _ event: EventType,
         predicates: any Predicate...,
-        state: StateType,
+        state: State,
         output: String,
         line: UInt = #line
     ) {

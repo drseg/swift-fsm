@@ -110,17 +110,17 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         assertEventAction(.pass,  "")
         assertEventAction(.reset,  "")
 
-        fsm.state = AnyHashable(StateType.unlocked)
+        fsm.state = AnyHashable(State.unlocked)
         
         assertEventAction(.coin,  "")
         assertEventAction(.pass,  "")
         assertEventAction(.reset,  "")
         
-        fsm.state = AnyHashable(StateType.alarming)
+        fsm.state = AnyHashable(State.alarming)
         
         assertEventAction(.reset,  "")
 
-        fsm.state = AnyHashable(StateType.locked)
+        fsm.state = AnyHashable(State.locked)
         bool = true
         
         assertTurnstile()
@@ -155,10 +155,10 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         
         assertEventAction(.reset, "thankyou")
         
-        fsm.state = AnyHashable(StateType.unlocked)
+        fsm.state = AnyHashable(State.unlocked)
         assertEventAction(.reset, ["lock", "lock"])
         
-        fsm.state = AnyHashable(StateType.alarming)
+        fsm.state = AnyHashable(State.alarming)
         assertEventAction(.reset, ["alarmOff", "lock"])
     }
     
@@ -277,35 +277,35 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     }
     
     func testTypealiasSyntaxTurnstile() throws {
-        typealias State = Syntax.Define<StateType>
-        typealias Event = Syntax.When<EventType>
-        typealias NextState = Syntax.Then<StateType>
+        typealias S = Syntax.Define<State>
+        typealias E = Syntax.When<EventType>
+        typealias NS = Syntax.Then<State>
         typealias If = Syntax.Expanded.Matching
         
         try fsm.buildTable {
             let resetable = SuperState {
-                Event(.reset) | NextState(.locked)
+                E(.reset) | NS(.locked)
             }
             
-            State(.locked, adopts: resetable, onEntry: [lock]) {
-                Event(.pass) {
-                    If(Enforcement.weak)   | NextState(.locked)
-                    If(Enforcement.strong) | NextState(.alarming)
+            S(.locked, adopts: resetable, onEntry: [lock]) {
+                E(.pass) {
+                    If(Enforcement.weak)   | NS(.locked)
+                    If(Enforcement.strong) | NS(.alarming)
                 }
                 
-                Event(.coin) | NextState(.unlocked)
+                E(.coin) | NS(.unlocked)
             }
             
-            State(.unlocked, adopts: resetable, onEntry: [unlock]) {
-                NextState(.unlocked) {
-                    If(Reward.rewarding) | Event(.coin) | thankyou
-                    If(Reward.punishing) | Event(.coin) | idiot
+            S(.unlocked, adopts: resetable, onEntry: [unlock]) {
+                NS(.unlocked) {
+                    If(Reward.rewarding) | E(.coin) | thankyou
+                    If(Reward.punishing) | E(.coin) | idiot
                 }
                 
-                Event(.pass) | NextState(.locked)
+                E(.pass) | NS(.locked)
             }
             
-            State(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            S(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
         }
         
         assertTable()
@@ -495,23 +495,23 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             
             XCTAssert(
                 duplicates.allSatisfy {
-                    $0.state.isEqual(AnyTraceable(StateType.locked, file: #file, line: 1)) &&
+                    $0.state.isEqual(AnyTraceable(State.locked, file: #file, line: 1)) &&
                     $0.match.isEqual(Match(all: P.a, file: #file, line: 2)) &&
                     $0.event.isEqual(AnyTraceable(EventType.coin, file: #file, line: 3)) &&
-                    $0.nextState.isEqual(AnyTraceable(StateType.unlocked, file: #file, line: 4))
+                    $0.nextState.isEqual(AnyTraceable(State.unlocked, file: #file, line: 4))
                 }, "\(duplicates)"
             )
             
             XCTAssert(
                 clashes.allSatisfy {
-                    $0.state.isEqual(AnyTraceable(StateType.locked, file: #file, line: 1)) &&
+                    $0.state.isEqual(AnyTraceable(State.locked, file: #file, line: 1)) &&
                     $0.match.isEqual(Match(all: P.a, file: #file, line: 2)) &&
                     $0.event.isEqual(AnyTraceable(EventType.coin, file: #file, line: 3))
                 }, "\(clashes)"
             )
             
-            XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(StateType.locked) })
-            XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(StateType.unlocked) })
+            XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(State.locked) })
+            XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(State.unlocked) })
         }
     }
     
@@ -540,19 +540,19 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssertEqual(2, clash?.count)
             
             XCTAssert(clash?.contains {
-                $0.state.isEqual(AnyTraceable(StateType.locked, file: "1", line: 1)) &&
+                $0.state.isEqual(AnyTraceable(State.locked, file: "1", line: 1)) &&
                 $0.event.isEqual(AnyTraceable(EventType.coin, file: "1", line: 1)) &&
                 $0.match.isEqual(Match(all: P.a, file: "1", line: 1))
             } ?? false, "\(String(describing: clash))")
             
             XCTAssert(clash?.contains {
-                $0.state.isEqual(AnyTraceable(StateType.locked, file: "1", line: 1)) &&
+                $0.state.isEqual(AnyTraceable(State.locked, file: "1", line: 1)) &&
                 $0.event.isEqual(AnyTraceable(EventType.coin, file: "2", line: 2)) &&
                 $0.match.isEqual(Match(all: Q.a, file: "2", line: 2))
             } ?? false, "\(String(describing: clash))")
             
-            XCTAssertEqual(AnyHashable(StateType.unlocked), clash?.first?.nextState.base)
-            XCTAssertEqual(AnyHashable(StateType.locked), clash?.last?.nextState.base)
+            XCTAssertEqual(AnyHashable(State.unlocked), clash?.first?.nextState.base)
+            XCTAssertEqual(AnyHashable(State.locked), clash?.last?.nextState.base)
         }
     }
     
