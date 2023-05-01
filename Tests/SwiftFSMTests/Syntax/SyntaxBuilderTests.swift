@@ -91,13 +91,14 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertWhen(
         _ w: When,
+        events: [Int] = [1, 2],
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
         XCTAssertTrue(w.node.rest.isEmpty, file: xf, line: xl)
-        assertWhenNode(w.node, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
+        assertWhenNode(w.node, events: events, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
     }
     
     func assertWhenNode(
