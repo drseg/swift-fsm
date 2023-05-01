@@ -1,7 +1,7 @@
 # Swift FSM
 **Friendly Finite State Machine Syntax for Swift, iOS and macOS**
 
-Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is pure Swift DSL for declaring and operating a Finite State Machine (FSM).
+Inspired by [Uncle Bob's SMC][1] syntax, Swift FSM is a pure Swift DSL for declaring and operating a Finite State Machine (FSM).
 
 This guide presumes some familiarity with FSMs and specifically the SMC syntax linked above. Swift FSM makes liberal use of [`@resultBuilder`][2] blocks,  [operator overloads][3],  [`callAsFunction()`][4], and [trailing closures][5], all in combination with one another - familiarity with these concepts will also be helpful.
 
