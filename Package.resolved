@@ -1,32 +1,34 @@
 {
-  "pins" : [
-    {
-      "identity" : "reflective-equality",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/drseg/reflective-equality",
-      "state" : {
-        "revision" : "71996499073130405faccba12a610979ad125178",
-        "version" : "1.0.0"
+  "object": {
+    "pins": [
+      {
+        "package": "reflective-equality",
+        "repositoryURL": "https://github.com/drseg/reflective-equality",
+        "state": {
+          "branch": null,
+          "revision": "06dfc83a341d05777144602116f047c2f0191763",
+          "version": "1.0.1"
+        }
+      },
+      {
+        "package": "swift-algorithms",
+        "repositoryURL": "https://github.com/apple/swift-algorithms",
+        "state": {
+          "branch": null,
+          "revision": "b14b7f4c528c942f121c8b860b9410b2bf57825e",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "package": "swift-numerics",
+        "repositoryURL": "https://github.com/apple/swift-numerics",
+        "state": {
+          "branch": null,
+          "revision": "0a5bc04095a675662cf24757cc0640aa2204253b",
+          "version": "1.0.2"
+        }
       }
-    },
-    {
-      "identity" : "swift-algorithms",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-algorithms",
-      "state" : {
-        "revision" : "b14b7f4c528c942f121c8b860b9410b2bf57825e",
-        "version" : "1.0.0"
-      }
-    },
-    {
-      "identity" : "swift-numerics",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-numerics",
-      "state" : {
-        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
-        "version" : "1.0.2"
-      }
-    }
-  ],
-  "version" : 2
+    ]
+  },
+  "version": 1
 }

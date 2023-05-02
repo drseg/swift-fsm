@@ -7,7 +7,9 @@ let package = Package(
     name: "swift-fsm",
     platforms: [
         .macOS(.v10_13),
-        .iOS(.v11)
+        .iOS(.v11),
+        .tvOS(.v11),
+        .watchOS(.v4),
     ],
     products: [
         .library(
