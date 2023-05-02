@@ -42,11 +42,11 @@ final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
 }
 
 class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
-    func assertEventAction(_ e: EventType, _ a: String, line: UInt = #line) {
+    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
         assertEventAction(e, a.isEmpty ? [] : [a], line: line)
     }
     
-    func assertEventAction(_ e: EventType, _ a: [String], line: UInt = #line) {
+    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
         actual += a
         fsm.handleEvent(e)
         XCTAssertEqual(actions, actual, line: line)
@@ -195,11 +195,11 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     
     func idiot() { actions.append("idiot") }
     
-    func assertEventAction(_ e: EventType, _ a: String, line: UInt = #line) {
+    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
         assertEventAction(e, [a], line: line)
     }
     
-    func assertEventAction(_ e: EventType, _ a: [String], line: UInt = #line) {
+    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
         if !(a.first?.isEmpty ?? false) {
             actual += a
         }
@@ -278,7 +278,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     
     func testTypealiasSyntaxTurnstile() throws {
         typealias S = Syntax.Define<State>
-        typealias E = Syntax.When<EventType>
+        typealias E = Syntax.When<Event>
         typealias NS = Syntax.Then<State>
         typealias If = Syntax.Expanded.Matching
         
@@ -497,7 +497,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
                 duplicates.allSatisfy {
                     $0.state.isEqual(AnyTraceable(State.locked, file: #file, line: 1)) &&
                     $0.match.isEqual(Match(all: P.a, file: #file, line: 2)) &&
-                    $0.event.isEqual(AnyTraceable(EventType.coin, file: #file, line: 3)) &&
+                    $0.event.isEqual(AnyTraceable(Event.coin, file: #file, line: 3)) &&
                     $0.nextState.isEqual(AnyTraceable(State.unlocked, file: #file, line: 4))
                 }, "\(duplicates)"
             )
@@ -506,7 +506,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
                 clashes.allSatisfy {
                     $0.state.isEqual(AnyTraceable(State.locked, file: #file, line: 1)) &&
                     $0.match.isEqual(Match(all: P.a, file: #file, line: 2)) &&
-                    $0.event.isEqual(AnyTraceable(EventType.coin, file: #file, line: 3))
+                    $0.event.isEqual(AnyTraceable(Event.coin, file: #file, line: 3))
                 }, "\(clashes)"
             )
             
@@ -541,13 +541,13 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             
             XCTAssert(clash?.contains {
                 $0.state.isEqual(AnyTraceable(State.locked, file: "1", line: 1)) &&
-                $0.event.isEqual(AnyTraceable(EventType.coin, file: "1", line: 1)) &&
+                $0.event.isEqual(AnyTraceable(Event.coin, file: "1", line: 1)) &&
                 $0.match.isEqual(Match(all: P.a, file: "1", line: 1))
             } ?? false, "\(String(describing: clash))")
             
             XCTAssert(clash?.contains {
                 $0.state.isEqual(AnyTraceable(State.locked, file: "1", line: 1)) &&
-                $0.event.isEqual(AnyTraceable(EventType.coin, file: "2", line: 2)) &&
+                $0.event.isEqual(AnyTraceable(Event.coin, file: "2", line: 2)) &&
                 $0.match.isEqual(Match(all: Q.a, file: "2", line: 2))
             } ?? false, "\(String(describing: clash))")
             
