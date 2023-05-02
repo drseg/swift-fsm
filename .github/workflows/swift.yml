@@ -5,7 +5,7 @@ name: Swift
 
 on:
   push:
-    branches: [ "master", "backport" ]
+    branches: [ "master", "backport", "develop" ]
   pull_request:
     branches: [ "master" ]
 
@@ -19,7 +19,7 @@ jobs:
     - name: Build
       run: swift build -v
     - name: Run tests
-      run: swift test -v --enable-code-coverage
+      run: swift test -v --parallel --enable-code-coverage --xunit-output results.xml
     - name: Gather code coverage
       run: xcrun llvm-cov export -format="lcov" .build/debug/Swift-fsmPackageTests.xctest/Contents/MacOS/Swift-fsmPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
     - name: Upload coverage to Codecov
@@ -29,3 +29,10 @@ jobs:
           fail_ci_if_error: true
           files: ./coverage_report.lcov
           verbose: true
+          
+    - uses: testspace-com/setup-testspace@v1
+      with:
+          domain: ${{github.repository_owner}}
+
+    - name: Publish Results to Testspace
+      run: testspace results.xml
