@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/drseg/reflective-equality",
       "state" : {
-        "revision" : "71996499073130405faccba12a610979ad125178",
-        "version" : "1.0.0"
+        "revision" : "06dfc83a341d05777144602116f047c2f0191763",
+        "version" : "1.0.1"
       }
     },
     {

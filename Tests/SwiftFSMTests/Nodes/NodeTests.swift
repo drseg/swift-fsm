@@ -33,11 +33,11 @@ class NodeTests: XCTestCase {
                        expected?.1.map(\.localizedDescription), line: line)
     }
     
-    @available(macOS 13, iOS 16, *)
+    @available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
     class SafeStringNode: GenericNode<any Node<String>, String>, Node { }
     class UnsafeStringNode: GenericNode<UnsafeNode, String>, UnsafeNode, Nameable { }
     
-    @available(macOS 13, iOS 16, *)
+    @available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
     func testSafeNodesCallCombineWithRestRecursively() {
         let n0 = SafeStringNode(first: "Then1", rest: [])
         let n1 = SafeStringNode(first: "Then2", rest: [])

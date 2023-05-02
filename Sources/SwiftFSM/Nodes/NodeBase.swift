@@ -44,7 +44,7 @@ protocol UnsafeNode: NodeBase {
     var rest: [any UnsafeNode] { get set }
 }
 
-@available(macOS 13, iOS 16, *)
+@available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
 protocol Node<Output>: NodeBase {
     var rest: [any Node<Input>] { get set }
 }
@@ -53,7 +53,7 @@ extension UnsafeNode {
     var _rest: [any NodeBase] { rest }
 }
 
-@available(macOS 13, iOS 16, *)
+@available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
 extension Node {
     var _rest: [any NodeBase] { rest }
 }
