@@ -8,7 +8,7 @@ open class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
         super.init(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
-    override func makeMRN(rest: [any UnsafeNode]) -> MRNBase {
+    override func makeMRN(rest: [any UnsafeNode]) -> any MRNProtocol {
         EagerMatchResolvingNode(rest: rest)
     }
     

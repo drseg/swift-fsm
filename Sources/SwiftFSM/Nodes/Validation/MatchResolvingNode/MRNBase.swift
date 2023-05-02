@@ -1,6 +1,10 @@
 import Foundation
 
-class MRNBase: UnsafeNode {
+protocol MRNProtocol: UnsafeNode {
+    func finalised() -> (output: [Transition], errors: [Error])
+}
+
+class MRNBase {
     var rest: [any UnsafeNode]
     var errors: [Error] = []
     
@@ -10,9 +14,5 @@ class MRNBase: UnsafeNode {
     
     func validate() -> [Error] {
         errors
-    }
-    
-    func combinedWithRest(_ rest: [IntermediateIO]) -> [Transition] {
-        fatalError("subclasses must implement")
     }
 }

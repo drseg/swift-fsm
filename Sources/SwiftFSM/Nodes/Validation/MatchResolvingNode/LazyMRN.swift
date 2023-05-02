@@ -1,7 +1,7 @@
 import Foundation
 
-final class LazyMatchResolvingNode: MRNBase {
-    override func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
+final class LazyMatchResolvingNode: MRNBase, MRNProtocol {
+    func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
         do {
             return try rest.reduce(into: []) { result, input in
                 func appendTransition(predicates: PredicateSet) throws {
