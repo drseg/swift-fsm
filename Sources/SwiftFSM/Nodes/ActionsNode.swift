@@ -3,7 +3,7 @@ import Foundation
 class ActionsNodeBase: OverridableNode {
     let actions: [Action]
     var rest: [any Node<DefaultIO>]
-    
+
     init(
         actions: [Action] = [],
         rest: [any Node<DefaultIO>] = [],
@@ -14,7 +14,7 @@ class ActionsNodeBase: OverridableNode {
         self.rest = rest
         super.init(groupID: groupID, isOverride: isOverride)
     }
-    
+
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: []) {
             $0.append(DefaultIO($1.match,
@@ -37,7 +37,7 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
     let caller: String
     let file: String
     let line: Int
-    
+
     init(
         actions: [Action],
         rest: [any Node<Input>],
@@ -50,13 +50,13 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
         self.caller = caller
         self.file = file
         self.line = line
-        
+
         super.init(actions: actions,
                    rest: rest,
                    groupID: groupID,
                    isOverride: isOverride)
     }
-    
+
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest)
     }

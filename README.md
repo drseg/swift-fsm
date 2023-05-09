@@ -36,7 +36,7 @@ This guide presumes some familiarity with FSMs and specifically the SMC syntax l
 
 Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13, iOS 16, tvOS 16 and watchOS 9, alongside Swift 5.7 or later. If you need support for older platforms, please check out the [backport][29] branch.
 
-It has two dependencies - Apple’s [Algorithms][30], and ([in one small corner][31]) my own [Reflective Equality][32]
+It has two dependencies - Apple’s [Algorithms][30], and ([in one small corner][31]) my own [Reflective Equality][32].
 
 ## Basic Syntax
 
@@ -478,7 +478,7 @@ This policy is configurable, by passing `.executeAlways` as the second argument 
 FSM<State, Event>(initialState: .locked, actionsPolicy: .executeAlways)
 ```
 
-This setting replicates SMC entry/exit action behaviour. The default is `.executeOnStateChangeOnly` and is not a required argument.
+This setting replicates SMC entry/exit action behaviour. The default is `.executeOnChangeOnly` and is not a required argument.
 
 ### Syntax Order
 
@@ -1046,7 +1046,7 @@ then(state) {
 }
 
 actions(functionCalls) { 
-   // everything in scope calls 'functionCalls'
+    // everything in scope calls 'functionCalls'
 }
 ```
 

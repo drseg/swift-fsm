@@ -3,7 +3,7 @@ import Foundation
 struct SwiftFSMError: LocalizedError, CustomStringConvertible {
     let errors: [Error]
     var description: String { localizedDescription }
-    
+
     public var errorDescription: String? {
         String {
             ""
@@ -22,7 +22,7 @@ class MatchError: Error {
     let predicates: [AnyPredicate]
     let files: [String]
     let lines: [Int]
-    
+
     required init<C: Collection>(
         predicates: C,
         files: [String],
@@ -32,13 +32,13 @@ class MatchError: Error {
         self.files = files
         self.lines = lines
     }
-    
+
     func append(files: [String], lines: [Int]) -> Self {
         .init(predicates: predicates,
               files: self.files + files,
               lines: self.lines + lines)
     }
-    
+
     func duplicates(_ keypath: KeyPath<AnyPredicate, String>) -> String {
         let strings = predicates.map { $0[keyPath: keypath] }
         return Set(strings.filter { s in strings.filter { s == $0 }.count > 1 })
@@ -47,20 +47,20 @@ class MatchError: Error {
             .sorted()
             .joined(separator: ", ")
     }
-    
+
     func predicatesString(separator: String) -> String {
         predicates
             .map(\.description)
             .sorted()
             .joined(separator: separator)
     }
-    
+
     var filesAndLines: String {
         zip(files, lines).reduce([]) {
             $0 + [("file \($1.0.name), line \($1.1)")]
         }.joined(separator: "\n")
     }
-    
+
     var duplicatesList: String {
         String {
             if files.count > 1 {
@@ -78,15 +78,15 @@ class DuplicateMatchTypes: MatchError, LocalizedError {
         String {
             let dupes = duplicates(\.type)
             let predicates = predicatesString(separator: " AND ")
-            
+
             let typesAppear = dupes.count > 1
             ? "types \(dupes) appear"
             : "type \(dupes) appears"
-            
+
             "'matching(\(predicates))' is ambiguous - \(typesAppear) multiple times"
         }
     }
-    
+
     public var errorDescription: String? {
         String {
             firstLine
@@ -110,7 +110,7 @@ class ConflictingAnyTypes: MatchError, LocalizedError {
     var errorDescription: String? {
         String {
             let predicates = predicatesString(separator: " OR ")
-            
+
             "'matching(\(predicates))' is ambiguous - 'OR' values must be the same type"
             "This combination was found in a 'matching' statement at \(filesAndLines)"
         }
@@ -136,13 +136,13 @@ struct EmptyBuilderError: LocalizedError, Equatable {
     let caller: String
     let file: String
     let line: Int
-    
+
     init(caller: String = #function, file: String, line: Int) {
         self.caller = String(caller.prefix { $0 != "(" })
         self.file = file
         self.line = line
     }
-    
+
     public var errorDescription: String? {
         "Empty @resultBuilder block passed to '\(caller)' in \(file.name) at line \(line)"
     }
@@ -170,7 +170,7 @@ struct NSObjectError: LocalizedError {
 struct TableAlreadyBuiltError: LocalizedError {
     let file: String
     let line: Int
-    
+
     var errorDescription: String? {
         "Duplicate call to method buildTable in file \(file.name) at line \(line)"
     }
@@ -191,7 +191,7 @@ extension ValidationError {
             }
         }
     }
-    
+
     func eachGroupDescription<K: Hashable, V: Collection>(
         _ header: String,
         _ group: (K, V),
@@ -238,7 +238,7 @@ extension SemanticValidationNode.OverrideError {
             let matching = override.match.errorDescription
             let when = override.event.whenDescription
             let then = override.nextState.thenDescription
-            
+
             define + " {"
             "   override {"
             "       " + matching
@@ -288,7 +288,7 @@ extension EagerMatchResolvingNode.ImplicitClashesError: ValidationError {
                 let predicates = clashGroup.key.predicates.reduce([]) {
                     $0 + [$1.description]
                 }.sorted().joined(separator: " AND ")
-                
+
                 ""
                 "Multiple clashing statements imply the same predicates (\(predicates))"
                 ""
@@ -307,26 +307,26 @@ extension Match {
     var asArray: [Match] {
         [originalSelf?.removingNext ?? removingNext] + (next?.asArray ?? [])
     }
-    
+
     var removingNext: Match {
         Match(any: matchAny, all: matchAll, file: file, line: line)
     }
-    
+
     var errorDescription: String {
         guard condition == nil else {
             return "condition(() -> Bool) @\(file.name): \(line)"
         }
-        
+
         let or = matchAny.reduce([String]()) { result, predicates in
             let firstPredicateString = predicates.first!.description
-            
+
             return result + [predicates.dropFirst().reduce(firstPredicateString) {
                 "(\($0) OR \($1))"
             }]
         }.joined(separator: " AND ")
-        
+
         let and = matchAll.map(\.description).joined(separator: " AND ")
-        
+
         var summary: String
         switch (matchAll.isEmpty, matchAny.isEmpty) {
         case (true, true): summary = ""
@@ -334,12 +334,12 @@ extension Match {
         case (false, true): summary = "matching(\(and))"
         case (false, false): summary = "matching(\(or) AND \(and))"
         }
-        
+
         let components = asArray
         guard components.count > 1 else {
             return summary + (summary.isEmpty ? "matching()" : " @\(file.name): \(line)")
         }
-        
+
         return String {
             summary
             "  formed by combining:"
@@ -352,11 +352,11 @@ extension AnyTraceable {
     var fileAndLine: String {
         "@\(file.name): \(line)"
     }
-    
+
     var defineDescription: String { description("define") }
-    var whenDescription:   String { description("when")   }
-    var thenDescription:   String { description("then")   }
-    
+    var whenDescription: String { description("when")   }
+    var thenDescription: String { description("then")   }
+
     func description(_ prefix: String) -> String {
         prefix + "(\(base)) " + fileAndLine
     }

@@ -7,29 +7,29 @@ extension Conditional {
     var file: String { this.file }
     var line: Int { this.line }
     var name: String { this.name }
-    
+
     var this: _Conditional { self as! _Conditional }
-    
-    public static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
+
+    public static func | <E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
         .init(node: rhs.node.appending(lhs.node))
     }
-    
-    public static func |<E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
+
+    public static func | <E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
-    
-    public static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
+
+    public static func | <S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
         .init(node: rhs.node.appending(lhs.node))
     }
-    
-    public static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
+
+    public static func | <S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
-    
+
     public static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingActions {
         return .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
     }
-    
+
     var blockNode: MatchBlockNode {
         MatchBlockNode(match: node.match,
                        rest: node.rest,
@@ -37,19 +37,19 @@ extension Conditional {
                        file: file,
                        line: line)
     }
-    
+
     public func callAsFunction(
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
         .init(blockNode, block)
     }
-    
+
     public func callAsFunction(
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
         .init(blockNode, block)
     }
-    
+
     public func callAsFunction(
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
@@ -69,9 +69,9 @@ public extension Syntax.Expanded {
         let node: MatchNode
         let file: String
         let line: Int
-        
+
         var name: String { "condition" }
-        
+
         public init(
             _ condition: @escaping () -> Bool,
             file: String = #file,
@@ -85,14 +85,14 @@ public extension Syntax.Expanded {
             self.line = line
         }
     }
-    
+
     struct Matching: _Conditional {
         let node: MatchNode
         let file: String
         let line: Int
-        
+
         var name: String { "matching" }
-        
+
         public init<P: Predicate>(
             _ predicate: P,
             file: String = #file,
@@ -100,7 +100,7 @@ public extension Syntax.Expanded {
         ) {
             self.init(predicate, or: [], and: [], file: file, line: line)
         }
-        
+
         public init<P: Predicate>(
             _ predicate: P,
             or: P...,
@@ -109,7 +109,7 @@ public extension Syntax.Expanded {
         ) {
             self.init(predicate, or: or, and: [], file: file, line: line)
         }
-        
+
         public init<P: Predicate>(
             _ predicate: P,
             and: any Predicate...,
@@ -118,7 +118,7 @@ public extension Syntax.Expanded {
         ) {
             self.init(predicate, or: [], and: and, file: file, line: line)
         }
-        
+
         public init<P: Predicate>(
             _ predicate: P,
             or: P...,
@@ -128,7 +128,7 @@ public extension Syntax.Expanded {
         ) {
             self.init(predicate, or: or, and: and, file: file, line: line)
         }
-        
+
         public init<P: Predicate>(
             _ predicate: P,
             or: [P],
@@ -142,7 +142,7 @@ public extension Syntax.Expanded {
                 self.init(any: [predicate] + or, all: and, file: file, line: line)
             }
         }
-        
+
         private init(
             any: [any Predicate],
             all: [any Predicate],
@@ -153,7 +153,7 @@ public extension Syntax.Expanded {
                               all: all.erased(),
                               file: file,
                               line: line)
-            
+
             self.node = MatchNode(match: match, rest: [])
             self.file = file
             self.line = line

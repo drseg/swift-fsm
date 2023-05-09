@@ -6,62 +6,62 @@ public enum Syntax {
 
 public enum Internal {
     public struct MatchingWhen {
-        public static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThen {
+        public static func | <S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThen {
             .init(node: rhs.node.appending(lhs.node))
         }
-        
+
         public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
-        
-        public static func |<S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThenActions {
+
+        public static func | <S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
-        
+
         let node: WhenNode
     }
-    
+
     public struct MatchingThen {
         public static func | (lhs: Self, rhs: @escaping Action) -> MatchingThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
-        
+
         let node: ThenNode
     }
-    
+
     public final class MatchingActions: MA { }
     public final class MatchingWhenActions: MWA { }
     public final class MatchingThenActions: MTA { }
-    
+
     public struct MatchingWhenThen {
         public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenThenActions {
             .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
         }
-        
+
         let node: ThenNode
     }
-    
+
     public final class MatchingWhenThenActions: MWTA { }
-    
+
     public final class MWTASentence: MWTA, BlockSentence { }
-    public final class MWASentence:  MWA, BlockSentence  { }
-    public final class MTASentence:  MTA, BlockSentence  { }
-    
+    public final class MWASentence: MWA, BlockSentence { }
+    public final class MTASentence: MTA, BlockSentence { }
+
     @resultBuilder
     public struct MWTABuilder: ResultBuilder {
         public typealias T = MWTA
     }
-    
+
     @resultBuilder
     public struct MWABuilder: ResultBuilder {
         public typealias T = MWA
     }
-    
+
     @resultBuilder
     public struct MTABuilder: ResultBuilder {
         public typealias T = MTA
     }
-    
+
     @resultBuilder
     public struct MABuilder: ResultBuilder {
         public typealias T = MA
@@ -79,7 +79,7 @@ extension BlockSentence {
         n.rest = block().nodes
         self.init(node: n)
     }
-    
+
     init(
         _ actions: [Action],
         file: String = #file,
@@ -96,7 +96,7 @@ extension BlockSentence {
 
 public class Sentence {
     let node: any Node<DefaultIO>
-    
+
     init(node: any Node<DefaultIO>) {
         self.node = node
     }
@@ -117,6 +117,6 @@ extension Node {
 
 extension Array {
     var nodes: [any Node<DefaultIO>] {
-        map { ($0 as! Sentence).node }
+        compactMap { ($0 as? Sentence)?.node }
     }
 }

@@ -3,7 +3,7 @@ import Foundation
 class ThenNodeBase: OverridableNode {
     let state: AnyTraceable?
     var rest: [any Node<DefaultIO>]
-    
+
     init(
         state: AnyTraceable?,
         rest: [any Node<DefaultIO>] = [],
@@ -14,7 +14,7 @@ class ThenNodeBase: OverridableNode {
         self.rest = rest
         super.init(groupID: groupID, isOverride: isOverride)
     }
-    
+
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: []) {
             $0.append(DefaultIO($1.match,
@@ -37,7 +37,7 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
     let caller: String
     let file: String
     let line: Int
-    
+
     init(
         state: AnyTraceable?,
         rest: [any Node<Input>],
@@ -50,13 +50,13 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
         self.caller = caller
         self.file = file
         self.line = line
-        
+
         super.init(state: state,
                    rest: rest,
                    groupID: groupID,
                    isOverride: isOverride)
     }
-    
+
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest)
     }

@@ -3,32 +3,32 @@ import Foundation
 protocol NodeBase {
     associatedtype Input
     associatedtype Output
-    
+
     typealias Result = (output: [Output], errors: [Error])
-    
+
     func finalised() -> Result
     func combinedWithRest(_ rest: [Input]) -> [Output]
     func validate() -> [Error]
-    
+
     var _rest: [any NodeBase] { get }
 }
 
 extension NodeBase {
     func finalised() -> Result {
         var output = [Input](), errors = [Error]()
-        
+
         _rest.forEach {
-            if let finalised = $0.finalised() as? ([Input], [Error])  {
+            if let finalised = $0.finalised() as? ([Input], [Error]) {
                 output.append(contentsOf: finalised.0)
                 errors.append(contentsOf: finalised.1)
             } else {
                 errors.append(errorMessage($0))
             }
         }
-        
+
         return (combinedWithRest(output), validate() + errors)
     }
-    
+
     func errorMessage(_ n: any NodeBase) -> String {
         """
         Error: \(type(of: n.finalised().0)) must equal Array<\(Input.self)>
@@ -36,7 +36,7 @@ extension NodeBase {
             Rest: \(_rest.isEmpty ? "nil" : String(describing: type(of: _rest.first!)))
         """
     }
-    
+
     func validate() -> [Error] { [] }
 }
 
@@ -61,5 +61,3 @@ extension Node {
 extension String: LocalizedError {
     public var errorDescription: String? { self }
 }
-
-

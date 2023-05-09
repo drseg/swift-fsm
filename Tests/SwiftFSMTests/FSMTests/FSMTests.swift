@@ -15,7 +15,7 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     
     func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
+        actionsPolicy: _FSMBase<State, Event>.StateActionsPolicy = .executeOnChangeOnly
     ) -> _FSMBase<State, Event> {
         fatalError("subclasses must implement")
     }
@@ -24,7 +24,7 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
 class LazyFSMTests: FSMTests {
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
+        actionsPolicy: _FSMBase<State, Event>.StateActionsPolicy = .executeOnChangeOnly
     ) -> _FSMBase<State, Event> {
         LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
@@ -47,7 +47,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
     
     override func makeSUT<State: Hashable, Event: Hashable>(
         initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
+        actionsPolicy: _FSMBase<State, Event>.StateActionsPolicy = .executeOnChangeOnly
     ) -> _FSMBase<State, Event> {
         FSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }

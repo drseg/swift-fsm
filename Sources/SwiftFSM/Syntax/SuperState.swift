@@ -13,7 +13,7 @@ public struct SuperState {
     ) {
         self.init(superStates: [superState] + andSuperStates, onEntry: onEntry, onExit: onExit)
     }
-    
+
     public init(
         adopts superStates: SuperState...,
         onEntry: [Action] = [],
@@ -25,7 +25,7 @@ public struct SuperState {
                   onEntry: onEntry,
                   onExit: onExit)
     }
-    
+
     private init(
         nodes: [any Node<DefaultIO>] = [],
         superStates: [SuperState],

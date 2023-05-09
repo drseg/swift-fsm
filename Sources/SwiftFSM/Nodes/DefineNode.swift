@@ -11,7 +11,7 @@ final class DefineNode: NeverEmptyNode {
             onExit: [Action],
             groupID: UUID,
             isOverride: Bool
-        
+
         init(_ state: AnyTraceable,
              _ match: Match,
              _ event: AnyTraceable,
@@ -33,17 +33,17 @@ final class DefineNode: NeverEmptyNode {
             self.isOverride = isOverride
         }
     }
-    
+
     let onEntry: [Action]
     let onExit: [Action]
     var rest: [any Node<GivenNode.Output>] = []
-    
+
     let caller: String
     let file: String
     let line: Int
-        
+
     private var errors: [Error] = []
-    
+
     init(
         onEntry: [Action],
         onExit: [Action],
@@ -59,7 +59,7 @@ final class DefineNode: NeverEmptyNode {
         self.file = file
         self.line = line
     }
-    
+
     func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         let output = rest.reduce(into: [Output]()) {
             if let match = finalise($1.match) {
@@ -76,17 +76,17 @@ final class DefineNode: NeverEmptyNode {
                 )
             }
         }
-        
+
         return errors.isEmpty ? output : []
     }
-    
+
     private func finalise(_ m: Match) -> Match? {
         switch m.finalised() {
         case .failure(let e): errors.append(e); return nil
         case .success(let m): return m
         }
     }
-    
+
     func validate() -> [Error] {
         makeError(if: rest.isEmpty) + errors
     }

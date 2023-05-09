@@ -1,7 +1,7 @@
 public extension Syntax {
     struct Override {
         public init() { }
-        
+
         public func callAsFunction(
             @Internal.MWTABuilder _ block: () -> [MWTA]
         ) -> [MWTA] {
