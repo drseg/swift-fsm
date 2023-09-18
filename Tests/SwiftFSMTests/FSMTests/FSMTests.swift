@@ -13,20 +13,20 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
         fatalError("subclasses must implement")
     }
     
-    func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> _FSMBase<State, Event> {
+    func makeSUT<_State: Hashable, _Event: Hashable>(
+        initialState: _State,
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> {
         fatalError("subclasses must implement")
     }
 }
 
 class LazyFSMTests: FSMTests {
-    override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> _FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    override func makeSUT<_State: Hashable, _Event: Hashable>(
+        initialState: _State,
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> {
+        LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
     func testHandleEventEarlyReturn() throws {
@@ -45,11 +45,11 @@ class LazyFSMTests: FSMTests {
 class FSMTests: FSMTestsBase<Int, Double> {
     override var initialState: Int { 1 }
     
-    override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> _FSMBase<State, Event> {
-        FSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    override func makeSUT<_State: Hashable, _Event: Hashable>(
+        initialState: _State,
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> {
+        FSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
     func assertThrowsError<T: Error>(

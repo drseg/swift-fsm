@@ -7,6 +7,8 @@
 import XCTest
 @testable import SwiftFSM
 
+typealias Predicate = SwiftFSM.Predicate
+
 private protocol NeverEqual { }; extension NeverEqual {
     static func == (lhs: Self, rhs: Self) -> Bool { false }
 }
@@ -15,7 +17,7 @@ private protocol AlwaysEqual { }; extension AlwaysEqual {
     static func == (lhs: Self, rhs: Self) -> Bool { true }
 }
 
-final class AnyPredicateTests: XCTestCase {
+final class PredicateTests: XCTestCase {
     enum NeverEqualPredicate: Predicate, NeverEqual   { case a }
     enum AlwaysEqualPredicate: Predicate, AlwaysEqual { case a }
     
