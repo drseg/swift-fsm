@@ -29,7 +29,7 @@ open class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
     }
 
     func makeCombinations(_ predicates: [any Predicate]) -> [[any Predicate]] {
-        return (0..<predicates.count).reversed().reduce(into: [predicates]) {
+        (0..<predicates.count).reversed().reduce(into: [predicates]) {
             $0.append(contentsOf: predicates.combinations(ofCount: $1))
         }
     }

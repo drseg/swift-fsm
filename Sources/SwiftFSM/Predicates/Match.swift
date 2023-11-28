@@ -61,18 +61,18 @@ class Match {
         let firstResult = self.validate()
         let restResult = next.finalised()
 
-        switch (firstResult, restResult) {
+        return switch (firstResult, restResult) {
         case (.success, .success(let rest)):
-            return (adding(rest)).validate().appending(file: rest.file, line: rest.line)
+            adding(rest).validate().appending(file: rest.file, line: rest.line)
 
         case (.failure, .failure(let e)):
-            return firstResult.appending(files: e.files, lines: e.lines)
+            firstResult.appending(files: e.files, lines: e.lines)
 
         case (.success, .failure):
-            return restResult
+            restResult
 
         case (.failure, .success):
-            return firstResult
+            firstResult
         }
     }
 
@@ -114,11 +114,11 @@ class Match {
 
     func adding(_ other: Match) -> Match {
         var condition: (() -> Bool)? {
-            switch (self.condition == nil, other.condition == nil) {
-            case (true, true): return nil
-            case (true, false): return other.condition!
-            case (false, true): return self.condition!
-            case (false, false): return { self.condition!() && other.condition!() }
+            return switch (self.condition == nil, other.condition == nil) {
+            case (true, true): nil
+            case (true, false): other.condition!
+            case (false, true): self.condition!
+            case (false, false): { self.condition!() && other.condition!() }
             }
         }
 
