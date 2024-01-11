@@ -2,6 +2,39 @@ import Foundation
 
 public typealias Action = () -> Void
 
+// typealias ActionWithEvent<Event: Hashable> = (Event) -> Void
+struct AnyAction {
+//    private struct NullEvent: Hashable { }
+    private let base: Any
+
+    init(action: @escaping Action) {
+        base = action
+    }
+
+//    init<Event: Hashable>(actionWithEvent: @escaping ActionWithEvent<Event>) {
+//        base = actionWithEvent
+//    }
+
+    func callAsFunction/*<Event: Hashable>*/(/*_ event: Event = NullEvent()*/) {
+        (base as! Action)()
+
+//        func noArgAction() {
+//            (base as! Action)()
+//        }
+//
+//        guard !(event is NullEvent) else {
+//            noArgAction()
+//            return
+//        }
+//
+//        if let action = base as? ActionWithEvent<Event> {
+//            action(event)
+//        } else {
+//            noArgAction()
+//        }
+    }
+}
+
 protocol NeverEmptyNode: Node {
     var caller: String { get }
     var file: String { get }
