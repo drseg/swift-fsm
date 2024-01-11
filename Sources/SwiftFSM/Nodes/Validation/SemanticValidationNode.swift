@@ -155,9 +155,10 @@ class SemanticValidationNode: Node {
                 reverseOutput.replaceSubrange(indexAfterOverride..., with: suffixFromOverride)
             }
 
-            guard !alreadyOverridden.contains(where: isOverridden) else { return }
-            alreadyOverridden.append(override)
-            handleOverrides()
+            if !alreadyOverridden.contains(where: isOverridden) {
+                alreadyOverridden.append(override)
+                handleOverrides()
+            }
         }
 
         return reverseOutput.reversed()
