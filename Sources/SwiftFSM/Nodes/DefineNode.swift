@@ -6,9 +6,9 @@ final class DefineNode: NeverEmptyNode {
             match: Match,
             event: AnyTraceable,
             nextState: AnyTraceable,
-            actions: [Action],
-            onEntry: [Action],
-            onExit: [Action],
+            actions: [AnyAction],
+            onEntry: [AnyAction],
+            onExit: [AnyAction],
             groupID: UUID,
             isOverride: Bool
 
@@ -16,9 +16,9 @@ final class DefineNode: NeverEmptyNode {
              _ match: Match,
              _ event: AnyTraceable,
              _ nextState: AnyTraceable,
-             _ actions: [Action],
-             _ onEntry: [Action],
-             _ onExit: [Action],
+             _ actions: [AnyAction],
+             _ onEntry: [AnyAction],
+             _ onExit: [AnyAction],
              _ groupID: UUID,
              _ isOverride: Bool
         ) {
@@ -34,8 +34,8 @@ final class DefineNode: NeverEmptyNode {
         }
     }
 
-    let onEntry: [Action]
-    let onExit: [Action]
+    let onEntry: [AnyAction]
+    let onExit: [AnyAction]
     var rest: [any Node<GivenNode.Output>] = []
 
     let caller: String
@@ -45,8 +45,8 @@ final class DefineNode: NeverEmptyNode {
     private var errors: [Error] = []
 
     init(
-        onEntry: [Action],
-        onExit: [Action],
+        onEntry: [AnyAction],
+        onExit: [AnyAction],
         rest: [any Node<GivenNode.Output>] = [],
         caller: String = #function,
         file: String = #file,

@@ -11,7 +11,7 @@ public extension Syntax {
         }
 
         public static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingWhenActions {
-            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         let node: WhenNode

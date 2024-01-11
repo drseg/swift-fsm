@@ -6,7 +6,7 @@ struct Transition {
         predicates: PredicateSet,
         event: AnyHashable,
         nextState: AnyHashable,
-        actions: [Action]
+        actions: [AnyAction]
 
     init(
         _ condition: (() -> Bool)?,
@@ -14,7 +14,7 @@ struct Transition {
         _ predicates: PredicateSet,
         _ event: AnyHashable,
         _ nextState: AnyHashable,
-        _ actions: [Action]
+        _ actions: [AnyAction]
     ) {
         self.condition = condition
         self.state = state
@@ -51,7 +51,7 @@ final class EagerMatchResolvingNode: MRNBase, MRNProtocol {
             predicateResult: RankedPredicates,
             event: AnyTraceable,
             nextState: AnyTraceable,
-            actions: [Action]
+            actions: [AnyAction]
 
         var toTransition: Transition {
             Transition(match.condition,

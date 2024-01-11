@@ -18,10 +18,10 @@ class StringableNodeTestTests: StringableNodeTest {
         XCTAssertEqual("", onExitOutput, file: file, line: line)
         XCTAssertEqual("", onEntryOutput, file: file, line: line)
     }
-    
-    func entry() { onEntryOutput = "entry" }
-    func exit()  { onExitOutput = "exit"   }
-    
+
+    var entry: AnyAction { AnyAction({ self.onEntryOutput = "entry" }) }
+    var exit: AnyAction { AnyAction({ self.onExitOutput = "exit"   }) }
+
     func testSingleNodeWithNoRest() {
         assertToString("A: 12", actionsNode)
     }

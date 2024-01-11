@@ -10,19 +10,19 @@ class SyntaxNodeTests: XCTestCase {
     var onEntryOutput = ""
     var onExitOutput = ""
     
-    var actions: [Action] {
+    var actions: [AnyAction] {
         [{ self.actionsOutput += "1" },
-         { self.actionsOutput += "2" }]
+         { self.actionsOutput += "2" }].map(AnyAction.init)
     }
     
-    var onEntry: [Action] {
+    var onEntry: [AnyAction] {
         [{ self.actionsOutput += "<" },
-         { self.actionsOutput += "<" }]
+         { self.actionsOutput += "<" }].map(AnyAction.init)
     }
     
-    var onExit: [Action] {
+    var onExit: [AnyAction] {
         [{ self.actionsOutput += ">" },
-         { self.actionsOutput += ">" }]
+         { self.actionsOutput += ">" }].map(AnyAction.init)
     }
     
     var actionsNode: ActionsNode {
@@ -269,8 +269,8 @@ class SyntaxNodeTests: XCTestCase {
             [MatchNode(match: Match(any: P.a, all: Q.a)),
              WhenNode(events: [e1]),
              ThenNode(state: s1),
-             ActionsNode(actions: [{ self.actionsOutput += "chain" }])]
-                        
+             ActionsNode(actions: [{ self.actionsOutput += "chain" }].map(AnyAction.init))]
+
             return nodes.permutations(ofCount: 4).reduce(into: []) {
                 var one = $1[0].copy(),
                     two = $1[1].copy(),
@@ -311,7 +311,7 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func assertActions(
-        _ actions: [Action]?,
+        _ actions: [AnyAction]?,
         expectedOutput: String?,
         file: StaticString = #file,
         line: UInt = #line
@@ -328,8 +328,8 @@ class DefineConsumer: SyntaxNodeTests {
         _ m: Match,
         _ w: AnyTraceable,
         _ t: AnyTraceable,
-        entry: [Action]? = nil,
-        exit: [Action]? = nil,
+        entry: [AnyAction]? = nil,
+        exit: [AnyAction]? = nil,
         groupID: UUID = testGroupID,
         isOverride: Bool = false
     ) -> DefineNode {
@@ -353,6 +353,10 @@ extension Collection {
     }
     
     func executeAll() where Element == Action {
+        forEach { $0() }
+    }
+
+    func executeAll() where Element == AnyAction {
         forEach { $0() }
     }
 }

@@ -29,6 +29,7 @@ class SemanticValidationNode: Node {
             super.init(override)
         }
     }
+
     final class NothingToOverride: OverrideError { }
 
     struct DuplicatesKey: SVNKey {

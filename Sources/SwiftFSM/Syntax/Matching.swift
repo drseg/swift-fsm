@@ -27,7 +27,7 @@ extension Conditional {
     }
 
     public static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingActions {
-        .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     var blockNode: MatchBlockNode {

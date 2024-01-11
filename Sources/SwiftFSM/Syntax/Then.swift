@@ -3,7 +3,7 @@ import Foundation
 public extension Syntax {
     struct Then<State: Hashable> {
         public static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingThenActions {
-            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         let node: ThenNode

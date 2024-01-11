@@ -7,7 +7,7 @@ struct AnyAction {
 //    private struct NullEvent: Hashable { }
     private let base: Any
 
-    init(action: @escaping Action) {
+    init(_ action: @escaping Action) {
         base = action
     }
 
@@ -65,7 +65,7 @@ struct DefaultIO {
     let match: Match,
         event: AnyTraceable?,
         state: AnyTraceable?,
-        actions: [Action],
+        actions: [AnyAction],
         groupID: UUID,
         isOverride: Bool
 
@@ -73,7 +73,7 @@ struct DefaultIO {
         _ match: Match,
         _ event: AnyTraceable?,
         _ state: AnyTraceable?,
-        _ actions: [Action],
+        _ actions: [AnyAction],
         _ groupID: UUID = UUID(),
         _ isOverride: Bool = false
     ) {
@@ -90,7 +90,7 @@ func makeDefaultIO(
     match: Match = Match(),
     event: AnyTraceable? = nil,
     state: AnyTraceable? = nil,
-    actions: [Action] = [],
+    actions: [AnyAction] = [],
     groupID: UUID = UUID(),
     isOverride: Bool = false
 ) -> [DefaultIO] {

@@ -11,7 +11,7 @@ public enum Internal {
         }
 
         public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenActions {
-            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | <S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> MatchingWhenThenActions {
@@ -23,7 +23,7 @@ public enum Internal {
 
     public struct MatchingThen {
         public static func | (lhs: Self, rhs: @escaping Action) -> MatchingThenActions {
-            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         let node: ThenNode
@@ -35,7 +35,7 @@ public enum Internal {
 
     public struct MatchingWhenThen {
         public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenThenActions {
-            .init(node: ActionsNode(actions: [rhs], rest: [lhs.node]))
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         let node: ThenNode
@@ -86,7 +86,7 @@ extension BlockSentence {
         line: Int = #line,
         _ block: () -> [Sentence]
     ) {
-        self.init(node: ActionsBlockNode(actions: actions,
+        self.init(node: ActionsBlockNode(actions: actions.map(AnyAction.init),
                                          rest: block().nodes,
                                          caller: "actions",
                                          file: file,

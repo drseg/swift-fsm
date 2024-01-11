@@ -320,9 +320,21 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
                               sutLine: sl,
                               xctLine: xl)
     }
-    
+
     func assertActions(
         _ actions: [Action],
+        expectedOutput eo: String,
+        file: StaticString = #file,
+        xctLine xl: UInt = #line
+    ) {
+        assertActions(actions.map(AnyAction.init), 
+                      expectedOutput: eo,
+                      file: file,
+                      xctLine: xl)
+    }
+
+    func assertActions(
+        _ actions: [AnyAction],
         expectedOutput eo: String,
         file: StaticString = #file,
         xctLine xl: UInt = #line

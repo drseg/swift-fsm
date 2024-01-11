@@ -84,8 +84,8 @@ public extension Syntax {
             let onEntry = superStates.map(\.onEntry).flattened + onEntry
             let onExit = superStates.map(\.onExit).flattened + onExit
 
-            let dNode = DefineNode(onEntry: onEntry,
-                                   onExit: onExit,
+            let dNode = DefineNode(onEntry: onEntry.map(AnyAction.init),
+                                   onExit: onExit.map(AnyAction.init),
                                    caller: "define",
                                    file: file,
                                    line: line)

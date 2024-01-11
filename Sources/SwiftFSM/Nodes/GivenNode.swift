@@ -6,7 +6,7 @@ struct GivenNode: Node {
             match: Match,
             event: AnyTraceable,
             nextState: AnyTraceable,
-            actions: [Action],
+            actions: [AnyAction],
             groupID: UUID,
             isOverride: Bool
 
@@ -15,7 +15,7 @@ struct GivenNode: Node {
             _ match: Match,
             _ event: AnyTraceable,
             _ nextState: AnyTraceable,
-            _ actions: [Action],
+            _ actions: [AnyAction],
             _ groupID: UUID,
             _ isOverride: Bool
         ) {

@@ -1,11 +1,11 @@
 import Foundation
 
 class ActionsNodeBase: OverridableNode {
-    let actions: [Action]
+    let actions: [AnyAction]
     var rest: [any Node<DefaultIO>]
 
     init(
-        actions: [Action] = [],
+        actions: [AnyAction] = [],
         rest: [any Node<DefaultIO>] = [],
         groupID: UUID = UUID(),
         isOverride: Bool = false
@@ -39,7 +39,7 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
     let line: Int
 
     init(
-        actions: [Action],
+        actions: [AnyAction],
         rest: [any Node<Input>],
         groupID: UUID = UUID(),
         isOverride: Bool = false,

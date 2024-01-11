@@ -5,7 +5,7 @@ struct IntermediateIO {
         match: Match,
         event: AnyTraceable,
         nextState: AnyTraceable,
-        actions: [Action],
+        actions: [AnyAction],
         groupID: UUID,
         isOverride: Bool
 
@@ -14,7 +14,7 @@ struct IntermediateIO {
         _ match: Match,
         _ event: AnyTraceable,
         _ nextState: AnyTraceable,
-        _ actions: [Action],
+        _ actions: [AnyAction],
         _ groupID: UUID = UUID(),
         _ isOverride: Bool = false
     ) {
@@ -36,7 +36,7 @@ class ActionsResolvingNodeBase: Node {
     }
 
     func combinedWithRest(_ rest: [DefineNode.Output]) -> [IntermediateIO] {
-        var onEntry = [AnyTraceable: [Action]]()
+        var onEntry = [AnyTraceable: [AnyAction]]()
         Set(rest.map(\.state)).forEach { state in
             onEntry[state] = rest.first { $0.state == state }?.onEntry
         }
