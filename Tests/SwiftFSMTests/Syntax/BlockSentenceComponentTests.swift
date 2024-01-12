@@ -8,6 +8,7 @@ class BlockTests: SyntaxTestsBase {
     
     func assertMWTAResult(
         _ result: [AnyNode],
+        event: Event = BlockTests.defaultEvent,
         expectedOutput eo: String = BlockTests.defaultOutput,
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
@@ -15,6 +16,7 @@ class BlockTests: SyntaxTestsBase {
         xctLine xl: UInt = #line
     ) {
         assertMWTA(result[0],
+                   event: event,
                    expectedOutput: eo,
                    sutFile: sf,
                    xctFile: xf,
@@ -22,6 +24,7 @@ class BlockTests: SyntaxTestsBase {
                    xctLine: xl)
         
         assertWTA(result[1],
+                  event: event,
                   expectedOutput: eo,
                   sutFile: sf,
                   xctFile: xf,
@@ -92,7 +95,7 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(s1.nodes, sutLine: l1)
         assertMWTAResult(s2.nodes, sutLine: l2)
     }
-    
+
     func testSuperStateAddsSuperStateNodes() {
         let l1 = #line + 1; let s1 = SuperState {
             matching(P.a) | when(1, or: 2) | then(1) | pass
@@ -136,12 +139,12 @@ class BlockComponentTests: BlockTests {
     func testSuperStateCombinesSuperStateNodesParentFirst() {
         let l1 = #line + 1; let s1 = SuperState {
             matching(P.a) | when(1, or: 2) | then(1) | pass
-            when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
         let l2 = #line + 1; let s2 = SuperState(adopts: s1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
-            when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
         let nodes = s2.nodes
@@ -159,7 +162,7 @@ class BlockComponentTests: BlockTests {
     func testSuperStateAddsEntryExitActions() {
         let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
-            when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
         let s2 = SuperState(adopts: s1)
@@ -171,12 +174,12 @@ class BlockComponentTests: BlockTests {
     func testSuperStateCombinesEntryExitActions() {
         let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
-            when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
         let s2 = SuperState(adopts: s1, onEntry: entry2, onExit: exit2) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
-            when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
         assertActions(s2.onEntry, expectedOutput: "entry1entry2")
@@ -186,12 +189,12 @@ class BlockComponentTests: BlockTests {
     func testSuperStateBlock() {
         let l1 = #line + 1; let s1 = SuperState {
             matching(P.a) | when(1, or: 2) | then(1) | pass
-            when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
         let l2 = #line + 1; let s2 = SuperState {
             Matching(P.a) | When(1, or: 2) | Then(1) | pass
-            When(1, or: 2) | Then(1) | pass
+                            When(1, or: 2) | Then(1) | pass
         }
         
         assertMWTAResult(s1.nodes, sutLine: l1)
@@ -275,13 +278,15 @@ class BlockComponentTests: BlockTests {
     func testDefineAddsMultipleSuperStateNodes() {
         let l1 = #line + 1; let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
-            when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
         
         let g1 = define(1, adopts: s1, s1, onEntry: entry1, onExit: exit1)
-            .node.rest[0] as! GivenNode
+            .node
+            .rest[0] as! GivenNode
         let g2 = Define(1, adopts: s1, s1, onEntry: entry1, onExit: exit1)
-            .node.rest[0] as! GivenNode
+            .node
+            .rest[0] as! GivenNode
 
         assertMWTAResult(Array(g1.rest.prefix(2)), sutLine: l1)
         assertMWTAResult(Array(g1.rest.suffix(2)), sutLine: l1)
@@ -382,6 +387,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
     
     func assertMWTANode(
         _ b: ActionsBlockNode,
+        event: Event = BlockTests.defaultEvent,
         expectedNodeOutput eo: String,
         nodeLine nl: Int,
         restLine rl: Int,
@@ -393,6 +399,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
     
     func assertMWANode(
         _ b: ActionsBlockNode,
+        event: Event = BlockTests.defaultEvent,
         expectedNodeOutput eno: String,
         expectedRestOutput ero: String,
         nodeLine nl: Int,
@@ -405,6 +412,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
     
     func assertMTANode(
         _ b: ActionsBlockNode,
+        event: Event = BlockTests.defaultEvent,
         expectedNodeOutput eno: String,
         expectedRestOutput ero: String,
         nodeLine nl: Int,
@@ -417,12 +425,13 @@ class ActionsBlockTests: DefaultIOBlockTests {
     
     func assertActionsBlock(
         _ b: ActionsBlockNode,
+        event: Event = BlockTests.defaultEvent,
         expectedOutput eo: String = BlockTests.defaultOutput,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
         assertNeverEmptyNode(b, caller: "actions", sutLine: sl, xctLine: xl)
-        assertActions(b.actions, expectedOutput: eo, xctLine: xl)
+        assertActions(b.actions, event: event, expectedOutput: eo, xctLine: xl)
     }
     
     func testMWTABlocks() {
@@ -446,8 +455,19 @@ class ActionsBlockTests: DefaultIOBlockTests {
         assertMWTABlock(a1, sutLine: l1)
         assertMWTABlock(a2, sutLine: l2)
         assertMWTABlock(a3, expectedNodeOutput: "passpass", sutLine: l3)
+
+        let l4 = #line; let a4 = Actions(passWithEvent) { mwtaBlock }
+        let l5 = #line; let a5 = actions(passWithEvent) { mwtaBlock }
+        let l6 = #line; let a6 = Actions([passWithEvent, passWithEvent]) { mwtaBlock }
+
+        assertMWTABlock(a4, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l4)
+        assertMWTABlock(a5, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l5)
+        assertMWTABlock(a6, 
+                        expectedNodeOutput: 
+                            Self.defaultOutputDefaultEvent + Self.defaultOutputDefaultEvent,
+                        sutLine: l6)
     }
-    
+
     func testMWABlocks() {
         func assertMWABlock(
             _ b: Internal.MWASentence,
@@ -474,8 +494,14 @@ class ActionsBlockTests: DefaultIOBlockTests {
         assertMWABlock(a2, nodeLine: l2)
         assertMWABlock(a3, expectedRestOutput: "", nodeLine: l3, restLine: l3)
         assertMWABlock(a4, expectedRestOutput: "", nodeLine: l4, restLine: l4)
+
+        let l5 = #line; let a5 = Actions(passWithEvent) { mwaBlock }
+        let l6 = #line; let a6 = actions(passWithEvent) { mwaBlock }
+
+        assertMWABlock(a5, expectedNodeOutput: Self.defaultOutputDefaultEvent, nodeLine: l5)
+        assertMWABlock(a6, expectedNodeOutput: Self.defaultOutputDefaultEvent, nodeLine: l6)
     }
-    
+
     func testMTABlocks() {
         func assertMTABlock(
             _ b: Internal.MTASentence,
@@ -502,8 +528,14 @@ class ActionsBlockTests: DefaultIOBlockTests {
         assertMTABlock(a2, nodeLine: l2)
         assertMTABlock(a3, expectedRestOutput: "", nodeLine: l3, restLine: l3)
         assertMTABlock(a4, expectedRestOutput: "", nodeLine: l4, restLine: l4)
+
+        let l5 = #line; let a5 = Actions(passWithEvent) { mtaBlock }
+        let l6 = #line; let a6 = actions(passWithEvent) { mtaBlock }
+
+        assertMTABlock(a5, expectedNodeOutput: Self.defaultOutputDefaultEvent, nodeLine: l5)
+        assertMTABlock(a6, expectedNodeOutput: Self.defaultOutputDefaultEvent, nodeLine: l6)
     }
-    
+
     func testCompoundMWTABlocks() {
         func assertCompoundMWTABlock(
             _ b: Internal.MWTASentence,
@@ -526,6 +558,12 @@ class ActionsBlockTests: DefaultIOBlockTests {
         
         assertCompoundMWTABlock(a1, sutLine: l1)
         assertCompoundMWTABlock(a2, sutLine: l2)
+
+        let l3 = #line; let a3 = actions(passWithEvent) { actions(passWithEvent) { mwtaBlock } }
+        let l4 = #line; let a4 = Actions(passWithEvent) { actions(passWithEvent) { mwtaBlock } }
+
+        assertCompoundMWTABlock(a3, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l3)
+        assertCompoundMWTABlock(a4, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l4)
     }
     
     func testCompoundMWABlocks() {
@@ -552,6 +590,12 @@ class ActionsBlockTests: DefaultIOBlockTests {
         
         assertCompoundMWABlock(a1, sutLine: l1)
         assertCompoundMWABlock(a2, sutLine: l2)
+
+        let l3 = #line; let a3 = actions(passWithEvent) { actions(passWithEvent) { mwaBlock } }
+        let l4 = #line; let a4 = Actions(passWithEvent) { actions(passWithEvent) { mwaBlock } }
+
+        assertCompoundMWABlock(a3, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l3)
+        assertCompoundMWABlock(a4, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l4)
     }
     
     func testCompoundMTABlocks() {
@@ -578,6 +622,12 @@ class ActionsBlockTests: DefaultIOBlockTests {
         
         assertCompoundMTABlock(a1, sutLine: l1)
         assertCompoundMTABlock(a2, sutLine: l2)
+
+        let l3 = #line; let a3 = actions(passWithEvent) { actions(passWithEvent) { mtaBlock } }
+        let l4 = #line; let a4 = Actions(passWithEvent) { actions(passWithEvent) { mtaBlock } }
+
+        assertCompoundMTABlock(a3, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l3)
+        assertCompoundMTABlock(a4, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l4)
     }
 }
 

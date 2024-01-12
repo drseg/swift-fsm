@@ -4,6 +4,7 @@ import XCTest
 
 class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     static let defaultOutput = "pass"
+    static let defaultOutputDefaultEvent = "pass, event: 111"
     static let defaultEvent = 111
 
     typealias State = Int
@@ -25,7 +26,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     var output = ""
     
     func pass() { output += Self.defaultOutput }
-    func pass(_ event: Event) { output += Self.defaultOutput + ", event: " + String(event) }
+    func passWithEvent(_ event: Event) { output += Self.defaultOutput + ", event: " + String(event) }
 
     func assertMatching(
         _ m: Matching,

@@ -104,8 +104,8 @@ final class ComponentTests: SyntaxTestsBase {
     }
 
     func testMatchingWhenThenActions_withEvent() {
-        let mwta1 = Matching(P.a) | When(1, or: 2) | Then(1) | { self.pass($0) }; let l1 = #line
-        let mwta2 = matching(P.a) | when(1, or: 2) | then(1) | { self.pass($0) }; let l2 = #line
+        let mwta1 = Matching(P.a) | When(1, or: 2) | Then(1) | passWithEvent; let l1 = #line
+        let mwta2 = matching(P.a) | when(1, or: 2) | then(1) | passWithEvent; let l2 = #line
 
         assertMWTA(mwta1.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l1)
         assertMWTA(mwta2.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)
@@ -136,8 +136,8 @@ final class ComponentTests: SyntaxTestsBase {
     }
 
     func testWhenThenActions_withEvent() {
-        let wta1 = When(1, or: 2) | Then(1) | { self.pass($0) }; let l1 = #line
-        let wta2 = when(1, or: 2) | then(1) | { self.pass($0) }; let l2 = #line
+        let wta1 = When(1, or: 2) | Then(1) | passWithEvent; let l1 = #line
+        let wta2 = when(1, or: 2) | then(1) | passWithEvent; let l2 = #line
 
         assertWTA(wta1.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l1)
         assertWTA(wta2.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)

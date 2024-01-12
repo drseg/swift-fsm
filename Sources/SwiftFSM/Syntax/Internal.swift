@@ -85,12 +85,12 @@ extension BlockSentence {
     }
 
     init(
-        _ actions: [Action],
+        _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
         _ block: () -> [Sentence]
     ) {
-        self.init(node: ActionsBlockNode(actions: actions.map(AnyAction.init),
+        self.init(node: ActionsBlockNode(actions: actions,
                                          rest: block().nodes,
                                          caller: "actions",
                                          file: file,

@@ -151,6 +151,16 @@ public extension SyntaxBuilder {
     }
 
     func actions(
+        _ action: @escaping ActionWithEvent<Event>,
+        _ otherActions: ActionWithEvent<Event>...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> Internal.MWTASentence {
+        Syntax.Actions([action] + otherActions, file: file, line: line).callAsFunction(block)
+    }
+
+    func actions(
         _ action: @escaping Action,
         _ otherActions: Action...,
         file: String = #file,
@@ -161,8 +171,28 @@ public extension SyntaxBuilder {
     }
 
     func actions(
+        _ action: @escaping ActionWithEvent<Event>,
+        _ otherActions: ActionWithEvent<Event>...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWABuilder _ block: () -> [MWA]
+    ) -> Internal.MWASentence {
+        Syntax.Actions([action] + otherActions, file: file, line: line).callAsFunction(block)
+    }
+
+    func actions(
         _ action: @escaping Action,
         _ otherActions: Action...,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MTABuilder _ block: () -> [MTA]
+    ) -> Internal.MTASentence {
+        Syntax.Actions([action] + otherActions, file: file, line: line).callAsFunction(block)
+    }
+
+    func actions(
+        _ action: @escaping ActionWithEvent<Event>,
+        _ otherActions: ActionWithEvent<Event>...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
