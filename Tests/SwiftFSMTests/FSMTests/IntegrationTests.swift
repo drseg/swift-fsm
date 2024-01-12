@@ -278,9 +278,9 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     
     func testTypealiasSyntaxTurnstile() throws {
         typealias S = Syntax.Define<State>
-        typealias E = Syntax.When<Event>
+        typealias E = Syntax.When<State, Event>
         typealias NS = Syntax.Then<State, Event>
-        typealias If = Syntax.Expanded.Matching
+        typealias If = Syntax.Expanded.Matching<State, Event>
         
         try fsm.buildTable {
             let resetable = SuperState {
@@ -584,7 +584,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         }
     }
     
-    func testNothingToOverridesThrowErrors() {
+    func testNothingToOverrideThrowsErrors() {
         XCTAssertThrowsError (
             try fsm.buildTable {
                 define(.locked) {
@@ -614,6 +614,58 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssertEqual(1, errors?.count)
             XCTAssert(errors?.first is SemanticValidationNode.OverrideOutOfOrder)
         }
+    }
+}
+
+enum EventWithValue: Hashable {
+    case didSetOtherState(OtherState), withoutValue
+}
+
+enum OtherState: Hashable {
+    case value(String), any
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.value(_), .value(_)):
+            true
+        default:
+            true
+        }
+    }
+}
+
+final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
+    override func makeSUT<_State, _Event>(
+        initialState: _State,
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
+        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
+    }
+}
+
+class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, EventWithValue> {
+    override func makeSUT<_State, _Event>(
+        initialState: _State,
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
+        FSM(initialState: initialState, actionsPolicy: actionsPolicy)
+    }
+
+    override var initialState: TurnstileState { .locked }
+
+    func testEventPassing() {
+        var otherState = ""
+
+        try! fsm.buildTable {
+            define(.locked) {
+                when(.didSetOtherState(.any)) | then(.unlocked) | {
+//                    otherState = $0
+                }
+            }
+        }
+
+        fsm.handleEvent(.didSetOtherState(.value("cat")))
+        XCTAssertEqual(otherState, "cat")
     }
 }
 

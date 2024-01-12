@@ -11,9 +11,9 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     typealias Event = Int
     
     typealias Define = Syntax.Define<State>
-    typealias Matching = Syntax.Expanded.Matching
-    typealias Condition = Syntax.Expanded.Condition
-    typealias When = Syntax.When<Event>
+    typealias Matching = Syntax.Expanded.Matching<State, Event>
+    typealias Condition = Syntax.Expanded.Condition<State, Event>
+    typealias When = Syntax.When<State, Event>
     typealias Then = Syntax.Then<State, Event>
     typealias Actions = Syntax.Actions
     typealias Override = Syntax.Override

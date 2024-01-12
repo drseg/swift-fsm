@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Syntax {
-    struct Actions {
+    struct Actions<Event: Hashable> {
         let actions: [AnyAction]
         let file: String
         let line: Int
@@ -10,7 +10,7 @@ public extension Syntax {
             self.init([actions], file: file, line: line)
         }
 
-        public init<Event: Hashable>(_ actions: @escaping ActionWithEvent<Event>, file: String = #file, line: Int = #line) {
+        public init(_ actions: @escaping ActionWithEvent<Event>, file: String = #file, line: Int = #line) {
             self.init([actions], file: file, line: line)
         }
 
@@ -20,7 +20,7 @@ public extension Syntax {
             self.line = line
         }
 
-        public init<Event: Hashable>(_ actions: [ActionWithEvent<Event>], file: String = #file, line: Int = #line) {
+        public init(_ actions: [ActionWithEvent<Event>], file: String = #file, line: Int = #line) {
             self.actions = actions.map(AnyAction.init)
             self.file = file
             self.line = line

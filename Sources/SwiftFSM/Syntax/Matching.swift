@@ -1,6 +1,9 @@
 import Foundation
 
-public protocol Conditional { }
+public protocol Conditional<State, Event> {
+    associatedtype Event: Hashable
+    associatedtype State: Hashable
+}
 
 extension Conditional {
     var node: MatchNode { this.node }
@@ -8,29 +11,47 @@ extension Conditional {
     var line: Int { this.line }
     var name: String { this.name }
 
-    var this: _Conditional { self as! _Conditional }
+    var this: any _Conditional { self as! any _Conditional }
 
-    public static func | <E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhen {
+    public static func | (
+        lhs: Self,
+        rhs: Syntax.When<State, Event>
+    ) -> Internal.MatchingWhen<State, Event> {
         .init(node: rhs.node.appending(lhs.node))
     }
 
-    public static func | <E: Hashable> (lhs: Self, rhs: Syntax.When<E>) -> Internal.MatchingWhenActions {
+    public static func | (
+        lhs: Self,
+        rhs: Syntax.When<State, Event>
+    ) -> Internal.MatchingWhenActions<Event> {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
 
-    public static func | <S: Hashable, E: Hashable> (lhs: Self, rhs: Syntax.Then<S, E>) -> Internal.MatchingThen {
+    public static func | (
+        lhs: Self,
+        rhs: Syntax.Then<State, Event>
+    ) -> Internal.MatchingThen<Event> {
         .init(node: rhs.node.appending(lhs.node))
     }
 
-    public static func | <S: Hashable, E: Hashable> (lhs: Self, rhs: Syntax.Then<S, E>) -> Internal.MatchingThenActions {
+    public static func | (
+        lhs: Self,
+        rhs: Syntax.Then<State, Event>
+    ) -> Internal.MatchingThenActions<Event> {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
 
-    public static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingActions {
+    public static func | (
+        lhs: Self,
+        rhs: @escaping Action
+    ) -> Internal.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
-    public static func | <E: Hashable> (lhs: Self, rhs: @escaping ActionWithEvent<E>) -> Internal.MatchingActions {
+    public static func | (
+        lhs: Self,
+        rhs: @escaping ActionWithEvent<Event>
+    ) -> Internal.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
@@ -69,7 +90,7 @@ protocol _Conditional: Conditional {
 }
 
 public extension Syntax.Expanded {
-    struct Condition: _Conditional {
+    struct Condition<State: Hashable, Event: Hashable>: _Conditional {
         let node: MatchNode
         let file: String
         let line: Int
@@ -90,7 +111,7 @@ public extension Syntax.Expanded {
         }
     }
 
-    struct Matching: _Conditional {
+    struct Matching<State: Hashable, Event: Hashable>: _Conditional {
         let node: MatchNode
         let file: String
         let line: Int

@@ -2,7 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 final class ComponentTests: SyntaxTestsBase {
-    func assertMW(_ mw: MatchingWhen, sutLine sl: Int, xctLine xl: UInt = #line) {
+    func assertMW(_ mw: MatchingWhen<State, Event>, sutLine sl: Int, xctLine xl: UInt = #line) {
         assertMWNode(mw.node, sutLine: sl, xctLine: xl)
     }
     
@@ -82,7 +82,7 @@ final class ComponentTests: SyntaxTestsBase {
     }
     
     func testMatchingWhenThen() {
-        func assertMWT(_ mwt: MatchingWhenThen, sutLine sl: Int, xctLine xl: UInt = #line) {
+        func assertMWT(_ mwt: MatchingWhenThen<Event>, sutLine sl: Int, xctLine xl: UInt = #line) {
             let then = mwt.node
             let when = then.rest.first as! WhenNode
             
@@ -112,7 +112,7 @@ final class ComponentTests: SyntaxTestsBase {
     }
 
     func testWhenThen() {
-        func assertWT(_ wt: MatchingWhenThen, sutLine sl: Int, xctLine xl: UInt = #line) {
+        func assertWT(_ wt: MatchingWhenThen<Event>, sutLine sl: Int, xctLine xl: UInt = #line) {
             let then = wt.node
             let when = then.rest.first as! WhenNode
 

@@ -5,55 +5,55 @@ public enum Syntax {
 }
 
 public enum Internal {
-    public struct MatchingWhen {
-        public static func | <S: Hashable, E: Hashable> (lhs: Self, rhs: Syntax.Then<S, E>) -> MatchingWhenThen {
+    public struct MatchingWhen<State: Hashable, Event: Hashable> {
+        public static func | (lhs: Self, rhs: Syntax.Then<State, Event>) -> MatchingWhenThen<Event> {
             .init(node: rhs.node.appending(lhs.node))
         }
 
-        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenActions {
+        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
-        public static func | <E: Hashable> (lhs: Self, rhs: @escaping ActionWithEvent<E>) -> MatchingWhenActions {
+        public static func | (lhs: Self, rhs: @escaping ActionWithEvent<Event>) -> MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
-        public static func | <S: Hashable, E: Hashable> (lhs: Self, rhs: Syntax.Then<S, E>) -> MatchingWhenThenActions {
+        public static func | (lhs: Self, rhs: Syntax.Then<State, Event>) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
 
         let node: WhenNode
     }
 
-    public struct MatchingThen {
-        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingThenActions {
+    public struct MatchingThen<Event: Hashable> {
+        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
-        public static func | <E: Hashable> (lhs: Self, rhs: @escaping ActionWithEvent<E>) -> MatchingThenActions {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        let node: ThenNode
-    }
-
-    public final class MatchingActions: MA { }
-    public final class MatchingWhenActions: MWA { }
-    public final class MatchingThenActions: MTA { }
-
-    public struct MatchingWhenThen {
-        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenThenActions {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | <E: Hashable> (lhs: Self, rhs: @escaping ActionWithEvent<E>) -> MatchingWhenThenActions {
+        public static func | (lhs: Self, rhs: @escaping ActionWithEvent<Event>) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         let node: ThenNode
     }
 
-    public final class MatchingWhenThenActions: MWTA { }
+    public final class MatchingActions<Event: Hashable>: MA { }
+    public final class MatchingWhenActions<Event: Hashable>: MWA { }
+    public final class MatchingThenActions<Event: Hashable>: MTA { }
+
+    public struct MatchingWhenThen<Event: Hashable> {
+        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenThenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (lhs: Self, rhs: @escaping ActionWithEvent<Event>) -> MatchingWhenThenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        let node: ThenNode
+    }
+
+    public final class MatchingWhenThenActions<Event>: MWTA { }
 
     public final class MWTASentence: MWTA, BlockSentence { }
     public final class MWASentence: MWA, BlockSentence { }

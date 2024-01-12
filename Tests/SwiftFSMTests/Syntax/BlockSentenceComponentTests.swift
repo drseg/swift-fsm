@@ -5,7 +5,8 @@ class BlockTests: SyntaxTestsBase {
     typealias MWTABuilder = Internal.MWTABuilder
     typealias MWABuilder = Internal.MWABuilder
     typealias MTABuilder = Internal.MTABuilder
-    
+    typealias Actions = Syntax.Actions<Event>
+
     func assertMWTAResult(
         _ result: [AnyNode],
         event: Event = BlockTests.defaultEvent,

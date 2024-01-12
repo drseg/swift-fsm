@@ -42,7 +42,7 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
     func makeMRN(rest: [any Node<IntermediateIO>]) -> any MRNProtocol {
         fatalError("subclasses must implement")
     }
-    
+
     func makeARN(rest: [DefineNode]) -> ActionsResolvingNodeBase {
         return switch stateActionsPolicy {
         case .executeAlways: ActionsResolvingNode(rest: rest)
