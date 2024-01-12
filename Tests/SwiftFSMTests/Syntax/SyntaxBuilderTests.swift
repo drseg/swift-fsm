@@ -22,7 +22,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     var output = ""
     
     func pass() { output += "pass" }
-    func pass(_ event: Event) { output += "pass" + String(event) }
+    func pass(_ event: Event) { output += "pass, event: " + String(event) }
 
     func assertMatching(
         _ m: Matching,
