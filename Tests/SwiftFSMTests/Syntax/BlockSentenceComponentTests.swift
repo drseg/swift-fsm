@@ -8,7 +8,7 @@ class BlockTests: SyntaxTestsBase {
     
     func assertMWTAResult(
         _ result: [AnyNode],
-        expectedOutput eo: String = "pass",
+        expectedOutput eo: String = BlockTests.defaultOutput,
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
@@ -31,7 +31,7 @@ class BlockTests: SyntaxTestsBase {
     
     func assertMWAResult(
         _ result: [AnyNode],
-        expectedOutput eo: String = "pass",
+        expectedOutput eo: String = BlockTests.defaultOutput,
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
@@ -51,7 +51,7 @@ class BlockTests: SyntaxTestsBase {
     
     func assertMTAResult(
         _ result: [AnyNode],
-        expectedOutput eo: String = "pass",
+        expectedOutput eo: String = BlockTests.defaultOutput,
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
@@ -417,7 +417,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
     
     func assertActionsBlock(
         _ b: ActionsBlockNode,
-        expectedOutput eo: String = "pass",
+        expectedOutput eo: String = BlockTests.defaultOutput,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
@@ -428,7 +428,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
     func testMWTABlocks() {
         func assertMWTABlock(
             _ b: Internal.MWTASentence,
-            expectedNodeOutput eo: String = "pass",
+            expectedNodeOutput eo: String = BlockTests.defaultOutput,
             sutLine sl: Int,
             xctLine xl: UInt = #line
         ) {
@@ -451,8 +451,8 @@ class ActionsBlockTests: DefaultIOBlockTests {
     func testMWABlocks() {
         func assertMWABlock(
             _ b: Internal.MWASentence,
-            expectedNodeOutput eno: String = "pass",
-            expectedRestOutput ero: String = "pass",
+            expectedNodeOutput eno: String = BlockTests.defaultOutput,
+            expectedRestOutput ero: String = BlockTests.defaultOutput,
             nodeLine sl: Int,
             restLine rl: Int = mwaLine + 1,
             xctLine xl: UInt = #line
@@ -479,8 +479,8 @@ class ActionsBlockTests: DefaultIOBlockTests {
     func testMTABlocks() {
         func assertMTABlock(
             _ b: Internal.MTASentence,
-            expectedNodeOutput eno: String = "pass",
-            expectedRestOutput ero: String = "pass",
+            expectedNodeOutput eno: String = BlockTests.defaultOutput,
+            expectedRestOutput ero: String = BlockTests.defaultOutput,
             nodeLine nl: Int,
             restLine rl: Int = mtaLine + 1,
             xctLine xl: UInt = #line
@@ -507,7 +507,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
     func testCompoundMWTABlocks() {
         func assertCompoundMWTABlock(
             _ b: Internal.MWTASentence,
-            expectedNodeOutput eo: String = "pass",
+            expectedNodeOutput eo: String = BlockTests.defaultOutput,
             sutLine sl: Int,
             xctLine xl: UInt = #line
         ) {
@@ -531,8 +531,8 @@ class ActionsBlockTests: DefaultIOBlockTests {
     func testCompoundMWABlocks() {
         func assertCompoundMWABlock(
             _ b: Internal.MWASentence,
-            expectedNodeOutput eno: String = "pass",
-            expectedRestOutput ero: String = "pass",
+            expectedNodeOutput eno: String = BlockTests.defaultOutput,
+            expectedRestOutput ero: String = BlockTests.defaultOutput,
             sutLine sl: Int,
             xctLine xl: UInt = #line
         ) {
@@ -557,8 +557,8 @@ class ActionsBlockTests: DefaultIOBlockTests {
     func testCompoundMTABlocks() {
         func assertCompoundMTABlock(
             _ b: Internal.MTASentence,
-            expectedNodeOutput eno: String = "pass",
-            expectedRestOutput ero: String = "pass",
+            expectedNodeOutput eno: String = BlockTests.defaultOutput,
+            expectedRestOutput ero: String = BlockTests.defaultOutput,
             sutLine sl: Int,
             xctLine xl: UInt = #line
         ) {
@@ -1058,7 +1058,7 @@ class WhenBlockTests: DefaultIOBlockTests {
         let node = b.node as! WhenBlockNode
         assertWhenNode(node, events: events, sutLine: nl, xctLine: xl)
         let actionsNode = node.rest.first as! ActionsNode
-        assertActions(actionsNode.actions, expectedOutput: "pass")
+        assertActions(actionsNode.actions, expectedOutput: BlockTests.defaultOutput)
         let matchNode = actionsNode.rest.first as! MatchNode
         assertMatchNode(matchNode, all: [P.a], sutLine: nl)
     }
@@ -1109,7 +1109,7 @@ class ThenBlockTests: DefaultIOBlockTests {
         let node = b.node as! ThenBlockNode
         assertThenNode(node, state: 1, sutFile: #file, sutLine: nl, xctLine: xl)
         let actionsNode = node.rest.first as! ActionsNode
-        assertActions(actionsNode.actions, expectedOutput: "pass")
+        assertActions(actionsNode.actions, expectedOutput: BlockTests.defaultOutput)
         let matchNode = actionsNode.rest.first as! MatchNode
         assertMatchNode(matchNode, all: [P.a], sutLine: nl)
     }
