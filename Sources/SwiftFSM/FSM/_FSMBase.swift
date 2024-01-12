@@ -97,7 +97,7 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         }
 
         state = transition.nextState
-        transition.actions.forEach { $0() }
+        transition.actions.forEach { $0(event) }
         return .executed
     }
 

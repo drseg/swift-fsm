@@ -136,13 +136,21 @@ class FSMTests: FSMTestsBase<Int, Double> {
         actionsOutput = "pass"
     }
 
+    func passWithEvent(_ event: Event) {
+        actionsOutput = "pass, event: \(event)"
+    }
+
     func testHandleEventWithoutPredicate() throws {
         try fsm.buildTable {
-            define(1) { when(1.1) | then(2) | pass }
+            define(1) {
+                when(1.1) | then(2) | pass
+                when(1.3) | then(2) | passWithEvent
+            }
         }
 
         assertHandleEvent(1.1, state: 2, output: "pass")
         assertHandleEvent(1.2, state: 1, output: "")
+        assertHandleEvent(1.3, state: 2, output: "pass, event: 1.3")
     }
 
     func testHandleEventWithSinglePredicate() throws {
