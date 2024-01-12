@@ -4,14 +4,14 @@ public extension Syntax {
     struct When<Event: Hashable> {
         public static func | <S: Hashable> (
             lhs: Self, 
-            rhs: Then<S>
+            rhs: Then<S, Event>
         ) -> Internal.MatchingWhenThen {
             .init(node: rhs.node.appending(lhs.node))
         }
 
         public static func | <S: Hashable> (
             lhs: Self,
-            rhs: Then<S>
+            rhs: Then<S, Event>
         ) -> Internal.MatchingWhenThenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
@@ -19,6 +19,13 @@ public extension Syntax {
         public static func | (
             lhs: Self,
             rhs: @escaping Action
+        ) -> Internal.MatchingWhenActions {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
+            rhs: @escaping ActionWithEvent<Event>
         ) -> Internal.MatchingWhenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }

@@ -358,19 +358,34 @@ class BlockComponentTests: BlockTests {
 }
 
 class DefaultIOBlockTests: BlockTests {
-    let mwtaLine = #line; @MWTABuilder var mwtaBlock: [MWTA] {
+    let mwtaLine = #line + 1; @MWTABuilder var mwtaBlock: [MWTA] {
         Matching(P.a) | When(1, or: 2) | Then(1) | pass
                         When(1, or: 2) | Then(1) | pass
     }
     
-    let mwaLine = #line; @MWABuilder var mwaBlock: [MWA] {
+    let mwaLine = #line + 1; @MWABuilder var mwaBlock: [MWA] {
         Matching(P.a) | When(1, or: 2) | pass
                         When(1, or: 2) | pass
     }
     
-    let mtaLine = #line; @MTABuilder var mtaBlock: [MTA] {
+    let mtaLine = #line + 1; @MTABuilder var mtaBlock: [MTA] {
         Matching(P.a) | Then(1) | pass
                         Then(1) | pass
+    }
+
+    let mwtaLineWithEvent = #line + 1; @MWTABuilder var mwtaBlockWithEvent: [MWTA] {
+        Matching(P.a) | When(1, or: 2) | Then(1) | passWithEvent
+                        When(1, or: 2) | Then(1) | passWithEvent
+    }
+
+    let mwaLineWithEvent = #line + 1; @MWABuilder var mwaBlockWithEvent: [MWA] {
+        Matching(P.a) | When(1, or: 2) | passWithEvent
+                        When(1, or: 2) | passWithEvent
+    }
+
+    let mtaLineWithEvent = #line + 1; @MTABuilder var mtaBlockWithEvent: [MTA] {
+        Matching(P.a) | Then(1) | passWithEvent
+                        Then(1) | passWithEvent
     }
 }
 
@@ -389,12 +404,13 @@ class ActionsBlockTests: DefaultIOBlockTests {
         _ b: ActionsBlockNode,
         event: Event = BlockTests.defaultEvent,
         expectedNodeOutput eo: String,
+        expectedRestOutput er: String = BlockTests.defaultOutput,
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt
     ) {
         assertActionsBlock(b, expectedOutput: eo, sutLine: nl, xctLine: xl)
-        assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
+        assertMWTAResult(b.rest, expectedOutput: er, sutLine: rl, xctLine: xl)
     }
     
     func assertMWANode(
@@ -437,14 +453,17 @@ class ActionsBlockTests: DefaultIOBlockTests {
     func testMWTABlocks() {
         func assertMWTABlock(
             _ b: Internal.MWTASentence,
-            expectedNodeOutput eo: String = BlockTests.defaultOutput,
+            expectedNodeOutput eo: String = Self.defaultOutput,
+            expectedRestOutput er: String = Self.defaultOutput,
             sutLine sl: Int,
+            restLine rl: Int = mwtaLine,
             xctLine xl: UInt = #line
         ) {
             assertMWTANode(abn(b.node),
                            expectedNodeOutput: eo,
+                           expectedRestOutput: er,
                            nodeLine: sl,
-                           restLine: mwtaLine + 1,
+                           restLine: rl,
                            xctLine: xl)
         }
         
@@ -456,16 +475,26 @@ class ActionsBlockTests: DefaultIOBlockTests {
         assertMWTABlock(a2, sutLine: l2)
         assertMWTABlock(a3, expectedNodeOutput: "passpass", sutLine: l3)
 
-        let l4 = #line; let a4 = Actions(passWithEvent) { mwtaBlock }
-        let l5 = #line; let a5 = actions(passWithEvent) { mwtaBlock }
-        let l6 = #line; let a6 = Actions([passWithEvent, passWithEvent]) { mwtaBlock }
+        let l4 = #line; let a4 = Actions(passWithEvent) { mwtaBlockWithEvent }
+        let l5 = #line; let a5 = actions(passWithEvent) { mwtaBlockWithEvent }
+        let l6 = #line; let a6 = Actions([passWithEvent, passWithEvent]) { mwtaBlockWithEvent }
 
-        assertMWTABlock(a4, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l4)
-        assertMWTABlock(a5, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l5)
-        assertMWTABlock(a6, 
+        assertMWTABlock(a4, 
+                        expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                        expectedRestOutput: Self.defaultOutputDefaultEvent,
+                        sutLine: l4,
+                        restLine: mwtaLineWithEvent)
+        assertMWTABlock(a5,
+                        expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                        expectedRestOutput: Self.defaultOutputDefaultEvent,
+                        sutLine: l5,
+                        restLine: mwtaLineWithEvent)
+        assertMWTABlock(a6,
                         expectedNodeOutput: 
                             Self.defaultOutputDefaultEvent + Self.defaultOutputDefaultEvent,
-                        sutLine: l6)
+                        expectedRestOutput: Self.defaultOutputDefaultEvent,
+                        sutLine: l6,
+                        restLine: mwtaLineWithEvent)
     }
 
     func testMWABlocks() {
@@ -474,7 +503,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
             expectedNodeOutput eno: String = BlockTests.defaultOutput,
             expectedRestOutput ero: String = BlockTests.defaultOutput,
             nodeLine sl: Int,
-            restLine rl: Int = mwaLine + 1,
+            restLine rl: Int = mwaLine,
             xctLine xl: UInt = #line
         ) {
             assertMWANode(abn(b.node),
@@ -495,11 +524,19 @@ class ActionsBlockTests: DefaultIOBlockTests {
         assertMWABlock(a3, expectedRestOutput: "", nodeLine: l3, restLine: l3)
         assertMWABlock(a4, expectedRestOutput: "", nodeLine: l4, restLine: l4)
 
-        let l5 = #line; let a5 = Actions(passWithEvent) { mwaBlock }
-        let l6 = #line; let a6 = actions(passWithEvent) { mwaBlock }
+        let l5 = #line; let a5 = Actions(passWithEvent) { mwaBlockWithEvent }
+        let l6 = #line; let a6 = actions(passWithEvent) { mwaBlockWithEvent }
 
-        assertMWABlock(a5, expectedNodeOutput: Self.defaultOutputDefaultEvent, nodeLine: l5)
-        assertMWABlock(a6, expectedNodeOutput: Self.defaultOutputDefaultEvent, nodeLine: l6)
+        assertMWABlock(a5, 
+                       expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                       expectedRestOutput: Self.defaultOutputDefaultEvent,
+                       nodeLine: l5,
+                       restLine: mwaLineWithEvent)
+        assertMWABlock(a6,
+                       expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                       expectedRestOutput: Self.defaultOutputDefaultEvent,
+                       nodeLine: l6,
+                       restLine: mwaLineWithEvent)
     }
 
     func testMTABlocks() {
@@ -508,7 +545,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
             expectedNodeOutput eno: String = BlockTests.defaultOutput,
             expectedRestOutput ero: String = BlockTests.defaultOutput,
             nodeLine nl: Int,
-            restLine rl: Int = mtaLine + 1,
+            restLine rl: Int = mtaLine,
             xctLine xl: UInt = #line
         ) {
             assertMTANode(abn(b.node),
@@ -529,18 +566,29 @@ class ActionsBlockTests: DefaultIOBlockTests {
         assertMTABlock(a3, expectedRestOutput: "", nodeLine: l3, restLine: l3)
         assertMTABlock(a4, expectedRestOutput: "", nodeLine: l4, restLine: l4)
 
-        let l5 = #line; let a5 = Actions(passWithEvent) { mtaBlock }
-        let l6 = #line; let a6 = actions(passWithEvent) { mtaBlock }
+        let l5 = #line; let a5 = Actions(passWithEvent) { mtaBlockWithEvent }
+        let l6 = #line; let a6 = actions(passWithEvent) { mtaBlockWithEvent }
 
-        assertMTABlock(a5, expectedNodeOutput: Self.defaultOutputDefaultEvent, nodeLine: l5)
-        assertMTABlock(a6, expectedNodeOutput: Self.defaultOutputDefaultEvent, nodeLine: l6)
+        assertMTABlock(a5, 
+                       expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                       expectedRestOutput: Self.defaultOutputDefaultEvent,
+                       nodeLine: l5,
+                       restLine: mtaLineWithEvent)
+
+        assertMTABlock(a6,
+                       expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                       expectedRestOutput: Self.defaultOutputDefaultEvent,
+                       nodeLine: l6,
+                       restLine: mtaLineWithEvent)
     }
 
     func testCompoundMWTABlocks() {
         func assertCompoundMWTABlock(
             _ b: Internal.MWTASentence,
             expectedNodeOutput eo: String = BlockTests.defaultOutput,
+            expectedRestOutput er: String = BlockTests.defaultOutput,
             sutLine sl: Int,
+            restLine rl: Int = mwtaLine,
             xctLine xl: UInt = #line
         ) {
             let c = abnComponents(of: b)
@@ -548,8 +596,9 @@ class ActionsBlockTests: DefaultIOBlockTests {
             assertActionsBlock(c.0, expectedOutput: eo, sutLine: sl, xctLine: xl)
             assertMWTANode(c.1,
                            expectedNodeOutput: eo,
+                           expectedRestOutput: er,
                            nodeLine: sl,
-                           restLine: mwtaLine + 1,
+                           restLine: rl,
                            xctLine: xl)
         }
         
@@ -559,11 +608,24 @@ class ActionsBlockTests: DefaultIOBlockTests {
         assertCompoundMWTABlock(a1, sutLine: l1)
         assertCompoundMWTABlock(a2, sutLine: l2)
 
-        let l3 = #line; let a3 = actions(passWithEvent) { actions(passWithEvent) { mwtaBlock } }
-        let l4 = #line; let a4 = Actions(passWithEvent) { actions(passWithEvent) { mwtaBlock } }
+        let l3 = #line; let a3 = actions(passWithEvent) { actions(passWithEvent) {
+            mwtaBlockWithEvent
+        }}
 
-        assertCompoundMWTABlock(a3, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l3)
-        assertCompoundMWTABlock(a4, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l4)
+        let l4 = #line; let a4 = Actions(passWithEvent) { Actions(passWithEvent) {
+            mwtaBlockWithEvent
+        }}
+
+        assertCompoundMWTABlock(a3, 
+                                expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                                expectedRestOutput: Self.defaultOutputDefaultEvent,
+                                sutLine: l3,
+                                restLine: mwtaLineWithEvent)
+        assertCompoundMWTABlock(a4,
+                                expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                                expectedRestOutput: Self.defaultOutputDefaultEvent,
+                                sutLine: l4,
+                                restLine: mwtaLineWithEvent)
     }
     
     func testCompoundMWABlocks() {
@@ -572,6 +634,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
             expectedNodeOutput eno: String = BlockTests.defaultOutput,
             expectedRestOutput ero: String = BlockTests.defaultOutput,
             sutLine sl: Int,
+            restLine rl: Int = mwaLine,
             xctLine xl: UInt = #line
         ) {
             let c = abnComponents(of: b)
@@ -581,7 +644,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
                           expectedNodeOutput: eno,
                           expectedRestOutput: ero,
                           nodeLine: sl,
-                          restLine: mwaLine + 1,
+                          restLine: rl,
                           xctLine: xl)
         }
         
@@ -591,11 +654,24 @@ class ActionsBlockTests: DefaultIOBlockTests {
         assertCompoundMWABlock(a1, sutLine: l1)
         assertCompoundMWABlock(a2, sutLine: l2)
 
-        let l3 = #line; let a3 = actions(passWithEvent) { actions(passWithEvent) { mwaBlock } }
-        let l4 = #line; let a4 = Actions(passWithEvent) { actions(passWithEvent) { mwaBlock } }
+        let l3 = #line; let a3 = actions(passWithEvent) { actions(passWithEvent) {
+            mwaBlockWithEvent
+        }}
 
-        assertCompoundMWABlock(a3, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l3)
-        assertCompoundMWABlock(a4, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l4)
+        let l4 = #line; let a4 = Actions(passWithEvent) { Actions(passWithEvent) {
+            mwaBlockWithEvent
+        }}
+
+        assertCompoundMWABlock(a3, 
+                               expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                               expectedRestOutput: Self.defaultOutputDefaultEvent,
+                               sutLine: l3,
+                               restLine: mwaLineWithEvent)
+        assertCompoundMWABlock(a4,
+                               expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                               expectedRestOutput: Self.defaultOutputDefaultEvent,
+                               sutLine: l4,
+                               restLine: mwaLineWithEvent)
     }
     
     func testCompoundMTABlocks() {
@@ -604,6 +680,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
             expectedNodeOutput eno: String = BlockTests.defaultOutput,
             expectedRestOutput ero: String = BlockTests.defaultOutput,
             sutLine sl: Int,
+            restLine rl: Int = mtaLine,
             xctLine xl: UInt = #line
         ) {
             let c = abnComponents(of: b)
@@ -613,7 +690,7 @@ class ActionsBlockTests: DefaultIOBlockTests {
                           expectedNodeOutput: eno,
                           expectedRestOutput: ero,
                           nodeLine: sl,
-                          restLine: mtaLine + 1,
+                          restLine: rl,
                           xctLine: xl)
         }
         
@@ -623,11 +700,24 @@ class ActionsBlockTests: DefaultIOBlockTests {
         assertCompoundMTABlock(a1, sutLine: l1)
         assertCompoundMTABlock(a2, sutLine: l2)
 
-        let l3 = #line; let a3 = actions(passWithEvent) { actions(passWithEvent) { mtaBlock } }
-        let l4 = #line; let a4 = Actions(passWithEvent) { actions(passWithEvent) { mtaBlock } }
+        let l3 = #line; let a3 = actions(passWithEvent) { actions(passWithEvent) {
+            mtaBlockWithEvent
+        }}
 
-        assertCompoundMTABlock(a3, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l3)
-        assertCompoundMTABlock(a4, expectedNodeOutput: Self.defaultOutputDefaultEvent, sutLine: l4)
+        let l4 = #line; let a4 = Actions(passWithEvent) { actions(passWithEvent) {
+            mtaBlockWithEvent
+        }}
+
+        assertCompoundMTABlock(a3,
+                               expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                               expectedRestOutput: Self.defaultOutputDefaultEvent,
+                               sutLine: l3,
+                               restLine: mtaLineWithEvent)
+        assertCompoundMTABlock(a4,
+                               expectedNodeOutput: Self.defaultOutputDefaultEvent,
+                               expectedRestOutput: Self.defaultOutputDefaultEvent,
+                               sutLine: l4,
+                               restLine: mtaLineWithEvent)
     }
 }
 
@@ -702,7 +792,7 @@ class MatchingBlockTests: DefaultIOBlockTests {
                 any: any,
                 all: all,
                 nodeLine: sl,
-                restLine: mwtaLine + 1,
+                restLine: mwtaLine,
                 xctLine: xl
             )
         }
@@ -744,7 +834,7 @@ class MatchingBlockTests: DefaultIOBlockTests {
                           any: any,
                           all: all,
                           nodeLine: nl,
-                          restLine: mwaLine + 1,
+                          restLine: mwaLine,
                           xctLine: xl)
         }
         
@@ -785,7 +875,7 @@ class MatchingBlockTests: DefaultIOBlockTests {
                           any: any,
                           all: all,
                           nodeLine: nl,
-                          restLine: mtaLine + 1,
+                          restLine: mtaLine,
                           xctLine: xl)
         }
         
@@ -829,7 +919,7 @@ class MatchingBlockTests: DefaultIOBlockTests {
                            any: any,
                            all: all,
                            nodeLine: nl,
-                           restLine: mwtaLine + 1,
+                           restLine: mwtaLine,
                            xctLine: xl)
         }
 
@@ -855,7 +945,7 @@ class MatchingBlockTests: DefaultIOBlockTests {
                           any: any,
                           all: all,
                           nodeLine: nl,
-                          restLine: mwaLine + 1,
+                          restLine: mwaLine,
                           xctLine: xl)
         }
 
@@ -881,7 +971,7 @@ class MatchingBlockTests: DefaultIOBlockTests {
                           any: any,
                           all: all,
                           nodeLine: nl,
-                          restLine: mtaLine + 1,
+                          restLine: mtaLine,
                           xctLine: xl)
         }
 
@@ -958,7 +1048,7 @@ class ConditionBlockTests: DefaultIOBlockTests {
                 mbn(b.node),
                 expected: condition,
                 nodeLine: sl,
-                restLine: mwtaLine + 1,
+                restLine: mwtaLine,
                 xctLine: xl
             )
         }
@@ -980,7 +1070,7 @@ class ConditionBlockTests: DefaultIOBlockTests {
             assertMWANode(mbn(b.node),
                           expected: condition,
                           nodeLine: nl,
-                          restLine: mwaLine + 1,
+                          restLine: mwaLine,
                           xctLine: xl)
         }
 
@@ -1001,7 +1091,7 @@ class ConditionBlockTests: DefaultIOBlockTests {
             assertMTANode(mbn(b.node),
                           expected: condition,
                           nodeLine: nl,
-                          restLine: mtaLine + 1,
+                          restLine: mtaLine,
                           xctLine: xl)
         }
 
@@ -1025,7 +1115,7 @@ class ConditionBlockTests: DefaultIOBlockTests {
             assertMWTANode(c.1,
                            expected: condition,
                            nodeLine: nl,
-                           restLine: mwtaLine + 1,
+                           restLine: mwtaLine,
                            xctLine: xl)
         }
 
@@ -1049,7 +1139,7 @@ class ConditionBlockTests: DefaultIOBlockTests {
             assertMWANode(c.1,
                           expected: condition,
                           nodeLine: nl,
-                          restLine: mwaLine + 1,
+                          restLine: mwaLine,
                           xctLine: xl)
         }
 
@@ -1073,7 +1163,7 @@ class ConditionBlockTests: DefaultIOBlockTests {
             assertMTANode(c.1,
                           expected: condition,
                           nodeLine: nl,
-                          restLine: mtaLine + 1,
+                          restLine: mtaLine,
                           xctLine: xl)
         }
 
@@ -1095,7 +1185,7 @@ class WhenBlockTests: DefaultIOBlockTests {
     ) {
         let node = b.node as! WhenBlockNode
         assertWhenNode(node, events: events, sutLine: nl, xctLine: xl)
-        assertMTAResult(node.rest, sutLine: rl + 1, xctLine: xl)
+        assertMTAResult(node.rest, sutLine: rl, xctLine: xl)
     }
     
     func assert(
@@ -1147,7 +1237,7 @@ class ThenBlockTests: DefaultIOBlockTests {
     ) {
         let node = b.node as! ThenBlockNode
         assertThenNode(node, state: 1, sutFile: #file, sutLine: nl, xctLine: xl)
-        assertMWAResult(node.rest, sutLine: rl + 1, xctLine: xl)
+        assertMWAResult(node.rest, sutLine: rl, xctLine: xl)
     }
     
     func assert(

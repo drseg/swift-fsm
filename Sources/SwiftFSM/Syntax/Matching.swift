@@ -18,11 +18,11 @@ extension Conditional {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
 
-    public static func | <S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThen {
+    public static func | <S: Hashable, E: Hashable> (lhs: Self, rhs: Syntax.Then<S, E>) -> Internal.MatchingThen {
         .init(node: rhs.node.appending(lhs.node))
     }
 
-    public static func | <S: Hashable> (lhs: Self, rhs: Syntax.Then<S>) -> Internal.MatchingThenActions {
+    public static func | <S: Hashable, E: Hashable> (lhs: Self, rhs: Syntax.Then<S, E>) -> Internal.MatchingThenActions {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
 

@@ -14,7 +14,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     typealias Matching = Syntax.Expanded.Matching
     typealias Condition = Syntax.Expanded.Condition
     typealias When = Syntax.When<Event>
-    typealias Then = Syntax.Then<State>
+    typealias Then = Syntax.Then<State, Event>
     typealias Actions = Syntax.Actions
     typealias Override = Syntax.Override
     
@@ -215,6 +215,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertMWA(
         _ n: AnyNode,
+        event: Event = BlockTests.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String,
         xctFile xf: StaticString,
@@ -229,13 +230,14 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(1, when.rest.count, file: xf, line: xl)
         XCTAssertEqual(0, match.rest.count, file: xf, line: xl)
         
-        assertActions(actions.actions, expectedOutput: eo, file: xf, xctLine: xl)
+        assertActions(actions.actions, event: event, expectedOutput: eo, file: xf, xctLine: xl)
         assertWhenNode(when, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
         assertMatchNode(match, all: [P.a], sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
     }
     
     func assertMTA(
         _ n: AnyNode,
+        event: Event = BlockTests.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String,
         xctFile xf: StaticString,
@@ -251,6 +253,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(0, match.rest.count, line: xl)
         
         assertActionsThenNode(actions,
+                              event: event,
                               expectedOutput: eo,
                               state: 1,
                               sutFile: sf,
@@ -292,6 +295,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertWA(
         _ n: AnyNode,
+        event: Event = BlockTests.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String,
         xctFile xf: StaticString,
@@ -304,12 +308,13 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
         XCTAssertEqual(0, when.rest.count, file: xf, line: xl)
         
-        assertActions(actions.actions, expectedOutput: eo, file: xf, xctLine: xl)
+        assertActions(actions.actions, event: event, expectedOutput: eo, file: xf, xctLine: xl)
         assertWhenNode(when, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
     }
     
     func assertTA(
         _ n: AnyNode,
+        event: Event = BlockTests.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String,
         xctFile xf: StaticString,
@@ -323,6 +328,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(0, then.rest.count, file: xf, line: xl)
         
         assertActionsThenNode(actions,
+                              event: event,
                               expectedOutput: eo,
                               state: 1,
                               sutFile: sf,
