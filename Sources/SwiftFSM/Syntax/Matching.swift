@@ -30,6 +30,10 @@ extension Conditional {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
+    public static func | <E: Hashable> (lhs: Self, rhs: @escaping ActionWithEvent<E>) -> Internal.MatchingActions {
+        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+    }
+
     var blockNode: MatchBlockNode {
         MatchBlockNode(match: node.match,
                        rest: node.rest,
