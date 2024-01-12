@@ -363,11 +363,26 @@ class DefaultIOBlockTests: BlockTests {
                         When(1, or: 2) | Then(1) | pass
     }
     
+    let mwtaLineWithEvent = #line + 1; @MWTABuilder var mwtaBlockWithEvent: [MWTA] {
+        Matching(P.a) | When(1, or: 2) | Then(1) | passWithEvent
+        When(1, or: 2) | Then(1) | passWithEvent
+    }
+
     let mwaLine = #line + 1; @MWABuilder var mwaBlock: [MWA] {
         Matching(P.a) | When(1, or: 2) | pass
                         When(1, or: 2) | pass
     }
-    
+
+    let mwaLineWithEvent = #line + 1; @MWABuilder var mwaBlockWithEvent: [MWA] {
+        Matching(P.a) | When(1, or: 2) | passWithEvent
+        When(1, or: 2) | passWithEvent
+    }
+
+    let mtaLineWithEvent = #line + 1; @MTABuilder var mtaBlockWithEvent: [MTA] {
+        Matching(P.a) | Then(1) | passWithEvent
+        Then(1) | passWithEvent
+    }
+
     let mtaLine = #line + 1; @MTABuilder var mtaBlock: [MTA] {
         Matching(P.a) | Then(1) | pass
                         Then(1) | pass
@@ -377,20 +392,6 @@ class DefaultIOBlockTests: BlockTests {
         Matching(P.a) | pass
     }
 
-    let mwtaLineWithEvent = #line + 1; @MWTABuilder var mwtaBlockWithEvent: [MWTA] {
-        Matching(P.a) | When(1, or: 2) | Then(1) | passWithEvent
-                        When(1, or: 2) | Then(1) | passWithEvent
-    }
-
-    let mwaLineWithEvent = #line + 1; @MWABuilder var mwaBlockWithEvent: [MWA] {
-        Matching(P.a) | When(1, or: 2) | passWithEvent
-                        When(1, or: 2) | passWithEvent
-    }
-
-    let mtaLineWithEvent = #line + 1; @MTABuilder var mtaBlockWithEvent: [MTA] {
-        Matching(P.a) | Then(1) | passWithEvent
-                        Then(1) | passWithEvent
-    }
 
     let maLineWithEvent = #line + 1; var maBlockWithEvent: MA {
         Matching(P.a) | passWithEvent
