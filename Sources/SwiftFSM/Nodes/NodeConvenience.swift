@@ -32,6 +32,14 @@ struct AnyAction {
             noArgAction()
         }
     }
+
+    func callSafely<Event: Hashable>(_ event: Event = NullEvent()) throws {
+        guard base is () -> Void || base is (Event) -> Void else {
+            throw "Error: type mismatch in AnyAction"
+        }
+
+        self(event)
+    }
 }
 
 protocol NeverEmptyNode: Node {
