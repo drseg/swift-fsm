@@ -1,37 +1,36 @@
 import Foundation
 
 public typealias Action = () -> Void
+public typealias ActionWithEvent<Event: Hashable> = (Event) -> Void
 
-// typealias ActionWithEvent<Event: Hashable> = (Event) -> Void
 struct AnyAction {
-//    private struct NullEvent: Hashable { }
+    struct NullEvent: Hashable { }
+
     private let base: Any
 
     init(_ action: @escaping Action) {
         base = action
     }
 
-//    init<Event: Hashable>(actionWithEvent: @escaping ActionWithEvent<Event>) {
-//        base = actionWithEvent
-//    }
+    init<Event: Hashable>(_ actionWithEvent: @escaping ActionWithEvent<Event>) {
+        base = actionWithEvent
+    }
 
-    func callAsFunction/*<Event: Hashable>*/(/*_ event: Event = NullEvent()*/) {
-        (base as! Action)()
+    func callAsFunction<Event: Hashable>(_ event: Event = NullEvent()) {
+        func noArgAction() {
+            (base as! Action)()
+        }
 
-//        func noArgAction() {
-//            (base as! Action)()
-//        }
-//
-//        guard !(event is NullEvent) else {
-//            noArgAction()
-//            return
-//        }
-//
-//        if let action = base as? ActionWithEvent<Event> {
-//            action(event)
-//        } else {
-//            noArgAction()
-//        }
+        guard !(event is NullEvent) else {
+            noArgAction()
+            return
+        }
+
+        if let action = base as? ActionWithEvent<Event> {
+            action(event)
+        } else {
+            noArgAction()
+        }
     }
 }
 

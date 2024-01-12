@@ -38,6 +38,10 @@ public enum Internal {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
+        public static func | <E: Hashable> (lhs: Self, rhs: @escaping ActionWithEvent<E>) -> MatchingWhenThenActions {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
         let node: ThenNode
     }
 

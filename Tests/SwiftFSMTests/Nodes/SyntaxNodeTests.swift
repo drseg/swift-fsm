@@ -356,8 +356,8 @@ extension Collection {
         forEach { $0() }
     }
 
-    func executeAll() where Element == AnyAction {
-        forEach { $0() }
+    func executeAll<Event: Hashable>(_ event: Event = "TILT") where Element == AnyAction {
+        forEach { $0(event) }
     }
 }
 

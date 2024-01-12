@@ -22,7 +22,8 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     var output = ""
     
     func pass() { output += "pass" }
-    
+    func pass(_ event: Event) { output += "pass" + String(event) }
+
     func assertMatching(
         _ m: Matching,
         any: any Predicate...,
@@ -150,6 +151,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertActionsThenNode(
         _ n: ActionsNodeBase,
+        event e: Event = 999,
         expectedOutput eo: String,
         state: State?,
         sutFile sf: String? = #file,
@@ -159,7 +161,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     ) {
         let thenNode = n.rest.first as! ThenNode
         assertThenNode(thenNode, state: state, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
-        assertActions(n.actions, expectedOutput: eo, file: xf, xctLine: xl)
+        assertActions(n.actions, event: e, expectedOutput: eo, file: xf, xctLine: xl)
     }
     
     func assertNeverEmptyNode(
@@ -177,6 +179,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertMWTA(
         _ n: AnyNode,
+        event e: Event = 999,
         expectedOutput eo: String = "pass",
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
@@ -194,6 +197,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(0, match.rest.count, file: xf, line: xl)
         
         assertActionsThenNode(actions,
+                              event: e,
                               expectedOutput: eo,
                               state: 1,
                               sutFile: sf,
@@ -335,11 +339,12 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
 
     func assertActions(
         _ actions: [AnyAction],
+        event e: Event = 999,
         expectedOutput eo: String,
         file: StaticString = #file,
         xctLine xl: UInt = #line
     ) {
-        actions.executeAll()
+        actions.executeAll(e)
         XCTAssertEqual(eo, output, file: file, line: xl)
         output = ""
     }

@@ -2,15 +2,24 @@ import Foundation
 
 public extension Syntax {
     struct When<Event: Hashable> {
-        public static func | <S: Hashable> (lhs: Self, rhs: Then<S>) -> Internal.MatchingWhenThen {
+        public static func | <S: Hashable> (
+            lhs: Self, 
+            rhs: Then<S>
+        ) -> Internal.MatchingWhenThen {
             .init(node: rhs.node.appending(lhs.node))
         }
 
-        public static func | <S: Hashable> (lhs: Self, rhs: Then<S>) -> Internal.MatchingWhenThenActions {
+        public static func | <S: Hashable> (
+            lhs: Self,
+            rhs: Then<S>
+        ) -> Internal.MatchingWhenThenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
 
-        public static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingWhenActions {
+        public static func | (
+            lhs: Self,
+            rhs: @escaping Action
+        ) -> Internal.MatchingWhenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
