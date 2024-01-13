@@ -617,24 +617,40 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
     }
 }
 
-enum EventWithValue: Hashable {
-    case didSetOtherState(OtherState), withoutValue
+enum ComplexEvent: EventWithValues {
+    case didSetValue(Animal), null
+}
 
+enum Animal: EventValue {
+    case cat, dog, fish, any
+}
+
+protocol EventWithValues: Hashable { }
+extension EventWithValues {
     func hash(into hasher: inout Hasher) {
-        switch self {
-        case .didSetOtherState(_): hasher.combine("didSetOtherState")
-        case .withoutValue: hasher.combine("withoutValue")
-        }
+        hasher.combine(String.caseName(self))
     }
 }
 
-enum OtherState: String, Hashable {
-    case cat, dog, fish, any
+protocol EventValue: CaseIterable, Hashable {
+    static var any: Self { get }
+}
 
+extension EventValue {
     static func == (lhs: Self, rhs: Self) -> Bool {
-        guard lhs.rawValue != "any" && rhs.rawValue != "any" else { return true }
+        guard lhs.caseName != "any" && rhs.caseName != "any" else { return true }
 
-        return lhs.rawValue == rhs.rawValue
+        return lhs.caseName == rhs.caseName
+    }
+
+    var caseName: String {
+        String.caseName(self)
+    }
+}
+
+extension String {
+    static func caseName(_ enumInstance: Any) -> String {
+        String(String(describing: enumInstance).split(separator: "(").first!)
     }
 }
 
@@ -647,7 +663,7 @@ final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests
     }
 }
 
-class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, EventWithValue> {
+class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent> {
     override func makeSUT<_State, _Event>(
         initialState: _State,
         actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
@@ -658,40 +674,43 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, EventWithVal
     override var initialState: TurnstileState { .locked }
 
     func testEventPassing() {
-        var event = EventWithValue.withoutValue
+        var event = ComplexEvent.null
 
-        func assertValue(_ expectedValue: OtherState, line: UInt = #line) {
-            if case let .didSetOtherState(actualValue) = event {
+        func assertValue(_ expectedValue: Animal, line: UInt = #line) {
+            if case let .didSetValue(actualValue) = event {
                 XCTAssertEqual(expectedValue, actualValue, line: line)
             } else {
                 XCTFail(line: line)
             }
         }
 
-        func setEvent(_ e: EventWithValue) {
+        func setEvent(_ e: ComplexEvent) {
             event = e
         }
 
         try! fsm.buildTable {
             define(.locked) {
-                when(.didSetOtherState(.cat))  | then() | setEvent
-                when(.didSetOtherState(.fish)) | then() | setEvent
+                when(.didSetValue(.cat))  | then() | setEvent
+                when(.didSetValue(.fish)) | then() | setEvent
             }
 
             define(.unlocked) {
-                when(.didSetOtherState(.any)) | then() | setEvent
+                when(.didSetValue(.any)) | then() | setEvent
             }
         }
 
-        fsm.handleEvent(.didSetOtherState(.cat))
+        fsm.handleEvent(.didSetValue(.cat))
         assertValue(.cat)
 
-        fsm.handleEvent(.didSetOtherState(.fish))
+        fsm.handleEvent(.didSetValue(.fish))
         assertValue(.fish)
 
         fsm.state = AnyHashable(State.unlocked)
-        fsm.handleEvent(.didSetOtherState(.cat))
+        fsm.handleEvent(.didSetValue(.cat))
         assertValue(.cat)
+
+        fsm.handleEvent(.didSetValue(.fish))
+        assertValue(.fish)
     }
 }
 
