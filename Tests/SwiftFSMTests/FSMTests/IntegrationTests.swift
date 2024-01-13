@@ -619,18 +619,22 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
 
 enum EventWithValue: Hashable {
     case didSetOtherState(OtherState), withoutValue
+
+    func hash(into hasher: inout Hasher) {
+        switch self {
+        case .didSetOtherState(_): hasher.combine("didSetOtherState")
+        case .withoutValue: hasher.combine("withoutValue")
+        }
+    }
 }
 
-enum OtherState: Hashable {
-    case value(String), any
+enum OtherState: String, Hashable {
+    case cat, dog, fish, any
 
     static func == (lhs: Self, rhs: Self) -> Bool {
-        switch (lhs, rhs) {
-        case (.value(_), .value(_)):
-            true
-        default:
-            true
-        }
+        guard lhs.rawValue != "any" && rhs.rawValue != "any" else { return true }
+
+        return lhs.rawValue == rhs.rawValue
     }
 }
 
@@ -654,18 +658,40 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, EventWithVal
     override var initialState: TurnstileState { .locked }
 
     func testEventPassing() {
-        var otherState = ""
+        var event = EventWithValue.withoutValue
 
-        try! fsm.buildTable {
-            define(.locked) {
-                when(.didSetOtherState(.any)) | then(.unlocked) | {
-//                    otherState = $0
-                }
+        func assertValue(_ expectedValue: OtherState, line: UInt = #line) {
+            if case let .didSetOtherState(actualValue) = event {
+                XCTAssertEqual(expectedValue, actualValue, line: line)
+            } else {
+                XCTFail(line: line)
             }
         }
 
-        fsm.handleEvent(.didSetOtherState(.value("cat")))
-        XCTAssertEqual(otherState, "cat")
+        func setEvent(_ e: EventWithValue) {
+            event = e
+        }
+
+        try! fsm.buildTable {
+            define(.locked) {
+                when(.didSetOtherState(.cat))  | then() | setEvent
+                when(.didSetOtherState(.fish)) | then() | setEvent
+            }
+
+            define(.unlocked) {
+                when(.didSetOtherState(.any)) | then() | setEvent
+            }
+        }
+
+        fsm.handleEvent(.didSetOtherState(.cat))
+        assertValue(.cat)
+
+        fsm.handleEvent(.didSetOtherState(.fish))
+        assertValue(.fish)
+
+        fsm.state = AnyHashable(State.unlocked)
+        fsm.handleEvent(.didSetOtherState(.cat))
+        assertValue(.cat)
     }
 }
 
