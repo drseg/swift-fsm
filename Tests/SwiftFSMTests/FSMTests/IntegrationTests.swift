@@ -617,8 +617,47 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
     }
 }
 
+enum Value<T: Hashable>: Hashable {
+    case some(T), any
+
+    var value: T? {
+        if case let .some(value) = self {
+            return value
+        }
+        return nil
+    }
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        guard lhs.isSome, rhs.isSome else { return true }
+
+        if case let .some(lhsValue) = lhs, case let .some(rhsValue) = rhs {
+            return lhsValue == rhsValue
+        }
+
+        return false
+    }
+
+    private var isSome: Bool {
+        return if case .some(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    private var isAny: Bool {
+        return if case .any = self {
+            true
+        } else {
+            false
+        }
+    }
+}
+
 enum ComplexEvent: EventWithValues {
-    case didSetValue(Animal), null
+    case didSetValue(Animal)
+    case didSetOtherValue(Value<String>)
+    case null
 }
 
 enum Animal: EventValue {
@@ -632,13 +671,19 @@ extension EventWithValues {
     }
 }
 
-protocol EventValue: CaseIterable, Hashable {
+protocol EventValue: Hashable, CaseIterable {
     static var any: Self { get }
 }
 
+
 extension EventValue {
     static func == (lhs: Self, rhs: Self) -> Bool {
-        guard lhs.caseName != "any" && rhs.caseName != "any" else { return true }
+        guard
+            lhs.caseName != Self.any.caseName,
+            rhs.caseName != Self.any.caseName
+        else {
+            return true
+        }
 
         return lhs.caseName == rhs.caseName
     }
@@ -682,6 +727,8 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
             } else {
                 XCTFail(line: line)
             }
+
+            event = .null
         }
 
         func setEvent(_ e: ComplexEvent) {
@@ -705,12 +752,60 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
         fsm.handleEvent(.didSetValue(.fish))
         assertValue(.fish)
 
+        fsm.handleEvent(.didSetValue(.dog))
+        XCTAssertEqual(event, .null)
+
         fsm.state = AnyHashable(State.unlocked)
         fsm.handleEvent(.didSetValue(.cat))
         assertValue(.cat)
 
         fsm.handleEvent(.didSetValue(.fish))
         assertValue(.fish)
+    }
+
+    func testEventPassingWithValue() {
+        var event = ComplexEvent.null
+
+        func assertValue(_ expectedValue: String, line: UInt = #line) {
+            if case let .didSetOtherValue(actualValue) = event {
+                XCTAssertEqual(expectedValue, actualValue.value, line: line)
+            } else {
+                XCTFail(line: line)
+            }
+
+            event = .null
+        }
+
+        func setEvent(_ e: ComplexEvent) {
+            event = e
+        }
+
+        try! fsm.buildTable {
+            define(.locked) {
+                when(.didSetOtherValue(.some("cat"))) | then() | setEvent
+                when(.didSetOtherValue(.some("fish"))) | then() | setEvent
+            }
+
+            define(.unlocked) {
+                when(.didSetOtherValue(.any)) | then() | setEvent
+            }
+        }
+
+        fsm.handleEvent(.didSetOtherValue(.some("cat")))
+        assertValue("cat")
+
+        fsm.handleEvent(.didSetOtherValue(.some("fish")))
+        assertValue("fish")
+
+        fsm.handleEvent(.didSetOtherValue(.some("dog")))
+        XCTAssertEqual(event, .null)
+
+        fsm.state = AnyHashable(State.unlocked)
+        fsm.handleEvent(.didSetOtherValue(.some("cat")))
+        assertValue("cat")
+
+        fsm.handleEvent(.didSetOtherValue(.some("fish")))
+        assertValue("fish")
     }
 }
 
