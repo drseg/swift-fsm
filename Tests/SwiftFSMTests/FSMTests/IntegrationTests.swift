@@ -617,80 +617,24 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
     }
 }
 
-enum Value<T: Hashable>: Hashable {
-    case some(T), any
-
-    var value: T? {
-        if case let .some(value) = self {
-            return value
-        }
-        return nil
-    }
-
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        guard lhs.isSome, rhs.isSome else { return true }
-
-        if case let .some(lhsValue) = lhs, case let .some(rhsValue) = rhs {
-            return lhsValue == rhsValue
-        }
-
-        return false
-    }
-
-    private var isSome: Bool {
-        return if case .some(_) = self {
-            true
-        } else {
-            false
-        }
-    }
-
-    private var isAny: Bool {
-        return if case .any = self {
-            true
-        } else {
-            false
-        }
-    }
-}
-
 enum ComplexEvent: EventWithValues {
     case didSetValue(Animal)
     case didSetOtherValue(Value<String>)
     case null
-}
 
-enum Animal: EventValue {
-    case cat, dog, fish, any
-}
-
-protocol EventWithValues: Hashable { }
-extension EventWithValues {
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(String.caseName(self))
-    }
-}
-
-protocol EventValue: Hashable, CaseIterable {
-    static var any: Self { get }
-}
-
-
-extension EventValue {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        guard
-            lhs.caseName != Self.any.caseName,
-            rhs.caseName != Self.any.caseName
-        else {
-            return true
+    var stringValue: String? {
+        return if case let .didSetOtherValue(value) = self {
+            value.value
+        } else if case let .didSetValue(value) = self {
+            value.rawValue
+        } else {
+            nil
         }
-
-        return lhs.caseName == rhs.caseName
     }
+}
 
-    var caseName: String {
-        String.caseName(self)
-    }
+enum Animal: String, EventValue {
+    case cat, dog, fish, any
 }
 
 extension String {
@@ -717,95 +661,66 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
     }
 
     override var initialState: TurnstileState { .locked }
+    var event = ComplexEvent.null
 
-    func testEventPassing() {
-        var event = ComplexEvent.null
-
-        func assertValue(_ expectedValue: Animal, line: UInt = #line) {
-            if case let .didSetValue(actualValue) = event {
-                XCTAssertEqual(expectedValue, actualValue, line: line)
-            } else {
-                XCTFail(line: line)
-            }
-
-            event = .null
-        }
-
-        func setEvent(_ e: ComplexEvent) {
-            event = e
-        }
-
-        try! fsm.buildTable {
-            define(.locked) {
-                when(.didSetValue(.cat))  | then() | setEvent
-                when(.didSetValue(.fish)) | then() | setEvent
-            }
-
-            define(.unlocked) {
-                when(.didSetValue(.any)) | then() | setEvent
-            }
-        }
-
-        fsm.handleEvent(.didSetValue(.cat))
-        assertValue(.cat)
-
-        fsm.handleEvent(.didSetValue(.fish))
-        assertValue(.fish)
-
-        fsm.handleEvent(.didSetValue(.dog))
-        XCTAssertEqual(event, .null)
-
-        fsm.state = AnyHashable(State.unlocked)
-        fsm.handleEvent(.didSetValue(.cat))
-        assertValue(.cat)
-
-        fsm.handleEvent(.didSetValue(.fish))
-        assertValue(.fish)
+    func setEvent(_ e: ComplexEvent) {
+        event = e
     }
 
-    func testEventPassingWithValue() {
-        var event = ComplexEvent.null
-
-        func assertValue(_ expectedValue: String, line: UInt = #line) {
-            if case let .didSetOtherValue(actualValue) = event {
-                XCTAssertEqual(expectedValue, actualValue.value, line: line)
-            } else {
-                XCTFail(line: line)
-            }
-
+    func assertEventPassing(
+        cat: ComplexEvent,
+        fish: ComplexEvent,
+        dog: ComplexEvent,
+        any: ComplexEvent
+    ) {
+        func assertValue(_ expectedValue: ComplexEvent) {
+            XCTAssertEqual(expectedValue.stringValue, event.stringValue)
             event = .null
-        }
-
-        func setEvent(_ e: ComplexEvent) {
-            event = e
         }
 
         try! fsm.buildTable {
             define(.locked) {
-                when(.didSetOtherValue(.some("cat"))) | then() | setEvent
-                when(.didSetOtherValue(.some("fish"))) | then() | setEvent
+                when(cat)  | then() | setEvent
+                when(fish) | then() | setEvent
             }
 
             define(.unlocked) {
-                when(.didSetOtherValue(.any)) | then() | setEvent
+                when(any) | then() | setEvent
             }
         }
 
-        fsm.handleEvent(.didSetOtherValue(.some("cat")))
-        assertValue("cat")
+        fsm.handleEvent(cat)
+        assertValue(cat)
 
-        fsm.handleEvent(.didSetOtherValue(.some("fish")))
-        assertValue("fish")
+        fsm.handleEvent(cat)
+        assertValue(cat)
 
-        fsm.handleEvent(.didSetOtherValue(.some("dog")))
+        fsm.handleEvent(dog)
         XCTAssertEqual(event, .null)
 
         fsm.state = AnyHashable(State.unlocked)
-        fsm.handleEvent(.didSetOtherValue(.some("cat")))
-        assertValue("cat")
+        fsm.handleEvent(cat)
+        assertValue(cat)
 
-        fsm.handleEvent(.didSetOtherValue(.some("fish")))
-        assertValue("fish")
+        fsm.handleEvent(fish)
+        assertValue(fish)
+
+        fsm.handleEvent(cat)
+        assertValue(cat)
+    }
+
+    func testEventPassingUsingEventValueProtocol() {
+        assertEventPassing(cat: .didSetValue(.cat),
+                           fish: .didSetValue(.fish),
+                           dog: .didSetValue(.dog),
+                           any: .didSetValue(.any))
+    }
+
+    func testEventPassingUsingValueEnum() {
+        assertEventPassing(cat: .didSetOtherValue(.some("cat")),
+                           fish: .didSetOtherValue(.some("fish")),
+                           dog: .didSetOtherValue(.some("dog")),
+                           any: .didSetOtherValue(.any))
     }
 }
 
