@@ -1,16 +1,12 @@
 import Foundation
 
-public enum Value<T: Hashable>: Hashable {
+public enum FSMValue<T: Hashable>: Hashable {
     case some(T), any
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
         guard lhs.isSome, rhs.isSome else { return true }
 
-        if case let .some(lhsValue) = lhs, case let .some(rhsValue) = rhs {
-            return lhsValue == rhsValue
-        }
-
-        return false
+        return lhs.value == rhs.value
     }
 
     public var value: T? {
@@ -23,14 +19,6 @@ public enum Value<T: Hashable>: Hashable {
 
     private var isSome: Bool {
         return if case .some(_) = self {
-            true
-        } else {
-            false
-        }
-    }
-
-    private var isAny: Bool {
-        return if case .any = self {
             true
         } else {
             false

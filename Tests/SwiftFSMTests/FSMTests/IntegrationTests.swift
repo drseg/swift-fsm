@@ -617,30 +617,22 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
     }
 }
 
-enum ComplexEvent: EventWithValues {
+enum ComplexEvent: EventWithValues {    
     case didSetValue(Animal)
-    case didSetOtherValue(Value<String>)
+    case didSetOtherValue(FSMValue<String>)
     case null
 
     var stringValue: String? {
-        return if case let .didSetOtherValue(value) = self {
-            value.value
-        } else if case let .didSetValue(value) = self {
-            value.rawValue
-        } else {
-            nil
+        switch self {
+        case let .didSetOtherValue(value): value.value
+        case let .didSetValue(value): value.rawValue
+        default: nil
         }
     }
 }
 
 enum Animal: String, EventValue {
     case cat, dog, fish, any
-}
-
-extension String {
-    static func caseName(_ enumInstance: Any) -> String {
-        String(String(describing: enumInstance).split(separator: "(").first!)
-    }
 }
 
 final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
@@ -721,6 +713,28 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
                            fish: .didSetOtherValue(.some("fish")),
                            dog: .didSetOtherValue(.some("dog")),
                            any: .didSetOtherValue(.any))
+    }
+
+    func testDuplicatesDetectedAsExpectedUsingProtocol() {
+        XCTAssertThrowsError(
+            try fsm.buildTable {
+                define(.locked) {
+                    when(.didSetValue(.cat))  | then() | setEvent
+                    when(.didSetValue(.any))  | then() | setEvent
+                }
+            }
+        )
+    }
+
+    func testDuplicatesDetectedAsExpectedUsingStruct() {
+        XCTAssertThrowsError(
+            try fsm.buildTable {
+                define(.locked) {
+                    when(.didSetOtherValue(.some("cat"))) | then() | setEvent
+                    when(.didSetOtherValue(.any))         | then() | setEvent
+                }
+            }
+        )
     }
 }
 
