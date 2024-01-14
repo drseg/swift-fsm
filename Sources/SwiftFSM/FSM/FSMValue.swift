@@ -4,16 +4,25 @@ public struct FSMEvent<T: Hashable>: Hashable {
     private let _value: FSMValue<T>
     let name: String
 
-    public static func makeCase(_ name: String) -> ((FSMValue<T>) -> FSMEvent<T>) {
+    public static func eventWithValue(_ name: String) -> ((FSMValue<T>) -> FSMEvent<T>) {
         { FSMEvent<T>.init($0, name: name) }
+    }
+
+    public static func event(_ name: String) -> () -> FSMEvent<T> {
+        { FSMEvent<T>.init(name: name) }
     }
 
     public var value: T? {
         _value.value
     }
 
-    internal init(_ value: FSMValue<T> = FSMValue<String>.any, name: String) {
+    internal init(_ value: FSMValue<T>, name: String) {
         self._value = value
+        self.name = name
+    }
+
+    internal init(name: String) {
+        self._value = FSMValue<T>.any
         self.name = name
     }
 }
