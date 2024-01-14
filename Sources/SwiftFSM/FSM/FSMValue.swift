@@ -1,5 +1,23 @@
 import Foundation
 
+public struct FSMEvent<T: Hashable>: Hashable {
+    private let _value: FSMValue<T>
+    let name: String
+
+    public static func makeCase(_ name: String) -> ((FSMValue<T>) -> FSMEvent<T>) {
+        { FSMEvent<T>.init($0, name: name) }
+    }
+
+    public var value: T? {
+        _value.value
+    }
+
+    internal init(_ value: FSMValue<T> = FSMValue<String>.any, name: String) {
+        self._value = value
+        self.name = name
+    }
+}
+
 public enum FSMValue<T: Hashable>: Hashable {
     case some(T), any
 

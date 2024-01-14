@@ -77,3 +77,18 @@ final class EventWithValueTests: XCTestCase {
         XCTAssertEqual(events[eNull], 1)
     }
 }
+
+extension FSMEvent<String> {
+    static let didPassValue = makeCase("didPassValue")
+}
+
+final class FSMEventEnumTests: XCTestCase {
+    var event: FSMEvent<String>!
+
+    func test() {
+        event = .didPassValue(.some("fish"))
+        
+        XCTAssertEqual(event.value, "fish")
+        XCTAssertEqual(event.name, "didPassValue")
+    }
+}
