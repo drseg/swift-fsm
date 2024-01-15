@@ -1,10 +1,3 @@
-//
-//  FSMValueTests.swift
-//  
-//
-//  Created by Daniel Segall on 14/01/2024.
-//
-
 import XCTest
 @testable import SwiftFSM
 
@@ -96,5 +89,28 @@ final class FSMEventEnumTests: XCTestCase {
 
         XCTAssertEqual(event.value, nil)
         XCTAssertEqual(event.name, "didNotPassValue")
+    }
+
+    let e1 = FSMEvent.didPassValue(.any)
+    let e2 = FSMEvent.didPassValue(.some("fish"))
+    let e3 = FSMEvent.didPassValue(.some("chicken"))
+    let e4 = FSMEvent.didNotPassValue()
+
+    func testEquality() {
+        XCTAssertEqual(e1, e1)
+        XCTAssertEqual(e1, e2)
+        XCTAssertEqual(e1, e3)
+
+        XCTAssertNotEqual(e2, e3)
+        XCTAssertNotEqual(e1, e4)
+        XCTAssertNotEqual(e2, e4)
+    }
+
+    func testHashability() {
+        let events = [e2: 2, e4: 4]
+
+        XCTAssertEqual(events[e2], 2)
+        XCTAssertEqual(events[e1], 2)
+        XCTAssertEqual(events[e4], 4)
     }
 }

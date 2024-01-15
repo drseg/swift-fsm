@@ -25,6 +25,10 @@ public struct FSMEvent<T: Hashable>: Hashable {
         self._value = FSMValue<T>.any
         self.name = name
     }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+    }
 }
 
 public enum FSMValue<T: Hashable>: Hashable {
