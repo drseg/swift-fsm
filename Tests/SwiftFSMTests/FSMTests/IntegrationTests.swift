@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+import SwiftFSMMacros
 @testable import SwiftFSM
 
 enum TurnstileState: String, CustomStringConvertible {
@@ -635,15 +636,6 @@ enum Animal: String, EventValue {
     case cat, dog, fish, any
 }
 
-final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
-    override func makeSUT<_State, _Event>(
-        initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
-        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
-    }
-}
-
 class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent> {
     override func makeSUT<_State, _Event>(
         initialState: _State,
@@ -684,8 +676,8 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
         fsm.handleEvent(cat)
         assertValue(cat)
 
-        fsm.handleEvent(cat)
-        assertValue(cat)
+        fsm.handleEvent(fish)
+        assertValue(fish)
 
         fsm.handleEvent(dog)
         XCTAssertEqual(event, .null)
@@ -696,9 +688,6 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
 
         fsm.handleEvent(fish)
         assertValue(fish)
-
-        fsm.handleEvent(cat)
-        assertValue(cat)
     }
 
     func testEventPassingUsingEventValueProtocol() {
@@ -735,6 +724,79 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
                 }
             }
         )
+    }
+}
+
+final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
+    override func makeSUT<_State, _Event>(
+        initialState: _State,
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
+        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
+    }
+}
+
+extension FSMEvent<String> {
+    #eventWithValue("didSetValue")
+}
+
+class FSMEventPassingIntegrationTestsWithMacro: FSMTestsBase<TurnstileState, FSMEvent<String>> {
+    override var initialState: TurnstileState { .locked }
+
+    override func makeSUT<_State, _Event>(
+        initialState: _State,
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
+        FSM(initialState: initialState, actionsPolicy: actionsPolicy)
+    }
+
+    var event = FSMEvent<String>(name: "fail")
+
+    func setEvent(_ e: FSMEvent<String>) {
+        event = e
+    }
+
+    func testEventPassing() {
+        func assertValue(_ expectedValue: FSMEvent<String>) {
+            XCTAssertEqual(expectedValue.value, event.value)
+            event = FSMEvent<String>(name: "fail")
+        }
+
+        try! fsm.buildTable {
+            define(.locked) {
+                when(.didSetValue(.some("cat")))  | then() | setEvent
+                when(.didSetValue(.some("fish"))) | then() | setEvent
+            }
+
+            define(.unlocked) {
+                when(.didSetValue(.any)) | then() | setEvent
+            }
+        }
+
+        fsm.handleEvent(.didSetValue(.some("cat")))
+        assertValue(.didSetValue(.some("cat")))
+
+        fsm.handleEvent(.didSetValue(.some("fish")))
+        assertValue(.didSetValue(.some("fish")))
+
+        fsm.handleEvent(.didSetValue(.some("dog")))
+        XCTAssertEqual(event, FSMEvent<String>(name: "fail"))
+
+        fsm.state = AnyHashable(State.unlocked)
+        fsm.handleEvent(.didSetValue(.some("cat")))
+        assertValue(.didSetValue(.some("cat")))
+
+        fsm.handleEvent(.didSetValue(.some("fish")))
+        assertValue(.didSetValue(.some("fish")))
+    }
+}
+
+class LazyFSMEventPassingIntegrationTestsWithMacro: FSMTestsBase<TurnstileState, FSMEvent<String>> {
+    override func makeSUT<_State, _Event>(
+        initialState: _State,
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
+        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
 
