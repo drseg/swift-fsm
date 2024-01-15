@@ -19,7 +19,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
-        .package(url: "https://github.com/drseg/reflective-equality", from: "1.0.0")
+        .package(url: "https://github.com/drseg/reflective-equality", from: "1.0.0"),
+        .package(url: "https://github.com/drseg/swift-fsm-macros", branch: "master")
 //        .package(url: "https://github.com/realm/SwiftLint", from: "0.50.0")
     ],
     targets: [
@@ -27,7 +28,8 @@ let package = Package(
             name: "SwiftFSM",
             dependencies:
                 [.product(name: "ReflectiveEquality", package: "reflective-equality"),
-                 .product(name: "Algorithms", package: "swift-algorithms")],
+                 .product(name: "Algorithms", package: "swift-algorithms"),
+                 .product(name: "SwiftFSMMacros", package: "swift-fsm-macros")],
             swiftSettings: [.define("DEVELOPMENT", .when(configuration: .debug))]
 //            plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
         ),

@@ -1,4 +1,5 @@
 import XCTest
+import SwiftFSMMacros
 @testable import SwiftFSM
 
 final class FSMValueTests: XCTestCase {
@@ -72,8 +73,8 @@ final class EventWithValueTests: XCTestCase {
 }
 
 extension FSMEvent<String> {
-    static let didPassValue = eventWithValue("didPassValue")
-    static let didNotPassValue = event("didNotPassValue")
+    #eventWithValue("didPassValue")
+    #event("didNotPassValue")
 }
 
 final class FSMEventEnumTests: XCTestCase {
