@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "C0726EFB-1A89-48B0-AFEE-2F69A2889B1E",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftFSMMacrosTests",
+        "name" : "SwiftFSMMacrosTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftFSMTests",
+        "name" : "SwiftFSMTests"
+      }
+    }
+  ],
+  "version" : 1
+}
