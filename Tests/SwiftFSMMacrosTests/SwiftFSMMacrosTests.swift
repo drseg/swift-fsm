@@ -3,6 +3,7 @@ import SwiftSyntaxMacrosTestSupport
 import XCTest
 import SwiftFSMMacros
 import SwiftFSMMacrosEvent
+import SwiftFSM
 
 let testMacros: [String: Macro.Type] = [
     "events": EventMacro.self,

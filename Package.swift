@@ -44,19 +44,20 @@ let package = Package(
             name: "SwiftFSMMacrosEvent",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ]
         ),
         .target(name: "SwiftFSMMacros", dependencies: ["SwiftFSMMacrosEvent"]),
 
         .testTarget(
             name: "SwiftFSMTests",
-            dependencies: ["SwiftFSM"]
+            dependencies: ["SwiftFSM", "SwiftFSMMacros"]
         ),
         .testTarget(
             name: "SwiftFSMMacrosTests",
             dependencies: [
                 "SwiftFSMMacrosEvent",
+                "SwiftFSM",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
             ]
         ),
