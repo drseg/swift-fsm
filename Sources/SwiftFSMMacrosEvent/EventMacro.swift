@@ -38,28 +38,32 @@ public struct EventWithValueMacro: DeclarationMacro {
 }
 
 extension ExprSyntax {
-    func staticLetFormatted(functionName: String) throws -> DeclSyntax {
+    var literalText: String? {
         guard
             let segments = self.as(StringLiteralExprSyntax.self)?.segments,
             case .stringSegment(let literalSegment)? = segments.first else {
+            return nil
+        }
+
+        return literalSegment.content.text
+    }
+
+    func staticLetFormatted(functionName: String) throws -> DeclSyntax {
+        guard let literalText else {
             throw "Event names must be String literals"
         }
 
-        let text = literalSegment.content.text
-        return "static let \(raw: text) = \(raw: functionName)(\"\(raw: text)\")"
+        return "static let \(raw: literalText) = \(raw: functionName)(\"\(raw: literalText)\")"
     }
 
     func staticFuncFormatted(functionName: String, argumentLabel: String) throws -> DeclSyntax {
-        guard
-            let segments = self.as(StringLiteralExprSyntax.self)?.segments,
-            case .stringSegment(let literalSegment)? = segments.first else {
+        guard let literalText else {
             throw "Event names must be String literals"
         }
 
-        let text = literalSegment.content.text
         return """
-        static func \(raw: text)() -> \(raw: functionName) {
-            \(raw: functionName)(\(raw: argumentLabel): \"\(raw: text)\")
+        static func \(raw: literalText)() -> \(raw: functionName) {
+            \(raw: functionName)(\(raw: argumentLabel): \"\(raw: literalText)\")
         }
         """
     }
