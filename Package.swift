@@ -1,7 +1,8 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import CompilerPluginSupport
 
 let package = Package(
     name: "swift-fsm",
@@ -16,11 +17,16 @@ let package = Package(
             name: "SwiftFSM",
             targets: ["SwiftFSM"]
         ),
+        .library(
+            name: "SwiftFSMMacros",
+            targets: ["SwiftFSMMacros"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
         .package(url: "https://github.com/drseg/reflective-equality", from: "1.0.0"),
-        .package(url: "https://github.com/drseg/swift-fsm-macros", branch: "master")
+        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
+//        .package(url: "https://github.com/drseg/swift-fsm-macros", branch: "master"),
 //        .package(url: "https://github.com/realm/SwiftLint", from: "0.50.0")
     ],
     targets: [
@@ -29,13 +35,30 @@ let package = Package(
             dependencies:
                 [.product(name: "ReflectiveEquality", package: "reflective-equality"),
                  .product(name: "Algorithms", package: "swift-algorithms"),
-                 .product(name: "SwiftFSMMacros", package: "swift-fsm-macros")],
+                 "SwiftFSMMacros",
+                ],
             swiftSettings: [.define("DEVELOPMENT", .when(configuration: .debug))]
 //            plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
         ),
+        .macro(
+            name: "SwiftFSMMacrosEvent",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+            ]
+        ),
+        .target(name: "SwiftFSMMacros", dependencies: ["SwiftFSMMacrosEvent"]),
+
         .testTarget(
             name: "SwiftFSMTests",
             dependencies: ["SwiftFSM"]
+        ),
+        .testTarget(
+            name: "SwiftFSMMacrosTests",
+            dependencies: [
+                "SwiftFSMMacrosEvent",
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+            ]
         ),
     ]
 )

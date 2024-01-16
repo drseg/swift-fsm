@@ -19,15 +19,6 @@
       }
     },
     {
-      "identity" : "swift-fsm-macros",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/drseg/swift-fsm-macros",
-      "state" : {
-        "branch" : "master",
-        "revision" : "584cfbefe7475cf721ed9c105a15a73106c3abaa"
-      }
-    },
-    {
       "identity" : "swift-numerics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-numerics",
