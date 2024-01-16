@@ -32,13 +32,13 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftFSM",
-            dependencies:
-                [.product(name: "ReflectiveEquality", package: "reflective-equality"),
-                 .product(name: "Algorithms", package: "swift-algorithms"),
-                 "SwiftFSMMacros",
-                ],
+            dependencies: [
+                .product(name: "ReflectiveEquality", package: "reflective-equality"),
+                .product(name: "Algorithms", package: "swift-algorithms"),
+                "SwiftFSMMacros",
+            ],
             swiftSettings: [.define("DEVELOPMENT", .when(configuration: .debug))]
-//            plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
+//          plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
         ),
         .macro(
             name: "SwiftFSMMacrosEvent",
@@ -51,7 +51,10 @@ let package = Package(
 
         .testTarget(
             name: "SwiftFSMTests",
-            dependencies: ["SwiftFSM", "SwiftFSMMacros"]
+            dependencies: [
+                "SwiftFSM",
+                "SwiftFSMMacros"
+            ]
         ),
         .testTarget(
             name: "SwiftFSMMacrosTests",

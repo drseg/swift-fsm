@@ -16,19 +16,19 @@ let testMacros: [String: Macro.Type] = [
 // TODO: first perhaps just replace the lets with static funcs
 
 final class StaticFuncEventTests: XCTestCase {
-//    func testEventExpansion() {
-//        assertMacroExpansion(
-//            """
-//            #_events("first")
-//            """,
-//            expandedSource:
-//            """
-//            static func first() -> FSMEvent<String> {
-//                FSMEvent(name: "first")
-//            }
-//            """,
-//            macros: testMacros)
-//    }
+    func testEventExpansion() {
+        assertMacroExpansion(
+            """
+            #_events("first")
+            """,
+            expandedSource:
+            """
+            static func first() -> FSMEvent<String> {
+                FSMEvent(name: "first")
+            }
+            """,
+            macros: testMacros)
+    }
 }
 
 final class StaticLetEventTests: XCTestCase {
