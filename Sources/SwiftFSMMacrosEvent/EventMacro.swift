@@ -19,6 +19,15 @@ public struct StaticFuncEventMacro: DeclarationMacro {
     }
 }
 
+public struct StaticFuncEventWithValueMacro: DeclarationMacro {
+    public static func expansion(
+        of node: some FreestandingMacroExpansionSyntax,
+        in context: some MacroExpansionContext)
+    throws -> [SwiftSyntax.DeclSyntax] {
+        try node.staticFuncFormatted(functionName: "FSMEvent<String>", argumentLabel: "name")
+    }
+}
+
 public struct EventMacro: DeclarationMacro {
     public static func expansion(
         of node: some FreestandingMacroExpansionSyntax,
@@ -62,8 +71,10 @@ extension ExprSyntax {
         }
 
         return """
-        static func \(raw: literalText)() -> \(raw: functionName) {
-            \(raw: functionName)(\(raw: argumentLabel): \"\(raw: literalText)\")
+        static func \(raw: literalText)() -> () -> \(raw: functionName) {
+            {
+                \(raw: functionName)(\(raw: argumentLabel): \"\(raw: literalText)\")
+            }
         }
         """
     }

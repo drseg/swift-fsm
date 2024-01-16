@@ -8,12 +8,9 @@ import SwiftFSM
 let testMacros: [String: Macro.Type] = [
     "events": EventMacro.self,
     "eventsWithValue": EventWithValueMacro.self,
-    "_events": StaticFuncEventMacro.self
+    "_events": StaticFuncEventMacro.self,
+    "_eventsWithValue": StaticFuncEventWithValueMacro.self
 ]
-
-// TODO: produce struct with "name" with static overloaded funcs for case names - need something cleverer than extension { static let } because of the wish to overload the returned function/init calls
-
-// TODO: first perhaps just replace the lets with static funcs
 
 final class StaticFuncEventTests: XCTestCase {
     func testEventExpansion() {
@@ -23,11 +20,15 @@ final class StaticFuncEventTests: XCTestCase {
             """,
             expandedSource:
             """
-            static func first() -> FSMEvent<String> {
-                FSMEvent<String>(name: "first")
+            static func first() -> () -> FSMEvent<String> {
+                {
+                    FSMEvent<String>(name: "first")
+                }
             }
-            static func second() -> FSMEvent<String> {
-                FSMEvent<String>(name: "second")
+            static func second() -> () -> FSMEvent<String> {
+                {
+                    FSMEvent<String>(name: "second")
+                }
             }
             """,
             macros: testMacros)
@@ -41,6 +42,23 @@ final class StaticFuncEventTests: XCTestCase {
             macros: testMacros
         )
     }
+
+//    func testEventWithValueExpansion() throws {
+//        assertMacroExpansion(
+//            """
+//            #_eventsWithValue("first", "second")
+//            """,
+//            expandedSource:
+//            """
+//            static func first() -> FSMEvent<T!!!> {
+//                FSMEvent<T!!!>(name: "first")
+//            }
+//            static func second() -> FSMEvent<T!!!> {
+//                FSMEvent<T!!!>(name: "second")
+//            }
+//            """,
+//            macros: testMacros)
+//    }
 }
 
 final class StaticLetEventTests: XCTestCase {
