@@ -737,7 +737,7 @@ final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests
 }
 
 extension FSMEvent<String> {
-    #eventWithValue("didSetValue")
+    #letEventWithValue("didSetValue")
 }
 
 class FSMEventPassingIntegrationTestsWithMacro: FSMTestsBase<TurnstileState, FSMEvent<String>> {

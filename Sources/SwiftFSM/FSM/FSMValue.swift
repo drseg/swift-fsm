@@ -16,12 +16,12 @@ public struct FSMEvent<T: Hashable>: Hashable {
         _value.value
     }
 
-    internal init(_ value: FSMValue<T>, name: String) {
+    init(_ value: FSMValue<T>, name: String) {
         self._value = value
         self.name = name
     }
 
-    internal init(name: String) {
+    init(name: String) {
         self._value = FSMValue<T>.any
         self.name = name
     }

@@ -1,12 +1,29 @@
 @freestanding(declaration, names: arbitrary)
-public macro event(_ named: String) = #externalMacro(module: "SwiftFSMMacrosEvent",
-                                                     type: "EventMacro")
+public macro letEvent(_ named: String) =
+#externalMacro(module: "SwiftFSMMacrosEvent",
+               type: "StaticLetEventMacro")
+
 @freestanding(declaration, names: arbitrary)
-public macro events(_ named: String...) = #externalMacro(module: "SwiftFSMMacrosEvent",
-                                                         type: "EventMacro")
+public macro letEvents(_ named: String...) =
+#externalMacro(module: "SwiftFSMMacrosEvent",
+               type: "StaticLetEventMacro")
+
 @freestanding(declaration, names: arbitrary)
-public macro eventWithValue(_ named: String) = #externalMacro(module: "SwiftFSMMacrosEvent",
-                                                              type: "EventWithValueMacro")
+public macro funcEvents(_ named: String...) =
+#externalMacro(module: "SwiftFSMMacrosEvent",
+               type: "StaticFuncEventMacro")
+
 @freestanding(declaration, names: arbitrary)
-public macro eventsWithValue(_ named: String...) = #externalMacro(module: "SwiftFSMMacrosEvent",
-                                                                  type: "EventWithValueMacro")
+public macro funcEventsWithValue(_ named: String...) =
+#externalMacro(module: "SwiftFSMMacrosEvent",
+               type: "StaticFuncEventWithValueMacro")
+
+@freestanding(declaration, names: arbitrary)
+public macro letEventWithValue(_ named: String) =
+#externalMacro(module: "SwiftFSMMacrosEvent",
+               type: "StaticLetEventWithValueMacro")
+
+@freestanding(declaration, names: arbitrary)
+public macro letEventsWithValue(_ named: String...) =
+#externalMacro(module: "SwiftFSMMacrosEvent",
+               type: "StaticLetEventWithValueMacro")

@@ -73,8 +73,8 @@ final class EventWithValueTests: XCTestCase {
 }
 
 extension FSMEvent<String> {
-    #eventWithValue("didPassValue")
-    #event("didNotPassValue")
+    #letEventWithValue("didPassValue")
+    #letEvent("didNotPassValue")
 }
 
 final class FSMEventEnumTests: XCTestCase {
