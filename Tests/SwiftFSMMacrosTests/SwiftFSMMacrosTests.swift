@@ -79,9 +79,50 @@ final class StaticFuncEventTests: XCTestCase {
             macros: testMacros)
     }
 
-//    func testLiveEventWithValueMacro() throws {
+    func testLiveEventWithValueMacro() throws {
+        /// The .any doesn't 'have' a generic type, so what can we do with it?
 //        XCTAssertEqual(Event.third(.any).value, nil)
-//    }
+    }
+
+    /*
+     #eventStructure(name: "Event", encapsulation: .public) {
+         #events {
+              "first"
+              "second"
+         }
+
+          #eventsWithValues {
+              ("third", String.self)
+              ("fourth", Int.self)
+         }
+     }
+
+     becomes:
+
+     public enum Event: EventWithValues {
+        case first, second, third(FSMValue<String>), fourth(FSMValue<Int>)
+
+        public static func third(_ value: String) -> Event {
+            .third(FSMValue.some(value))
+        }
+
+        public static func fourth(_ value: Int) -> Event {
+            .fourth(FSMValue.some(value))
+        }
+
+        public var stringValue: String? {
+            switch self {
+            case .third(let value): value.value
+            default: nil
+        }
+
+        public var stringValue: Int? {
+            switch self {
+            case .fourth(let value): value.value
+            default: nil
+        }
+     }
+     */
 }
 
 final class StaticLetEventTests: XCTestCase {
