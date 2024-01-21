@@ -6,19 +6,31 @@ public enum Syntax {
 
 public enum Internal {
     public struct MatchingWhen<State: Hashable, Event: Hashable> {
-        public static func | (lhs: Self, rhs: Syntax.Then<State, Event>) -> MatchingWhenThen<Event> {
+        public static func | (
+            lhs: Self,
+            rhs: Syntax.Then<State, Event>
+        ) -> MatchingWhenThen<Event> {
             .init(node: rhs.node.appending(lhs.node))
         }
 
-        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenActions<Event> {
+        public static func | (
+            lhs: Self,
+            rhs: @escaping Action
+        ) -> MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
-        public static func | (lhs: Self, rhs: @escaping ActionWithEvent<Event>) -> MatchingWhenActions<Event> {
+        public static func | (
+            lhs: Self,
+            rhs: @escaping ActionWithEvent<Event>
+        ) -> MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
-        public static func | (lhs: Self, rhs: Syntax.Then<State, Event>) -> MatchingWhenThenActions<Event> {
+        public static func | (
+            lhs: Self,
+            rhs: Syntax.Then<State, Event>
+        ) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
 
@@ -26,11 +38,17 @@ public enum Internal {
     }
 
     public struct MatchingThen<Event: Hashable> {
-        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingThenActions<Event> {
+        public static func | (
+            lhs: Self, 
+            rhs: @escaping Action
+        ) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
-        public static func | (lhs: Self, rhs: @escaping ActionWithEvent<Event>) -> MatchingThenActions<Event> {
+        public static func | (
+            lhs: Self,
+            rhs: @escaping ActionWithEvent<Event>
+        ) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
@@ -42,11 +60,17 @@ public enum Internal {
     public final class MatchingThenActions<Event: Hashable>: MTA { }
 
     public struct MatchingWhenThen<Event: Hashable> {
-        public static func | (lhs: Self, rhs: @escaping Action) -> MatchingWhenThenActions<Event> {
+        public static func | (
+            lhs: Self,
+            rhs: @escaping Action
+        ) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
-        public static func | (lhs: Self, rhs: @escaping ActionWithEvent<Event>) -> MatchingWhenThenActions<Event> {
+        public static func | (
+            lhs: Self,
+            rhs: @escaping ActionWithEvent<Event>
+        ) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 

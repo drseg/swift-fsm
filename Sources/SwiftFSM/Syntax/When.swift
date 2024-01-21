@@ -61,10 +61,11 @@ public extension Syntax {
             file: String,
             line: Int
         ) {
-            node = WhenNode(events: events.map { AnyTraceable($0, file: file, line: line) },
-                            caller: "when",
-                            file: file,
-                            line: line
+            node = WhenNode(
+                events: events.map { AnyTraceable($0, file: file, line: line) },
+                caller: "when",
+                file: file,
+                line: line
             )
         }
 

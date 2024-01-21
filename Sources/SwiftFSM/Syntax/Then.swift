@@ -2,11 +2,17 @@ import Foundation
 
 public extension Syntax {
     struct Then<State: Hashable, Event: Hashable> {
-        public static func | (lhs: Self, rhs: @escaping Action) -> Internal.MatchingThenActions<Event> {
+        public static func | (
+            lhs: Self,
+            rhs: @escaping Action
+        ) -> Internal.MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
-        public static func | (lhs: Self, rhs: @escaping ActionWithEvent<Event>) -> Internal.MatchingThenActions<Event> {
+        public static func | (
+            lhs: Self,
+            rhs: @escaping ActionWithEvent<Event>
+        ) -> Internal.MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
