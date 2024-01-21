@@ -58,7 +58,7 @@ public enum FSMValue<T: Hashable>: Hashable {
 }
 
 public protocol EventWithValues: Hashable { }
-extension EventWithValues {
+public extension EventWithValues {
     func hash(into hasher: inout Hasher) {
         hasher.combine(String.caseName(self))
     }
@@ -68,7 +68,7 @@ public protocol EventValue: Hashable, CaseIterable {
     static var any: Self { get }
 }
 
-extension EventValue {
+public extension EventValue {
     static func == (lhs: Self, rhs: Self) -> Bool {
         guard
             lhs.caseName != Self.any.caseName,
@@ -80,7 +80,7 @@ extension EventValue {
         return lhs.caseName == rhs.caseName
     }
 
-    var caseName: String {
+    internal var caseName: String {
         String.caseName(self)
     }
 }
