@@ -1,9 +1,13 @@
 import Foundation
 import ReflectiveEquality
 
+/// Swift bug:
+/// https://github.com/pointfreeco/swift-composable-architecture/issues/2666
+/// https://github.com/apple/swift/issues/69927
+
 @resultBuilder
-struct TableBuilder<State: Hashable>: ResultBuilder {
-    typealias T = Syntax.Define<State>
+public struct TableBuilder<State: Hashable>: ResultBuilder {
+    public typealias T = Syntax.Define<State>
 }
 
 struct FSMKey: Hashable {
