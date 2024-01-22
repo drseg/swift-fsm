@@ -1,9 +1,16 @@
 import Foundation
 import ReflectiveEquality
 
+/// Swift bug:
+///
+/// https://github.com/pointfreeco/swift-composable-architecture/issues/2666
+/// https://github.com/apple/swift/issues/69927
+///
+/// The struct TableBuidler below should be internal, but when marked as such, Swift fails to link when compiling in release mode
+
 @resultBuilder
-struct TableBuilder<State: Hashable>: ResultBuilder {
-    typealias T = Syntax.Define<State>
+public struct TableBuilder<State: Hashable>: ResultBuilder {
+    public typealias T = Syntax.Define<State>
 }
 
 struct FSMKey: Hashable {
