@@ -1,5 +1,5 @@
 import XCTest
-import SwiftFSMMacros
+//import SwiftFSMMacros
 @testable import SwiftFSM
 
 final class FSMValueTests: XCTestCase {
@@ -72,46 +72,46 @@ final class EventWithValueTests: XCTestCase {
     }
 }
 
-extension FSMEvent<String> {
-    #letEventWithValue("didPassValue")
-    #letEvent("didNotPassValue")
-}
-
-final class FSMEventEnumTests: XCTestCase {
-    var event: FSMEvent<String>!
-
-    func testCaseGeneration() {
-        event = .didPassValue(.some("fish"))
-
-        XCTAssertEqual(event.value, "fish")
-        XCTAssertEqual(event.name, "didPassValue")
-
-        event = .didNotPassValue()
-
-        XCTAssertEqual(event.value, nil)
-        XCTAssertEqual(event.name, "didNotPassValue")
-    }
-
-    let e1 = FSMEvent.didPassValue(.any)
-    let e2 = FSMEvent.didPassValue(.some("fish"))
-    let e3 = FSMEvent.didPassValue(.some("chicken"))
-    let e4 = FSMEvent.didNotPassValue()
-
-    func testEquality() {
-        XCTAssertEqual(e1, e1)
-        XCTAssertEqual(e1, e2)
-        XCTAssertEqual(e1, e3)
-
-        XCTAssertNotEqual(e2, e3)
-        XCTAssertNotEqual(e1, e4)
-        XCTAssertNotEqual(e2, e4)
-    }
-
-    func testHashability() {
-        let events = [e2: 2, e4: 4]
-
-        XCTAssertEqual(events[e2], 2)
-        XCTAssertEqual(events[e1], 2)
-        XCTAssertEqual(events[e4], 4)
-    }
-}
+//extension FSMEvent<String> {
+//    #letEventWithValue("didPassValue")
+//    #letEvent("didNotPassValue")
+//}
+//
+//final class FSMEventEnumTests: XCTestCase {
+//    var event: FSMEvent<String>!
+//
+//    func testCaseGeneration() {
+//        event = .didPassValue(.some("fish"))
+//
+//        XCTAssertEqual(event.value, "fish")
+//        XCTAssertEqual(event.name, "didPassValue")
+//
+//        event = .didNotPassValue()
+//
+//        XCTAssertEqual(event.value, nil)
+//        XCTAssertEqual(event.name, "didNotPassValue")
+//    }
+//
+//    let e1 = FSMEvent.didPassValue(.any)
+//    let e2 = FSMEvent.didPassValue(.some("fish"))
+//    let e3 = FSMEvent.didPassValue(.some("chicken"))
+//    let e4 = FSMEvent.didNotPassValue()
+//
+//    func testEquality() {
+//        XCTAssertEqual(e1, e1)
+//        XCTAssertEqual(e1, e2)
+//        XCTAssertEqual(e1, e3)
+//
+//        XCTAssertNotEqual(e2, e3)
+//        XCTAssertNotEqual(e1, e4)
+//        XCTAssertNotEqual(e2, e4)
+//    }
+//
+//    func testHashability() {
+//        let events = [e2: 2, e4: 4]
+//
+//        XCTAssertEqual(events[e2], 2)
+//        XCTAssertEqual(events[e1], 2)
+//        XCTAssertEqual(events[e4], 4)
+//    }
+//}

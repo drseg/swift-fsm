@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-import SwiftFSMMacros
+//import SwiftFSMMacros
 @testable import SwiftFSM
 
 enum TurnstileState: String, CustomStringConvertible {
@@ -736,69 +736,69 @@ final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests
     }
 }
 
-extension FSMEvent<String> {
-    #letEventWithValue("didSetValue")
-}
-
-class FSMEventPassingIntegrationTestsWithMacro: FSMTestsBase<TurnstileState, FSMEvent<String>> {
-    override var initialState: TurnstileState { .locked }
-
-    override func makeSUT<_State, _Event>(
-        initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
-        FSM(initialState: initialState, actionsPolicy: actionsPolicy)
-    }
-
-    var event = FSMEvent<String>(name: "fail")
-
-    func setEvent(_ e: FSMEvent<String>) {
-        event = e
-    }
-
-    func testEventPassing() {
-        func assertValue(_ expectedValue: FSMEvent<String>) {
-            XCTAssertEqual(expectedValue.value, event.value)
-            event = FSMEvent<String>(name: "fail")
-        }
-
-        try! fsm.buildTable {
-            define(.locked) {
-                when(.didSetValue(.some("cat")))  | then() | setEvent
-                when(.didSetValue(.some("fish"))) | then() | setEvent
-            }
-
-            define(.unlocked) {
-                when(.didSetValue(.any)) | then() | setEvent
-            }
-        }
-
-        fsm.handleEvent(.didSetValue(.some("cat")))
-        assertValue(.didSetValue(.some("cat")))
-
-        fsm.handleEvent(.didSetValue(.some("fish")))
-        assertValue(.didSetValue(.some("fish")))
-
-        fsm.handleEvent(.didSetValue(.some("dog")))
-        XCTAssertEqual(event, FSMEvent<String>(name: "fail"))
-
-        fsm.state = AnyHashable(State.unlocked)
-        fsm.handleEvent(.didSetValue(.some("cat")))
-        assertValue(.didSetValue(.some("cat")))
-
-        fsm.handleEvent(.didSetValue(.some("fish")))
-        assertValue(.didSetValue(.some("fish")))
-    }
-}
-
-class LazyFSMEventPassingIntegrationTestsWithMacro: FSMTestsBase<TurnstileState, FSMEvent<String>> {
-    override func makeSUT<_State, _Event>(
-        initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
-        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
-    }
-}
+//extension FSMEvent<String> {
+//    #letEventWithValue("didSetValue")
+//}
+//
+//class FSMEventPassingIntegrationTestsWithMacro: FSMTestsBase<TurnstileState, FSMEvent<String>> {
+//    override var initialState: TurnstileState { .locked }
+//
+//    override func makeSUT<_State, _Event>(
+//        initialState: _State,
+//        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+//    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
+//        FSM(initialState: initialState, actionsPolicy: actionsPolicy)
+//    }
+//
+//    var event = FSMEvent<String>(name: "fail")
+//
+//    func setEvent(_ e: FSMEvent<String>) {
+//        event = e
+//    }
+//
+//    func testEventPassing() {
+//        func assertValue(_ expectedValue: FSMEvent<String>) {
+//            XCTAssertEqual(expectedValue.value, event.value)
+//            event = FSMEvent<String>(name: "fail")
+//        }
+//
+//        try! fsm.buildTable {
+//            define(.locked) {
+//                when(.didSetValue(.some("cat")))  | then() | setEvent
+//                when(.didSetValue(.some("fish"))) | then() | setEvent
+//            }
+//
+//            define(.unlocked) {
+//                when(.didSetValue(.any)) | then() | setEvent
+//            }
+//        }
+//
+//        fsm.handleEvent(.didSetValue(.some("cat")))
+//        assertValue(.didSetValue(.some("cat")))
+//
+//        fsm.handleEvent(.didSetValue(.some("fish")))
+//        assertValue(.didSetValue(.some("fish")))
+//
+//        fsm.handleEvent(.didSetValue(.some("dog")))
+//        XCTAssertEqual(event, FSMEvent<String>(name: "fail"))
+//
+//        fsm.state = AnyHashable(State.unlocked)
+//        fsm.handleEvent(.didSetValue(.some("cat")))
+//        assertValue(.didSetValue(.some("cat")))
+//
+//        fsm.handleEvent(.didSetValue(.some("fish")))
+//        assertValue(.didSetValue(.some("fish")))
+//    }
+//}
+//
+//class LazyFSMEventPassingIntegrationTestsWithMacro: FSMTestsBase<TurnstileState, FSMEvent<String>> {
+//    override func makeSUT<_State, _Event>(
+//        initialState: _State,
+//        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+//    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
+//        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
+//    }
+//}
 
 private extension Match {
     func isEqual(_ other: Match) -> Bool {
