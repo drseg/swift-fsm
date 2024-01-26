@@ -42,34 +42,6 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
     var state: AnyHashable
     let logger = Logger<Event>()
 
-    public func handleEvent(_ event: Event, predicates: [any Predicate]) {
-        fatalError("subclasses must implement")
-    }
-
-    func makeMRN(rest: [any Node<IntermediateIO>]) -> any MRNProtocol {
-        fatalError("subclasses must implement")
-    }
-
-    func makeARN(rest: [DefineNode]) -> ActionsResolvingNodeBase {
-        return switch stateActionsPolicy {
-        case .executeAlways: ActionsResolvingNode(rest: rest)
-        case .executeOnChangeOnly: ConditionalActionsResolvingNode(rest: rest)
-        }
-    }
-
-    init(initialState: State, actionsPolicy: StateActionsPolicy = .executeOnChangeOnly) {
-        self.state = initialState
-        self.stateActionsPolicy = actionsPolicy
-    }
-
-    public func handleEvent(_ event: Event) {
-        handleEvent(event, predicates: [])
-    }
-
-    public func handleEvent(_ event: Event, predicates: any Predicate...) {
-        handleEvent(event, predicates: predicates)
-    }
-
     public func buildTable(
         file: String = #file,
         line: Int = #line,
@@ -87,11 +59,26 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         makeTable(result.output)
     }
 
+    @MainActor
+    public func handleEvent(_ event: Event) {
+        handleEvent(event, predicates: [])
+    }
+
+    @MainActor
+    public func handleEvent(_ event: Event, predicates: any Predicate...) {
+        handleEvent(event, predicates: predicates)
+    }
+
+    @MainActor
+    public func handleEvent(_ event: Event, predicates: [any Predicate]) {
+        fatalError("subclasses must implement")
+    }
+
     enum TransitionResult {
         case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
     }
 
-    @discardableResult
+    @discardableResult @MainActor
     func _handleEvent(_ event: Event, predicates: [any Predicate]) -> TransitionResult {
         guard let transition = table[FSMKey(state: state,
                                             predicates: Set(predicates.erased()),
@@ -106,6 +93,22 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         state = transition.nextState
         transition.actions.forEach { $0(event) }
         return .executed
+    }
+
+    func makeMRN(rest: [any Node<IntermediateIO>]) -> any MRNProtocol {
+        fatalError("subclasses must implement")
+    }
+
+    func makeARN(rest: [DefineNode]) -> ActionsResolvingNodeBase {
+        return switch stateActionsPolicy {
+        case .executeAlways: ActionsResolvingNode(rest: rest)
+        case .executeOnChangeOnly: ConditionalActionsResolvingNode(rest: rest)
+        }
+    }
+
+    init(initialState: State, actionsPolicy: StateActionsPolicy = .executeOnChangeOnly) {
+        self.state = initialState
+        self.stateActionsPolicy = actionsPolicy
     }
 
     func checkForErrors(_ result: (output: [Transition], errors: [Error])) throws {

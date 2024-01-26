@@ -143,6 +143,7 @@ class AdditionTests: MatchTests {
     }
 }
 
+@MainActor
 class FinalisationTests: MatchTests {
     func assertFinalise(_ m: Match, _ e: Match, line: UInt = #line) {
         XCTAssertEqual(e, try? m.finalised().get(), line: line)
@@ -436,6 +437,7 @@ extension Collection where Element == [any Predicate] {
 
 infix operator *
 
-func * (lhs: Int, rhs: Action) {
+@MainActor
+func * (lhs: Int, rhs: FSMAction) {
     for _ in 1...lhs { rhs() }
 }

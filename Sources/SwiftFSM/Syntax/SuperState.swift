@@ -2,14 +2,14 @@ import Foundation
 
 public struct SuperState {
     var nodes: [any Node<DefaultIO>]
-    var onEntry: [Action]
-    var onExit: [Action]
+    var onEntry: [FSMAction]
+    var onExit: [FSMAction]
 
     public init(
         adopts superState: SuperState,
         _ andSuperStates: SuperState...,
-        onEntry: [Action] = [],
-        onExit: [Action] = []
+        onEntry: [FSMAction] = [],
+        onExit: [FSMAction] = []
     ) {
         self.init(superStates: [superState] + andSuperStates, 
                   onEntry: onEntry,
@@ -18,8 +18,8 @@ public struct SuperState {
 
     public init(
         adopts superStates: SuperState...,
-        onEntry: [Action] = [],
-        onExit: [Action] = [],
+        onEntry: [FSMAction] = [],
+        onExit: [FSMAction] = [],
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) {
         self.init(nodes: block().nodes.withGroupID(),
@@ -31,8 +31,8 @@ public struct SuperState {
     private init(
         nodes: [any Node<DefaultIO>] = [],
         superStates: [SuperState],
-        onEntry: [Action],
-        onExit: [Action]
+        onEntry: [FSMAction],
+        onExit: [FSMAction]
     ) {
         self.nodes = superStates.map(\.nodes).flattened + nodes
         self.onEntry = superStates.map(\.onEntry).flattened + onEntry

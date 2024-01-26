@@ -1,6 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
+@MainActor
 final class AnyActionTests: XCTestCase {
     func testCanCallActionWithNoArgs() {
         var output = ""

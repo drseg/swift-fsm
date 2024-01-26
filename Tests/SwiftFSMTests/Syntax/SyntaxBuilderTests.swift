@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
+@MainActor
 class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     static let defaultOutput = "pass"
     static let defaultOutputDefaultEvent = "pass, event: 111"
@@ -338,7 +339,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     }
 
     func assertActions(
-        _ actions: [Action],
+        _ actions: [FSMAction],
         expectedOutput eo: String,
         file: StaticString = #file,
         xctLine xl: UInt = #line

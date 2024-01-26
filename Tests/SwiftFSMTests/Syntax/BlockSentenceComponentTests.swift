@@ -154,11 +154,11 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(Array(nodes.suffix(2)), sutLine: l2)
     }
     
-    var entry1: [Action] { [{ self.output += "entry1" }] }
-    var entry2: [Action] { [{ self.output += "entry2" }] }
+    var entry1: [FSMAction] { [{ self.output += "entry1" }] }
+    var entry2: [FSMAction] { [{ self.output += "entry2" }] }
     
-    var exit1: [Action]  { [{ self.output += "exit1"  }] }
-    var exit2: [Action]  { [{ self.output += "exit2"  }] }
+    var exit1: [FSMAction]  { [{ self.output += "exit1"  }] }
+    var exit2: [FSMAction]  { [{ self.output += "exit2"  }] }
     
     func testSuperStateAddsEntryExitActions() {
         let s1 = SuperState(onEntry: entry1, onExit: exit1) {

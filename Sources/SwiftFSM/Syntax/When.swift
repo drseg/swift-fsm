@@ -18,14 +18,14 @@ public extension Syntax {
 
         public static func | (
             lhs: Self,
-            rhs: @escaping Action
+            rhs: @escaping FSMAction
         ) -> Internal.MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
-            rhs: @escaping ActionWithEvent<Event>
+            rhs: @escaping FSMActionWithEvent<Event>
         ) -> Internal.MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }

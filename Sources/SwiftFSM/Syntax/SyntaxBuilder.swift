@@ -10,8 +10,8 @@ public extension SyntaxBuilder {
         _ state: State,
         adopts superState: SuperState,
         _ andSuperStates: SuperState...,
-        onEntry: [Action] = [],
-        onExit: [Action] = [],
+        onEntry: [FSMAction] = [],
+        onExit: [FSMAction] = [],
         file: String = #file,
         line: Int = #line
     ) -> Syntax.Define<State> {
@@ -27,8 +27,8 @@ public extension SyntaxBuilder {
     func define(
         _ state: State,
         adopts superStates: SuperState...,
-        onEntry: [Action] = [],
-        onExit: [Action] = [],
+        onEntry: [FSMAction] = [],
+        onExit: [FSMAction] = [],
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
@@ -44,8 +44,8 @@ public extension SyntaxBuilder {
 
     func define(
         _ state: State,
-        onEntry: [Action] = [],
-        onExit: [Action] = [],
+        onEntry: [FSMAction] = [],
+        onExit: [FSMAction] = [],
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
@@ -147,8 +147,8 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping Action,
-        _ otherActions: Action...,
+        _ action: @escaping FSMAction,
+        _ otherActions: FSMAction...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
@@ -158,8 +158,8 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping ActionWithEvent<Event>,
-        _ otherActions: ActionWithEvent<Event>...,
+        _ action: @escaping FSMActionWithEvent<Event>,
+        _ otherActions: FSMActionWithEvent<Event>...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
@@ -169,8 +169,8 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping Action,
-        _ otherActions: Action...,
+        _ action: @escaping FSMAction,
+        _ otherActions: FSMAction...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
@@ -180,8 +180,8 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping ActionWithEvent<Event>,
-        _ otherActions: ActionWithEvent<Event>...,
+        _ action: @escaping FSMActionWithEvent<Event>,
+        _ otherActions: FSMActionWithEvent<Event>...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
@@ -191,8 +191,8 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping Action,
-        _ otherActions: Action...,
+        _ action: @escaping FSMAction,
+        _ otherActions: FSMAction...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
@@ -202,8 +202,8 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping ActionWithEvent<Event>,
-        _ otherActions: ActionWithEvent<Event>...,
+        _ action: @escaping FSMActionWithEvent<Event>,
+        _ otherActions: FSMActionWithEvent<Event>...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]

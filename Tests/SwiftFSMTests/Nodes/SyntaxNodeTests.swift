@@ -2,6 +2,7 @@ import XCTest
 import Algorithms
 @testable import SwiftFSM
 
+@MainActor
 class SyntaxNodeTests: XCTestCase {
     let s1: AnyTraceable = "S1", s2: AnyTraceable = "S2", s3: AnyTraceable = "S3"
     let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
@@ -264,12 +265,15 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
+
+        let actions = [{ self.actionsOutput += "chain" }]
+
         let nodeChains: [any Node<DefaultIO>] = {
             let nodes: [any DefaultIONode] =
             [MatchNode(match: Match(any: P.a, all: Q.a)),
              WhenNode(events: [e1]),
              ThenNode(state: s1),
-             ActionsNode(actions: [{ self.actionsOutput += "chain" }].map(AnyAction.init))]
+             ActionsNode(actions: actions.map(AnyAction.init))]
 
             return nodes.permutations(ofCount: 4).reduce(into: []) {
                 var one = $1[0].copy(),
@@ -347,12 +351,13 @@ class DefineConsumer: SyntaxNodeTests {
     }
 }
 
+@MainActor
 extension Collection {
     func executeAll() where Element == DefaultIO {
         map(\.actions).flattened.forEach { $0() }
     }
-    
-    func executeAll() where Element == Action {
+
+    func executeAll() where Element == FSMAction {
         forEach { $0() }
     }
 

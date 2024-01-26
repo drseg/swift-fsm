@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
+@MainActor
 class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder {
     var fsm: _FSMBase<State, Event>!
     

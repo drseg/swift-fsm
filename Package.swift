@@ -31,7 +31,10 @@ let package = Package(
                 .product(name: "ReflectiveEquality", package: "reflective-equality"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
             ],
-            swiftSettings: [.define("DEVELOPMENT", .when(configuration: .debug))]
+            swiftSettings: [
+                .define("DEVELOPMENT", .when(configuration: .debug)),
+                .enableExperimentalFeature("StrictConcurrency=targeted")
+            ]
         ),
 
         .testTarget(

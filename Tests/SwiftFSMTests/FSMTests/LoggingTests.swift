@@ -79,6 +79,7 @@ class LoggerTests: XCTestCase {
     }
 }
 
+@MainActor
 class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int

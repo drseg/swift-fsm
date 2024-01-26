@@ -43,14 +43,14 @@ extension Conditional {
 
     public static func | (
         lhs: Self,
-        rhs: @escaping Action
+        rhs: @escaping FSMAction
     ) -> Internal.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     public static func | (
         lhs: Self,
-        rhs: @escaping ActionWithEvent<Event>
+        rhs: @escaping FSMActionWithEvent<Event>
     ) -> Internal.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }

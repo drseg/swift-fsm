@@ -7,7 +7,7 @@ public extension Syntax {
         let line: Int
 
         public init(
-            _ actions: @escaping Action,
+            _ actions: @escaping FSMAction,
             file: String = #file,
             line: Int = #line
         ) {
@@ -15,7 +15,7 @@ public extension Syntax {
         }
 
         public init(
-            _ actions: @escaping ActionWithEvent<Event>,
+            _ actions: @escaping FSMActionWithEvent<Event>,
             file: String = #file,
             line: Int = #line
         ) {
@@ -23,7 +23,7 @@ public extension Syntax {
         }
 
         public init(
-            _ actions: [Action],
+            _ actions: [FSMAction],
             file: String = #file,
             line: Int = #line
         ) {
@@ -33,7 +33,7 @@ public extension Syntax {
         }
 
         public init(
-            _ actions: [ActionWithEvent<Event>],
+            _ actions: [FSMActionWithEvent<Event>],
             file: String = #file,
             line: Int = #line
         ) {

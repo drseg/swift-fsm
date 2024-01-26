@@ -7,8 +7,8 @@ public extension Syntax {
         public init(_ state: State,
                     adopts superState: SuperState,
                     _ andSuperStates: SuperState...,
-                    onEntry: [Action],
-                    onExit: [Action],
+                    onEntry: [FSMAction],
+                    onExit: [FSMAction],
                     file: String = #file,
                     line: Int = #line
         ) {
@@ -23,8 +23,8 @@ public extension Syntax {
 
         public init(_ state: State,
                     adopts superStates: SuperState...,
-                    onEntry: [Action] = [],
-                    onExit: [Action] = [],
+                    onEntry: [FSMAction] = [],
+                    onExit: [FSMAction] = [],
                     file: String = #file,
                     line: Int = #line,
                     @Internal.MWTABuilder _ block: () -> [MWTA]
@@ -39,8 +39,8 @@ public extension Syntax {
         }
 
         public init(_ state: State,
-                    onEntry: [Action] = [],
-                    onExit: [Action] = [],
+                    onEntry: [FSMAction] = [],
+                    onExit: [FSMAction] = [],
                     file: String = #file,
                     line: Int = #line,
                     @Internal.MWTABuilder _ block: () -> [MWTA]
@@ -56,8 +56,8 @@ public extension Syntax {
 
         public init(state: State,
                     adopts superStates: [SuperState] = [],
-                    onEntry: [Action],
-                    onExit: [Action],
+                    onEntry: [FSMAction],
+                    onExit: [FSMAction],
                     file: String = #file,
                     line: Int = #line,
                     @Internal.MWTABuilder _ block: () -> [MWTA]
@@ -75,8 +75,8 @@ public extension Syntax {
 
         internal init(_ state: State,
                       adopts superStates: [SuperState],
-                      onEntry: [Action],
-                      onExit: [Action],
+                      onEntry: [FSMAction],
+                      onExit: [FSMAction],
                       elements: [MWTA],
                       file: String = #file,
                       line: Int = #line
