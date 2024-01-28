@@ -3,32 +3,90 @@ import XCTest
 
 @MainActor
 final class AnyActionTests: XCTestCase {
+    var output = ""
+
+    func pass() {
+        output = "pass"
+    }
+
+    func passWithEvent(_ e: String) {
+        output = e
+    }
+
+    func passAsync() async {
+        pass()
+    }
+
+    func passWithEventAsync(_ e: String) async {
+        passWithEvent(e)
+    }
+
     func testCanCallActionWithNoArgs() {
-        var output = ""
-        let action = AnyAction { output = "pass" }
-        action()
+        let action = AnyAction(pass)
+        try! action()
+
+        XCTAssertEqual(output, "pass")
+    }
+
+    func testActionWithNoArgsIgnoresEvent() {
+        let action = AnyAction(pass)
+        try! action("fail")
+
+        XCTAssertEqual(output, "pass")
+    }
+
+    func testCanCallAsyncActionWithNoArgs() async {
+        let action = AnyAction(passAsync)
+        await action()
+
+        XCTAssertEqual(output, "pass")
+    }
+
+    func testAsyncActionWithNoArgsIgnoresEvent() async {
+        let action = AnyAction(passAsync)
+        await action("fail")
+
+        XCTAssertEqual(output, "pass")
+    }
+
+    func testCanCallSyncActionWithNoArgsWithAsync() async {
+        let action = AnyAction(pass)
+        await action()
 
         XCTAssertEqual(output, "pass")
     }
 
     func testCanCallActionWithEventArg() {
-        var output = ""
-        let action = AnyAction { output = $0 }
-        action("pass")
+        let action = AnyAction(passWithEvent)
+        try! action("pass")
 
         XCTAssertEqual(output, "pass")
     }
 
-    func testCallSafelyThrowsIfTypeError() {
-        let action = AnyAction { let _: String = $0 }
-        XCTAssertThrowsError(try action.callSafely())
+    func testCannotCallActionWithEventArgWithoutEvent() {
+        let action = AnyAction(passWithEvent)
+        XCTAssertThrowsError(try action())
     }
 
-    func testCallSafelyDoesNotThrowIfNoError() {
-        var output = ""
-        let action = AnyAction { output = $0 }
-        try? action.callSafely("pass")
+    func testCanCallAsyncActionWithEventArg() async {
+        let action = AnyAction(passWithEventAsync)
+        await action("pass")
 
         XCTAssertEqual(output, "pass")
+    }
+
+    func testCanCallSyncActionWithEventArgWithAsync() async {
+        let action = AnyAction(passWithEvent)
+        await action("pass")
+
+        XCTAssertEqual(output, "pass")
+    }
+
+    func testCallingSyncFunctionWithAsyncBlockThrows() {
+        let a1 = AnyAction(passAsync)
+        let a2 = AnyAction(passWithEventAsync)
+
+        XCTAssertThrowsError(try a1())
+        XCTAssertThrowsError(try a2("pass"))
     }
 }

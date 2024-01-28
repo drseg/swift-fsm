@@ -42,6 +42,11 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
     var state: AnyHashable
     let logger = Logger<Event>()
 
+    init(initialState: State, actionsPolicy: StateActionsPolicy = .executeOnChangeOnly) {
+        self.state = initialState
+        self.stateActionsPolicy = actionsPolicy
+    }
+
     public func buildTable(
         file: String = #file,
         line: Int = #line,
@@ -91,7 +96,7 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         }
 
         state = transition.nextState
-        transition.actions.forEach { $0(event) }
+        transition.actions.forEach { try! $0(event) }
         return .executed
     }
 
@@ -104,11 +109,6 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         case .executeAlways: ActionsResolvingNode(rest: rest)
         case .executeOnChangeOnly: ConditionalActionsResolvingNode(rest: rest)
         }
-    }
-
-    init(initialState: State, actionsPolicy: StateActionsPolicy = .executeOnChangeOnly) {
-        self.state = initialState
-        self.stateActionsPolicy = actionsPolicy
     }
 
     func checkForErrors(_ result: (output: [Transition], errors: [Error])) throws {

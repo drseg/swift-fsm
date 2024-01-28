@@ -354,7 +354,7 @@ class DefineConsumer: SyntaxNodeTests {
 @MainActor
 extension Collection {
     func executeAll() where Element == DefaultIO {
-        map(\.actions).flattened.forEach { $0() }
+        map(\.actions).flattened.forEach { try! $0() }
     }
 
     func executeAll() where Element == FSMAction {
@@ -362,7 +362,7 @@ extension Collection {
     }
 
     func executeAll<Event: Hashable>(_ event: Event = "TILT") where Element == AnyAction {
-        forEach { $0(event) }
+        forEach { try! $0(event) }
     }
 }
 
