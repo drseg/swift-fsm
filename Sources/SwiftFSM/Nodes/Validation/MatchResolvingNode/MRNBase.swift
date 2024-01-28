@@ -1,6 +1,6 @@
 import Foundation
 
-protocol MRNProtocol: Node {
+protocol MatchResolvingNode: Node {
     func finalised() -> (output: [Transition], errors: [Error])
 }
 

@@ -25,7 +25,7 @@ struct Transition {
     }
 }
 
-final class EagerMatchResolvingNode: MRNBase, MRNProtocol {
+final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
     struct ErrorOutput {
         let state: AnyTraceable,
             match: Match,

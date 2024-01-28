@@ -36,6 +36,10 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         case executeAlways, executeOnChangeOnly
     }
 
+    enum TransitionResult {
+        case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
+    }
+
     let stateActionsPolicy: StateActionsPolicy
 
     var table: [FSMKey: Transition] = [:]
@@ -56,9 +60,9 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
             throw makeError(TableAlreadyBuiltError(file: file, line: line))
         }
 
-        let arn = makeARN(rest: block().map(\.node))
+        let arn = makeActionsResovingNode(rest: block().map(\.node))
         let svn = SemanticValidationNode(rest: [arn])
-        let result = makeMRN(rest: [svn]).finalised()
+        let result = makeMatchResolvingNode(rest: [svn]).finalised()
 
         try checkForErrors(result)
         makeTable(result.output)
@@ -79,33 +83,39 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
         fatalError("subclasses must implement")
     }
 
-    enum TransitionResult {
-        case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
-    }
-
     @discardableResult @MainActor
     func _handleEvent(_ event: Event, predicates: [any Predicate]) -> TransitionResult {
-        guard let transition = table[FSMKey(state: state,
-                                            predicates: Set(predicates.erased()),
-                                            event: event)] else {
+        guard let transition = transition(for: event, with: predicates) else {
             return .notFound(event, predicates)
         }
 
-        guard transition.condition?() ?? true else {
+        guard shouldExecute(transition) else {
             return .notExecuted(transition)
         }
 
         state = transition.nextState
-        transition.actions.forEach { try! $0(event) }
+        transition.executeActions(event: event)
         return .executed
     }
 
-    func makeMRN(rest: [any Node<IntermediateIO>]) -> any MRNProtocol {
+    @MainActor
+    private func transition(for event: Event, with predicates: [any Predicate]) -> Transition? {
+        table[FSMKey(state: state,
+                     predicates: Set(predicates.erased()),
+                     event: event)]
+    }
+
+    @MainActor
+    private func shouldExecute(_ t: Transition) -> Bool {
+        t.condition?() ?? true
+    }
+
+    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         fatalError("subclasses must implement")
     }
 
-    func makeARN(rest: [DefineNode]) -> ActionsResolvingNodeBase {
-        return switch stateActionsPolicy {
+    func makeActionsResovingNode(rest: [DefineNode]) -> ActionsResolvingNodeBase {
+        switch stateActionsPolicy {
         case .executeAlways: ActionsResolvingNode(rest: rest)
         case .executeOnChangeOnly: ConditionalActionsResolvingNode(rest: rest)
         }
@@ -145,4 +155,17 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
     func logTransitionNotExecuted(_ t: Transition) {
         logger.transitionNotExecuted(t)
     }
+}
+
+@MainActor
+private extension Transition {
+    func executeActions<E: Hashable>(event: E) {
+        actions.forEach { try! $0(event) }
+    }
+
+//    func executeActions<E: Hashable>(event: E) async {
+//        for action in actions {
+//            await action(event)
+//        }
+//    }
 }
