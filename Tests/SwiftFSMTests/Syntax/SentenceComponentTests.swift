@@ -111,6 +111,14 @@ final class ComponentTests: SyntaxTestsBase {
         assertMWTA(mwta2.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)
     }
 
+    func testMatchingWhenThenActionsAsync() {
+        let mwta1 = matching(P.a) | when(1, or: 2) | then(1) | passAsync; let l1 = #line
+        let mwta2 = Matching(P.a) | When(1, or: 2) | Then(1) | passAsync; let l2 = #line
+
+        assertMWTA(mwta1.node, sutLine: l1)
+        assertMWTA(mwta2.node, sutLine: l2)
+    }
+
     func testWhenThen() {
         func assertWT(_ wt: MatchingWhenThen<Event>, sutLine sl: Int, xctLine xl: UInt = #line) {
             let then = wt.node

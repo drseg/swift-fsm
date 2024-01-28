@@ -69,6 +69,13 @@ public enum Internal {
 
         public static func | (
             lhs: Self,
+            rhs: @escaping FSMAsyncAction
+        ) -> MatchingWhenThenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
             rhs: @escaping FSMActionWithEvent<Event>
         ) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))

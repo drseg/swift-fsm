@@ -27,6 +27,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     var output = ""
     
     func pass() { output += Self.defaultOutput }
+    func passAsync() async { pass() }
     func passWithEvent(_ event: Event) { output += Self.defaultOutput + ", event: " + String(event) }
 
     func assertMatching(
@@ -357,9 +358,14 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         file: StaticString = #file,
         xctLine xl: UInt = #line
     ) {
-        actions.executeAll(e)
-        XCTAssertEqual(eo, output, file: file, line: xl)
-        output = ""
+        let expectation = expectation(description: "execute async")
+        Task {
+            await actions.executeAll(e)
+            XCTAssertEqual(eo, output, file: file, line: xl)
+            output = ""
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 0.1)
     }
 }
 
