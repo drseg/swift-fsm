@@ -5,7 +5,7 @@ import XCTest
 @MainActor
 class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     static let defaultOutput = "pass"
-    static let defaultOutputDefaultEvent = "pass, event: 111"
+    static let defaultOutputWithEvent = "pass, event: 111"
     static let defaultEvent = 111
 
     typealias State = Int

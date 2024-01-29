@@ -148,67 +148,81 @@ public extension SyntaxBuilder {
 
     func actions(
         _ action: @escaping FSMSyncAction,
-        _ otherActions: FSMSyncAction...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
-        Syntax.Actions<Event>([action] + otherActions, file: file, line: line)
+        Syntax.Actions<Event>([action], file: file, line: line)
+            .callAsFunction(block)
+    }
+
+    func actions(
+        _ action: @escaping FSMAsyncAction,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> Internal.MWTASentence {
+        Syntax.Actions<Event>([action], file: file, line: line)
             .callAsFunction(block)
     }
 
     func actions(
         _ action: @escaping FSMSyncActionWithEvent<Event>,
-        _ otherActions: FSMSyncActionWithEvent<Event>...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
-        Syntax.Actions<Event>([action] + otherActions, file: file, line: line)
+        Syntax.Actions<Event>([action], file: file, line: line)
+            .callAsFunction(block)
+    }
+
+    func actions(
+        _ action: @escaping FSMAsyncActionWithEvent<Event>,
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> Internal.MWTASentence {
+        Syntax.Actions<Event>([action], file: file, line: line)
             .callAsFunction(block)
     }
 
     func actions(
         _ action: @escaping FSMSyncAction,
-        _ otherActions: FSMSyncAction...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
-        Syntax.Actions<Event>([action] + otherActions, file: file, line: line)
+        Syntax.Actions<Event>([action], file: file, line: line)
             .callAsFunction(block)
     }
 
     func actions(
         _ action: @escaping FSMSyncActionWithEvent<Event>,
-        _ otherActions: FSMSyncActionWithEvent<Event>...,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
-        Syntax.Actions([action] + otherActions, file: file, line: line)
+        Syntax.Actions([action], file: file, line: line)
             .callAsFunction(block)
     }
 
     func actions(
         _ action: @escaping FSMSyncAction,
-        _ otherActions: FSMSyncAction...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
-        Syntax.Actions<Event>([action] + otherActions, file: file, line: line)
+        Syntax.Actions<Event>([action], file: file, line: line)
             .callAsFunction(block)
     }
 
     func actions(
         _ action: @escaping FSMSyncActionWithEvent<Event>,
-        _ otherActions: FSMSyncActionWithEvent<Event>...,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
-        Syntax.Actions([action] + otherActions, file: file, line: line)
+        Syntax.Actions([action], file: file, line: line)
             .callAsFunction(block)
     }
 
