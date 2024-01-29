@@ -288,7 +288,7 @@ class DefineTests: BlockTests {
         func assertDefine(
             _ d: Define,
             sutLine sl: Int = #line,
-            elementLine el: Int,
+            elementLine el: Int = mwtaLine,
             xctLine xl: UInt = #line
         ) {
             assertNeverEmptyNode(d.node, caller: "define", sutLine: sl, xctLine: xl)
@@ -307,50 +307,30 @@ class DefineTests: BlockTests {
 
         let s = SuperState { mwtaBlock }
 
-        assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1), 
-                     elementLine: mwtaLine)
-        assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1Async),
-                     elementLine: mwtaLine)
-        assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1),
-                     elementLine: mwtaLine)
-        assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async),
-                     elementLine: mwtaLine)
+        assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1))
+        assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
+        assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
+        assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
 
-        assertDefine(define(1, onEntry: entry1, onExit: exit1) { mwtaBlock },
-                     elementLine: mwtaLine)
-        assertDefine(define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock },
-                     elementLine: mwtaLine)
-        assertDefine(define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock },
-                     elementLine: mwtaLine)
-        assertDefine(define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock },
-                     elementLine: mwtaLine)
+        assertDefine(define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
+        assertDefine(define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock })
+        assertDefine(define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock })
+        assertDefine(define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock })
 
-        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1),
-                     elementLine: mwtaLine)
-        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async),
-                     elementLine: mwtaLine)
-        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1),
-                     elementLine: mwtaLine)
-        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async),
-                     elementLine: mwtaLine)
+        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1))
+        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
+        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
+        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
 
-        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1),
-                     elementLine: mwtaLine)
-        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async),
-                     elementLine: mwtaLine)
-        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1),
-                     elementLine: mwtaLine)
-        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async),
-                     elementLine: mwtaLine)
+        assertDefine(Define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
+        assertDefine(Define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock })
+        assertDefine(Define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock })
+        assertDefine(Define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock })
 
-        assertDefine(Define(1, onEntry: entry1, onExit: exit1) { mwtaBlock },
-                     elementLine: mwtaLine)
-        assertDefine(Define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock },
-                     elementLine: mwtaLine)
-        assertDefine(Define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock },
-                     elementLine: mwtaLine)
-        assertDefine(Define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock },
-                     elementLine: mwtaLine)
+        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1))
+        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
+        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
+        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
 
         // technically valid/non-empty but need to flag empty trailing block
         assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
