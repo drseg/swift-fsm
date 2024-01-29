@@ -372,7 +372,7 @@ extension Collection {
         map(\.actions).flattened.forEach { try! $0() }
     }
 
-    func executeAll() where Element == FSMAction {
+    func executeAll() where Element == FSMSyncAction {
         forEach { $0() }
     }
 

@@ -119,6 +119,14 @@ final class ComponentTests: SyntaxTestsBase {
         assertMWTA(mwta2.node, sutLine: l2)
     }
 
+    func testMatchingWhenThenActionsAsync_withEvent() {
+        let mwta1 = Matching(P.a) | When(1, or: 2) | Then(1) | passWithEventAsync; let l1 = #line
+        let mwta2 = matching(P.a) | when(1, or: 2) | then(1) | passWithEventAsync; let l2 = #line
+
+        assertMWTA(mwta1.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l1)
+        assertMWTA(mwta2.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)
+    }
+
     func testWhenThen() {
         func assertWT(_ wt: MatchingWhenThen<Event>, sutLine sl: Int, xctLine xl: UInt = #line) {
             let then = wt.node
@@ -143,9 +151,25 @@ final class ComponentTests: SyntaxTestsBase {
         assertWTA(wta2.node, sutLine: l2)
     }
 
+    func testWhenThenActionsAsync() {
+        let wta1 = when(1, or: 2) | then(1) | passAsync; let l1 = #line
+        let wta2 = When(1, or: 2) | Then(1) | passAsync; let l2 = #line
+
+        assertWTA(wta1.node, sutLine: l1)
+        assertWTA(wta2.node, sutLine: l2)
+    }
+
     func testWhenThenActions_withEvent() {
         let wta1 = When(1, or: 2) | Then(1) | passWithEvent; let l1 = #line
         let wta2 = when(1, or: 2) | then(1) | passWithEvent; let l2 = #line
+
+        assertWTA(wta1.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l1)
+        assertWTA(wta2.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)
+    }
+
+    func testWhenThenActionsAsync_withEvent() {
+        let wta1 = When(1, or: 2) | Then(1) | passWithEventAsync; let l1 = #line
+        let wta2 = when(1, or: 2) | then(1) | passWithEventAsync; let l2 = #line
 
         assertWTA(wta1.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l1)
         assertWTA(wta2.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)

@@ -15,14 +15,28 @@ public enum Internal {
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMAction
+            rhs: @escaping FSMSyncAction
         ) -> MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMActionWithEvent<Event>
+            rhs: @escaping FSMAsyncAction
+        ) -> MatchingWhenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
+            rhs: @escaping FSMSyncActionWithEvent<Event>
+        ) -> MatchingWhenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
+            rhs: @escaping FSMAsyncActionWithEvent<Event>
         ) -> MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
@@ -40,14 +54,28 @@ public enum Internal {
     public struct MatchingThen<Event: Hashable> {
         public static func | (
             lhs: Self, 
-            rhs: @escaping FSMAction
+            rhs: @escaping FSMSyncAction
         ) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMActionWithEvent<Event>
+            rhs: @escaping FSMAsyncAction
+        ) -> MatchingThenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
+            rhs: @escaping FSMSyncActionWithEvent<Event>
+        ) -> MatchingThenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
+            rhs: @escaping FSMAsyncActionWithEvent<Event>
         ) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
@@ -62,7 +90,7 @@ public enum Internal {
     public struct MatchingWhenThen<Event: Hashable> {
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMAction
+            rhs: @escaping FSMSyncAction
         ) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
@@ -76,7 +104,14 @@ public enum Internal {
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMActionWithEvent<Event>
+            rhs: @escaping FSMSyncActionWithEvent<Event>
+        ) -> MatchingWhenThenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
+            rhs: @escaping FSMAsyncActionWithEvent<Event>
         ) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }

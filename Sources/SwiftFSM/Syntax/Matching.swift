@@ -43,14 +43,28 @@ extension Conditional {
 
     public static func | (
         lhs: Self,
-        rhs: @escaping FSMAction
+        rhs: @escaping FSMSyncAction
     ) -> Internal.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     public static func | (
         lhs: Self,
-        rhs: @escaping FSMActionWithEvent<Event>
+        rhs: @escaping FSMAsyncAction
+    ) -> Internal.MatchingActions<Event> {
+        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+    }
+
+    public static func | (
+        lhs: Self,
+        rhs: @escaping FSMSyncActionWithEvent<Event>
+    ) -> Internal.MatchingActions<Event> {
+        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+    }
+
+    public static func | (
+        lhs: Self,
+        rhs: @escaping FSMAsyncActionWithEvent<Event>
     ) -> Internal.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }

@@ -4,14 +4,28 @@ public extension Syntax {
     struct Then<State: Hashable, Event: Hashable> {
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMAction
+            rhs: @escaping FSMSyncAction
         ) -> Internal.MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMActionWithEvent<Event>
+            rhs: @escaping FSMAsyncAction
+        ) -> Internal.MatchingThenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
+            rhs: @escaping FSMSyncActionWithEvent<Event>
+        ) -> Internal.MatchingThenActions<Event> {
+            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
+            rhs: @escaping FSMAsyncActionWithEvent<Event>
         ) -> Internal.MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }

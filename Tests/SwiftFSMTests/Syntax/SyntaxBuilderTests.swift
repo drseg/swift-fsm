@@ -28,7 +28,12 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func pass() { output += Self.defaultOutput }
     func passAsync() async { pass() }
-    func passWithEvent(_ event: Event) { output += Self.defaultOutput + ", event: " + String(event) }
+    func passWithEvent(_ event: Event) {
+        output += Self.defaultOutput + ", event: " + String(event)
+    }
+    func passWithEventAsync(_ event: Event) async {
+        passWithEvent(event)
+    }
 
     func assertMatching(
         _ m: Matching,
@@ -169,7 +174,22 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         assertThenNode(thenNode, state: state, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
         assertActions(n.actions, event: e, expectedOutput: eo, file: xf, xctLine: xl)
     }
-    
+
+    func assertActionsMatchNode(
+        _ n: ActionsNodeBase,
+        event e: Event = SyntaxTestsBase.defaultEvent,
+        expectedOutput eo: String,
+        state: State?,
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
+        sutLine sl: Int,
+        xctLine xl: UInt
+    ) {
+        let matchNode = n.rest.first as! MatchNode
+        assertMatchNode(matchNode, all: [P.a], sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
+        assertActions(n.actions, event: e, expectedOutput: eo, file: xf, xctLine: xl)
+    }
+
     func assertNeverEmptyNode(
         _ node: any NeverEmptyNode,
         caller: String,
@@ -339,8 +359,33 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
                               xctLine: xl)
     }
 
+    func assertMA(
+        _ n: AnyNode,
+        event: Event = BlockTests.defaultEvent,
+        expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
+        sutFile sf: String,
+        xctFile xf: StaticString,
+        sutLine sl: Int,
+        xctLine xl: UInt
+    ) {
+        let actions = n as! ActionsNode
+        let match = actions.rest.first as! MatchNode
+
+        XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
+        XCTAssertEqual(0, match.rest.count, file: xf, line: xl)
+
+        assertActionsMatchNode(actions,
+                               event: event,
+                               expectedOutput: eo,
+                               state: 1,
+                               sutFile: sf,
+                               xctFile: xf,
+                               sutLine: sl,
+                               xctLine: xl)
+    }
+
     func assertActions(
-        _ actions: [FSMAction],
+        _ actions: [FSMSyncAction],
         expectedOutput eo: String,
         file: StaticString = #file,
         xctLine xl: UInt = #line

@@ -438,6 +438,6 @@ extension Collection where Element == [any Predicate] {
 infix operator *
 
 @MainActor
-func * (lhs: Int, rhs: FSMAction) {
+func * (lhs: Int, rhs: FSMSyncAction) {
     for _ in 1...lhs { rhs() }
 }
