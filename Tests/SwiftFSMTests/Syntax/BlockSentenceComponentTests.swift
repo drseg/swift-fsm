@@ -334,6 +334,15 @@ class DefineTests: BlockTests {
         assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async),
                      elementLine: mwtaLine)
 
+        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1),
+                     elementLine: mwtaLine)
+        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async),
+                     elementLine: mwtaLine)
+        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1),
+                     elementLine: mwtaLine)
+        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async),
+                     elementLine: mwtaLine)
+
         assertDefine(Define(1, onEntry: entry1, onExit: exit1) { mwtaBlock },
                      elementLine: mwtaLine)
         assertDefine(Define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock },
@@ -345,10 +354,24 @@ class DefineTests: BlockTests {
 
         // technically valid/non-empty but need to flag empty trailing block
         assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
+        assertEmpty(define(1, adopts: s, onEntry: entry1Async, onExit: exit1) { })
+        assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1Async) { })
+        assertEmpty(define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async) { })
+
         assertEmpty(Define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async) { })
 
         assertEmpty(define(1, onEntry: entry1, onExit: exit1) { })
+        assertEmpty(define(1, onEntry: entry1Async, onExit: exit1) { })
+        assertEmpty(define(1, onEntry: entry1, onExit: exit1Async) { })
+        assertEmpty(define(1, onEntry: entry1Async, onExit: exit1Async) { })
+
         assertEmpty(Define(1, onEntry: entry1, onExit: exit1) { })
+        assertEmpty(Define(1, onEntry: entry1Async, onExit: exit1) { })
+        assertEmpty(Define(1, onEntry: entry1, onExit: exit1Async) { })
+        assertEmpty(Define(1, onEntry: entry1Async, onExit: exit1Async) { })
     }
 
     func testDefineAddsSuperStateEntryExitActions() {
