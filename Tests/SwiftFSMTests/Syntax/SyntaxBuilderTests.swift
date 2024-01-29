@@ -405,12 +405,26 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     ) {
         let expectation = expectation(description: "execute async")
         Task {
-            await actions.executeAll(e)
-            XCTAssertEqual(eo, output, file: file, line: xl)
-            output = ""
+            await assertActions(actions,
+                                event: e,
+                                expectedOutput: eo,
+                                file: file,
+                                xctLine: xl)
             expectation.fulfill()
         }
         waitForExpectations(timeout: 0.1)
+    }
+
+    func assertActions(
+        _ actions: [AnyAction],
+        event e: Event = SyntaxTestsBase.defaultEvent,
+        expectedOutput eo: String,
+        file: StaticString = #file,
+        xctLine xl: UInt = #line
+    ) async {
+        await actions.executeAll(e)
+        XCTAssertEqual(eo, output, file: file, line: xl)
+        output = ""
     }
 }
 

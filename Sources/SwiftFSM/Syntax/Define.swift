@@ -14,8 +14,59 @@ public extension Syntax {
         ) {
             self.init(state,
                       adopts: [superState] + andSuperStates,
-                      onEntry: onEntry,
-                      onExit: onExit,
+                      onEntry: onEntry.map(AnyAction.init),
+                      onExit: onExit.map(AnyAction.init),
+                      elements: [],
+                      file: file,
+                      line: line)
+        }
+
+        public init(_ state: State,
+                    adopts superState: SuperState,
+                    _ andSuperStates: SuperState...,
+                    onEntry: [FSMAsyncAction],
+                    onExit: [FSMSyncAction],
+                    file: String = #file,
+                    line: Int = #line
+        ) {
+            self.init(state,
+                      adopts: [superState] + andSuperStates,
+                      onEntry: onEntry.map(AnyAction.init),
+                      onExit: onExit.map(AnyAction.init),
+                      elements: [],
+                      file: file,
+                      line: line)
+        }
+
+        public init(_ state: State,
+                    adopts superState: SuperState,
+                    _ andSuperStates: SuperState...,
+                    onEntry: [FSMSyncAction],
+                    onExit: [FSMAsyncAction],
+                    file: String = #file,
+                    line: Int = #line
+        ) {
+            self.init(state,
+                      adopts: [superState] + andSuperStates,
+                      onEntry: onEntry.map(AnyAction.init),
+                      onExit: onExit.map(AnyAction.init),
+                      elements: [],
+                      file: file,
+                      line: line)
+        }
+
+        public init(_ state: State,
+                    adopts superState: SuperState,
+                    _ andSuperStates: SuperState...,
+                    onEntry: [FSMAsyncAction],
+                    onExit: [FSMAsyncAction],
+                    file: String = #file,
+                    line: Int = #line
+        ) {
+            self.init(state,
+                      adopts: [superState] + andSuperStates,
+                      onEntry: onEntry.map(AnyAction.init),
+                      onExit: onExit.map(AnyAction.init),
                       elements: [],
                       file: file,
                       line: line)
@@ -39,14 +90,49 @@ public extension Syntax {
         }
 
         public init(_ state: State,
-                    onEntry: [FSMSyncAction] = [],
+                    adopts superStates: SuperState...,
+                    onEntry: [FSMAsyncAction] = [],
                     onExit: [FSMSyncAction] = [],
                     file: String = #file,
                     line: Int = #line,
                     @Internal.MWTABuilder _ block: () -> [MWTA]
         ) {
             self.init(state: state,
-                      adopts: [],
+                      adopts: superStates,
+                      onEntry: onEntry,
+                      onExit: onExit,
+                      file: file,
+                      line: line,
+                      block)
+        }
+
+        public init(_ state: State,
+                    adopts superStates: SuperState...,
+                    onEntry: [FSMSyncAction] = [],
+                    onExit: [FSMAsyncAction] = [],
+                    file: String = #file,
+                    line: Int = #line,
+                    @Internal.MWTABuilder _ block: () -> [MWTA]
+        ) {
+            self.init(state: state,
+                      adopts: superStates,
+                      onEntry: onEntry,
+                      onExit: onExit,
+                      file: file,
+                      line: line,
+                      block)
+        }
+
+        public init(_ state: State,
+                    adopts superStates: SuperState...,
+                    onEntry: [FSMAsyncAction] = [],
+                    onExit: [FSMAsyncAction] = [],
+                    file: String = #file,
+                    line: Int = #line,
+                    @Internal.MWTABuilder _ block: () -> [MWTA]
+        ) {
+            self.init(state: state,
+                      adopts: superStates,
                       onEntry: onEntry,
                       onExit: onExit,
                       file: file,
@@ -66,8 +152,65 @@ public extension Syntax {
 
             self.init(state,
                       adopts: elements.isEmpty ? [] : superStates,
-                      onEntry: onEntry,
-                      onExit: onExit,
+                      onEntry: onEntry.map(AnyAction.init),
+                      onExit: onExit.map(AnyAction.init),
+                      elements: elements,
+                      file: file,
+                      line: line)
+        }
+
+        public init(state: State,
+                    adopts superStates: [SuperState] = [],
+                    onEntry: [FSMAsyncAction],
+                    onExit: [FSMSyncAction],
+                    file: String = #file,
+                    line: Int = #line,
+                    @Internal.MWTABuilder _ block: () -> [MWTA]
+        ) {
+            let elements = block()
+
+            self.init(state,
+                      adopts: elements.isEmpty ? [] : superStates,
+                      onEntry: onEntry.map(AnyAction.init),
+                      onExit: onExit.map(AnyAction.init),
+                      elements: elements,
+                      file: file,
+                      line: line)
+        }
+
+        public init(state: State,
+                    adopts superStates: [SuperState] = [],
+                    onEntry: [FSMSyncAction],
+                    onExit: [FSMAsyncAction],
+                    file: String = #file,
+                    line: Int = #line,
+                    @Internal.MWTABuilder _ block: () -> [MWTA]
+        ) {
+            let elements = block()
+
+            self.init(state,
+                      adopts: elements.isEmpty ? [] : superStates,
+                      onEntry: onEntry.map(AnyAction.init),
+                      onExit: onExit.map(AnyAction.init),
+                      elements: elements,
+                      file: file,
+                      line: line)
+        }
+
+        public init(state: State,
+                    adopts superStates: [SuperState] = [],
+                    onEntry: [FSMAsyncAction],
+                    onExit: [FSMAsyncAction],
+                    file: String = #file,
+                    line: Int = #line,
+                    @Internal.MWTABuilder _ block: () -> [MWTA]
+        ) {
+            let elements = block()
+
+            self.init(state,
+                      adopts: elements.isEmpty ? [] : superStates,
+                      onEntry: onEntry.map(AnyAction.init),
+                      onExit: onExit.map(AnyAction.init),
                       elements: elements,
                       file: file,
                       line: line)
@@ -75,8 +218,8 @@ public extension Syntax {
 
         internal init(_ state: State,
                       adopts superStates: [SuperState],
-                      onEntry: [FSMSyncAction],
-                      onExit: [FSMSyncAction],
+                      onEntry: [AnyAction],
+                      onExit: [AnyAction],
                       elements: [MWTA],
                       file: String = #file,
                       line: Int = #line
@@ -84,8 +227,8 @@ public extension Syntax {
             let onEntry = superStates.map(\.onEntry).flattened + onEntry
             let onExit = superStates.map(\.onExit).flattened + onExit
 
-            let dNode = DefineNode(onEntry: onEntry.map(AnyAction.init),
-                                   onExit: onExit.map(AnyAction.init),
+            let dNode = DefineNode(onEntry: onEntry,
+                                   onExit: onExit,
                                    caller: "define",
                                    file: file,
                                    line: line)

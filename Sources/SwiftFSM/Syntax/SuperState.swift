@@ -2,8 +2,8 @@ import Foundation
 
 public struct SuperState {
     var nodes: [any Node<DefaultIO>]
-    var onEntry: [FSMSyncAction]
-    var onExit: [FSMSyncAction]
+    var onEntry: [AnyAction]
+    var onExit: [AnyAction]
 
     public init(
         adopts superState: SuperState,
@@ -12,8 +12,41 @@ public struct SuperState {
         onExit: [FSMSyncAction] = []
     ) {
         self.init(superStates: [superState] + andSuperStates, 
-                  onEntry: onEntry,
-                  onExit: onExit)
+                  onEntry: onEntry.map(AnyAction.init),
+                  onExit: onExit.map(AnyAction.init))
+    }
+
+    public init(
+        adopts superState: SuperState,
+        _ andSuperStates: SuperState...,
+        onEntry: [FSMAsyncAction] = [],
+        onExit: [FSMAsyncAction] = []
+    ) {
+        self.init(superStates: [superState] + andSuperStates,
+                  onEntry: onEntry.map(AnyAction.init),
+                  onExit: onExit.map(AnyAction.init))
+    }
+
+    public init(
+        adopts superState: SuperState,
+        _ andSuperStates: SuperState...,
+        onEntry: [FSMAsyncAction] = [],
+        onExit: [FSMSyncAction] = []
+    ) {
+        self.init(superStates: [superState] + andSuperStates,
+                  onEntry: onEntry.map(AnyAction.init),
+                  onExit: onExit.map(AnyAction.init))
+    }
+
+    public init(
+        adopts superState: SuperState,
+        _ andSuperStates: SuperState...,
+        onEntry: [FSMSyncAction] = [],
+        onExit: [FSMAsyncAction] = []
+    ) {
+        self.init(superStates: [superState] + andSuperStates,
+                  onEntry: onEntry.map(AnyAction.init),
+                  onExit: onExit.map(AnyAction.init))
     }
 
     public init(
@@ -24,15 +57,27 @@ public struct SuperState {
     ) {
         self.init(nodes: block().nodes.withGroupID(),
                   superStates: superStates,
-                  onEntry: onEntry,
-                  onExit: onExit)
+                  onEntry: onEntry.map(AnyAction.init),
+                  onExit: onExit.map(AnyAction.init))
+    }
+
+    public init(
+        adopts superStates: SuperState...,
+        onEntry: [FSMAsyncAction] = [],
+        onExit: [FSMAsyncAction] = [],
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) {
+        self.init(nodes: block().nodes.withGroupID(),
+                  superStates: superStates,
+                  onEntry: onEntry.map(AnyAction.init),
+                  onExit: onExit.map(AnyAction.init))
     }
 
     private init(
         nodes: [any Node<DefaultIO>] = [],
         superStates: [SuperState],
-        onEntry: [FSMSyncAction],
-        onExit: [FSMSyncAction]
+        onEntry: [AnyAction],
+        onExit: [AnyAction]
     ) {
         self.nodes = superStates.map(\.nodes).flattened + nodes
         self.onEntry = superStates.map(\.onEntry).flattened + onEntry

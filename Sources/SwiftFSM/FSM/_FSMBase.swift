@@ -74,12 +74,27 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
     }
 
     @MainActor
+    public func handleEvent(_ event: Event) async {
+        await handleEvent(event, predicates: [])
+    }
+
+    @MainActor
     public func handleEvent(_ event: Event, predicates: any Predicate...) {
         handleEvent(event, predicates: predicates)
     }
 
     @MainActor
+    public func handleEvent(_ event: Event, predicates: any Predicate...) async {
+        await handleEvent(event, predicates: predicates)
+    }
+
+    @MainActor
     public func handleEvent(_ event: Event, predicates: [any Predicate]) {
+        fatalError("subclasses must implement")
+    }
+
+    @MainActor
+    public func handleEvent(_ event: Event, predicates: [any Predicate]) async {
         fatalError("subclasses must implement")
     }
 
@@ -95,6 +110,21 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
 
         state = transition.nextState
         transition.executeActions(event: event)
+        return .executed
+    }
+
+    @discardableResult @MainActor
+    func _handleEvent(_ event: Event, predicates: [any Predicate]) async -> TransitionResult {
+        guard let transition = transition(for: event, with: predicates) else {
+            return .notFound(event, predicates)
+        }
+
+        guard shouldExecute(transition) else {
+            return .notExecuted(transition)
+        }
+
+        state = transition.nextState
+        await transition.executeActions(event: event)
         return .executed
     }
 
@@ -163,9 +193,9 @@ private extension Transition {
         actions.forEach { try! $0(event) }
     }
 
-//    func executeActions<E: Hashable>(event: E) async {
-//        for action in actions {
-//            await action(event)
-//        }
-//    }
+    func executeActions<E: Hashable>(event: E) async {
+        for action in actions {
+            await action(event)
+        }
+    }
 }

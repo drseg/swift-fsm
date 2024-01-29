@@ -65,6 +65,17 @@ class BlockTests: SyntaxTestsBase {
         Matching(P.a) | passWithEventAsync
     }
 
+#warning("missing actions with events")
+    var entry1: [FSMSyncAction] { [{ self.output += "entry1" }] }
+    var entry1Async: [FSMAsyncAction] { [{ self.output += "entry1" }] }
+    var entry2: [FSMSyncAction] { [{ self.output += "entry2" }] }
+    var entry2Async: [FSMAsyncAction] { [{ self.output += "entry2" }] }
+
+    var exit1: [FSMSyncAction]  { [{ self.output += "exit1"  }] }
+    var exit1Async: [FSMAsyncAction]  { [{ self.output += "exit1"  }] }
+    var exit2: [FSMSyncAction]  { [{ self.output += "exit2"  }] }
+    var exit2Async: [FSMAsyncAction]  { [{ self.output += "exit2"  }] }
+
     func assertMWTAResult(
         _ result: [AnyNode],
         event: Event = BlockTests.defaultEvent,
@@ -166,43 +177,6 @@ class BlockTests: SyntaxTestsBase {
                      xctLine: xl)
         }
     }
-}
-
-class BlockComponentTests: BlockTests {
-    func buildMWTA(@MWTABuilder _ block: () -> [MWTA]) -> [MWTA] {
-        block()
-    }
-
-    func testMWTABuilder() {
-        let s0 = buildMWTA { }
-
-        let l1 = #line + 1; let s1 = buildMWTA {
-            matching(P.a) | when(1, or: 2) | then(1) | pass
-                            when(1, or: 2) | then(1) | pass
-        }
-
-        let l2 = #line + 1; let s2 = buildMWTA {
-            Matching(P.a) | When(1, or: 2) | Then(1) | pass
-                            When(1, or: 2) | Then(1) | pass
-        }
-
-        XCTAssertTrue(s0.isEmpty)
-        assertMWTAResult(s1.nodes, sutLine: l1)
-        assertMWTAResult(s2.nodes, sutLine: l2)
-    }
-
-    func testSuperStateAddsSuperStateNodes() {
-        let l1 = #line + 1; let s1 = SuperState {
-            Matching(P.a) | When(1, or: 2) | Then(1) | pass
-                            When(1, or: 2) | Then(1) | pass
-        }
-
-        let nodes = SuperState(adopts: s1, s1).nodes
-
-        XCTAssertEqual(4, nodes.count)
-        assertMWTAResult(Array(nodes.prefix(2)), sutLine: l1)
-        assertMWTAResult(Array(nodes.suffix(2)), sutLine: l1)
-    }
 
     func assertGroupID(_ nodes: [any Node<DefaultIO>], line: UInt = #line) {
         let output = nodes.map { $0.finalised().output }
@@ -216,6 +190,17 @@ class BlockComponentTests: BlockTests {
         XCTAssertNotEqual(output.flattened.first?.groupID,
                           output.flattened.last?.groupID,
                           line: line)
+    }
+}
+
+class SuperStateTests: BlockTests {
+    func testSuperStateAddsSuperStateNodes() {
+        let s1 = SuperState { mwtaBlock }
+        let nodes = SuperState(adopts: s1, s1).nodes
+
+        XCTAssertEqual(8, nodes.count)
+        assertMWTAResult(Array(nodes.prefix(4)), sutLine: mwtaLine)
+        assertMWTAResult(Array(nodes.suffix(4)), sutLine: mwtaLine)
     }
 
     func testSuperStateSetsGroupIDForOwnNodesOnly() {
@@ -248,58 +233,61 @@ class BlockComponentTests: BlockTests {
         assertMWTAResult(Array(nodes.suffix(2)), sutLine: l2)
     }
 
-    var entry1: [FSMSyncAction] { [{ self.output += "entry1" }] }
-    var entry2: [FSMSyncAction] { [{ self.output += "entry2" }] }
-
-    var exit1: [FSMSyncAction]  { [{ self.output += "exit1"  }] }
-    var exit2: [FSMSyncAction]  { [{ self.output += "exit2"  }] }
-
     func testSuperStateAddsEntryExitActions() {
-        let s1 = SuperState(onEntry: entry1, onExit: exit1) {
-            matching(P.a) | when(1, or: 2) | then(1) | pass
-                            when(1, or: 2) | then(1) | pass
-        }
-
+        let s1 = SuperState(onEntry: entry1, onExit: exit1) { mwtaBlock }
         let s2 = SuperState(adopts: s1)
 
         assertActions(s2.onEntry, expectedOutput: "entry1")
         assertActions(s2.onExit, expectedOutput: "exit1")
     }
 
-    func testSuperStateCombinesEntryExitActions() {
-        let s1 = SuperState(onEntry: entry1, onExit: exit1) {
-            matching(P.a) | when(1, or: 2) | then(1) | pass
-                            when(1, or: 2) | then(1) | pass
-        }
+    func testSuperStateAddsEntryExitActions_Async() async {
+        let s1 = SuperState(onEntry: entry1Async, onExit: exit1Async) { mwtaBlock }
+        let s2 = SuperState(adopts: s1)
 
-        let s2 = SuperState(adopts: s1, onEntry: entry2, onExit: exit2) {
-            matching(P.a) | when(1, or: 2) | then(1) | pass
-                            when(1, or: 2) | then(1) | pass
-        }
+        await assertActions(s2.onEntry, expectedOutput: "entry1")
+        await assertActions(s2.onExit, expectedOutput: "exit1")
+    }
+
+    func testSuperStateCombinesEntryExitActions() {
+        let s1 = SuperState(onEntry: entry1, onExit: exit1) { mwtaBlock }
+        let s2 = SuperState(adopts: s1, onEntry: entry2, onExit: exit2) { mwtaBlock }
 
         assertActions(s2.onEntry, expectedOutput: "entry1entry2")
         assertActions(s2.onExit, expectedOutput: "exit1exit2")
     }
 
+    func testSuperStateCombinesEntryExitActions_Async() async {
+        let s1 = SuperState(onEntry: entry1Async, onExit: exit1Async) { mwtaBlock }
+        let s2 = SuperState(adopts: s1, onEntry: entry2Async, onExit: exit2Async) { mwtaBlock }
+
+        await assertActions(s2.onEntry, expectedOutput: "entry1entry2")
+        await assertActions(s2.onExit, expectedOutput: "exit1exit2")
+    }
+
     func testSuperStateBlock() {
-        let l1 = #line + 1; let s1 = SuperState {
-            matching(P.a) | when(1, or: 2) | then(1) | pass
-                            when(1, or: 2) | then(1) | pass
-        }
+        let s = SuperState { mwtaBlock }
+        assertMWTAResult(s.nodes, sutLine: mwtaLine)
+    }
+}
 
-        let l2 = #line + 1; let s2 = SuperState {
-            Matching(P.a) | When(1, or: 2) | Then(1) | pass
-                            When(1, or: 2) | Then(1) | pass
-        }
+class DefineTests: BlockTests {
+    func buildMWTA(@MWTABuilder _ block: () -> [MWTA]) -> [MWTA] {
+        block()
+    }
 
-        assertMWTAResult(s1.nodes, sutLine: l1)
-        assertMWTAResult(s2.nodes, sutLine: l2)
+    func testMWTABuilder() {
+        let s0 = buildMWTA { }
+        let s1 = buildMWTA { mwtaBlock }
+
+        XCTAssertTrue(s0.isEmpty)
+        assertMWTAResult(s1.nodes, sutLine: mwtaLine)
     }
 
     func testDefine() {
         func assertDefine(
             _ d: Define,
-            sutLine sl: Int,
+            sutLine sl: Int = #line,
             elementLine el: Int,
             xctLine xl: UInt = #line
         ) {
@@ -317,42 +305,50 @@ class BlockComponentTests: BlockTests {
             XCTAssertEqual(0, d.node.rest.count, line: xctLine)
         }
 
-        let l0 = #line + 1; let s = SuperState {
-            matching(P.a) | when(1, or: 2) | then(1) | pass
-                            when(1, or: 2) | then(1) | pass
-        }
+        let s = SuperState { mwtaBlock }
 
-        let l1 = #line; let d1 = define(1, adopts: s, onEntry: entry1, onExit: exit1)
-        let l2 = #line; let d2 = Define(1, adopts: s, onEntry: entry1, onExit: exit1)
+        assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1), 
+                     elementLine: mwtaLine)
+        assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1Async),
+                     elementLine: mwtaLine)
+        assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1),
+                     elementLine: mwtaLine)
+        assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async),
+                     elementLine: mwtaLine)
 
-        assertDefine(d1, sutLine: l1, elementLine: l0)
-        assertDefine(d2, sutLine: l2, elementLine: l0)
+        assertDefine(define(1, onEntry: entry1, onExit: exit1) { mwtaBlock },
+                     elementLine: mwtaLine)
+        assertDefine(define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock },
+                     elementLine: mwtaLine)
+        assertDefine(define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock },
+                     elementLine: mwtaLine)
+        assertDefine(define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock },
+                     elementLine: mwtaLine)
 
-        let l3 = #line; let d3 = define(1, onEntry: entry1, onExit: exit1) {
-            matching(P.a) | when(1, or: 2) | then(1) | pass
-                            when(1, or: 2) | then(1) | pass
-        }
+        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1),
+                     elementLine: mwtaLine)
+        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async),
+                     elementLine: mwtaLine)
+        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1),
+                     elementLine: mwtaLine)
+        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async),
+                     elementLine: mwtaLine)
 
-        let l4 = #line; let d4 = Define(1, onEntry: entry1, onExit: exit1) {
-            matching(P.a) | when(1, or: 2) | then(1) | pass
-                            when(1, or: 2) | then(1) | pass
-        }
-
-        assertDefine(d3, sutLine: l3, elementLine: l3 + 1)
-        assertDefine(d4, sutLine: l4, elementLine: l4 + 1)
-
-        let d5 = define(1, adopts: s, onEntry: entry1, onExit: exit1) { }
-        let d6 = Define(1, adopts: s, onEntry: entry1, onExit: exit1) { }
+        assertDefine(Define(1, onEntry: entry1, onExit: exit1) { mwtaBlock },
+                     elementLine: mwtaLine)
+        assertDefine(Define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock },
+                     elementLine: mwtaLine)
+        assertDefine(Define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock },
+                     elementLine: mwtaLine)
+        assertDefine(Define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock },
+                     elementLine: mwtaLine)
 
         // technically valid/non-empty but need to flag empty trailing block
-        assertEmpty(d5)
-        assertEmpty(d6)
+        assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
 
-        let d7 = define(1, onEntry: entry1, onExit: exit1) { }
-        let d8 = Define(1, onEntry: entry1, onExit: exit1) { }
-
-        assertEmpty(d7)
-        assertEmpty(d8)
+        assertEmpty(define(1, onEntry: entry1, onExit: exit1) { })
+        assertEmpty(Define(1, onEntry: entry1, onExit: exit1) { })
     }
 
     func testDefineAddsSuperStateEntryExitActions() {

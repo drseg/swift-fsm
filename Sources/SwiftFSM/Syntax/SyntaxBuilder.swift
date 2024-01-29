@@ -17,8 +17,62 @@ public extension SyntaxBuilder {
     ) -> Syntax.Define<State> {
         .init(state,
               adopts: [superState] + andSuperStates,
-              onEntry: onEntry,
-              onExit: onExit,
+              onEntry: onEntry.map(AnyAction.init),
+              onExit: onExit.map(AnyAction.init),
+              elements: [],
+              file: file,
+              line: line)
+    }
+
+    func define(
+        _ state: State,
+        adopts superState: SuperState,
+        _ andSuperStates: SuperState...,
+        onEntry: [FSMAsyncAction] = [],
+        onExit: [FSMSyncAction] = [],
+        file: String = #file,
+        line: Int = #line
+    ) -> Syntax.Define<State> {
+        .init(state,
+              adopts: [superState] + andSuperStates,
+              onEntry: onEntry.map(AnyAction.init),
+              onExit: onExit.map(AnyAction.init),
+              elements: [],
+              file: file,
+              line: line)
+    }
+
+    func define(
+        _ state: State,
+        adopts superState: SuperState,
+        _ andSuperStates: SuperState...,
+        onEntry: [FSMSyncAction] = [],
+        onExit: [FSMAsyncAction] = [],
+        file: String = #file,
+        line: Int = #line
+    ) -> Syntax.Define<State> {
+        .init(state,
+              adopts: [superState] + andSuperStates,
+              onEntry: onEntry.map(AnyAction.init),
+              onExit: onExit.map(AnyAction.init),
+              elements: [],
+              file: file,
+              line: line)
+    }
+
+    func define(
+        _ state: State,
+        adopts superState: SuperState,
+        _ andSuperStates: SuperState...,
+        onEntry: [FSMAsyncAction] = [],
+        onExit: [FSMAsyncAction] = [],
+        file: String = #file,
+        line: Int = #line
+    ) -> Syntax.Define<State> {
+        .init(state,
+              adopts: [superState] + andSuperStates,
+              onEntry: onEntry.map(AnyAction.init),
+              onExit: onExit.map(AnyAction.init),
               elements: [],
               file: file,
               line: line)
@@ -44,14 +98,51 @@ public extension SyntaxBuilder {
 
     func define(
         _ state: State,
-        onEntry: [FSMSyncAction] = [],
+        adopts superStates: SuperState...,
+        onEntry: [FSMAsyncAction] = [],
         onExit: [FSMSyncAction] = [],
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Syntax.Define<State> {
         .init(state: state,
-              adopts: [],
+              adopts: superStates,
+              onEntry: onEntry,
+              onExit: onExit,
+              file: file,
+              line: line,
+              block)
+    }
+
+    func define(
+        _ state: State,
+        adopts superStates: SuperState...,
+        onEntry: [FSMSyncAction] = [],
+        onExit: [FSMAsyncAction] = [],
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> Syntax.Define<State> {
+        .init(state: state,
+              adopts: superStates,
+              onEntry: onEntry,
+              onExit: onExit,
+              file: file,
+              line: line,
+              block)
+    }
+
+    func define(
+        _ state: State,
+        adopts superStates: SuperState...,
+        onEntry: [FSMAsyncAction] = [],
+        onExit: [FSMAsyncAction] = [],
+        file: String = #file,
+        line: Int = #line,
+        @Internal.MWTABuilder _ block: () -> [MWTA]
+    ) -> Syntax.Define<State> {
+        .init(state: state,
+              adopts: superStates,
               onEntry: onEntry,
               onExit: onExit,
               file: file,

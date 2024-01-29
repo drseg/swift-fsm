@@ -28,6 +28,21 @@ open class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
         logTransitionNotFound(event, predicates)
     }
 
+    public override func handleEvent(_ event: Event, predicates: [any Predicate]) async {
+        for p in makeCombinations(predicates) {
+            switch await _handleEvent(event, predicates: p) {
+            case let .notExecuted(transition):
+                logTransitionNotExecuted(transition)
+            case .executed:
+                return
+            case .notFound:
+                break
+            }
+        }
+
+        logTransitionNotFound(event, predicates)
+    }
+
     func makeCombinations(_ predicates: [any Predicate]) -> [[any Predicate]] {
         (0..<predicates.count).reversed().reduce(into: [predicates]) {
             $0.append(contentsOf: predicates.combinations(ofCount: $1))

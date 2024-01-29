@@ -14,7 +14,20 @@ open class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
 
     @MainActor
     public override func handleEvent(_ event: Event, predicates: [any Predicate]) {
-        switch _handleEvent(event, predicates: predicates) {
+        handleResult(_handleEvent(event, predicates: predicates),
+                     for: event,
+                     with: predicates)
+    }
+
+    @MainActor
+    public override func handleEvent(_ event: Event, predicates: [any Predicate]) async {
+        handleResult(await _handleEvent(event, predicates: predicates),
+                     for: event,
+                     with: predicates)
+    }
+
+    private func handleResult(_ result: TransitionResult, for event: Event, with predicates: [any Predicate]) {
+        switch result {
         case let .notExecuted(transition):
             logTransitionNotExecuted(transition)
         case .notFound:
