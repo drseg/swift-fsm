@@ -307,47 +307,51 @@ class DefineTests: BlockTests {
 
         let s = SuperState { mwtaBlock }
 
+        /// define with superstate and no other transitions
         assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1))
         assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
         assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
         assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
 
+        /// define with no superstate and transitions
         assertDefine(define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
         assertDefine(define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock })
         assertDefine(define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock })
         assertDefine(define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock })
 
+        /// Define (struct) with superstate and no other transitions
         assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1))
         assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
         assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
         assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
 
+        /// Define (struct) with no superstate and transitions
         assertDefine(Define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
         assertDefine(Define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock })
         assertDefine(Define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock })
         assertDefine(Define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock })
 
-        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1))
-        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
-        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
-        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
-
-        // technically valid/non-empty but need to flag empty trailing block
+        /// technically valid/non-empty but need to flag empty trailing block
+        /// empty define with superstate
         assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
         assertEmpty(define(1, adopts: s, onEntry: entry1Async, onExit: exit1) { })
         assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1Async) { })
         assertEmpty(define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async) { })
 
-        assertEmpty(Define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
-        assertEmpty(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1) { })
-        assertEmpty(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async) { })
-        assertEmpty(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async) { })
-
+        /// empty define with superstate
         assertEmpty(define(1, onEntry: entry1, onExit: exit1) { })
         assertEmpty(define(1, onEntry: entry1Async, onExit: exit1) { })
         assertEmpty(define(1, onEntry: entry1, onExit: exit1Async) { })
         assertEmpty(define(1, onEntry: entry1Async, onExit: exit1Async) { })
 
+        /// technically valid/non-empty but need to flag empty trailing block
+        /// empty Define (struct) with superstate
+        assertEmpty(Define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async) { })
+
+        /// empty Define (struct) with superstate
         assertEmpty(Define(1, onEntry: entry1, onExit: exit1) { })
         assertEmpty(Define(1, onEntry: entry1Async, onExit: exit1) { })
         assertEmpty(Define(1, onEntry: entry1, onExit: exit1Async) { })
