@@ -217,15 +217,13 @@ class StringableNodeTestTests: StringableNodeTest {
         await assertEqual(t1, t2)
         await assertEqual(t1, t3)
         await assertEqual(t2, t3)
-        #warning("This needs fixing asap - expect failure doesn't support async")
-//        XCTExpectFailure {
-//            assertEqual(t1, whenNode)
-//            assertEqualFileAndLine(t1, whenNode)
-//
-//            assertEqualFileAndLine(t1, t2)
-//            assertEqualFileAndLine(t1, t3)
-//            assertEqualFileAndLine(t2, t3)
-//        }
+
+        XCTExpectFailure()
+        await assertEqual(t1, whenNode)
+        await assertEqualFileAndLine(t1, whenNode)
+        await assertEqualFileAndLine(t1, t2)
+        await assertEqualFileAndLine(t1, t3)
+        await assertEqualFileAndLine(t2, t3)
     }
 }
 
