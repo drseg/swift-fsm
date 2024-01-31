@@ -1,6 +1,7 @@
 import Foundation
 
 public struct FSMEvent<T: Hashable>: Hashable {
+    #warning("covering tests disabled or deleted with macro extraction")
     private let _value: FSMValue<T>
     let name: String
 

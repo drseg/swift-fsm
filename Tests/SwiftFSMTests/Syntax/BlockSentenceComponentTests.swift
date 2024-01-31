@@ -66,15 +66,40 @@ class BlockTests: SyntaxTestsBase {
     }
 
 #warning("missing actions with events")
-    var entry1: [FSMSyncAction] { [{ self.output += "entry1" }] }
-    var entry1Async: [FSMAsyncAction] { [{ self.output += "entry1" }] }
-    var entry2: [FSMSyncAction] { [{ self.output += "entry2" }] }
-    var entry2Async: [FSMAsyncAction] { [{ self.output += "entry2" }] }
+    func outputEntry1() { output("entry1", nil) }
+    func outputEntry1(_ i: Int) { output("entry1", i) }
+    func outputEntry2() { output("entry2", nil) }
+    func outputEntry2(_ i: Int) { output("entry2", i) }
+    func outputExit1() { output("exit1", nil) }
+    func outputExit1(_ i: Int) { output("exit1", i) }
+    func outputExit2() { output("exit2", nil) }
+    func outputExit2(_ i: Int) { output("exit2", i) }
+    func output(_ s: String, _ i: Int?) {
+        output += s
+        if let i {
+            output += ", event: \(i)"
+        }
+    }
 
-    var exit1: [FSMSyncAction]  { [{ self.output += "exit1"  }] }
-    var exit1Async: [FSMAsyncAction]  { [{ self.output += "exit1"  }] }
-    var exit2: [FSMSyncAction]  { [{ self.output += "exit2"  }] }
-    var exit2Async: [FSMAsyncAction]  { [{ self.output += "exit2"  }] }
+    var entry1: [FSMSyncAction]                          {[outputEntry1]}
+    var entry1Event: [FSMSyncActionWithEvent<Int>]       {[outputEntry1]}
+    var entry1Async: [FSMAsyncAction]                    {[outputEntry1]}
+    var entry1AsyncEvent: [FSMAsyncActionWithEvent<Int>] {[outputEntry1]}
+
+    var entry2: [FSMSyncAction]                          {[outputEntry2]}
+    var entry2Event: [FSMSyncActionWithEvent<Int>]       {[outputEntry2]}
+    var entry2Async: [FSMAsyncAction]                    {[outputEntry2]}
+    var entry2AsyncEvent: [FSMAsyncActionWithEvent<Int>] {[outputEntry2]}
+
+    var exit1: [FSMSyncAction]                           {[outputExit1]}
+    var exit1Event: [FSMSyncActionWithEvent<Int>]        {[outputExit1]}
+    var exit1Async: [FSMAsyncAction]                     {[outputExit1]}
+    var exit1AsyncEvent: [FSMAsyncActionWithEvent<Int>]  {[outputExit1]}
+
+    var exit2: [FSMSyncAction]                           {[outputExit2]}
+    var exit2Event: [FSMSyncActionWithEvent<Int>]        {[outputExit2]}
+    var exit2Async: [FSMAsyncAction]                     {[outputExit2]}
+    var exit2AsyncEvent: [FSMAsyncActionWithEvent<Int>]  {[outputExit2]}
 
     func assertMWTAResult(
         _ result: [AnyNode],
@@ -285,8 +310,9 @@ class DefineTests: BlockTests {
     }
 
     func testDefine() {
-        func assertDefine(
+        func verify(
             _ d: Define,
+            hasEvent: Bool = false,
             sutLine sl: Int = #line,
             elementLine el: Int = mwtaLine,
             xctLine xl: UInt = #line
@@ -298,7 +324,10 @@ class DefineTests: BlockTests {
             XCTAssertEqual([1], gNode.states.map(\.base))
 
             assertMWTAResult(gNode.rest, sutLine: el, xctLine: xl)
-            assertActions(d.node.onEntry + d.node.onExit, expectedOutput: "entry1exit1", xctLine: xl)
+            let expectedOutput = hasEvent ? "entry1, event: 111exit1, event: 111" : "entry1exit1"
+            assertActions(d.node.onEntry + d.node.onExit,
+                          expectedOutput: expectedOutput,
+                          xctLine: xl)
         }
 
         func assertEmpty(_ d: Define, xctLine: UInt = #line) {
@@ -307,29 +336,50 @@ class DefineTests: BlockTests {
 
         let s = SuperState { mwtaBlock }
 
+        #warning("Doesn't cover all possible combinations of sync/async, event/no event")
         /// define with superstate and no other transitions
-        assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1))
-        assertDefine(define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
-        assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
-        assertDefine(define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
+        verify(define(1, adopts: s, onEntry: entry1, onExit: exit1))
+        verify(define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
+        verify(define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
+        verify(define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
+
+        verify(define(1, adopts: s, onEntry: entry1Event, onExit: exit1Event), hasEvent: true)
+        verify(define(1, adopts: s, onEntry: entry1Event, onExit: exit1AsyncEvent), hasEvent: true)
+        verify(define(1, adopts: s, onEntry: entry1AsyncEvent, onExit: exit1Event), hasEvent: true)
+        verify(define(1, adopts: s, onEntry: entry1AsyncEvent, onExit: exit1AsyncEvent), hasEvent: true)
 
         /// define with no superstate and transitions
-        assertDefine(define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
-        assertDefine(define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock })
-        assertDefine(define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock })
-        assertDefine(define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock })
+        verify(define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
+        verify(define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock })
+        verify(define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock })
+        verify(define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock })
+
+        verify(define(1, onEntry: entry1Event, onExit: exit1Event) { mwtaBlock }, hasEvent: true)
+        verify(define(1, onEntry: entry1Event, onExit: exit1AsyncEvent) { mwtaBlock }, hasEvent: true)
+        verify(define(1, onEntry: entry1AsyncEvent, onExit: exit1Event) { mwtaBlock }, hasEvent: true)
+        verify(define(1, onEntry: entry1AsyncEvent, onExit: exit1AsyncEvent) { mwtaBlock }, hasEvent: true)
 
         /// Define (struct) with superstate and no other transitions
-        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1))
-        assertDefine(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
-        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
-        assertDefine(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
+        verify(Define(1, adopts: s, onEntry: entry1, onExit: exit1))
+        verify(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async))
+        verify(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1))
+        verify(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async))
+
+        verify(Define(1, adopts: s, onEntry: entry1Event, onExit: exit1Event), hasEvent: true)
+        verify(Define(1, adopts: s, onEntry: entry1Event, onExit: exit1AsyncEvent), hasEvent: true)
+        verify(Define(1, adopts: s, onEntry: entry1AsyncEvent, onExit: exit1Event), hasEvent: true)
+        verify(Define(1, adopts: s, onEntry: entry1AsyncEvent, onExit: exit1AsyncEvent), hasEvent: true)
 
         /// Define (struct) with no superstate and transitions
-        assertDefine(Define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
-        assertDefine(Define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock })
-        assertDefine(Define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock })
-        assertDefine(Define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock })
+        verify(Define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
+        verify(Define(1, onEntry: entry1, onExit: exit1Async) { mwtaBlock })
+        verify(Define(1, onEntry: entry1Async, onExit: exit1) { mwtaBlock })
+        verify(Define(1, onEntry: entry1Async, onExit: exit1Async) { mwtaBlock })
+
+        verify(Define(1, onEntry: entry1Event, onExit: exit1Event) { mwtaBlock }, hasEvent: true)
+        verify(Define(1, onEntry: entry1Event, onExit: exit1AsyncEvent) { mwtaBlock }, hasEvent: true)
+        verify(Define(1, onEntry: entry1AsyncEvent, onExit: exit1Event) { mwtaBlock }, hasEvent: true)
+        verify(Define(1, onEntry: entry1AsyncEvent, onExit: exit1AsyncEvent) { mwtaBlock }, hasEvent: true)
 
         /// technically valid/non-empty but need to flag empty trailing block
         /// empty define with superstate
@@ -338,11 +388,21 @@ class DefineTests: BlockTests {
         assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1Async) { })
         assertEmpty(define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async) { })
 
+        assertEmpty(define(1, adopts: s, onEntry: entry1Event, onExit: exit1Event) { })
+        assertEmpty(define(1, adopts: s, onEntry: entry1AsyncEvent, onExit: exit1Event) { })
+        assertEmpty(define(1, adopts: s, onEntry: entry1Event, onExit: exit1AsyncEvent) { })
+        assertEmpty(define(1, adopts: s, onEntry: entry1AsyncEvent, onExit: exit1AsyncEvent) { })
+
         /// empty define with superstate
         assertEmpty(define(1, onEntry: entry1, onExit: exit1) { })
         assertEmpty(define(1, onEntry: entry1Async, onExit: exit1) { })
         assertEmpty(define(1, onEntry: entry1, onExit: exit1Async) { })
         assertEmpty(define(1, onEntry: entry1Async, onExit: exit1Async) { })
+
+        assertEmpty(define(1, onEntry: entry1Event, onExit: exit1Event) { })
+        assertEmpty(define(1, onEntry: entry1AsyncEvent, onExit: exit1Event) { })
+        assertEmpty(define(1, onEntry: entry1Event, onExit: exit1AsyncEvent) { })
+        assertEmpty(define(1, onEntry: entry1AsyncEvent, onExit: exit1AsyncEvent) { })
 
         /// technically valid/non-empty but need to flag empty trailing block
         /// empty Define (struct) with superstate
@@ -351,17 +411,27 @@ class DefineTests: BlockTests {
         assertEmpty(Define(1, adopts: s, onEntry: entry1, onExit: exit1Async) { })
         assertEmpty(Define(1, adopts: s, onEntry: entry1Async, onExit: exit1Async) { })
 
+        assertEmpty(Define(1, adopts: s, onEntry: entry1Event, onExit: exit1Event) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1AsyncEvent, onExit: exit1Event) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1Event, onExit: exit1AsyncEvent) { })
+        assertEmpty(Define(1, adopts: s, onEntry: entry1AsyncEvent, onExit: exit1AsyncEvent) { })
+
         /// empty Define (struct) with superstate
         assertEmpty(Define(1, onEntry: entry1, onExit: exit1) { })
         assertEmpty(Define(1, onEntry: entry1Async, onExit: exit1) { })
         assertEmpty(Define(1, onEntry: entry1, onExit: exit1Async) { })
         assertEmpty(Define(1, onEntry: entry1Async, onExit: exit1Async) { })
+
+        assertEmpty(Define(1, onEntry: entry1Event, onExit: exit1Event) { })
+        assertEmpty(Define(1, onEntry: entry1AsyncEvent, onExit: exit1Event) { })
+        assertEmpty(Define(1, onEntry: entry1Event, onExit: exit1AsyncEvent) { })
+        assertEmpty(Define(1, onEntry: entry1AsyncEvent, onExit: exit1AsyncEvent) { })
     }
 
     func testDefineAddsSuperStateEntryExitActions() {
         let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
-            when(1, or: 2) | then(1) | pass
+                            when(1, or: 2) | then(1) | pass
         }
 
         let d1 = define(1, adopts: s1, s1, onEntry: entry2, onExit: exit2)

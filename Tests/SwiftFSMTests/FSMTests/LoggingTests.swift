@@ -113,7 +113,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     let fsm = FSMSpy(initialState: 1)
     let lazyFSM = LazyFSMSpy(initialState: 1)
     
-    func buildTable(@TableBuilder<Int> _ block: () -> [Syntax.Define<Int>]) {
+    func buildTable(@TableBuilder<Int, Int> _ block: () -> [Syntax.Define<Int, Int>]) {
         try! fsm.buildTable(block)
         try! lazyFSM.buildTable(block)
     }

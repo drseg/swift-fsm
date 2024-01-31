@@ -278,7 +278,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     }
     
     func testTypealiasSyntaxTurnstile() throws {
-        typealias S = Syntax.Define<State>
+        typealias S = Syntax.Define<State, Event>
         typealias E = Syntax.When<State, Event>
         typealias NS = Syntax.Then<State, Event>
         typealias If = Syntax.Expanded.Matching<State, Event>

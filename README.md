@@ -491,7 +491,7 @@ Though `define`, `when`, and `then` are functions, there are matching structs wi
 Here is one minimalistic example:
 
 ```swift
-typealias d = Syntax.Define<State>
+typealias d = Syntax.Define<State, Event>
 typealias w = Syntax.When<Event>
 typealias t = Syntax.Then<State>
 

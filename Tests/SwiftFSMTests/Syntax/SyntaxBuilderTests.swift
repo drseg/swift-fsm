@@ -11,7 +11,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
     
-    typealias Define = Syntax.Define<State>
+    typealias Define = Syntax.Define<State, Event>
     typealias Matching = Syntax.Expanded.Matching<State, Event>
     typealias Condition = Syntax.Expanded.Condition<State, Event>
     typealias When = Syntax.When<State, Event>

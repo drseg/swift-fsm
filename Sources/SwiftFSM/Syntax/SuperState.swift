@@ -4,7 +4,7 @@ public struct SuperState {
     var nodes: [any Node<DefaultIO>]
     var onEntry: [AnyAction]
     var onExit: [AnyAction]
-
+    #warning("lost code coverage")
     public init(
         adopts superState: SuperState,
         _ andSuperStates: SuperState...,

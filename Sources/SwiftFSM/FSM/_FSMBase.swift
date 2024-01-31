@@ -9,8 +9,8 @@ import ReflectiveEquality
 /// The struct TableBuidler below should be internal, but when marked as such, Swift fails to link when compiling in release mode
 
 @resultBuilder
-public struct TableBuilder<State: Hashable>: ResultBuilder {
-    public typealias T = Syntax.Define<State>
+public struct TableBuilder<State: Hashable, Event: Hashable>: ResultBuilder {
+    public typealias T = Syntax.Define<State, Event>
 }
 
 struct FSMKey: Hashable {
@@ -54,7 +54,7 @@ open class _FSMBase<State: Hashable, Event: Hashable> {
     public func buildTable(
         file: String = #file,
         line: Int = #line,
-        @TableBuilder<State> _ block: () -> [Syntax.Define<State>]
+        @TableBuilder<State, Event> _ block: () -> [Syntax.Define<State, Event>]
     ) throws {
         guard table.isEmpty else {
             throw makeError(TableAlreadyBuiltError(file: file, line: line))
