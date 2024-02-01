@@ -5,7 +5,7 @@ import XCTest
 @MainActor
 class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     static let defaultOutput = "pass"
-    static let defaultOutputWithEvent = "pass, event: 111"
+    static let defaultOutputWithEvent = "\(SyntaxTestsBase.defaultOutput), event: \(SyntaxTestsBase.defaultEvent)"
     static let defaultEvent = 111
 
     typealias State = Int
@@ -41,7 +41,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         all: any Predicate...,
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
-        sutLine sl: Int,
+        sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) {
         XCTAssertTrue(m.node.rest.isEmpty, file: xf, line: xl)
@@ -59,7 +59,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         expected: Bool,
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
-        sutLine sl: Int,
+        sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) {
         XCTAssertTrue(c.node.rest.isEmpty, file: xf, line: xl)
@@ -106,13 +106,25 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         events: [Int] = [1, 2],
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
-        sutLine sl: Int,
+        sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) {
         XCTAssertTrue(w.node.rest.isEmpty, file: xf, line: xl)
         assertWhenNode(w.node, events: events, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
     }
-    
+
+    func assertThen(
+        _ t: Then,
+        state: Int? = 1,
+        sutFile sf: String? = nil,
+        xctFile xf: StaticString = #file,
+        sutLine sl: Int? = #line,
+        xctLine xl: UInt = #line
+    ) {
+        XCTAssertTrue(t.node.rest.isEmpty, file: xf, line: xl)
+        assertThenNode(t.node, state: state, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
+    }
+
     func assertWhenNode(
         _ node: WhenNodeBase,
         events: [Int] = [1, 2],
@@ -237,7 +249,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertMWA(
         _ n: AnyNode,
-        event: Event = BlockTests.defaultEvent,
+        event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String,
         xctFile xf: StaticString,
@@ -259,7 +271,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertMTA(
         _ n: AnyNode,
-        event: Event = BlockTests.defaultEvent,
+        event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String,
         xctFile xf: StaticString,
@@ -317,7 +329,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertWA(
         _ n: AnyNode,
-        event: Event = BlockTests.defaultEvent,
+        event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String,
         xctFile xf: StaticString,
@@ -336,7 +348,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     func assertTA(
         _ n: AnyNode,
-        event: Event = BlockTests.defaultEvent,
+        event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String,
         xctFile xf: StaticString,
@@ -361,7 +373,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
 
     func assertMA(
         _ n: AnyNode,
-        event: Event = BlockTests.defaultEvent,
+        event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String,
         xctFile xf: StaticString,

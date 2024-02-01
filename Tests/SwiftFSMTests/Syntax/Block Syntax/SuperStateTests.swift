@@ -1,8 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-#warning("No tests for actions with event")
-class SuperStateTests: BlockTests {
+class SuperStateTests: BlockTestsBase {
     func testSuperStateAddsSuperStateNodes() {
         let s1 = SuperState { mwtaBlock }
         let nodes = SuperState(adopts: s1, s1).nodes
@@ -50,28 +49,12 @@ class SuperStateTests: BlockTests {
         assertActions(s2.onExit, expectedOutput: "exit1")
     }
 
-    func testSuperStateAddsEntryExitActions_Async() async {
-        let s1 = SuperState(onEntry: entry1Async, onExit: exit1Async) { mwtaBlock }
-        let s2 = SuperState(adopts: s1)
-
-        await assertActions(s2.onEntry, expectedOutput: "entry1")
-        await assertActions(s2.onExit, expectedOutput: "exit1")
-    }
-
     func testSuperStateCombinesEntryExitActions() {
         let s1 = SuperState(onEntry: entry1, onExit: exit1) { mwtaBlock }
         let s2 = SuperState(adopts: s1, onEntry: entry2, onExit: exit2) { mwtaBlock }
 
         assertActions(s2.onEntry, expectedOutput: "entry1entry2")
         assertActions(s2.onExit, expectedOutput: "exit1exit2")
-    }
-
-    func testSuperStateCombinesEntryExitActions_Async() async {
-        let s1 = SuperState(onEntry: entry1Async, onExit: exit1Async) { mwtaBlock }
-        let s2 = SuperState(adopts: s1, onEntry: entry2Async, onExit: exit2Async) { mwtaBlock }
-
-        await assertActions(s2.onEntry, expectedOutput: "entry1entry2")
-        await assertActions(s2.onExit, expectedOutput: "exit1exit2")
     }
 
     func testSuperStateBlock() {
