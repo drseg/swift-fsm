@@ -6,28 +6,6 @@ public typealias FSMSyncActionWithEvent<Event: Hashable> = @MainActor (Event) ->
 public typealias FSMAsyncActionWithEvent<Event: Hashable> = @MainActor (Event) async -> Void
 
 public struct AnyAction {
-    public static func & (lhs: Self, rhs: @escaping FSMSyncAction) -> [Self] {
-        [lhs, .init(rhs)]
-    }
-
-    public static func & (lhs: Self, rhs: @escaping FSMAsyncAction) -> [Self] {
-        [lhs, .init(rhs)]
-    }
-
-    public static func & <Event: Hashable>(
-        lhs: Self,
-        rhs: @escaping FSMSyncActionWithEvent<Event>
-    ) -> [Self] {
-        [lhs, .init(rhs)]
-    }
-
-    public static func & <Event: Hashable>(
-        lhs: Self,
-        rhs: @escaping FSMAsyncActionWithEvent<Event>
-    ) -> [Self] {
-        [lhs, .init(rhs)]
-    }
-
     public enum NullEvent: Hashable { case null }
 
     private let base: Any
@@ -75,7 +53,32 @@ public struct AnyAction {
     }
 }
 
+public extension AnyAction {
+    static func & (lhs: Self, rhs: @escaping FSMSyncAction) -> [Self] {
+        [lhs, .init(rhs)]
+    }
+
+    static func & (lhs: Self, rhs: @escaping FSMAsyncAction) -> [Self] {
+        [lhs, .init(rhs)]
+    }
+
+    static func & <Event: Hashable>(
+        lhs: Self,
+        rhs: @escaping FSMSyncActionWithEvent<Event>
+    ) -> [Self] {
+        [lhs, .init(rhs)]
+    }
+
+    static func & <Event: Hashable>(
+        lhs: Self,
+        rhs: @escaping FSMAsyncActionWithEvent<Event>
+    ) -> [Self] {
+        [lhs, .init(rhs)]
+    }
+}
+
 public extension Array<AnyAction> {
+    // MARK: init with a single FSMAction element, avoiding AnyAction.init
     init(_ action: @escaping FSMSyncAction) {
         self.init(arrayLiteral: AnyAction(action))
     }
@@ -96,6 +99,7 @@ public extension Array<AnyAction> {
         lhs + [.init(rhs)]
     }
 
+    // MARK: combining with single FSMAction elements
     static func & (lhs: Self, rhs: @escaping FSMAsyncAction) -> Self {
         lhs + [.init(rhs)]
     }
@@ -115,6 +119,7 @@ public extension Array<AnyAction> {
     }
 }
 
+// MARK: convenience operators, avoiding AnyAction.init
 public func & (
     lhs: @escaping FSMSyncAction,
     rhs: @escaping FSMSyncAction
