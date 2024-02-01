@@ -5,29 +5,54 @@ public typealias FSMAsyncAction = @MainActor () async -> Void
 public typealias FSMSyncActionWithEvent<Event: Hashable> = @MainActor (Event) -> Void
 public typealias FSMAsyncActionWithEvent<Event: Hashable> = @MainActor (Event) async -> Void
 
-struct AnyAction {
-    struct NullEvent: Hashable { }
+public struct AnyAction {
+    public static func + (lhs: Self, rhs: @escaping FSMSyncAction) -> [Self] {
+        [lhs, AnyAction(rhs)]
+    }
+
+    public static func + (lhs: Self, rhs: @escaping FSMAsyncAction) -> [Self] {
+        [lhs, AnyAction(rhs)]
+    }
+
+    public static func + <Event: Hashable>(
+        lhs: Self,
+        rhs: @escaping FSMSyncActionWithEvent<Event>
+    ) -> [Self] {
+        [lhs, AnyAction(rhs)]
+    }
+
+    public static func + <Event: Hashable>(
+        lhs: Self,
+        rhs: @escaping FSMAsyncActionWithEvent<Event>
+    ) -> [Self] {
+        [lhs, AnyAction(rhs)]
+    }
+
+    public enum NullEvent: Hashable { case null }
 
     private let base: Any
 
-    init(_ action: @escaping FSMSyncAction) {
+    public static func nullSync(_: NullEvent) { }
+    public static func nullAsync(_: NullEvent) async { }
+
+    public init(_ action: @escaping FSMSyncAction) {
         base = action
     }
 
-    init(_ action: @escaping FSMAsyncAction) {
+    public init(_ action: @escaping FSMAsyncAction) {
         base = action
     }
 
-    init<Event: Hashable>(_ action: @escaping FSMSyncActionWithEvent<Event>) {
+    public init<Event: Hashable>(_ action: @escaping FSMSyncActionWithEvent<Event>) {
         base = action
     }
 
-    init<Event: Hashable>(_ action: @escaping FSMAsyncActionWithEvent<Event>) {
+    public init<Event: Hashable>(_ action: @escaping FSMAsyncActionWithEvent<Event>) {
         base = action
     }
 
     @MainActor
-    func callAsFunction<Event: Hashable>(_ event: Event = NullEvent()) throws {
+    func callAsFunction<Event: Hashable>(_ event: Event = NullEvent.null) throws {
         if let base = base as? FSMSyncAction {
             base()
         } else if let base = base as? FSMSyncActionWithEvent<Event> {
@@ -40,7 +65,7 @@ struct AnyAction {
     }
 
     @MainActor
-    func callAsFunction<Event: Hashable>(_ event: Event = NullEvent()) async {
+    func callAsFunction<Event: Hashable>(_ event: Event = NullEvent.null) async {
         if let base = base as? FSMSyncAction {
             base()
         } else if let base = base as? FSMSyncActionWithEvent<Event> {
@@ -50,5 +75,29 @@ struct AnyAction {
         } else if let base = base as? FSMAsyncActionWithEvent<Event> {
             await base(event)
         }
+    }
+}
+
+public extension Array<AnyAction> {
+    static func + (lhs: Self, rhs: @escaping FSMSyncAction) -> Self {
+        lhs + [AnyAction(rhs)]
+    }
+
+    static func + (lhs: Self, rhs: @escaping FSMAsyncAction) -> Self {
+        lhs + [AnyAction(rhs)]
+    }
+
+    static func + <Event: Hashable> (
+        lhs: Self,
+        rhs: @escaping FSMSyncActionWithEvent<Event>
+    ) -> Self {
+        lhs + [AnyAction(rhs)]
+    }
+
+    static func + <Event: Hashable> (
+        lhs: Self,
+        rhs: @escaping FSMAsyncActionWithEvent<Event>
+    ) -> Self {
+        lhs + [AnyAction(rhs)]
     }
 }

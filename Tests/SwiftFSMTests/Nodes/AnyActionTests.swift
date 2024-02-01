@@ -6,11 +6,11 @@ final class AnyActionTests: XCTestCase {
     var output = ""
 
     func pass() {
-        output = "pass"
+        output += "pass"
     }
 
     func passWithEvent(_ e: String) {
-        output = e
+        output += e
     }
 
     func passAsync() async {
@@ -19,6 +19,44 @@ final class AnyActionTests: XCTestCase {
 
     func passWithEventAsync(_ e: String) async {
         passWithEvent(e)
+    }
+
+    func testCanMakeManyActions() async {
+        func assertSync(_ actions: [AnyAction], expected: String, line: UInt = #line) {
+            for a in actions {
+                try! a("event")
+            }
+            assert(actions, expected: expected, line: line)
+        }
+
+        func assertAsync(_ actions: [AnyAction], expected: String, line: UInt = #line) async {
+            for a in actions {
+                await a("event")
+            }
+            assert(actions, expected: expected, line: line)
+        }
+
+        func assert(_ actions: [AnyAction], expected: String, line: UInt = #line) {
+            XCTAssertEqual(output, expected, line: line)
+            output = ""
+        }
+
+        assertSync(AnyAction(pass) + pass, expected: "passpass")
+        assertSync(AnyAction(pass) + passWithEvent, expected: "passevent")
+        await assertAsync(AnyAction(pass) + passAsync, expected: "passpass")
+        await assertAsync(AnyAction(pass) + passWithEventAsync, expected: "passevent")
+
+        let a = AnyAction(pass) + pass
+
+        assertSync(a + pass, expected: "passpasspass")
+        assertSync(a + passWithEvent, expected: "passpassevent")
+        await assertAsync(a + passAsync, expected: "passpasspass")
+        await assertAsync(a + passWithEventAsync, expected: "passpassevent")
+
+        assertSync(AnyAction(pass) + pass + pass, expected: "passpasspass")
+        assertSync(AnyAction(pass) + pass + passWithEvent, expected: "passpassevent")
+        await assertAsync(AnyAction(pass) + pass + passAsync, expected: "passpasspass")
+        await assertAsync(AnyAction(pass) + pass + passWithEventAsync, expected: "passpassevent")
     }
 
     func testCanCallActionWithNoArgs() {
