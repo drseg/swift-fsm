@@ -1,37 +1,5 @@
 import Foundation
 
-public struct FSMEvent<T: Hashable>: Hashable {
-    #warning("covering tests disabled or deleted with macro extraction")
-    private let _value: FSMValue<T>
-    let name: String
-
-    public static func eventWithValue(_ name: String) -> ((FSMValue<T>) -> FSMEvent<T>) {
-        { FSMEvent<T>.init($0, name: name) }
-    }
-
-    public static func event(_ name: String) -> () -> FSMEvent<T> {
-        { FSMEvent<T>.init(name: name) }
-    }
-
-    public var value: T? {
-        _value.value
-    }
-
-    init(_ value: FSMValue<T>, name: String) {
-        self._value = value
-        self.name = name
-    }
-
-    init(name: String) {
-        self._value = FSMValue<T>.any
-        self.name = name
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(name)
-    }
-}
-
 public enum FSMValue<T: Hashable>: Hashable {
     case some(T), any
 
