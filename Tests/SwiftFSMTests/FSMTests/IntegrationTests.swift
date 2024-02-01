@@ -70,17 +70,17 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
 
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 when(.coin) | then(.unlocked)
                 when(.pass) | then(.alarming)
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 when(.coin) | then(.unlocked) | thankyou
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertTurnstile()
@@ -94,17 +94,17 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 condition { bool } | when(.reset) | then(.locked)
             }
             
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 condition { bool } | when(.coin) | then(.unlocked)
                 condition { bool } | when(.pass) | then(.alarming)
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 condition { bool } | when(.coin) | then(.unlocked) | thankyou
                 condition { bool } | when(.pass) | then(.locked)
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertEventAction(.coin,  "")
@@ -133,7 +133,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
 
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 when(.coin) | then(.unlocked)
                 when(.pass) | then(.alarming)
                 
@@ -142,7 +142,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 }
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 when(.coin) | then(.unlocked) | thankyou
                 when(.pass) | then(.locked)
                 
@@ -151,7 +151,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 }
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertEventAction(.reset, "thankyou")
@@ -225,21 +225,21 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
             
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 matching(Enforcement.weak)   | when(.pass) | then(.locked)
                 matching(Enforcement.strong) | when(.pass) | then(.alarming)
                 
                 when(.coin) | then(.unlocked)
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 matching(Reward.rewarding) | when(.coin) | then(.unlocked) | thankyou
                 matching(Reward.punishing) | when(.coin) | then(.unlocked) | idiot
                 
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertTable()
@@ -251,7 +251,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
             
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 when(.pass) {
                     matching(Enforcement.weak)   | then(.locked)
                     matching(Enforcement.strong) | then(.alarming)
@@ -260,7 +260,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.coin) | then(.unlocked)
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 when(.coin) {
                     then(.unlocked) {
                         matching(Reward.rewarding) | thankyou
@@ -271,7 +271,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertTable()
@@ -288,7 +288,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 E(.reset) | NS(.locked)
             }
             
-            S(.locked, adopts: resetable, onEntry: [lock]) {
+            S(.locked, adopts: resetable, onEntry: Array(lock)) {
                 E(.pass) {
                     If(Enforcement.weak)   | NS(.locked)
                     If(Enforcement.strong) | NS(.alarming)
@@ -297,7 +297,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 E(.coin) | NS(.unlocked)
             }
             
-            S(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            S(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 NS(.unlocked) {
                     If(Reward.rewarding) | E(.coin) | thankyou
                     If(Reward.punishing) | E(.coin) | idiot
@@ -306,7 +306,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 E(.pass) | NS(.locked)
             }
             
-            S(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            S(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertTable()
@@ -318,7 +318,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
             
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 when(.pass) {
                     matching(Enforcement.weak)   | then(.locked)
                     matching(Enforcement.strong) | then(.alarming)
@@ -327,7 +327,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.coin) | then(.unlocked)
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 then(.unlocked) {
                     actions(thankyou) {
                         matching(Reward.rewarding) | when(.coin)
@@ -341,7 +341,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertTable()

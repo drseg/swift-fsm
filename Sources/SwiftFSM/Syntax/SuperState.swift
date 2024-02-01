@@ -4,73 +4,28 @@ public struct SuperState {
     var nodes: [any Node<DefaultIO>]
     var onEntry: [AnyAction]
     var onExit: [AnyAction]
-    #warning("lost code coverage")
+
     public init(
         adopts superState: SuperState,
         _ andSuperStates: SuperState...,
-        onEntry: [FSMSyncAction] = [],
-        onExit: [FSMSyncAction] = []
+        onEntry: [AnyAction] = [],
+        onExit: [AnyAction] = []
     ) {
         self.init(superStates: [superState] + andSuperStates, 
-                  onEntry: onEntry.map(AnyAction.init),
-                  onExit: onExit.map(AnyAction.init))
-    }
-
-    public init(
-        adopts superState: SuperState,
-        _ andSuperStates: SuperState...,
-        onEntry: [FSMAsyncAction] = [],
-        onExit: [FSMAsyncAction] = []
-    ) {
-        self.init(superStates: [superState] + andSuperStates,
-                  onEntry: onEntry.map(AnyAction.init),
-                  onExit: onExit.map(AnyAction.init))
-    }
-
-    public init(
-        adopts superState: SuperState,
-        _ andSuperStates: SuperState...,
-        onEntry: [FSMAsyncAction] = [],
-        onExit: [FSMSyncAction] = []
-    ) {
-        self.init(superStates: [superState] + andSuperStates,
-                  onEntry: onEntry.map(AnyAction.init),
-                  onExit: onExit.map(AnyAction.init))
-    }
-
-    public init(
-        adopts superState: SuperState,
-        _ andSuperStates: SuperState...,
-        onEntry: [FSMSyncAction] = [],
-        onExit: [FSMAsyncAction] = []
-    ) {
-        self.init(superStates: [superState] + andSuperStates,
-                  onEntry: onEntry.map(AnyAction.init),
-                  onExit: onExit.map(AnyAction.init))
+                  onEntry: onEntry,
+                  onExit: onExit)
     }
 
     public init(
         adopts superStates: SuperState...,
-        onEntry: [FSMSyncAction] = [],
-        onExit: [FSMSyncAction] = [],
+        onEntry: [AnyAction] = [],
+        onExit: [AnyAction] = [],
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) {
         self.init(nodes: block().nodes.withGroupID(),
                   superStates: superStates,
-                  onEntry: onEntry.map(AnyAction.init),
-                  onExit: onExit.map(AnyAction.init))
-    }
-
-    public init(
-        adopts superStates: SuperState...,
-        onEntry: [FSMAsyncAction] = [],
-        onExit: [FSMAsyncAction] = [],
-        @Internal.MWTABuilder _ block: () -> [MWTA]
-    ) {
-        self.init(nodes: block().nodes.withGroupID(),
-                  superStates: superStates,
-                  onEntry: onEntry.map(AnyAction.init),
-                  onExit: onExit.map(AnyAction.init))
+                  onEntry: onEntry,
+                  onExit: onExit)
     }
 
     private init(

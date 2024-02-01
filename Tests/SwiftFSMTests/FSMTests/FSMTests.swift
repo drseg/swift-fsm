@@ -274,12 +274,12 @@ class FSMTests: FSMTestsBase<Int, Double> {
 
     func testHandleEventWithConditionalEntryExitActions() throws {
         try fsm.buildTable {
-            define(1, onEntry: [onEntry], onExit: [onExit]) {
+            define(1, onEntry: Array(onEntry), onExit: Array(onExit)) {
                 when(1.0) | then(1)
                 when(1.1) | then(2)
             }
             
-            define(2, onEntry: [onEntry], onExit: [onExit]) {
+            define(2, onEntry: Array(onEntry), onExit: Array(onExit)) {
                 when(1.1) | then(1)
             }
         }
@@ -311,12 +311,12 @@ class FSMTests: FSMTestsBase<Int, Double> {
     func testHandleEventWithUnconditionalEntryExitActions() throws {
         fsm = makeSUT(initialState: 1, actionsPolicy: .executeAlways)
         try fsm.buildTable {
-            define(1, onEntry: [onEntry], onExit: [onExit]) {
+            define(1, onEntry: Array(onEntry), onExit: Array(onExit)) {
                 when(1.0) | then(1)
                 when(1.1) | then(2)
             }
             
-            define(2, onEntry: [onEntry], onExit: [onExit]) {
+            define(2, onEntry: Array(onEntry), onExit: Array(onExit)) {
                 when(1.1) | then(1)
             }
         }
