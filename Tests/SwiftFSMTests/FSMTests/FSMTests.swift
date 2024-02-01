@@ -289,7 +289,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         fsm.state = 2
         assertHandleEvent(1.1, state: 1, output: "exitentry")
     }
-    #warning("temporarily disabled test")
+    #warning("temporarily uncompilable test")
 //    func testHandleEventWithConditionalEntryExitActions_Async() async throws {
 //        try fsm.buildTable {
 //            define(1, onEntry: [onEntryAsync], onExit: [onExitAsync]) {
