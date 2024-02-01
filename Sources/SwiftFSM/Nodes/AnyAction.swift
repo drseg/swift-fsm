@@ -6,48 +6,45 @@ public typealias FSMSyncActionWithEvent<Event: Hashable> = @MainActor (Event) ->
 public typealias FSMAsyncActionWithEvent<Event: Hashable> = @MainActor (Event) async -> Void
 
 public struct AnyAction {
-    public static func + (lhs: Self, rhs: @escaping FSMSyncAction) -> [Self] {
-        [lhs, AnyAction(rhs)]
+    public static func & (lhs: Self, rhs: @escaping FSMSyncAction) -> [Self] {
+        [lhs, .init(rhs)]
     }
 
-    public static func + (lhs: Self, rhs: @escaping FSMAsyncAction) -> [Self] {
-        [lhs, AnyAction(rhs)]
+    public static func & (lhs: Self, rhs: @escaping FSMAsyncAction) -> [Self] {
+        [lhs, .init(rhs)]
     }
 
-    public static func + <Event: Hashable>(
+    public static func & <Event: Hashable>(
         lhs: Self,
         rhs: @escaping FSMSyncActionWithEvent<Event>
     ) -> [Self] {
-        [lhs, AnyAction(rhs)]
+        [lhs, .init(rhs)]
     }
 
-    public static func + <Event: Hashable>(
+    public static func & <Event: Hashable>(
         lhs: Self,
         rhs: @escaping FSMAsyncActionWithEvent<Event>
     ) -> [Self] {
-        [lhs, AnyAction(rhs)]
+        [lhs, .init(rhs)]
     }
 
     public enum NullEvent: Hashable { case null }
 
     private let base: Any
 
-    public static func nullSync(_: NullEvent) { }
-    public static func nullAsync(_: NullEvent) async { }
-
-    public init(_ action: @escaping FSMSyncAction) {
+    init(_ action: @escaping FSMSyncAction) {
         base = action
     }
 
-    public init(_ action: @escaping FSMAsyncAction) {
+    init(_ action: @escaping FSMAsyncAction) {
         base = action
     }
 
-    public init<Event: Hashable>(_ action: @escaping FSMSyncActionWithEvent<Event>) {
+    init<Event: Hashable>(_ action: @escaping FSMSyncActionWithEvent<Event>) {
         base = action
     }
 
-    public init<Event: Hashable>(_ action: @escaping FSMAsyncActionWithEvent<Event>) {
+    init<Event: Hashable>(_ action: @escaping FSMAsyncActionWithEvent<Event>) {
         base = action
     }
 
@@ -79,25 +76,139 @@ public struct AnyAction {
 }
 
 public extension Array<AnyAction> {
-    static func + (lhs: Self, rhs: @escaping FSMSyncAction) -> Self {
-        lhs + [AnyAction(rhs)]
+    init(_ action: @escaping FSMSyncAction) {
+        self.init(arrayLiteral: AnyAction(action))
     }
 
-    static func + (lhs: Self, rhs: @escaping FSMAsyncAction) -> Self {
-        lhs + [AnyAction(rhs)]
+    init(_ action: @escaping FSMAsyncAction) {
+        self.init(arrayLiteral: AnyAction(action))
     }
 
-    static func + <Event: Hashable> (
+    init<Event: Hashable>(_ action: @escaping FSMSyncActionWithEvent<Event>) {
+        self.init(arrayLiteral: AnyAction(action))
+    }
+
+    init<Event: Hashable>(_ action: @escaping FSMAsyncActionWithEvent<Event>) {
+        self.init(arrayLiteral: AnyAction(action))
+    }
+
+    static func & (lhs: Self, rhs: @escaping FSMSyncAction) -> Self {
+        lhs + [.init(rhs)]
+    }
+
+    static func & (lhs: Self, rhs: @escaping FSMAsyncAction) -> Self {
+        lhs + [.init(rhs)]
+    }
+
+    static func & <Event: Hashable> (
         lhs: Self,
         rhs: @escaping FSMSyncActionWithEvent<Event>
     ) -> Self {
-        lhs + [AnyAction(rhs)]
+        lhs + [.init(rhs)]
     }
 
-    static func + <Event: Hashable> (
+    static func & <Event: Hashable> (
         lhs: Self,
         rhs: @escaping FSMAsyncActionWithEvent<Event>
     ) -> Self {
-        lhs + [AnyAction(rhs)]
+        lhs + [.init(rhs)]
     }
+}
+
+public func & (
+    lhs: @escaping FSMSyncAction,
+    rhs: @escaping FSMSyncAction
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <Event: Hashable> (
+    lhs: @escaping FSMSyncAction,
+    rhs: @escaping FSMSyncActionWithEvent<Event>
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <Event: Hashable> (
+    lhs: @escaping FSMSyncAction,
+    rhs: @escaping FSMAsyncActionWithEvent<Event>
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <Event: Hashable>(
+    lhs: @escaping FSMSyncActionWithEvent<Event>,
+    rhs: @escaping FSMSyncAction
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <Event: Hashable>(
+    lhs: @escaping FSMSyncActionWithEvent<Event>,
+    rhs: @escaping FSMAsyncAction
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <LHSEvent: Hashable, RHSEvent: Hashable> (
+    lhs: @escaping FSMSyncActionWithEvent<LHSEvent>,
+    rhs: @escaping FSMSyncActionWithEvent<RHSEvent>
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <LHSEvent: Hashable, RHSEvent: Hashable> (
+    lhs: @escaping FSMSyncActionWithEvent<LHSEvent>,
+    rhs: @escaping FSMAsyncActionWithEvent<RHSEvent>
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & (
+    lhs: @escaping FSMAsyncAction,
+    rhs: @escaping FSMAsyncAction
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <Event: Hashable> (
+    lhs: @escaping FSMAsyncAction,
+    rhs: @escaping FSMSyncActionWithEvent<Event>
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <Event: Hashable> (
+    lhs: @escaping FSMAsyncAction,
+    rhs: @escaping FSMAsyncActionWithEvent<Event>
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <Event: Hashable>(
+    lhs: @escaping FSMAsyncActionWithEvent<Event>,
+    rhs: @escaping FSMSyncAction
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <Event: Hashable>(
+    lhs: @escaping FSMAsyncActionWithEvent<Event>,
+    rhs: @escaping FSMAsyncAction
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <LHSEvent: Hashable, RHSEvent: Hashable> (
+    lhs: @escaping FSMAsyncActionWithEvent<LHSEvent>,
+    rhs: @escaping FSMSyncActionWithEvent<RHSEvent>
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
+}
+
+public func & <LHSEvent: Hashable, RHSEvent: Hashable> (
+    lhs: @escaping FSMAsyncActionWithEvent<LHSEvent>,
+    rhs: @escaping FSMAsyncActionWithEvent<RHSEvent>
+) -> [AnyAction] {
+    [.init(lhs), .init(rhs)]
 }

@@ -41,22 +41,63 @@ final class AnyActionTests: XCTestCase {
             output = ""
         }
 
-        assertSync(AnyAction(pass) + pass, expected: "passpass")
-        assertSync(AnyAction(pass) + passWithEvent, expected: "passevent")
-        await assertAsync(AnyAction(pass) + passAsync, expected: "passpass")
-        await assertAsync(AnyAction(pass) + passWithEventAsync, expected: "passevent")
+        assertSync(AnyAction(pass) & pass, expected: "passpass")
+        assertSync(AnyAction(pass) & passWithEvent, expected: "passevent")
+        await assertAsync(AnyAction(pass) & passAsync, expected: "passpass")
+        await assertAsync(AnyAction(pass) & passWithEventAsync, expected: "passevent")
 
-        let a = AnyAction(pass) + pass
+        let a = AnyAction(pass) & pass
 
-        assertSync(a + pass, expected: "passpasspass")
-        assertSync(a + passWithEvent, expected: "passpassevent")
-        await assertAsync(a + passAsync, expected: "passpasspass")
-        await assertAsync(a + passWithEventAsync, expected: "passpassevent")
+        assertSync(a & pass, expected: "passpasspass")
+        assertSync(a & passWithEvent, expected: "passpassevent")
+        await assertAsync(a & passAsync, expected: "passpasspass")
+        await assertAsync(a & passWithEventAsync, expected: "passpassevent")
 
-        assertSync(AnyAction(pass) + pass + pass, expected: "passpasspass")
-        assertSync(AnyAction(pass) + pass + passWithEvent, expected: "passpassevent")
-        await assertAsync(AnyAction(pass) + pass + passAsync, expected: "passpasspass")
-        await assertAsync(AnyAction(pass) + pass + passWithEventAsync, expected: "passpassevent")
+        assertSync(AnyAction(pass) & pass & pass, expected: "passpasspass")
+        assertSync(AnyAction(pass) & pass & passWithEvent, expected: "passpassevent")
+        await assertAsync(AnyAction(pass) & pass & passAsync, expected: "passpasspass")
+        await assertAsync(AnyAction(pass) & pass & passWithEventAsync, expected: "passpassevent")
+
+        assertSync(pass & pass, expected: "passpass")
+        assertSync(pass & passWithEvent, expected: "passevent")
+        await assertAsync(pass & passAsync, expected: "passpass")
+        await assertAsync(pass & passWithEventAsync, expected: "passevent")
+
+        assertSync(passWithEvent & pass, expected: "eventpass")
+        assertSync(passWithEvent & passWithEvent, expected: "eventevent")
+        await assertAsync(passWithEvent & passAsync, expected: "eventpass")
+        await assertAsync(passWithEvent & passWithEventAsync, expected: "eventevent")
+
+        await assertAsync(passAsync & pass, expected: "passpass")
+        await assertAsync(passAsync & passWithEvent, expected: "passevent")
+        await assertAsync(passAsync & passAsync, expected: "passpass")
+        await assertAsync(passAsync & passWithEventAsync, expected: "passevent")
+
+        await assertAsync(passWithEventAsync & pass, expected: "eventpass")
+        await assertAsync(passWithEventAsync & passWithEvent, expected: "eventevent")
+        await assertAsync(passWithEventAsync & passAsync, expected: "eventpass")
+        await assertAsync(passWithEventAsync & passWithEventAsync, expected: "eventevent")
+
+        assertSync(Array(pass), expected: "pass")
+        assertSync(Array(passWithEvent), expected: "event")
+        await assertAsync(Array(passAsync), expected: "pass")
+        await assertAsync(Array(passWithEventAsync), expected: "event")
+    }
+
+    func testEventsCanMixAndMatchEventTypes() {
+        /// No need to assert here, the check is that it compiles
+
+        func passWithStringSync(_ s: String) { }
+        func passWithStringAsync(_ s: String) async { }
+        func passWithIntSync(_ i: Int) { }
+        func passWithIntAsync(_ i: Int) { }
+
+        let a = AnyAction(passWithStringSync) & passWithIntSync
+        let b = AnyAction(passWithStringAsync) & passWithIntAsync
+        let _ = a & passWithStringSync
+        let _ = b & passWithStringAsync
+        let _ = passWithStringSync & passWithIntSync
+        let _ = passWithStringAsync & passWithIntAsync
     }
 
     func testCanCallActionWithNoArgs() {
