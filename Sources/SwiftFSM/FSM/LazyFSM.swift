@@ -1,7 +1,10 @@
 import Foundation
 import Algorithms
 
-public class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, FSMProtocol {
+public class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, _FSMProtocol, FSMProtocol {
+    public typealias State = State
+    public typealias Event = Event
+
     public override init(
         initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly

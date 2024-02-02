@@ -1,6 +1,9 @@
 import Foundation
 
-public class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, FSMProtocol {
+public class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, _FSMProtocol, FSMProtocol {
+    public typealias State = State
+    public typealias Event = Event
+
     public override init(
         initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly

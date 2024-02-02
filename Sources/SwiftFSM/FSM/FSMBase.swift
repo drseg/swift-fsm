@@ -39,7 +39,20 @@ enum TransitionResult<Event: Hashable> {
     case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
 }
 
-protocol FSMProtocol<State, Event>: AnyObject {
+public protocol FSMProtocol<State, Event> {
+    associatedtype State: Hashable
+    associatedtype Event: Hashable
+
+    @MainActor func handleEvent(_ event: Event, predicates: [any Predicate])
+    @MainActor func handleEventAsync(_ event: Event, predicates: [any Predicate]) async
+    @MainActor func handleEvent(_ event: Event, predicates: any Predicate...)
+    @MainActor func handleEventAsync(_ event: Event, predicates: any Predicate...) async
+    func buildTable(file: String,
+                    line: Int,
+                    @TableBuilder<State, Event> _ block: () -> [Syntax.Define<State, Event>]) throws
+}
+
+protocol _FSMProtocol<State, Event>: AnyObject {
     associatedtype State: Hashable
     associatedtype Event: Hashable
 
@@ -53,7 +66,7 @@ protocol FSMProtocol<State, Event>: AnyObject {
     var stateActionsPolicy: StateActionsPolicy { get }
 }
 
-extension FSMProtocol {
+extension _FSMProtocol {
     @MainActor
     public func handleEvent(_ event: Event, predicates: any Predicate...) {
         handleEvent(event, predicates: predicates)
