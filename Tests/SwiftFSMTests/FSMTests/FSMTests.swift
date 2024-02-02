@@ -289,24 +289,24 @@ class FSMTests: FSMTestsBase<Int, Double> {
         fsm.state = 2
         assertHandleEvent(1.1, state: 1, output: "exitentry")
     }
-    #warning("temporarily uncompilable test")
-//    func testHandleEventWithConditionalEntryExitActions_Async() async throws {
-//        try fsm.buildTable {
-//            define(1, onEntry: [onEntryAsync], onExit: [onExitAsync]) {
-//                when(1.0) | then(1)
-//                when(1.1) | then(2)
-//            }
-//
-//            define(2, onEntry: [onEntryAsync], onExit: [onExitAsync]) {
-//                when(1.1) | then(1)
-//            }
-//        }
-//
-//        await assertHandleEvent(1.0, state: 1, output: "")
-//        await assertHandleEvent(1.1, state: 2, output: "exitentry")
-//        fsm.state = 2
-//        await assertHandleEvent(1.1, state: 1, output: "exitentry")
-//    }
+
+    func testHandleEventWithConditionalEntryExitActions_Async() async throws {
+        try fsm.buildTable {
+            define(1, onEntry: Array(onEntryAsync), onExit: Array(onExitAsync)) {
+                when(1.0) | then(1)
+                when(1.1) | then(2)
+            }
+
+            define(2, onEntry: Array(onEntryAsync), onExit: Array(onExitAsync)) {
+                when(1.1) | then(1)
+            }
+        }
+
+        await assertHandleEvent(1.0, state: 1, output: "")
+        await assertHandleEvent(1.1, state: 2, output: "exitentry")
+        fsm.state = 2
+        await assertHandleEvent(1.1, state: 1, output: "exitentry")
+    }
 
     func testHandleEventWithUnconditionalEntryExitActions() throws {
         fsm = makeSUT(initialState: 1, actionsPolicy: .executeAlways)
@@ -327,7 +327,26 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.1, state: 1, output: "exitentry")
     }
 
-    func testHandlEventWithCondition() throws {
+    func testHandleEventWithUnconditionalEntryExitActions_Async() async throws {
+        fsm = makeSUT(initialState: 1, actionsPolicy: .executeAlways)
+        try fsm.buildTable {
+            define(1, onEntry: Array(onEntry), onExit: Array(onExit)) {
+                when(1.0) | then(1)
+                when(1.1) | then(2)
+            }
+
+            define(2, onEntry: Array(onEntry), onExit: Array(onExit)) {
+                when(1.1) | then(1)
+            }
+        }
+
+        await assertHandleEvent(1.0, state: 1, output: "exitentry")
+        await assertHandleEvent(1.1, state: 2, output: "exitentry")
+        fsm.state = 2
+        await assertHandleEvent(1.1, state: 1, output: "exitentry")
+    }
+
+    func testHandleEventWithCondition() throws {
         try fsm.buildTable {
             define(1) { condition { false } | when(1.1) | then(2) | pass }
             define(2) { condition { true  } | when(1.1) | then(3) | pass }
@@ -336,6 +355,17 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.1, state: 1, output: "")
         fsm.state = 2
         assertHandleEvent(1.1, state: 3, output: "pass")
+    }
+
+    func testHandleEventWithCondition() async throws {
+        try fsm.buildTable {
+            define(1) { condition { false } | when(1.1) | then(2) | pass }
+            define(2) { condition { true  } | when(1.1) | then(3) | pass }
+        }
+
+        await assertHandleEvent(1.1, state: 1, output: "")
+        fsm.state = 2
+        await assertHandleEvent(1.1, state: 3, output: "pass")
     }
 }
 
