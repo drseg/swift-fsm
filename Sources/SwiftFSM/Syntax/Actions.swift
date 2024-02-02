@@ -6,74 +6,12 @@ public extension Syntax {
         let file: String
         let line: Int
 
-        public init(
-            _ actions: @escaping FSMSyncAction,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init([actions], file: file, line: line)
-        }
-
-        public init(
-            _ actions: @escaping FSMAsyncAction,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init([actions], file: file, line: line)
-        }
-
-        public init(
-            _ actions: @escaping FSMSyncActionWithEvent<Event>,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init([actions], file: file, line: line)
-        }
-
-        public init(
-            _ actions: @escaping FSMAsyncActionWithEvent<Event>,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init([actions], file: file, line: line)
-        }
-
         init(
-            _ actions: [FSMSyncAction],
+            _ actions: [AnyAction],
             file: String = #file,
             line: Int = #line
         ) {
-            self.actions = actions.map(AnyAction.init)
-            self.file = file
-            self.line = line
-        }
-
-        init(
-            _ actions: [FSMAsyncAction],
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.actions = actions.map(AnyAction.init)
-            self.file = file
-            self.line = line
-        }
-
-        init(
-            _ actions: [FSMSyncActionWithEvent<Event>],
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.actions = actions.map(AnyAction.init)
-            self.file = file
-            self.line = line
-        }
-
-        init(
-            _ actions: [FSMAsyncActionWithEvent<Event>],
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.actions = actions.map(AnyAction.init)
+            self.actions = actions
             self.file = file
             self.line = line
         }

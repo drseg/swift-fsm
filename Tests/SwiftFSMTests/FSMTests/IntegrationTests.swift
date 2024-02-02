@@ -277,41 +277,6 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         assertTable()
     }
     
-    func testTypealiasSyntaxTurnstile() throws {
-        typealias S = Syntax.Define<State, Event>
-        typealias E = Syntax.When<State, Event>
-        typealias NS = Syntax.Then<State, Event>
-        typealias If = Syntax.Expanded.Matching<State, Event>
-        
-        try fsm.buildTable {
-            let resetable = SuperState {
-                E(.reset) | NS(.locked)
-            }
-            
-            S(.locked, adopts: resetable, onEntry: Array(lock)) {
-                E(.pass) {
-                    If(Enforcement.weak)   | NS(.locked)
-                    If(Enforcement.strong) | NS(.alarming)
-                }
-                
-                E(.coin) | NS(.unlocked)
-            }
-            
-            S(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
-                NS(.unlocked) {
-                    If(Reward.rewarding) | E(.coin) | thankyou
-                    If(Reward.punishing) | E(.coin) | idiot
-                }
-                
-                E(.pass) | NS(.locked)
-            }
-            
-            S(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
-        }
-        
-        assertTable()
-    }
-    
     func testActionsBlockTurnstile() throws {
         try fsm.buildTable {
             let resetable = SuperState {
@@ -735,70 +700,6 @@ final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests
         LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
-
-//extension FSMEvent<String> {
-//    #letEventWithValue("didSetValue")
-//}
-//
-//class FSMEventPassingIntegrationTestsWithMacro: FSMTestsBase<TurnstileState, FSMEvent<String>> {
-//    override var initialState: TurnstileState { .locked }
-//
-//    override func makeSUT<_State, _Event>(
-//        initialState: _State,
-//        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-//    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
-//        FSM(initialState: initialState, actionsPolicy: actionsPolicy)
-//    }
-//
-//    var event = FSMEvent<String>(name: "fail")
-//
-//    func setEvent(_ e: FSMEvent<String>) {
-//        event = e
-//    }
-//
-//    func testEventPassing() {
-//        func assertValue(_ expectedValue: FSMEvent<String>) {
-//            XCTAssertEqual(expectedValue.value, event.value)
-//            event = FSMEvent<String>(name: "fail")
-//        }
-//
-//        try! fsm.buildTable {
-//            define(.locked) {
-//                when(.didSetValue(.some("cat")))  | then() | setEvent
-//                when(.didSetValue(.some("fish"))) | then() | setEvent
-//            }
-//
-//            define(.unlocked) {
-//                when(.didSetValue(.any)) | then() | setEvent
-//            }
-//        }
-//
-//        fsm.handleEvent(.didSetValue(.some("cat")))
-//        assertValue(.didSetValue(.some("cat")))
-//
-//        fsm.handleEvent(.didSetValue(.some("fish")))
-//        assertValue(.didSetValue(.some("fish")))
-//
-//        fsm.handleEvent(.didSetValue(.some("dog")))
-//        XCTAssertEqual(event, FSMEvent<String>(name: "fail"))
-//
-//        fsm.state = AnyHashable(State.unlocked)
-//        fsm.handleEvent(.didSetValue(.some("cat")))
-//        assertValue(.didSetValue(.some("cat")))
-//
-//        fsm.handleEvent(.didSetValue(.some("fish")))
-//        assertValue(.didSetValue(.some("fish")))
-//    }
-//}
-//
-//class LazyFSMEventPassingIntegrationTestsWithMacro: FSMTestsBase<TurnstileState, FSMEvent<String>> {
-//    override func makeSUT<_State, _Event>(
-//        initialState: _State,
-//        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-//    ) -> _FSMBase<_State, _Event> where _State : Hashable, _Event : Hashable {
-//        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
-//    }
-//}
 
 private extension Match {
     func isEqual(_ other: Match) -> Bool {

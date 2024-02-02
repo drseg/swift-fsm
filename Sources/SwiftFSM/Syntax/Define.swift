@@ -4,47 +4,14 @@ public extension Syntax {
     struct Define<State: Hashable, Event: Hashable> {
         let node: DefineNode
 
-        public init(_ state: State,
-                    adopts superState: SuperState,
-                    _ andSuperStates: SuperState...,
-                    onEntry: [AnyAction],
-                    onExit: [AnyAction],
-                    file: String = #file,
-                    line: Int = #line
-        ) {
-            self.init(state,
-                      adopts: [superState] + andSuperStates,
-                      onEntry: onEntry,
-                      onExit: onExit,
-                      elements: [],
-                      file: file,
-                      line: line)
-        }
-
-        public init(_ state: State,
-                    adopts superStates: SuperState...,
-                    onEntry: [AnyAction] = [],
-                    onExit: [AnyAction] = [],
-                    file: String = #file,
-                    line: Int = #line,
-                    @Internal.MWTABuilder _ block: () -> [MWTA]
-        ) {
-            self.init(state: state,
-                      adopts: superStates,
-                      onEntry: onEntry,
-                      onExit: onExit,
-                      file: file,
-                      line: line,
-                      block)
-        }
-
-        public init(state: State,
-                    adopts superStates: [SuperState] = [],
-                    onEntry: [AnyAction],
-                    onExit: [AnyAction],
-                    file: String = #file,
-                    line: Int = #line,
-                    @Internal.MWTABuilder _ block: () -> [MWTA]
+        init(
+            state: State,
+            adopts superStates: [SuperState],
+            onEntry: [AnyAction],
+            onExit: [AnyAction],
+            file: String = #file,
+            line: Int = #line,
+            @Internal.MWTABuilder _ block: () -> [MWTA]
         ) {
             let elements = block()
 
@@ -57,13 +24,14 @@ public extension Syntax {
                       line: line)
         }
 
-        internal init(_ state: State,
-                      adopts superStates: [SuperState],
-                      onEntry: [AnyAction],
-                      onExit: [AnyAction],
-                      elements: [MWTA],
-                      file: String = #file,
-                      line: Int = #line
+        init(
+            _ state: State,
+            adopts superStates: [SuperState],
+            onEntry: [AnyAction],
+            onExit: [AnyAction],
+            elements: [MWTA],
+            file: String = #file,
+            line: Int = #line
         ) {
             let onEntry = superStates.map(\.onEntry).flattened + onEntry
             let onExit = superStates.map(\.onExit).flattened + onExit

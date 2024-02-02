@@ -10,61 +10,61 @@ class BlockTestsBase: SyntaxTestsBase {
     let defaultFile = #file
 
     let mwtaLine = #line + 1; @MWTABuilder var mwtaBlock: [MWTA] {
-        Matching(P.a) | When(1, or: 2) | Then(1) | pass
-                        When(1, or: 2) | Then(1) | pass
-        Matching(P.a) | When(1, or: 2) | Then(1) | passAsync
-                        When(1, or: 2) | Then(1) | passAsync
+        matching(P.a) | when(1, or: 2) | then(1) | pass
+                        when(1, or: 2) | then(1) | pass
+        matching(P.a) | when(1, or: 2) | then(1) | passAsync
+                        when(1, or: 2) | then(1) | passAsync
     }
 
     let mwtaLineWithEvent = #line + 1; @MWTABuilder var mwtaBlockWithEvent: [MWTA] {
-        Matching(P.a) | When(1, or: 2) | Then(1) | passWithEvent
-                        When(1, or: 2) | Then(1) | passWithEvent
-        Matching(P.a) | When(1, or: 2) | Then(1) | passWithEventAsync
-                        When(1, or: 2) | Then(1) | passWithEventAsync
+        matching(P.a) | when(1, or: 2) | then(1) | passWithEvent
+                        when(1, or: 2) | then(1) | passWithEvent
+        matching(P.a) | when(1, or: 2) | then(1) | passWithEventAsync
+                        when(1, or: 2) | then(1) | passWithEventAsync
     }
 
     let mwaLine = #line + 1; @MWABuilder var mwaBlock: [MWA] {
-        Matching(P.a) | When(1, or: 2) | pass
-                        When(1, or: 2) | pass
-        Matching(P.a) | When(1, or: 2) | passAsync
-                        When(1, or: 2) | passAsync
+        matching(P.a) | when(1, or: 2) | pass
+                        when(1, or: 2) | pass
+        matching(P.a) | when(1, or: 2) | passAsync
+                        when(1, or: 2) | passAsync
     }
 
     let mwaLineWithEvent = #line + 1; @MWABuilder var mwaBlockWithEvent: [MWA] {
-        Matching(P.a) | When(1, or: 2) | passWithEvent
-                        When(1, or: 2) | passWithEvent
-        Matching(P.a) | When(1, or: 2) | passWithEventAsync
-                        When(1, or: 2) | passWithEventAsync
+        matching(P.a) | when(1, or: 2) | passWithEvent
+                        when(1, or: 2) | passWithEvent
+        matching(P.a) | when(1, or: 2) | passWithEventAsync
+                        when(1, or: 2) | passWithEventAsync
     }
 
     let mtaLineWithEvent = #line + 1; @MTABuilder var mtaBlockWithEvent: [MTA] {
-        Matching(P.a) | Then(1) | passWithEvent
-                        Then(1) | passWithEvent
-        Matching(P.a) | Then(1) | passWithEventAsync
-                        Then(1) | passWithEventAsync
+        matching(P.a) | then(1) | passWithEvent
+                        then(1) | passWithEvent
+        matching(P.a) | then(1) | passWithEventAsync
+                        then(1) | passWithEventAsync
     }
 
     let mtaLine = #line + 1; @MTABuilder var mtaBlock: [MTA] {
-        Matching(P.a) | Then(1) | pass
-                        Then(1) | pass
-        Matching(P.a) | Then(1) | passAsync
-                        Then(1) | passAsync
+        matching(P.a) | then(1) | pass
+                        then(1) | pass
+        matching(P.a) | then(1) | passAsync
+                        then(1) | passAsync
     }
 
     let maLineSync = #line + 1; var maBlockSync: MA {
-        Matching(P.a) | pass
+        matching(P.a) | pass
     }
 
     let maLineAsync = #line + 1; var maBlockAsync: MA {
-        Matching(P.a) | passAsync
+        matching(P.a) | passAsync
     }
 
     let maLineWithEventSync = #line + 1; var maBlockWithEventSync: MA {
-        Matching(P.a) | passWithEvent
+        matching(P.a) | passWithEvent
     }
 
     let maLineWithEventAsync = #line + 1; var maBlockWithEventAsync: MA {
-        Matching(P.a) | passWithEventAsync
+        matching(P.a) | passWithEventAsync
     }
 
     func outputEntry1() { output("entry1") }

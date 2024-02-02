@@ -85,19 +85,40 @@ class FSMTests: FSMTestsBase<Int, Double> {
     }
 
     func testThrowsNSObjectError()  {
-        let fsm1: _FSMBase<NSObject, Int> = makeSUT(initialState: NSObject())
-        let fsm2: _FSMBase<Int, NSObject> = makeSUT(initialState: 1)
+        @MainActor
+        struct FirstTester: SyntaxBuilder {
+            typealias State = NSObject
+            typealias Event = Int
 
-        assertThrowsError(NSObjectError.self) {
-            try fsm1.buildTable {
-                Syntax.Define(NSObject()) { Syntax.When(1) | Syntax.Then(NSObject()) }
+            let fsm: _FSMBase<State, Event>
+
+            func test() throws {
+                try fsm.buildTable {
+                    define(NSObject()) { when(1) | then(NSObject()) }
+                }
+            }
+        }
+
+        @MainActor
+        struct SecondTester: SyntaxBuilder {
+            typealias State = Int
+            typealias Event = NSObject
+
+            let fsm: _FSMBase<State, Event>
+
+            func test() throws {
+                try fsm.buildTable {
+                    define(1) { when(NSObject()) | then(2) }
+                }
             }
         }
 
         assertThrowsError(NSObjectError.self) {
-            try fsm2.buildTable {
-                Syntax.Define(1) { Syntax.When(NSObject()) | Syntax.Then(2) }
-            }
+            try FirstTester(fsm: makeSUT(initialState: NSObject())).test()
+        }
+
+        assertThrowsError(NSObjectError.self) {
+            try SecondTester(fsm: makeSUT(initialState: 1)).test()
         }
     }
 

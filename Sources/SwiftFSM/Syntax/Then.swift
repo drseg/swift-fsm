@@ -42,7 +42,7 @@ public extension Syntax {
                           line: line)
         }
 
-        public init(_ state: State? = nil, file: String = #file, line: Int = #line) {
+        init(_ state: State? = nil, file: String = #file, line: Int = #line) {
             node = ThenNode(
                 state: state != nil ? AnyTraceable(state,
                                                    file: file,

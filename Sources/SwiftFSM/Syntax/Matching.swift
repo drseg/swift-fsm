@@ -1,8 +1,8 @@
 import Foundation
 
 public protocol Conditional<State, Event> {
-    associatedtype Event: Hashable
     associatedtype State: Hashable
+    associatedtype Event: Hashable
 }
 
 extension Conditional {
@@ -111,7 +111,7 @@ public extension Syntax.Expanded {
 
         var name: String { "condition" }
 
-        public init(
+        init(
             _ condition: @escaping () -> Bool,
             file: String = #file,
             line: Int = #line
@@ -132,43 +132,7 @@ public extension Syntax.Expanded {
 
         var name: String { "matching" }
 
-        public init<P: Predicate>(
-            _ predicate: P,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init(predicate, or: [], and: [], file: file, line: line)
-        }
-
-        public init<P: Predicate>(
-            _ predicate: P,
-            or: P...,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init(predicate, or: or, and: [], file: file, line: line)
-        }
-
-        public init<P: Predicate>(
-            _ predicate: P,
-            and: any Predicate...,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init(predicate, or: [], and: and, file: file, line: line)
-        }
-
-        public init<P: Predicate>(
-            _ predicate: P,
-            or: P...,
-            and: any Predicate...,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init(predicate, or: or, and: and, file: file, line: line)
-        }
-
-        public init<P: Predicate>(
+        init<P: Predicate>(
             _ predicate: P,
             or: [P],
             and: [any Predicate],

@@ -15,28 +15,27 @@ This guide presumes some familiarity with FSMs and specifically the SMC syntax l
 	- [Super States][10]
 	- [Entry and Exit Actions][11]
 	- [Syntax Order][12]
-	- [Syntax Variations][13]
-	- [Syntactic Sugar][14]
-	- [Runtime Errors][15]
-	- [Performance][16]
-- [Expanded Syntax][17]
-	- [Example][18]
-	- [ExpandedSyntaxBuilder and Predicate][19]
-	- [Implicit Matching Statements][20]
-	- [Multiple Predicates][21]
-	- [Implicit Clashes][22]
-	- [Deduplication][23]
-	- [Chaining Blocks][24]
-	- [Condition Statements][25]
-	- [Runtime Errors][26]
-	- [Predicate Performance][27]
-- [Troubleshooting][28]
+	- [Syntactic Sugar][13]
+	- [Runtime Errors][14]
+	- [Performance][15]
+- [Expanded Syntax][16]
+	- [Example][17]
+	- [ExpandedSyntaxBuilder and Predicate][18]
+	- [Implicit Matching Statements][19]
+	- [Multiple Predicates][20]
+	- [Implicit Clashes][21]
+	- [Deduplication][22]
+	- [Chaining Blocks][23]
+	- [Condition Statements][24]
+	- [Runtime Errors][25]
+	- [Predicate Performance][26]
+- [Troubleshooting][27]
 
 ## Requirements
 
-Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13, iOS 16, tvOS 16 and watchOS 9, alongside Swift 5.7 or later. If you need support for older platforms, please check out the [backport][29] branch.
+Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13, iOS 16, tvOS 16 and watchOS 9 or later, alongside Swift 5.7 or later.
 
-It has two dependencies - Apple’s [Algorithms][30], and ([in one small corner][31]) my own [Reflective Equality][32].
+It has two dependencies - Apple’s [Algorithms][28], and ([in one small corner][29]) my own [Reflective Equality][30].
 
 ## Basic Syntax
 
@@ -482,33 +481,7 @@ This setting replicates SMC entry/exit action behaviour. The default is `.execut
 
 ### Syntax Order
 
-All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][33] below for exceptions to this rule.
-
-### Syntax Variations
-
-Though `define`, `when`, and `then` are functions, there are matching structs with equivalent capitalised names contained in the `SwiftFSM.Syntax` namespace. You can therefore leverage Swift’s `typealias` support to modify the syntax naming conventions to fit your use case.
-
-Here is one minimalistic example:
-
-```swift
-typealias d = Syntax.Define<State, Event>
-typealias w = Syntax.When<Event>
-typealias t = Syntax.Then<State>
-
-try fsm.buildTable {
-    d(.locked) {
-        w(.coin) | t(.unlocked) | unlock
-        w(.pass) | t(.locked)   | alarm
-    }
-
-    d(.unlocked) {
-        w(.coin) | t(.unlocked) | thankyou
-        w(.pass) | t(.locked)   | lock
-    }
-}
-```
-
-It you wish to use this alternative syntax, it is recommended (but not required) that you do not implement `SyntaxBuilder`.
+All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][31] below for exceptions to this rule.
 
 ### Syntactic Sugar
 
@@ -545,7 +518,7 @@ define(.locked) {
 
 If the `if/else` block were evaluated by the FSM at transition time, this would be a useful addition. However what we are doing inside these blocks is *compiling* our state transition table. The use of `if` and `else` in this manner is more akin to the conditional compilation statements `#if/#else` - based on a value defined at compile time, only one transition or the other will be added to the table.
 
-If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][34] for alternative ways to evaluate conditional statements at transition time rather than compile time.
+If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][32] for alternative ways to evaluate conditional statements at transition time rather than compile time.
 
 ### Runtime Errors
 
@@ -606,7 +579,7 @@ Swift FSM will throw an error if your `State` and/or `Event` types (or their chi
 
 `State` and `Event` instances are hashed to produce keys for the transition `Dictionary`. These keys are then recreated and reused each time `fsm.handleEvent` is called. This is not an issue for most Swift types, as `Hashable` conformance will have to be declared explicitly. `NSObject` however already conforms to `Hashable`, and is hashed *by instance identity*, rather than by value. This would lead to a defunct transition table where all transition lookups fail, and therefore throws an error.
 
-This is an edge case and it is extremely unlikely that you will ever encounter this error. Nonetheless, the check is quite exhaustive - If you would like to know more about the mechanism involved, see [Reflective Equality][35].
+This is an edge case and it is extremely unlikely that you will ever encounter this error. Nonetheless, the check is quite exhaustive - If you would like to know more about the mechanism involved, see [Reflective Equality][33].
 
 ### Performance
 
@@ -715,9 +688,7 @@ In this system, only those statements that depend upon the `Enforcement` policy 
 
 ### ExpandedSyntaxBuilder and Predicate
 
-`ExpandedSyntaxBuilder` implements `SyntaxBuilder`, providing all the SMC-equivalent syntax, alongside the new `matching` statements for working with predicates. 
-
-For the `Struct` based variant syntax, the equivalent namespace is `SwiftFSM.Syntax.Expanded`.  
+`ExpandedSyntaxBuilder` implements `SyntaxBuilder`, providing all the SMC-equivalent syntax, alongside the new `matching` statements for working with predicates.   
 
 `Predicate` requires the conformer to be `Hashable` and `CaseIterable`. It is possible to use any type you wish, as long as your conformance to `Hashable` and `CaseIterable` makes logical sense. In practice, this is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`.
 
@@ -744,7 +715,7 @@ Transitions in Swift FSM are are therefore `Predicate` agnostic by default, matc
 
 ### Multiple Predicates
 
-There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][36] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
+There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][34] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
 
 ```swift
 enum Enforcement: Predicate { case weak, strong }
@@ -812,7 +783,7 @@ In Swift FSM, `matching(and:)` means that we expect both predicates to be presen
 
 Swift FSM expects exactly one instance of each `Predicate` type present in the table to be passed to each call to `handleEvent`, as in the example above, where `fsm.handleEvent(.coin, predicates: A.x, B.x, C.x)` contains a single instance of types `A`, `B` and `C`. Accordingly, `A.x AND A.y` should never occur - only one can be present. Therefore, predicates passed to `matching(and:)` must all be of a different type.  This cannot be checked at compile time, and therefore throws at runtime if violated.
 
-In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][37] for more information on this limitation).
+In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][35] for more information on this limitation).
 
 **Important** - nested `matching` statements are combined by AND-ing them together, which makes it possible inadvertently to create a conflict.
 
@@ -1137,7 +1108,7 @@ define(.locked) {
 
 ### Condition Statements
 
-Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][38] for a description of `matching` overhead).
+Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][36] for a description of `matching` overhead).
 
 If you need to make a specific transition conditional at runtime, then the `condition` statement may suffice. Some FSM implementations call this a `guard` statement, however the name `condition` was chosen here as `guard` is a reserved word in Swift.
 
@@ -1224,7 +1195,7 @@ matching(A.a, or: A.b) { // ✅
 
 #### Implicit Clash Error
 
-See [Implicit Clashes][39]
+See [Implicit Clashes][37]
 
 ### Predicate Performance
 
@@ -1343,7 +1314,7 @@ try fsm.buildTable {
 }
 ```
 
-This is the original example from [Entry and Exit Actions][40], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
+This is the original example from [Entry and Exit Actions][38], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
 
 > **Cannot find '🦤' in scope**
 
@@ -1377,34 +1348,32 @@ Ignore these errors, and if there is no other error shown, you may have to hunt 
 [10]:	#super-states
 [11]:	#entry-and-exit-actions
 [12]:	#syntax-order
-[13]:	#syntax-variations
-[14]:	#syntactic-sugar
-[15]:	#runtime-errors
-[16]:	#performance
-[17]:	#expanded-syntax
-[18]:	#example
-[19]:	#expandedsyntaxbuilder-and-predicate
-[20]:	#implicit-matching-statements
-[21]:	#multiple-predicates
-[22]:	#implicit-clashes
-[23]:	#deduplication
-[24]:	#chaining-blocks
-[25]:	#condition-statements
-[26]:	#error-handling
-[27]:	#predicate-performance
-[28]:	#troubleshooting
-[29]:	https://github.com/drseg/swift-fsm/tree/backport
-[30]:	https://github.com/apple/swift-algorithms
-[31]:	#nsobject-error
-[32]:	https://github.com/drseg/reflective-equality
-[33]:	#expanded-syntax
-[34]:	#expanded-syntax
-[35]:	https://github.com/drseg/reflective-equality
+[13]:	#syntactic-sugar
+[14]:	#runtime-errors
+[15]:	#performance
+[16]:	#expanded-syntax
+[17]:	#example
+[18]:	#expandedsyntaxbuilder-and-predicate
+[19]:	#implicit-matching-statements
+[20]:	#multiple-predicates
+[21]:	#implicit-clashes
+[22]:	#deduplication
+[23]:	#chaining-blocks
+[24]:	#condition-statements
+[25]:	#error-handling
+[26]:	#predicate-performance
+[27]:	#troubleshooting
+[28]:	https://github.com/apple/swift-algorithms
+[29]:	#nsobject-error
+[30]:	https://github.com/drseg/reflective-equality
+[31]:	#expanded-syntax
+[32]:	#expanded-syntax
+[33]:	https://github.com/drseg/reflective-equality
+[34]:	#predicate-performance
+[35]:	#implicit-clashes
 [36]:	#predicate-performance
 [37]:	#implicit-clashes
-[38]:	#predicate-performance
-[39]:	#implicit-clashes
-[40]:	#entry-and-exit-actions
+[38]:	#entry-and-exit-actions
 
 [image-1]:	https://codecov.io/gh/drseg/swift-fsm/branch/master/graph/badge.svg?token=4UV1D0M80T
 [image-2]:	https://img.shields.io/testspace/tests/drseg/drseg:swift-fsm/master

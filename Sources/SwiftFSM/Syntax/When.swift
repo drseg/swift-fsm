@@ -53,24 +53,7 @@ public extension Syntax {
                           line: node.line)
         }
 
-        public init(
-            _ event: Event,
-            or otherEvents: Event...,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init([event] + otherEvents, file: file, line: line)
-        }
-
-        public init(
-            _ event: Event,
-            file: String = #file,
-            line: Int = #line
-        ) {
-            self.init([event], file: file, line: line)
-        }
-
-        public init(
+        init(
             _ events: [Event],
             file: String,
             line: Int

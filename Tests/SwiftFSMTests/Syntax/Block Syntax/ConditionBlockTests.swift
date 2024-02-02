@@ -72,10 +72,7 @@ class ConditionBlockTests: BlockTestsBase {
         }
 
         let l1 = #line; let c1 = condition({ false }) { mwtaBlock }
-        let l2 = #line; let c2 = Condition({ false }) { mwtaBlock }
-
         assertMWTABlock(c1, condition: false, nodeLine: l1)
-        assertMWTABlock(c2, condition: false, nodeLine: l2)
     }
 
     func testMWABlocks() {
@@ -93,10 +90,7 @@ class ConditionBlockTests: BlockTestsBase {
         }
 
         let l1 = #line; let c1 = condition({ false }) { mwaBlock }
-        let l2 = #line; let c2 = Condition({ false }) { mwaBlock }
-
         assertMWABlock(c1, condition: false, nodeLine: l1)
-        assertMWABlock(c2, condition: false, nodeLine: l2)
     }
 
     func testMTABlocks() {
@@ -114,10 +108,7 @@ class ConditionBlockTests: BlockTestsBase {
         }
 
         let l1 = #line; let c1 = condition({ false }) { mtaBlock }
-        let l2 = #line; let c2 = Condition({ false }) { mtaBlock }
-
         assertMTABlock(c1, condition: false, nodeLine: l1)
-        assertMTABlock(c2, condition: false, nodeLine: l2)
     }
 
     func testCompoundMWTABlocks() {
@@ -138,10 +129,7 @@ class ConditionBlockTests: BlockTestsBase {
         }
 
         let l1 = #line; let c1 = condition({ false }) { condition({ false }) { mwtaBlock } }
-        let l2 = #line; let c2 = Condition({ false }) { Condition({ false }) { mwtaBlock } }
-
         assertCompoundMWTABlock(c1, condition: false, nodeLine: l1)
-        assertCompoundMWTABlock(c2, condition: false, nodeLine: l2)
     }
 
     func testCompoundMWABlocks() {
@@ -162,10 +150,7 @@ class ConditionBlockTests: BlockTestsBase {
         }
 
         let l1 = #line; let c1 = condition({ false }) { condition({ false }) { mwaBlock } }
-        let l2 = #line; let c2 = Condition({ false }) { Condition({ false }) { mwaBlock } }
-
         assertCompoundMWABlock(c1, condition: false, nodeLine: l1)
-        assertCompoundMWABlock(c2, condition: false, nodeLine: l2)
     }
 
     func testCompoundMTABlocks() {
@@ -186,9 +171,6 @@ class ConditionBlockTests: BlockTestsBase {
         }
 
         let l1 = #line; let c1 = condition({ false }) { condition({ false }) { mtaBlock } }
-        let l2 = #line; let c2 = Condition({ false }) { Condition({ false }) { mtaBlock } }
-
         assertCompoundMTABlock(c1, condition: false, nodeLine: l1)
-        assertCompoundMTABlock(c2, condition: false, nodeLine: l2)
     }
 }

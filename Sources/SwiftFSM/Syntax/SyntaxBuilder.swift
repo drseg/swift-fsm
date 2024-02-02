@@ -56,7 +56,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line
     ) -> Syntax.When<State, Event> {
-        .init(event, file: file, line: line)
+        .init([event], file: file, line: line)
     }
 
     func when(
@@ -76,7 +76,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MWTASentence {
-        Syntax.When<State, Event>(event, file: file, line: line)
+        Syntax.When<State, Event>([event], file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -97,7 +97,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [MA]
     ) -> Internal.MWASentence {
-        Syntax.When<State, Event>(event, file: file, line: line)
+        Syntax.When<State, Event>([event], file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -135,7 +135,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
-        Syntax.Actions<Event>([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -145,7 +145,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
-        Syntax.Actions<Event>([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -155,7 +155,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
-        Syntax.Actions<Event>([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -165,7 +165,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
-        Syntax.Actions<Event>([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -175,7 +175,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
-        Syntax.Actions<Event>([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -185,7 +185,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
-        Syntax.Actions<Event>([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -195,7 +195,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
-        Syntax.Actions([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -205,7 +205,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
-        Syntax.Actions([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -215,7 +215,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
-        Syntax.Actions<Event>([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -225,7 +225,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
-        Syntax.Actions<Event>([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -235,7 +235,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
-        Syntax.Actions([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -245,7 +245,7 @@ public extension SyntaxBuilder {
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
-        Syntax.Actions([action], file: file, line: line)
+        Syntax.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -269,7 +269,7 @@ public extension ExpandedSyntaxBuilder {
         file: String = #file,
         line: Int = #line
     ) -> Matching<State, Event> {
-        .init(predicate, file: file, line: line)
+        .init(predicate, or: [], and: [], file: file, line: line)
     }
 
     func matching<P: Predicate>(
@@ -314,7 +314,7 @@ public extension ExpandedSyntaxBuilder {
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> Internal.MWTASentence {
-        Matching<State, Event>(predicate, file: file, line: line)
+        Matching<State, Event>(predicate, or: [], and: [], file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -357,7 +357,7 @@ public extension ExpandedSyntaxBuilder {
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
     ) -> Internal.MWASentence {
-        Matching<State, Event>(predicate, file: file, line: line)
+        Matching<State, Event>(predicate, or: [], and: [], file: file, line: line)
             .callAsFunction(block)
     }
 
@@ -400,7 +400,7 @@ public extension ExpandedSyntaxBuilder {
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]
     ) -> Internal.MTASentence {
-        Matching<State, Event>(predicate, file: file, line: line)
+        Matching<State, Event>(predicate, or: [], and: [], file: file, line: line)
             .callAsFunction(block)
     }
 

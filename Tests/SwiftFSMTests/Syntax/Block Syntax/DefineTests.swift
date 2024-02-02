@@ -42,15 +42,11 @@ class DefineTests: BlockTestsBase {
 
         verify(define(1, adopts: s, onEntry: entry1, onExit: exit1))
         verify(define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
-        verify(Define(1, adopts: s, onEntry: entry1, onExit: exit1))
-        verify(Define(1, onEntry: entry1, onExit: exit1) { mwtaBlock })
+
+        assertEmpty(define(1, onEntry: entry1, onExit: exit1) { })
 
         /// technically valid/non-empty but need to flag empty trailing block
         assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
-        assertEmpty(Define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
-
-        assertEmpty(define(1, onEntry: entry1, onExit: exit1) { })
-        assertEmpty(Define(1, onEntry: entry1, onExit: exit1) { })
     }
 
     func testDefineAddsSuperStateEntryExitActions() {
@@ -60,12 +56,9 @@ class DefineTests: BlockTestsBase {
         }
 
         let d1 = define(1, adopts: s1, s1, onEntry: entry2, onExit: exit2)
-        let d2 = Define(1, adopts: s1, s1, onEntry: entry2, onExit: exit2)
 
         assertActions(d1.node.onEntry, expectedOutput: "entry1entry1entry2")
         assertActions(d1.node.onExit, expectedOutput: "exit1exit1exit2")
-        assertActions(d2.node.onEntry, expectedOutput: "entry1entry1entry2")
-        assertActions(d2.node.onExit, expectedOutput: "exit1exit1exit2")
     }
 
     func testDefineAddsMultipleSuperStateNodes() {
@@ -77,14 +70,9 @@ class DefineTests: BlockTestsBase {
         let g1 = define(1, adopts: s1, s1, onEntry: entry1, onExit: exit1)
             .node
             .rest[0] as! GivenNode
-        let g2 = Define(1, adopts: s1, s1, onEntry: entry1, onExit: exit1)
-            .node
-            .rest[0] as! GivenNode
 
         assertMWTAResult(Array(g1.rest.prefix(2)), sutFile: #file, sutLine: l1)
         assertMWTAResult(Array(g1.rest.suffix(2)), sutFile: #file, sutLine: l1)
-        assertMWTAResult(Array(g2.rest.prefix(2)), sutFile: #file, sutLine: l1)
-        assertMWTAResult(Array(g2.rest.suffix(2)), sutFile: #file, sutLine: l1)
     }
 
     func testDefineAddsBlockAndSuperStateNodesTogetherParentFirst() {
@@ -114,10 +102,7 @@ class DefineTests: BlockTestsBase {
 
         let s = SuperState            { when(1) | then(1) | pass }
         let d1 = define(1, adopts: s) { when(2) | then(2) | pass }
-        let d2 = Define(1, adopts: s) { when(2) | then(2) | pass }
-
         assertDefine(d1.node)
-        assertDefine(d2.node)
     }
 
     func testDefineSetsUniqueGroupIDForOwnNodesOnly() {
@@ -140,13 +125,7 @@ class DefineTests: BlockTestsBase {
                             when(1, or: 2) | then(1)
         }
 
-        let l2 = #line; let mwtas2 = buildMWTA {
-            Matching(P.a) | When(1, or: 2) | Then(1)
-                            When(1, or: 2) | Then(1)
-        }
-
         assertMWTAResult(mwtas1.nodes, expectedOutput: "", sutFile: #file, sutLine: l1 + 1)
-        assertMWTAResult(mwtas2.nodes, expectedOutput: "", sutFile: #file, sutLine: l2 + 1)
     }
 }
 

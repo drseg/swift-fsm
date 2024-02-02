@@ -84,29 +84,8 @@ class ActionsBlockTests: BlockTestsBase {
         }
 
         assertMWTA(actions(pass) { mwtaBlock })
-        assertMWTA(Actions(pass) { mwtaBlock })
-        assertMWTA(Actions([pass, pass]) { mwtaBlock },
-                   expectedNodeOutput: "passpass") // internal only
-
         assertMWTA(actions(passAsync) { mwtaBlock })
-        assertMWTA(Actions(passAsync) { mwtaBlock })
-        assertMWTA(Actions([passAsync, passAsync]) { mwtaBlock },
-                   expectedNodeOutput: "passpass") // internal only
-
-        assertMWTA(Actions(passWithEvent) { mwtaBlockWithEvent },
-                   expectedNodeOutput: eventOutput,
-                   expectedRestOutput: eventOutput,
-                   restLine: mwtaLineWithEvent)
         assertMWTA(actions(passWithEvent) { mwtaBlockWithEvent },
-                   expectedNodeOutput: eventOutput,
-                   expectedRestOutput: eventOutput,
-                   restLine: mwtaLineWithEvent)
-        assertMWTA(Actions([passWithEvent, passWithEvent]) { mwtaBlockWithEvent },
-                   expectedNodeOutput: eventOutput + eventOutput,
-                   expectedRestOutput: eventOutput,
-                   restLine: mwtaLineWithEvent) // internal only
-
-        assertMWTA(Actions(passWithEventAsync) { mwtaBlockWithEvent },
                    expectedNodeOutput: eventOutput,
                    expectedRestOutput: eventOutput,
                    restLine: mwtaLineWithEvent)
@@ -114,10 +93,6 @@ class ActionsBlockTests: BlockTestsBase {
                    expectedNodeOutput: eventOutput,
                    expectedRestOutput: eventOutput,
                    restLine: mwtaLineWithEvent)
-        assertMWTA(Actions([passWithEventAsync, passWithEventAsync]) { mwtaBlockWithEvent },
-                   expectedNodeOutput: eventOutput + eventOutput,
-                   expectedRestOutput: eventOutput,
-                   restLine: mwtaLineWithEvent) // internal only
     }
 
     func testMWABlocks() {
@@ -140,29 +115,14 @@ class ActionsBlockTests: BlockTestsBase {
         }
 
         assertMWA(actions(pass) { mwaBlock }, restLine: mwaLine)
-        assertMWA(Actions(pass) { mwaBlock }, restLine: mwaLine)
-        assertMWA(actions(pass) { Matching(P.a) | When(1, or: 2) }, 
-                  expectedRestOutput: "", restFile: #file)
-        assertMWA(Actions(pass) { Matching(P.a) | When(1, or: 2) }, 
+        assertMWA(actions(pass) { matching(P.a) | when(1, or: 2) },
                   expectedRestOutput: "", restFile: #file)
 
         assertMWA(actions(passAsync) { mwaBlock }, restLine: mwaLine)
-        assertMWA(Actions(passAsync) { mwaBlock }, restLine: mwaLine)
-        assertMWA(actions(passAsync) { Matching(P.a) | When(1, or: 2) }, 
-                  expectedRestOutput: "", restFile: #file)
-        assertMWA(Actions(passAsync) { Matching(P.a) | When(1, or: 2) }, 
+        assertMWA(actions(passAsync) { matching(P.a) | when(1, or: 2) },
                   expectedRestOutput: "", restFile: #file)
 
-        assertMWA(Actions(passWithEvent) { mwaBlockWithEvent },
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mwaLineWithEvent)
         assertMWA(actions(passWithEvent) { mwaBlockWithEvent },
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mwaLineWithEvent)
-
-        assertMWA(Actions(passWithEventAsync) { mwaBlockWithEvent },
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
                   restLine: mwaLineWithEvent)
@@ -192,32 +152,18 @@ class ActionsBlockTests: BlockTestsBase {
         }
 
         assertMTA(actions(pass) { mtaBlock }, restLine: mtaLine)
-        assertMTA(Actions(pass) { mtaBlock }, restLine: mtaLine)
-        assertMTA(actions(pass) { Matching(P.a) | Then(1) }, 
-                  expectedRestOutput: "", restFile: #file)
-        assertMTA(Actions(pass) { Matching(P.a) | Then(1) }, 
+        assertMTA(actions(pass) { matching(P.a) | then(1) },
                   expectedRestOutput: "", restFile: #file)
 
         assertMTA(actions(passAsync) { mtaBlock }, restLine: mtaLine)
-        assertMTA(Actions(passAsync) { mtaBlock }, restLine: mtaLine)
-        assertMTA(actions(passAsync) { Matching(P.a) | Then(1) }, 
-                  expectedRestOutput: "", restFile: #file)
-        assertMTA(Actions(passAsync) { Matching(P.a) | Then(1) }, 
+        assertMTA(actions(passAsync) { matching(P.a) | then(1) },
                   expectedRestOutput: "", restFile: #file)
 
-        assertMTA(Actions(passWithEvent) { mtaBlockWithEvent },
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mtaLineWithEvent)
         assertMTA(actions(passWithEvent) { mtaBlockWithEvent },
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
                   restLine: mtaLineWithEvent)
 
-        assertMTA(Actions(passWithEventAsync) { mtaBlockWithEvent },
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mtaLineWithEvent)
         assertMTA(actions(passWithEventAsync) { mtaBlockWithEvent },
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
@@ -246,19 +192,10 @@ class ActionsBlockTests: BlockTestsBase {
         }
 
         assertMWTA(actions(pass) { actions(pass) { mwtaBlock } })
-        assertMWTA(Actions(pass) { Actions(pass) { mwtaBlock } })
-
         assertMWTA(actions(passAsync) { actions(passAsync) { mwtaBlock } })
-        assertMWTA(Actions(passAsync) { Actions(passAsync) { mwtaBlock } })
-
         assertMWTA(actions(pass) { actions(passAsync) { mwtaBlock } })
-        assertMWTA(Actions(pass) { Actions(passAsync) { mwtaBlock } })
 
         assertMWTA(actions(passWithEvent) { actions(passWithEvent) { mwtaBlockWithEvent }},
-                   expectedNodeOutput: eventOutput,
-                   expectedRestOutput: eventOutput,
-                   restLine: mwtaLineWithEvent)
-        assertMWTA(Actions(passWithEvent) { Actions(passWithEvent) { mwtaBlockWithEvent }},
                    expectedNodeOutput: eventOutput,
                    expectedRestOutput: eventOutput,
                    restLine: mwtaLineWithEvent)
@@ -269,20 +206,8 @@ class ActionsBlockTests: BlockTestsBase {
                    expectedNodeOutput: eventOutput,
                    expectedRestOutput: eventOutput,
                    restLine: mwtaLineWithEvent)
-        assertMWTA(Actions(passWithEventAsync) { Actions(passWithEventAsync) {
-            mwtaBlockWithEvent
-        }},
-                   expectedNodeOutput: eventOutput,
-                   expectedRestOutput: eventOutput,
-                   restLine: mwtaLineWithEvent)
 
         assertMWTA(actions(passWithEvent) { actions(passWithEventAsync) {
-            mwtaBlockWithEvent
-        }},
-                   expectedNodeOutput: eventOutput,
-                   expectedRestOutput: eventOutput,
-                   restLine: mwtaLineWithEvent)
-        assertMWTA(Actions(passWithEvent) { Actions(passWithEventAsync) {
             mwtaBlockWithEvent
         }},
                    expectedNodeOutput: eventOutput,
@@ -311,37 +236,20 @@ class ActionsBlockTests: BlockTestsBase {
         }
 
         assertMWA(actions(pass) { actions(pass) { mwaBlock } })
-        assertMWA(Actions(pass) { Actions(pass) { mwaBlock } })
-
         assertMWA(actions(passAsync) { actions(passAsync) { mwaBlock } })
-        assertMWA(Actions(passAsync) { Actions(passAsync) { mwaBlock } })
-
         assertMWA(actions(pass) { actions(passAsync) { mwaBlock } })
-        assertMWA(Actions(pass) { Actions(passAsync) { mwaBlock } })
 
-        assertMWA(Actions(passWithEvent) { Actions(passWithEvent) { mwaBlockWithEvent }},
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mwaLineWithEvent)
-        assertMWA(Actions(passWithEvent) { Actions(passWithEvent) { mwaBlockWithEvent }},
+        assertMWA(actions(passWithEvent) { actions(passWithEvent) { mwaBlockWithEvent }},
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
                   restLine: mwaLineWithEvent)
 
-        assertMWA(Actions(passWithEventAsync) { Actions(passWithEventAsync) { mwaBlockWithEvent }},
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mwaLineWithEvent)
-        assertMWA(Actions(passWithEventAsync) { Actions(passWithEventAsync) { mwaBlockWithEvent }},
+        assertMWA(actions(passWithEventAsync) { actions(passWithEventAsync) { mwaBlockWithEvent }},
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
                   restLine: mwaLineWithEvent)
 
-        assertMWA(Actions(passWithEvent) { Actions(passWithEventAsync) { mwaBlockWithEvent }},
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mwaLineWithEvent)
-        assertMWA(Actions(passWithEvent) { Actions(passWithEventAsync) { mwaBlockWithEvent }},
+        assertMWA(actions(passWithEvent) { actions(passWithEventAsync) { mwaBlockWithEvent }},
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
                   restLine: mwaLineWithEvent)
@@ -368,37 +276,17 @@ class ActionsBlockTests: BlockTestsBase {
         }
 
         assertMTA(actions(pass) { actions(pass) { mtaBlock } })
-        assertMTA(Actions(pass) { Actions(pass) { mtaBlock } })
-
         assertMTA(actions(passAsync) { actions(passAsync) { mtaBlock } })
-        assertMTA(Actions(passAsync) { Actions(passAsync) { mtaBlock } })
-
         assertMTA(actions(pass) { actions(passAsync) { mtaBlock } })
-        assertMTA(Actions(pass) { Actions(passAsync) { mtaBlock } })
-
         assertMTA(actions(passWithEvent) { actions(passWithEvent) { mtaBlockWithEvent }},
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
                   restLine: mtaLineWithEvent)
-        assertMTA(Actions(passWithEvent) { Actions(passWithEvent) { mtaBlockWithEvent }},
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mtaLineWithEvent)
-
         assertMTA(actions(passWithEventAsync) { actions(passWithEventAsync) { mtaBlockWithEvent }},
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
                   restLine: mtaLineWithEvent)
-        assertMTA(Actions(passWithEventAsync) { Actions(passWithEventAsync) { mtaBlockWithEvent }},
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mtaLineWithEvent)
-
         assertMTA(actions(passWithEvent) { actions(passWithEventAsync) { mtaBlockWithEvent }},
-                  expectedNodeOutput: eventOutput,
-                  expectedRestOutput: eventOutput,
-                  restLine: mtaLineWithEvent)
-        assertMTA(Actions(passWithEvent) { Actions(passWithEventAsync) { mtaBlockWithEvent }},
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
                   restLine: mtaLineWithEvent)
