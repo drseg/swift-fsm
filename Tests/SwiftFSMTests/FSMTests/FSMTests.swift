@@ -4,8 +4,8 @@ import XCTest
 
 @MainActor
 class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder {
-    var fsm: (any _FSMProtocol<State, Event>)!
-
+    var fsm: _FSMBase<State, Event>!
+    
     override func setUp() {
         fsm = makeSUT(initialState: initialState)
     }
@@ -16,8 +16,8 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     
     func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any _FSMProtocol<_State, _Event> {
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> {
         fatalError("subclasses must implement")
     }
 }
@@ -25,8 +25,8 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
 class LazyFSMTests: FSMTests {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any _FSMProtocol<_State, _Event> {
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> {
         LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
@@ -48,8 +48,8 @@ class FSMTests: FSMTestsBase<Int, Double> {
     
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any _FSMProtocol<_State, _Event> {
+        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
+    ) -> _FSMBase<_State, _Event> {
         FSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
@@ -90,7 +90,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
             typealias State = NSObject
             typealias Event = Int
 
-            let fsm: any _FSMProtocol<State, Event>
+            let fsm: _FSMBase<State, Event>
 
             func test() throws {
                 try fsm.buildTable {
@@ -104,7 +104,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
             typealias State = Int
             typealias Event = NSObject
 
-            let fsm: any _FSMProtocol<Int, NSObject>
+            let fsm: _FSMBase<State, Event>
 
             func test() throws {
                 try fsm.buildTable {
@@ -147,7 +147,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         output: String,
         line: UInt = #line
     ) async {
-        await fsm.handleEventAsync(event, predicates: predicates)
+        await fsm.handleEvent(event, predicates: predicates)
         assertEventHandled(state: state, output: output, line: line)
     }
 
@@ -203,7 +203,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.3, state: 2, output: "pass, event: 1.3")
     }
 
-    func testHandleEventWithoutPredicate_Async() async throws {
+    func testHandlEventWithoutPredicate_Async() async throws {
         try fsm.buildTable {
             define(1) {
                 when(1.1) | then(2) | passAsync
@@ -240,7 +240,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
     }
 
-    func testHandleEventWithMultiplePredicates() throws {
+    func testHandlEventWithMultiplePredicates() throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a, or: P.b)  | when(1.1) | then(2) | pass
@@ -252,7 +252,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.1, predicates: P.a, Q.a, R.a, state: 3, output: "pass")
     }
 
-    func testHandleEventWithMultiplePredicates_Async() async throws {
+    func testHandlEventWithMultiplePredicates_Async() async throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a, or: P.b)  | when(1.1) | then(2) | passAsync
@@ -264,22 +264,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, predicates: P.a, Q.a, R.a, state: 3, output: "pass")
     }
 
-    func testHandleEventPredicateVarargOverloads() async throws {
-        try fsm.buildTable {
-            define(1) {
-                matching(P.a) | when(1.1) | then(2) | pass
-                matching(Q.b) | when(1.2) | then(2) | pass
-            }
-        }
-
-        fsm.handleEvent(1.1, predicates: P.a, Q.b)
-        assertEventHandled(state: 2, output: "pass")
-
-        await fsm.handleEventAsync(1.1, predicates: P.a, Q.b)
-        assertEventHandled(state: 2, output: "pass")
-    }
-
-    func testHandleEventWithImplicitPredicates() throws {
+    func testHandlEventWithImplicitPredicates() throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a) | when(1.1) | then(2) | pass
@@ -291,7 +276,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.1, predicates: P.c, state: 3, output: "pass")
     }
 
-    func testHandleEventWithImplicitPredicates() async throws {
+    func testHandlEventWithImplicitPredicates() async throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a) | when(1.1) | then(2) | passAsync
@@ -301,6 +286,33 @@ class FSMTests: FSMTestsBase<Int, Double> {
 
         await assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
         await assertHandleEvent(1.1, predicates: P.c, state: 3, output: "pass")
+    }
+
+    func testHandleEventPredicateVarargOverloadsSync() throws {
+        try fsm.buildTable {
+            define(1) {
+                matching(P.a) | when(1.1) | then(2) | pass
+                matching(Q.b) | when(1.2) | then(2) | pass
+            }
+        }
+
+        fsm.handleEvent(1.1, predicates: P.a, Q.b)
+        assertEventHandled(state: 2, output: "pass")
+    }
+
+    func testHandleEventPredicateVarargOverloadsAsync() async throws {
+        try fsm.buildTable {
+            define(1) {
+                matching(P.a) | when(1.1) | then(2) | pass
+                matching(Q.b) | when(1.2) | then(2) | pass
+            }
+        }
+
+        await fsm.handleEvent(1.1, predicates: P.a, Q.b)
+        assertEventHandled(state: 2, output: "pass")
+
+        await fsm.handleEvent(1.1)
+        assertEventHandled(state: 1, output: "")
     }
 
     func onEntry() { actionsOutput += "entry" }

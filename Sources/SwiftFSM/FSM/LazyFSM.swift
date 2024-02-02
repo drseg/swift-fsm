@@ -1,10 +1,7 @@
 import Foundation
 import Algorithms
 
-public class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, _FSMProtocol, FSMProtocol {
-    public typealias State = State
-    public typealias Event = Event
-
+open class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
     public override init(
         initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
@@ -12,12 +9,11 @@ public class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, 
         super.init(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 
-    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
+    override func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         LazyMatchResolvingNode(rest: rest)
     }
 
-    @MainActor
-    public func handleEvent(_ event: Event, predicates: [any Predicate]) {
+    public override func handleEvent(_ event: Event, predicates: [any Predicate]) {
         for p in makeCombinations(predicates) {
             switch _handleEvent(event, predicates: p) {
             case let .notExecuted(transition):
@@ -32,10 +28,9 @@ public class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, 
         logTransitionNotFound(event, predicates)
     }
 
-    @MainActor
-    public func handleEventAsync(_ event: Event, predicates: [any Predicate]) async {
+    public override func handleEvent(_ event: Event, predicates: [any Predicate]) async {
         for p in makeCombinations(predicates) {
-            switch await _handleEventAsync(event, predicates: p) {
+            switch await _handleEvent(event, predicates: p) {
             case let .notExecuted(transition):
                 logTransitionNotExecuted(transition)
             case .executed:
