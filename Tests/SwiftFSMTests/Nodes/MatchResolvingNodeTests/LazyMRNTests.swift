@@ -47,7 +47,6 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     func testInit() async {
         let sut = makeSUT(rest: [defineNode(s1, m1, e1, s2)])
         let rest = SVN(rest: [ARN(rest: [defineNode(s1, m1, e1, s2)])])
-        
         await assertEqualFileAndLine(rest, sut.rest.first!)
     }
     

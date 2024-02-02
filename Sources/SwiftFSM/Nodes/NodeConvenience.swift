@@ -62,6 +62,11 @@ func makeDefaultIO(
     [DefaultIO(match, event, state, actions, groupID, isOverride)]
 }
 
+
+extension String: LocalizedError {
+    public var errorDescription: String? { self }
+}
+
 infix operator ???: AdditionPrecedence
 
 func ??? <T: Collection> (lhs: T, rhs: T) -> T {

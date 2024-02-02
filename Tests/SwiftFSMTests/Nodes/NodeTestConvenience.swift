@@ -4,7 +4,7 @@ import XCTest
 class StringableNodeTestTests: StringableNodeTest {
     func assertToString(
         _ expected: String,
-        _ actual: any NodeBase,
+        _ actual: any Node,
         fileAndLine: Bool = false,
         file: StaticString = #file,
         line: UInt = #line
@@ -233,8 +233,8 @@ class StringableNodeTestTests: StringableNodeTest {
 
 class StringableNodeTest: DefineConsumer {
     func assertEqual(
-        _ lhs: any NodeBase,
-        _ rhs: any NodeBase,
+        _ lhs: any Node,
+        _ rhs: any Node,
         file: StaticString = #file,
         line: UInt = #line
     ) async {
@@ -244,8 +244,8 @@ class StringableNodeTest: DefineConsumer {
     }
     
     func assertEqualFileAndLine(
-        _ lhs: any NodeBase,
-        _ rhs: any NodeBase,
+        _ lhs: any Node,
+        _ rhs: any Node,
         file: StaticString = #file,
         line: UInt = #line
     ) async {
@@ -257,15 +257,16 @@ class StringableNodeTest: DefineConsumer {
                        line: line)
     }
     
-    func toString(_ n: any NodeBase, printFileAndLine: Bool = false, indent: Int = 0) async -> String {
+
+    func toString(_ n: some Node, printFileAndLine: Bool = false, indent: Int = 0) async -> String {
         func string(_ indent: Int) -> String {
             String(repeating: " ", count: indent)
         }
         
         func addRest() async {
-            if !n._rest.isEmpty {
+            if !n.rest.isEmpty {
                 output.append(" {\n")
-                await output.append(n._rest.asyncMap {
+                await output.append(n.rest.asyncMap {
                     let rhs = await toString($0,
                                              printFileAndLine: printFileAndLine,
                                              indent: indent + 2)

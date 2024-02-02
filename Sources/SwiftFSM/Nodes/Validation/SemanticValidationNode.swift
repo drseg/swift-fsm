@@ -61,7 +61,7 @@ class SemanticValidationNode: Node {
     typealias DuplicatesDictionary = [DuplicatesKey: [Input]]
     typealias ClashesDictionary = [ClashesKey: [Input]]
 
-    var rest: [any Node<Input>]
+    var rest: [any Node<IntermediateIO>]
     var errors: [Error] = []
 
     init(rest: [any Node<Input>]) {

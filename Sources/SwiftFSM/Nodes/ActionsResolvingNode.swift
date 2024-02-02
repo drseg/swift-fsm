@@ -29,7 +29,7 @@ struct IntermediateIO {
 }
 
 class ActionsResolvingNodeBase: Node {
-    var rest: [any Node<Input>]
+    var rest: [any Node<DefineNode.Output>]
 
     required init(rest: [any Node<Input>] = []) {
         self.rest = rest
