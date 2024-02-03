@@ -203,7 +203,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.3, state: 2, output: "pass, event: 1.3")
     }
 
-    func testHandlEventWithoutPredicate_Async() async throws {
+    func testHandleEventWithoutPredicate_Async() async throws {
         try fsm.buildTable {
             define(1) {
                 when(1.1) | then(2) | passAsync
@@ -240,7 +240,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
     }
 
-    func testHandlEventWithMultiplePredicates() throws {
+    func testHandleEventWithMultiplePredicates() throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a, or: P.b)  | when(1.1) | then(2) | pass
@@ -252,7 +252,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.1, predicates: P.a, Q.a, R.a, state: 3, output: "pass")
     }
 
-    func testHandlEventWithMultiplePredicates_Async() async throws {
+    func testHandleEventWithMultiplePredicates_Async() async throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a, or: P.b)  | when(1.1) | then(2) | passAsync
@@ -264,7 +264,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, predicates: P.a, Q.a, R.a, state: 3, output: "pass")
     }
 
-    func testHandlEventWithImplicitPredicates() throws {
+    func testHandleEventWithImplicitPredicates() throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a) | when(1.1) | then(2) | pass
@@ -276,7 +276,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.1, predicates: P.c, state: 3, output: "pass")
     }
 
-    func testHandlEventWithImplicitPredicates() async throws {
+    func testHandleEventWithImplicitPredicates() async throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a) | when(1.1) | then(2) | passAsync
