@@ -84,7 +84,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
     
-    class FSMSpy: FSM<Int, Int>, LoggableFSM {
+    class FSMSpy: EagerFSM<Int, Int>, LoggableFSM {
         var loggedEvents: [LogData] = []
         var loggedTransitions: [Transition] = []
         

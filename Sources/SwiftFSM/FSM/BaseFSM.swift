@@ -13,14 +13,14 @@ public struct TableBuilder<State: Hashable, Event: Hashable>: ResultBuilder {
     public typealias T = Syntax.Define<State, Event>
 }
 
-public protocol HandleEventProtocol<Event> {
+protocol EventHandling<Event> {
     associatedtype Event: Hashable
 
     @MainActor func handleEvent(_ event: Event, predicates: [any Predicate])
     @MainActor func handleEventAsync(_ event: Event, predicates: [any Predicate]) async
 }
 
-public extension HandleEventProtocol {
+extension EventHandling {
     @MainActor
     func handleEvent(_ event: Event) {
         handleEvent(event, predicates: [])
@@ -42,26 +42,9 @@ public extension HandleEventProtocol {
     }
 }
 
-public typealias FSMBase<State: Hashable, Event: Hashable> = 
-_FSMBase<State, Event> & HandleEventProtocol<Event>
+typealias FSMType<State: Hashable, Event: Hashable> = BaseFSM<State, Event> & EventHandling<Event>
 
-public enum FSMFactory<State: Hashable, Event: Hashable> {
-    public static func makeEager(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.StateActionsPolicy
-    ) -> some FSMBase<State, Event> {
-        FSM(initialState: initialState, actionsPolicy: actionsPolicy)
-    }
-
-    public static func makeLazy(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.StateActionsPolicy
-    ) -> some FSMBase<State, Event> {
-        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
-    }
-}
-
-public class _FSMBase<State: Hashable, Event: Hashable> {
+class BaseFSM<State: Hashable, Event: Hashable> {
     struct Key: Hashable {
         let state: AnyHashable,
             predicates: PredicateSet,
@@ -80,10 +63,6 @@ public class _FSMBase<State: Hashable, Event: Hashable> {
         }
     }
 
-    public enum StateActionsPolicy {
-        case executeAlways, executeOnChangeOnly
-    }
-
     enum TransitionResult {
         case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
     }
@@ -99,7 +78,7 @@ public class _FSMBase<State: Hashable, Event: Hashable> {
         self.stateActionsPolicy = actionsPolicy
     }
 
-    public func buildTable(
+    func buildTable(
         file: String = #file,
         line: Int = #line,
         @TableBuilder<State, Event> _ block: () -> [Syntax.Define<State, Event>]

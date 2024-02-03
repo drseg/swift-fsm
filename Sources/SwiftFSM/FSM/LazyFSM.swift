@@ -13,7 +13,7 @@ import Algorithms
 ///
 /// but the compiler currently won't allow it (even though it is officially supported).
 
-class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, HandleEventProtocol {
+class LazyFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, EventHandling {
     override init(
         initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly

@@ -4,7 +4,7 @@ import XCTest
 
 @MainActor
 class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder {
-    var fsm: (any FSMBase<State, Event>)!
+    var fsm: (any FSMType<State, Event>)!
 
     override func setUp() {
         fsm = makeSUT(initialState: initialState)
@@ -16,8 +16,8 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     
     func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State,  _Event> {
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State,  _Event> {
         fatalError("subclasses must implement")
     }
 }
@@ -25,8 +25,8 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
 class LazyFSMTests: FSMTests {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State,  _Event> {
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State,  _Event> {
         LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
@@ -48,9 +48,9 @@ class FSMTests: FSMTestsBase<Int, Double> {
     
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State, _Event> {
-        FSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State, _Event> {
+        EagerFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
     func assertThrowsError<T: Error>(
@@ -90,7 +90,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
             typealias State = NSObject
             typealias Event = Int
 
-            let fsm: _FSMBase<State, Event>
+            let fsm: any FSMType<State, Event>
 
             func test() throws {
                 try fsm.buildTable {
@@ -104,7 +104,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
             typealias State = Int
             typealias Event = NSObject
 
-            let fsm: any FSMBase<Int, NSObject>
+            let fsm: any FSMType<Int, NSObject>
 
             func test() throws {
                 try fsm.buildTable {

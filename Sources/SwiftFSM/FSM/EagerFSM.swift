@@ -1,6 +1,6 @@
 import Foundation
 
-class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, HandleEventProtocol {
+class EagerFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, EventHandling {
     override init(
         initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly

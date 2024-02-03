@@ -27,17 +27,17 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State, _Event> {
-        FSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State, _Event> {
+        EagerFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
 
 final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State,  _Event> {
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State,  _Event> {
         LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
@@ -184,8 +184,8 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
 class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State,  _Event> {
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State,  _Event> {
         LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
@@ -316,8 +316,8 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
 class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State,  _Event> {
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State,  _Event> {
         LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
@@ -376,8 +376,8 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
 class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State,  _Event> {
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State,  _Event> {
         LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
@@ -604,9 +604,9 @@ enum Animal: String, EventValue {
 class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent> {
     override func makeSUT<_State, _Event>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State,  _Event> where _State : Hashable, _Event : Hashable {
-        FSM(initialState: initialState, actionsPolicy: actionsPolicy)
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State,  _Event> where _State : Hashable, _Event : Hashable {
+        EagerFSM(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 
     override var initialState: TurnstileState { .locked }
@@ -695,8 +695,8 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
 final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
     override func makeSUT<_State, _Event>(
         initialState: _State,
-        actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMBase<_State,  _Event> where _State : Hashable, _Event : Hashable {
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMType<_State,  _Event> where _State : Hashable, _Event : Hashable {
         LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
