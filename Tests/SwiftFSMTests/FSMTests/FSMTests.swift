@@ -3,7 +3,20 @@ import XCTest
 @testable import SwiftFSM
 
 @MainActor
-class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder {
+protocol FSMTestsProtocol<State, Event> {
+    associatedtype State: Hashable
+    associatedtype Event: Hashable
+
+    var initialState: State { get }
+
+    func makeSUT(
+        initialState: State,
+        actionsPolicy: StateActionsPolicy
+    ) -> any FSMProtocol<State, Event>
+}
+
+@MainActor
+class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
     var fsm: (any FSMProtocol<State, Event>)!
 
     override func setUp() {
@@ -14,22 +27,37 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
         fatalError("subclasses must implement")
     }
     
-    func makeSUT<_State: Hashable, _Event: Hashable>(
-        initialState: _State,
+    func makeSUT(
+        initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<_State, _Event> {
+    ) -> any FSMProtocol<State, Event> {
         fatalError("subclasses must implement")
+    }
+
+    func assertThrowsError<T: Error>(
+        _ type: T.Type,
+        count: Int = 1,
+        line: UInt = #line,
+        block: () throws -> (),
+        completion: (T?) -> () = { _ in }
+    ) {
+        XCTAssertThrowsError(try block(), line: line) {
+            let errors = ($0 as? SwiftFSMError)?.errors
+            XCTAssertEqual(count, errors?.count, line: line)
+            XCTAssertTrue(errors?.first is T, String(describing: errors), line: line)
+            completion(errors?.first as? T)
+        }
     }
 }
 
 class LazyFSMTests: FSMTests {
-    override func makeSUT<_State: Hashable, _Event: Hashable>(
-        initialState: _State,
+    override func makeSUT(
+        initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<_State, _Event> {
-        LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    ) -> any FSMProtocol<State, Event> {
+        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
-    
+
     func testHandleEventEarlyReturn() throws {
         try fsm.buildTable {
             define(1) {
@@ -45,27 +73,12 @@ class LazyFSMTests: FSMTests {
 
 class FSMTests: FSMTestsBase<Int, Double> {
     override var initialState: Int { 1 }
-    
-    override func makeSUT<_State: Hashable, _Event: Hashable>(
-        initialState: _State,
+
+    override func makeSUT(
+        initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<_State, _Event> {
-        EagerFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
-    }
-    
-    func assertThrowsError<T: Error>(
-        _ type: T.Type,
-        count: Int = 1,
-        line: UInt = #line,
-        block: () throws -> (),
-        completion: (T?) -> () = { _ in }
-    ) {
-        XCTAssertThrowsError(try block(), line: line) {
-            let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(count, errors?.count, line: line)
-            XCTAssertTrue(errors?.first is T, String(describing: errors), line: line)
-            completion(errors?.first as? T)
-        }
+    ) -> any FSMProtocol<State, Event> {
+        EagerFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
     func testSuccessfulInit() {
@@ -81,44 +94,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
     func testThrowsErrorsFromNodes() {
         assertThrowsError(EmptyBuilderError.self) {
             try fsm.buildTable { define(1) { } }
-        }
-    }
-
-    func testThrowsNSObjectError()  {
-        @MainActor
-        struct FirstTester: SyntaxBuilder {
-            typealias State = NSObject
-            typealias Event = Int
-
-            let fsm: any FSMProtocol<State, Event>
-
-            func test() throws {
-                try fsm.buildTable {
-                    define(NSObject()) { when(1) | then(NSObject()) }
-                }
-            }
-        }
-
-        @MainActor
-        struct SecondTester: SyntaxBuilder {
-            typealias State = Int
-            typealias Event = NSObject
-
-            let fsm: any FSMProtocol<State, Event>
-
-            func test() throws {
-                try fsm.buildTable {
-                    define(1) { when(NSObject()) | then(2) }
-                }
-            }
-        }
-
-        assertThrowsError(NSObjectError.self) {
-            try FirstTester(fsm: makeSUT(initialState: NSObject())).test()
-        }
-
-        assertThrowsError(NSObjectError.self) {
-            try SecondTester(fsm: makeSUT(initialState: 1)).test()
         }
     }
 
@@ -414,6 +389,62 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, state: 1, output: "")
         fsm.state = 2
         await assertHandleEvent(1.1, state: 3, output: "pass")
+    }
+}
+
+class LazyNSObjectTests1: NSObjectTests1 {
+    override func makeSUT(
+        initialState: NSObject,
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMProtocol<NSObject, Int> {
+        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
+    }
+}
+
+class NSObjectTests1: FSMTestsBase<NSObject, Int> {
+    override var initialState: NSObject { NSObject() }
+
+    override func makeSUT(
+        initialState: NSObject,
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMProtocol<NSObject, Int> {
+        EagerFSM(initialState: initialState, actionsPolicy: actionsPolicy)
+    }
+
+    func testThrowsNSObjectError()  {
+        assertThrowsError(NSObjectError.self) {
+            try fsm.buildTable {
+                define(NSObject()) { when(1) | then(NSObject()) }
+            }
+        }
+    }
+}
+
+class LazyNSObjectTests2: NSObjectTests2 {
+    override func makeSUT(
+        initialState: Int,
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMProtocol<Int, NSObject> {
+        LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
+    }
+}
+
+class NSObjectTests2: FSMTestsBase<Int, NSObject> {
+    override var initialState: Int { 1 }
+
+    override func makeSUT(
+        initialState: Int,
+        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+    ) -> any FSMProtocol<Int, NSObject> {
+        EagerFSM(initialState: initialState, actionsPolicy: actionsPolicy)
+    }
+
+    func testThrowsNSObjectError() {
+        assertThrowsError(NSObjectError.self) {
+            try fsm.buildTable {
+                define(1) { when(NSObject()) | then(2) }
+            }
+        }
     }
 }
 
