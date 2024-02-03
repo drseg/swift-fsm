@@ -4,8 +4,8 @@ import XCTest
 
 @MainActor
 class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder {
-    var fsm: _FSMBase<State, Event>!
-    
+    var fsm: (any FSMBase<State, Event>)!
+
     override func setUp() {
         fsm = makeSUT(initialState: initialState)
     }
@@ -17,7 +17,7 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
         actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> _FSMBase<_State, _Event> {
+    ) -> any FSMBase<_State,  _Event> {
         fatalError("subclasses must implement")
     }
 }
@@ -26,7 +26,7 @@ class LazyFSMTests: FSMTests {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
         actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> _FSMBase<_State, _Event> {
+    ) -> any FSMBase<_State,  _Event> {
         LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
@@ -49,7 +49,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
         actionsPolicy: _FSMBase<_State, _Event>.StateActionsPolicy = .executeOnChangeOnly
-    ) -> _FSMBase<_State, _Event> {
+    ) -> any FSMBase<_State, _Event> {
         FSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
@@ -104,7 +104,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
             typealias State = Int
             typealias Event = NSObject
 
-            let fsm: _FSMBase<State, Event>
+            let fsm: any FSMBase<Int, NSObject>
 
             func test() throws {
                 try fsm.buildTable {
@@ -147,7 +147,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         output: String,
         line: UInt = #line
     ) async {
-        await fsm.handleEvent(event, predicates: predicates)
+        await fsm.handleEventAsync(event, predicates: predicates)
         assertEventHandled(state: state, output: output, line: line)
     }
 
@@ -308,10 +308,10 @@ class FSMTests: FSMTestsBase<Int, Double> {
             }
         }
 
-        await fsm.handleEvent(1.1, predicates: P.a, Q.b)
+        await fsm.handleEventAsync(1.1, predicates: P.a, Q.b)
         assertEventHandled(state: 2, output: "pass")
 
-        await fsm.handleEvent(1.1)
+        await fsm.handleEventAsync(1.1)
         assertEventHandled(state: 1, output: "")
     }
 

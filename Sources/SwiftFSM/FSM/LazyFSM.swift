@@ -1,8 +1,20 @@
 import Foundation
 import Algorithms
 
-open class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
-    public override init(
+/// Swift bug:
+///
+/// https://github.com/apple/swift/issues/63377
+/// https://github.com/apple/swift/issues/62906
+/// https://github.com/apple/swift/issues/66740
+///
+/// It should be possible to inherit from:
+///
+/// _FSMBase<State, Event> & HandleEventProtocol<Event>
+///
+/// but the compiler currently won't allow it (even though it is officially supported).
+
+class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, HandleEventProtocol {
+    override init(
         initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
     ) {
@@ -13,7 +25,8 @@ open class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
         LazyMatchResolvingNode(rest: rest)
     }
 
-    public override func handleEvent(_ event: Event, predicates: [any Predicate]) {
+    @MainActor
+    func handleEvent(_ event: Event, predicates: [any Predicate]) {
         for p in makeCombinations(predicates) {
             switch _handleEvent(event, predicates: p) {
             case let .notExecuted(transition):
@@ -28,9 +41,10 @@ open class LazyFSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
         logTransitionNotFound(event, predicates)
     }
 
-    public override func handleEvent(_ event: Event, predicates: [any Predicate]) async {
+    @MainActor
+    func handleEventAsync(_ event: Event, predicates: [any Predicate]) async {
         for p in makeCombinations(predicates) {
-            switch await _handleEvent(event, predicates: p) {
+            switch await _handleEventAsync(event, predicates: p) {
             case let .notExecuted(transition):
                 logTransitionNotExecuted(transition)
             case .executed:

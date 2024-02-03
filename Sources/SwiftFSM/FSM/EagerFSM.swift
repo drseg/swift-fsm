@@ -1,7 +1,7 @@
 import Foundation
 
-open class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
-    public override init(
+class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event>, HandleEventProtocol {
+    override init(
         initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
     ) {
@@ -13,19 +13,20 @@ open class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
     }
 
     @MainActor
-    public override func handleEvent(_ event: Event, predicates: [any Predicate]) {
+    func handleEvent(_ event: Event, predicates: [any Predicate]) {
         handleResult(_handleEvent(event, predicates: predicates),
                      for: event,
                      with: predicates)
     }
 
     @MainActor
-    public override func handleEvent(_ event: Event, predicates: [any Predicate]) async {
-        handleResult(await _handleEvent(event, predicates: predicates),
+    func handleEventAsync(_ event: Event, predicates: [any Predicate]) async {
+        handleResult(await _handleEventAsync(event, predicates: predicates),
                      for: event,
                      with: predicates)
     }
 
+    @MainActor
     private func handleResult(_ result: TransitionResult, for event: Event, with predicates: [any Predicate]) {
         switch result {
         case let .notExecuted(transition):
