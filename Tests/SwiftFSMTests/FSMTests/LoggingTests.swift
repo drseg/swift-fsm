@@ -118,6 +118,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         try! lazyFSM.buildTable(block)
     }
     
+    #warning("no async tests")
     func handleEvent(_ event: Int, _ predicates: any Predicate...) {
         fsm.handleEvent(event, predicates: predicates)
         lazyFSM.handleEvent(event, predicates: predicates)
