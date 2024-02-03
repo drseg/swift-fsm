@@ -25,20 +25,14 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     
     override var initialState: TurnstileState { .locked }
     
-    override func makeSUT(
-        initialState: State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<State, Event> {
-        EagerFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeEager()
     }
 }
 
 final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
-    override func makeSUT(
-        initialState: State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeLazy()
     }
 }
 
@@ -182,11 +176,8 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
 }
 
 class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
-    override func makeSUT(
-        initialState: State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeLazy()
     }
 }
 
@@ -314,11 +305,8 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
 }
 
 class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
-    override func makeSUT(
-        initialState: State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeLazy()
     }
 }
 
@@ -374,11 +362,8 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
 }
 
 class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
-    override func makeSUT(
-        initialState: State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeLazy()
     }
 }
 
@@ -602,10 +587,7 @@ enum Animal: String, EventValue {
 }
 
 class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent> {
-    override func makeSUT(
-        initialState: State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<State, Event> {
+    override func makeSUT() -> any FSMProtocol<State, Event> {
         EagerFSM(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 
@@ -693,10 +675,7 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
 }
 
 final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
-    override func makeSUT(
-        initialState: State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMProtocol<State, Event> {
+    override func makeSUT() -> any FSMProtocol<State, Event> {
         LazyFSM(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 }
