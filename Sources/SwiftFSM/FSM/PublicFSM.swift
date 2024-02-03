@@ -7,10 +7,10 @@ public enum StateActionsPolicy {
 public class FSM<State: Hashable, Event: Hashable> {
     public enum PredicateHandling { case eager, lazy }
 
-    var fsm: any FSMType<State, Event>
+    var fsm: any FSMProtocol<State, Event>
 
     public init(
-        type: PredicateHandling,
+        type: PredicateHandling = .eager,
         initialState initial: State,
         actionsPolicy policy: StateActionsPolicy = .executeAlways
     ) {

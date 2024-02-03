@@ -1,6 +1,6 @@
 import Foundation
 
-class EagerFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, EventHandling {
+class EagerFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, FSMProtocol {
     override init(
         initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
@@ -8,7 +8,7 @@ class EagerFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, EventHa
         super.init(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 
-    override func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
+    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         EagerMatchResolvingNode(rest: rest)
     }
 
@@ -27,7 +27,7 @@ class EagerFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, EventHa
     }
 
     @MainActor
-    private func handleResult(_ result: TransitionResult, for event: Event, with predicates: [any Predicate]) {
+    private func handleResult(_ result: TransitionStatus<Event>, for event: Event, with predicates: [any Predicate]) {
         switch result {
         case let .notExecuted(transition):
             logTransitionNotExecuted(transition)

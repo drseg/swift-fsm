@@ -13,7 +13,7 @@ import Algorithms
 ///
 /// but the compiler currently won't allow it (even though it is officially supported).
 
-class LazyFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, EventHandling {
+class LazyFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, FSMProtocol {
     override init(
         initialState: State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
@@ -21,7 +21,7 @@ class LazyFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, EventHan
         super.init(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 
-    override func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
+    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         LazyMatchResolvingNode(rest: rest)
     }
 

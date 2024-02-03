@@ -13,14 +13,47 @@ public struct TableBuilder<State: Hashable, Event: Hashable>: ResultBuilder {
     public typealias T = Syntax.Define<State, Event>
 }
 
-protocol EventHandling<Event> {
+struct TableKey: Hashable {
+    let state: AnyHashable,
+        predicates: PredicateSet,
+        event: AnyHashable
+
+    init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable) {
+        self.state = state
+        self.predicates = predicates
+        self.event = event
+    }
+
+    init(_ value: Transition) {
+        state = value.state
+        predicates = value.predicates
+        event = value.event
+    }
+}
+
+enum TransitionStatus<Event: Hashable> {
+    case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
+}
+
+protocol FSMProtocol<State, Event>: AnyObject {
+    associatedtype State: Hashable
     associatedtype Event: Hashable
+
+    var stateActionsPolicy: StateActionsPolicy { get }
+    var table: [TableKey: Transition] { get set }
+    var state: AnyHashable { get set }
 
     @MainActor func handleEvent(_ event: Event, predicates: [any Predicate])
     @MainActor func handleEventAsync(_ event: Event, predicates: [any Predicate]) async
+    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode
+    func buildTable(
+        file: String,
+        line: Int,
+        @TableBuilder<State, Event> _ block: () -> [Syntax.Define<State, Event>]
+    ) throws
 }
 
-extension EventHandling {
+extension FSMProtocol {
     @MainActor
     func handleEvent(_ event: Event) {
         handleEvent(event, predicates: [])
@@ -39,43 +72,6 @@ extension EventHandling {
     @MainActor
     func handleEventAsync(_ event: Event, predicates: any Predicate...) async {
         await handleEventAsync(event, predicates: predicates)
-    }
-}
-
-typealias FSMType<State: Hashable, Event: Hashable> = BaseFSM<State, Event> & EventHandling<Event>
-
-class BaseFSM<State: Hashable, Event: Hashable> {
-    struct Key: Hashable {
-        let state: AnyHashable,
-            predicates: PredicateSet,
-            event: AnyHashable
-
-        init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable) {
-            self.state = state
-            self.predicates = predicates
-            self.event = event
-        }
-
-        init(_ value: Transition) {
-            state = value.state
-            predicates = value.predicates
-            event = value.event
-        }
-    }
-
-    enum TransitionResult {
-        case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
-    }
-
-    let stateActionsPolicy: StateActionsPolicy
-
-    var table: [Key: Transition] = [:]
-    var state: AnyHashable
-    let logger = Logger<Event>()
-
-    init(initialState: State, actionsPolicy: StateActionsPolicy = .executeOnChangeOnly) {
-        self.state = initialState
-        self.stateActionsPolicy = actionsPolicy
     }
 
     func buildTable(
@@ -96,8 +92,11 @@ class BaseFSM<State: Hashable, Event: Hashable> {
     }
 
     @discardableResult @MainActor
-    func _handleEvent(_ event: Event, predicates: [any Predicate]) -> TransitionResult {
-        guard let transition = transition(for: event, with: predicates) else {
+    func _handleEvent(
+        _ event: Event,
+        predicates: [any Predicate]
+    ) -> TransitionStatus<Event> {
+        guard let transition = transition(event, predicates) else {
             return .notFound(event, predicates)
         }
 
@@ -111,8 +110,11 @@ class BaseFSM<State: Hashable, Event: Hashable> {
     }
 
     @discardableResult @MainActor
-    func _handleEventAsync(_ event: Event, predicates: [any Predicate]) async -> TransitionResult {
-        guard let transition = transition(for: event, with: predicates) else {
+    func _handleEventAsync(
+        _ event: Event,
+        predicates: [any Predicate]
+    ) async -> TransitionStatus<Event> {
+        guard let transition = transition(event, predicates) else {
             return .notFound(event, predicates)
         }
 
@@ -126,8 +128,8 @@ class BaseFSM<State: Hashable, Event: Hashable> {
     }
 
     @MainActor
-    private func transition(for event: Event, with predicates: [any Predicate]) -> Transition? {
-        table[Key(state: state,
+    private func transition(_ event: Event, _ predicates: [any Predicate]) -> Transition? {
+        table[TableKey(state: state,
                      predicates: Set(predicates.erased()),
                      event: event)]
     }
@@ -135,10 +137,6 @@ class BaseFSM<State: Hashable, Event: Hashable> {
     @MainActor
     private func shouldExecute(_ t: Transition) -> Bool {
         t.condition?() ?? true
-    }
-
-    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
-        fatalError("subclasses must implement")
     }
 
     func makeActionsResolvingNode(rest: [DefineNode]) -> ActionsResolvingNodeBase {
@@ -164,7 +162,7 @@ class BaseFSM<State: Hashable, Event: Hashable> {
     }
 
     func makeTable(_ output: [Transition]) {
-        output.forEach { table[Key($0)] = $0 }
+        output.forEach { table[TableKey($0)] = $0 }
     }
 
     func makeError(_ error: Error) -> SwiftFSMError {
@@ -173,6 +171,19 @@ class BaseFSM<State: Hashable, Event: Hashable> {
 
     func makeError(_ errors: [Error]) -> SwiftFSMError {
         SwiftFSMError(errors: errors)
+    }
+}
+
+class BaseFSM<State: Hashable, Event: Hashable> {
+    let stateActionsPolicy: StateActionsPolicy
+
+    var table: [TableKey: Transition] = [:]
+    var state: AnyHashable
+    let logger = Logger<Event>()
+
+    init(initialState: State, actionsPolicy: StateActionsPolicy = .executeOnChangeOnly) {
+        self.state = initialState
+        self.stateActionsPolicy = actionsPolicy
     }
 
     func logTransitionNotFound(_ event: Event, _ predicates: [any Predicate]) {

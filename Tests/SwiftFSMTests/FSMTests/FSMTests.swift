@@ -4,7 +4,7 @@ import XCTest
 
 @MainActor
 class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder {
-    var fsm: (any FSMType<State, Event>)!
+    var fsm: (any FSMProtocol<State, Event>)!
 
     override func setUp() {
         fsm = makeSUT(initialState: initialState)
@@ -17,7 +17,7 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
     func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMType<_State,  _Event> {
+    ) -> any FSMProtocol<_State, _Event> {
         fatalError("subclasses must implement")
     }
 }
@@ -26,7 +26,7 @@ class LazyFSMTests: FSMTests {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMType<_State,  _Event> {
+    ) -> any FSMProtocol<_State, _Event> {
         LazyFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
@@ -49,7 +49,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
     override func makeSUT<_State: Hashable, _Event: Hashable>(
         initialState: _State,
         actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) -> any FSMType<_State, _Event> {
+    ) -> any FSMProtocol<_State, _Event> {
         EagerFSM<_State, _Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
     
@@ -90,7 +90,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
             typealias State = NSObject
             typealias Event = Int
 
-            let fsm: any FSMType<State, Event>
+            let fsm: any FSMProtocol<State, Event>
 
             func test() throws {
                 try fsm.buildTable {
@@ -104,7 +104,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
             typealias State = Int
             typealias Event = NSObject
 
-            let fsm: any FSMType<Int, NSObject>
+            let fsm: any FSMProtocol<State, Event>
 
             func test() throws {
                 try fsm.buildTable {
