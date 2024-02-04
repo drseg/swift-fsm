@@ -128,14 +128,14 @@ extension FSMProtocol {
     }
 
     @MainActor
-    private func transition(_ event: Event, _ predicates: [any Predicate]) -> Transition? {
+    func transition(_ event: Event, _ predicates: [any Predicate]) -> Transition? {
         table[TableKey(state: state,
-                     predicates: Set(predicates.erased()),
-                     event: event)]
+                       predicates: Set(predicates.erased()),
+                       event: event)]
     }
 
     @MainActor
-    private func shouldExecute(_ t: Transition) -> Bool {
+    func shouldExecute(_ t: Transition) -> Bool {
         t.condition?() ?? true
     }
 
@@ -199,6 +199,7 @@ class BaseFSM<State: Hashable, Event: Hashable> {
 @MainActor
 private extension Transition {
     func executeActions<E: Hashable>(event: E) {
+        #warning("this needs to throw the error, as does its caller")
         actions.forEach { try! $0(event) }
     }
 

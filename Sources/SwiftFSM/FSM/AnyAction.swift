@@ -35,7 +35,7 @@ public struct AnyAction {
         } else if base is FSMAsyncAction || base is FSMAsyncActionWithEvent<Event> {
             throw "Action with async function called synchronously"
         } else {
-            throw "Action that requires an event argument called without an event"
+            throw "Action that takes an Event argument called without an Event"
         }
     }
 

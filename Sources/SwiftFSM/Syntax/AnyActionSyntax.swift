@@ -24,7 +24,6 @@ public extension AnyAction {
     }
 }
 
-
 public extension Array<AnyAction> {
     // MARK: init with a single FSMAction element, avoiding AnyAction.init
 
@@ -166,6 +165,8 @@ public func & <LHSEvent: Hashable, RHSEvent: Hashable> (
 ) -> [AnyAction] {
     [.init(lhs), .init(rhs)]
 }
+
+// MARK: Array convenience operators
 
 postfix operator *
 
