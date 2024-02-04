@@ -1,13 +1,6 @@
 import Foundation
 
 class EagerFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, FSMProtocol {
-    override init(
-        initialState: State,
-        actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
-    ) {
-        super.init(initialState: initialState, actionsPolicy: actionsPolicy)
-    }
-
     func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         EagerMatchResolvingNode(rest: rest)
     }

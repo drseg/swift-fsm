@@ -13,7 +13,8 @@ protocol FSMTestsProtocol<State, Event> {
 }
 
 @MainActor
-class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
+class FSMTestsBase<State: Hashable, Event: Hashable>:
+    XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
     var fsm: (any FSMProtocol<State, Event>)!
     var actionsPolicy = StateActionsPolicy.executeOnChangeOnly
 
@@ -50,24 +51,6 @@ class FSMTestsBase<State: Hashable, Event: Hashable>: XCTestCase, ExpandedSyntax
             XCTAssertTrue(errors?.first is T, String(describing: errors), line: line)
             completion(errors?.first as? T)
         }
-    }
-}
-
-class LazyFSMTests: FSMTests {
-    override func makeSUT() -> any FSMProtocol<State, Event> {
-        makeLazy()
-    }
-
-    func testHandleEventEarlyReturn() throws {
-        try fsm.buildTable {
-            define(1) {
-                matching(P.a) | when(1.1) | then(1) | pass
-                                when(1.1) | then(2) | pass
-            }
-        }
-
-        assertHandleEvent(1.1, predicates: P.a, state: 1, output: "pass")
-        assertHandleEvent(1.1, predicates: P.b, state: 2, output: "pass")
     }
 }
 
@@ -391,9 +374,21 @@ class FSMTests: FSMTestsBase<Int, Double> {
     }
 }
 
-class LazyNSObjectTests1: NSObjectTests1 {
-    override func makeSUT() -> any FSMProtocol<NSObject, Int> {
+class LazyFSMTests: FSMTests {
+    override func makeSUT() -> any FSMProtocol<State, Event> {
         makeLazy()
+    }
+
+    func testHandleEventEarlyReturn() throws {
+        try fsm.buildTable {
+            define(1) {
+                matching(P.a) | when(1.1) | then(1) | pass
+                                when(1.1) | then(2) | pass
+            }
+        }
+
+        assertHandleEvent(1.1, predicates: P.a, state: 1, output: "pass")
+        assertHandleEvent(1.1, predicates: P.b, state: 2, output: "pass")
     }
 }
 
@@ -413,8 +408,8 @@ class NSObjectTests1: FSMTestsBase<NSObject, Int> {
     }
 }
 
-class LazyNSObjectTests2: NSObjectTests2 {
-    override func makeSUT() -> any FSMProtocol<Int, NSObject> {
+class LazyNSObjectTests1: NSObjectTests1 {
+    override func makeSUT() -> any FSMProtocol<NSObject, Int> {
         makeLazy()
     }
 }
@@ -432,6 +427,12 @@ class NSObjectTests2: FSMTestsBase<Int, NSObject> {
                 define(1) { when(NSObject()) | then(2) }
             }
         }
+    }
+}
+
+class LazyNSObjectTests2: NSObjectTests2 {
+    override func makeSUT() -> any FSMProtocol<Int, NSObject> {
+        makeLazy()
     }
 }
 

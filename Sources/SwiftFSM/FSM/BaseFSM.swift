@@ -6,7 +6,7 @@ import ReflectiveEquality
 /// https://github.com/pointfreeco/swift-composable-architecture/issues/2666
 /// https://github.com/apple/swift/issues/69927
 ///
-/// The struct TableBuidler below should be internal, but when marked as such, Swift fails to link when compiling in release mode
+/// The struct TableBuilder below should be internal, but when marked as such, Swift fails to link when compiling in release mode
 
 @resultBuilder
 public struct TableBuilder<State: Hashable, Event: Hashable>: ResultBuilder {
