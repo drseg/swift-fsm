@@ -251,7 +251,7 @@ public extension SyntaxBuilder {
 
     #warning("why no actions overload with an array of AnyAction?")
 
-    func override(
+    func overrides(
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) -> [MWTA] {
         Syntax.Override().callAsFunction(block)

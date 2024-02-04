@@ -154,8 +154,9 @@ extension FSMProtocol {
         if result.output.isEmpty {
             throw makeError(EmptyTableError())
         }
-
-        let stateEvent = (result.output.first?.state, result.output.first?.event)
+        
+        let firstOutput = result.output.first
+        let stateEvent = (firstOutput?.state, firstOutput?.event)
         if deepDescription(stateEvent).contains("NSObject") {
             throw makeError(NSObjectError())
         }

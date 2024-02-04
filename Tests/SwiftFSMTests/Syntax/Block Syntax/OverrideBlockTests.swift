@@ -3,14 +3,13 @@ import XCTest
 
 class OverrideBlockTests: BlockTestsBase {
     func testOverride() {
-        #warning("this syntax is unusable, change to something unique")
-        let o = override { mwtaBlock }
+        let o = overrides { mwtaBlock }
         XCTAssert((o.nodes.first as! OverridableNode).isOverride)
     }
 
     func testNestedOverride() {
         let d = define(1) {
-            override {
+            overrides {
                 mwtaBlock
             }
             mwtaBlock

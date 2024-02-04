@@ -240,7 +240,7 @@ extension SemanticValidationNode.OverrideError {
             let then = override.nextState.thenDescription
 
             define + " {"
-            "   override {"
+            "   overrides {"
             "       " + matching
             "       " + when
             "       " + then

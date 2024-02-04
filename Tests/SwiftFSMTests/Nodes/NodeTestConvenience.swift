@@ -384,6 +384,6 @@ extension Sequence {
 
 private extension String {
     var formatted: String {
-        self == "" ? "none" : self
+        isEmpty ? "none" : self
     }
 }
