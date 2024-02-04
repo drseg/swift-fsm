@@ -24,8 +24,10 @@ public extension AnyAction {
     }
 }
 
+
 public extension Array<AnyAction> {
     // MARK: init with a single FSMAction element, avoiding AnyAction.init
+
     init(_ action: @escaping FSMSyncAction) {
         self.init(arrayLiteral: AnyAction(action))
     }
@@ -42,11 +44,11 @@ public extension Array<AnyAction> {
         self.init(arrayLiteral: AnyAction(action))
     }
 
+    // MARK: combining with single FSMAction elements
     static func & (lhs: Self, rhs: @escaping FSMSyncAction) -> Self {
         lhs + [.init(rhs)]
     }
 
-    // MARK: combining with single FSMAction elements
     static func & (lhs: Self, rhs: @escaping FSMAsyncAction) -> Self {
         lhs + [.init(rhs)]
     }
@@ -163,4 +165,26 @@ public func & <LHSEvent: Hashable, RHSEvent: Hashable> (
     rhs: @escaping FSMAsyncActionWithEvent<RHSEvent>
 ) -> [AnyAction] {
     [.init(lhs), .init(rhs)]
+}
+
+postfix operator *
+
+public postfix func *(_ value: @escaping FSMSyncAction) -> [AnyAction] {
+    Array(value)
+}
+
+public postfix func *(_ value: @escaping FSMAsyncAction) -> [AnyAction] {
+    Array(value)
+}
+
+public postfix func *<Event: Hashable>(
+    _ value: @escaping FSMSyncActionWithEvent<Event>
+) -> [AnyAction] {
+    Array(value)
+}
+
+public postfix func *<Event: Hashable>(
+    _ value: @escaping FSMAsyncActionWithEvent<Event>
+) -> [AnyAction] {
+    Array(value)
 }

@@ -69,9 +69,13 @@ final class AnyActionSyntaxTests: AnyActionTestsBase {
 
     func testFormsArrayWithSingleAction() async {
         assertSync(Array(pass), expected: "pass")
+        assertSync(pass*, expected: "pass")
         assertSync(Array(passWithEvent), expected: "event")
+        assertSync(passWithEvent*, expected: "event")
         await assertAsync(Array(passAsync), expected: "pass")
+        await assertAsync(passAsync*, expected: "pass")
         await assertAsync(Array(passWithEventAsync), expected: "event")
+        await assertAsync(passWithEventAsync*, expected: "event")
     }
 
     func testHandlesMixedEventTypes() {
