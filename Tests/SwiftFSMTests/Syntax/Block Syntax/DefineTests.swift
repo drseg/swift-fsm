@@ -2,18 +2,6 @@ import XCTest
 @testable import SwiftFSM
 
 class DefineTests: BlockTestsBase {
-    func buildMWTA(@MWTABuilder _ block: () -> [MWTA]) -> [MWTA] {
-        block()
-    }
-
-    func testMWTABuilder() {
-        let s0 = buildMWTA { }
-        let s1 = buildMWTA { mwtaBlock }
-
-        XCTAssertTrue(s0.isEmpty)
-        assertMWTAResult(s1.nodes, sutLine: mwtaLine)
-    }
-
     func testDefine() {
         func verify(
             _ d: Define,
@@ -120,12 +108,12 @@ class DefineTests: BlockTestsBase {
     }
 
     func testOptionalActions() {
-        let l1 = #line; let mwtas1 = buildMWTA {
+        let l1 = #line; let d = define(1) {
             matching(P.a) | when(1, or: 2) | then(1)
                             when(1, or: 2) | then(1)
         }
 
-        assertMWTAResult(mwtas1.nodes, expectedOutput: "", sutFile: #file, sutLine: l1 + 1)
+        assertMWTAResult(d.node.rest.nodes, expectedOutput: "", sutFile: #file, sutLine: l1 + 1)
     }
 }
 

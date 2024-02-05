@@ -168,6 +168,8 @@ public enum Internal {
 }
 
 protocol BlockSentence {
+    var node: any Node<DefaultIO> { get }
+    
     init(node: any Node<DefaultIO>)
 }
 
