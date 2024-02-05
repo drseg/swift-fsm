@@ -29,8 +29,8 @@ public class FSM<State: Hashable, Event: Hashable> {
     }
 
     @MainActor
-    public func handleEvent(_ event: Event) {
-        fsm.handleEvent(event)
+    public func handleEvent(_ event: Event) throws {
+        try fsm.handleEvent(event)
     }
 
     @MainActor
@@ -39,8 +39,8 @@ public class FSM<State: Hashable, Event: Hashable> {
     }
 
     @MainActor
-    public func handleEvent(_ event: Event, predicates: any Predicate...) {
-        fsm.handleEvent(event, predicates: predicates)
+    public func handleEvent(_ event: Event, predicates: any Predicate...) throws {
+        try fsm.handleEvent(event, predicates: predicates)
     }
 
     @MainActor

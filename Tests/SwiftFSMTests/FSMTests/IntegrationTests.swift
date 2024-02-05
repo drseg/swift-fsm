@@ -37,7 +37,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     
     func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
         actual += a
-        fsm.handleEvent(e)
+        try! fsm.handleEvent(e)
         XCTAssertEqual(actions, actual, line: line)
     }
     
@@ -189,7 +189,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         if !(a.first?.isEmpty ?? false) {
             actual += a
         }
-        fsm.handleEvent(e, predicates: [Enforcement.weak, Reward.punishing])
+        try! fsm.handleEvent(e, predicates: [Enforcement.weak, Reward.punishing])
         XCTAssertEqual(actions, actual, line: line)
     }
     
@@ -324,18 +324,18 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
             }
         }
         
-        fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a, V.a)
+        try! fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual(["thankyou"], actions)
         
-        fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a, V.a)
+        try! fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual(["thankyou", "thankyou"], actions)
         
         actions = []
-        fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a, V.a)
+        try! fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual([], actions)
         
         actions = []
-        fsm.handleEvent(.coin, predicates: P.a, Q.b, R.b, S.b, T.b, U.b, V.b)
+        try! fsm.handleEvent(.coin, predicates: P.a, Q.b, R.b, S.b, T.b, U.b, V.b)
         XCTAssertEqual(["unlock"], actions)
     }
     
@@ -350,7 +350,7 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
             }
         }
         
-        fsm.handleEvent(.coin, predicates: P.a)
+        try! fsm.handleEvent(.coin, predicates: P.a)
         XCTAssertEqual(["thankyou", "lock", "unlock"], actions)
     }
 }
@@ -621,20 +621,20 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
             }
         }
 
-        fsm.handleEvent(cat)
+        try! fsm.handleEvent(cat)
         assertValue(cat)
 
-        fsm.handleEvent(fish)
+        try! fsm.handleEvent(fish)
         assertValue(fish)
 
-        fsm.handleEvent(dog)
+        try! fsm.handleEvent(dog)
         XCTAssertEqual(event, .null)
 
         fsm.state = AnyHashable(State.unlocked)
-        fsm.handleEvent(cat)
+        try! fsm.handleEvent(cat)
         assertValue(cat)
 
-        fsm.handleEvent(fish)
+        try! fsm.handleEvent(fish)
         assertValue(fish)
     }
 

@@ -123,13 +123,13 @@ final class PublicTests: XCTestCase, ExpandedSyntaxBuilder {
             spy.reset()
         }
 
-        fsm.handleEvent(1)
+        try! fsm.handleEvent(1)
         assertHandleEvent()
 
-        fsm.handleEvent(1, predicates: P.a)
+        try! fsm.handleEvent(1, predicates: P.a)
         assertHandleEvent("a")
 
-        fsm.handleEvent(1, predicates: P.a, P.b)
+        try! fsm.handleEvent(1, predicates: P.a, P.b)
         assertHandleEvent("a", "b")
 
         await fsm.handleEventAsync(1)

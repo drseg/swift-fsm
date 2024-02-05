@@ -43,7 +43,7 @@ protocol FSMProtocol<State, Event>: AnyObject {
     var table: [TableKey: Transition] { get set }
     var state: AnyHashable { get set }
 
-    @MainActor func handleEvent(_ event: Event, predicates: [any Predicate])
+    @MainActor func handleEvent(_ event: Event, predicates: [any Predicate]) throws
     @MainActor func handleEventAsync(_ event: Event, predicates: [any Predicate]) async
     func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode
     func buildTable(
@@ -55,8 +55,8 @@ protocol FSMProtocol<State, Event>: AnyObject {
 
 extension FSMProtocol {
     @MainActor
-    func handleEvent(_ event: Event) {
-        handleEvent(event, predicates: [])
+    func handleEvent(_ event: Event) throws {
+        try handleEvent(event, predicates: [])
     }
 
     @MainActor
@@ -65,8 +65,8 @@ extension FSMProtocol {
     }
 
     @MainActor
-    func handleEvent(_ event: Event, predicates: any Predicate...) {
-        handleEvent(event, predicates: predicates)
+    func handleEvent(_ event: Event, predicates: any Predicate...) throws {
+        try handleEvent(event, predicates: predicates)
     }
 
     @MainActor
@@ -95,7 +95,7 @@ extension FSMProtocol {
     func _handleEvent(
         _ event: Event,
         predicates: [any Predicate]
-    ) -> TransitionStatus<Event> {
+    ) throws -> TransitionStatus<Event> {
         guard let transition = transition(event, predicates) else {
             return .notFound(event, predicates)
         }
@@ -105,7 +105,7 @@ extension FSMProtocol {
         }
 
         state = transition.nextState
-        transition.executeActions(event: event)
+        try transition.executeActions(event: event)
         return .executed
     }
 
@@ -198,9 +198,8 @@ class BaseFSM<State: Hashable, Event: Hashable> {
 
 @MainActor
 private extension Transition {
-    func executeActions<E: Hashable>(event: E) {
-        #warning("this needs to throw the error, as does its caller")
-        actions.forEach { try! $0(event) }
+    func executeActions<E: Hashable>(event: E) throws {
+        try actions.forEach { try $0(event) }
     }
 
     func executeActions<E: Hashable>(event: E) async {

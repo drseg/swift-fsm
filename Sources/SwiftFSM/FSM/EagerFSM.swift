@@ -6,8 +6,8 @@ class EagerFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, FSMProt
     }
 
     @MainActor
-    func handleEvent(_ event: Event, predicates: [any Predicate]) {
-        handleResult(_handleEvent(event, predicates: predicates),
+    func handleEvent(_ event: Event, predicates: [any Predicate]) throws {
+        try handleResult(_handleEvent(event, predicates: predicates),
                      for: event,
                      with: predicates)
     }

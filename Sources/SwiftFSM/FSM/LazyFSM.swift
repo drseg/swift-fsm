@@ -19,9 +19,9 @@ class LazyFSM<State: Hashable, Event: Hashable>: BaseFSM<State, Event>, FSMProto
     }
 
     @MainActor
-    func handleEvent(_ event: Event, predicates: [any Predicate]) {
+    func handleEvent(_ event: Event, predicates: [any Predicate]) throws {
         for p in makeCombinations(predicates) {
-            switch _handleEvent(event, predicates: p) {
+            switch try _handleEvent(event, predicates: p) {
             case let .notExecuted(transition):
                 logTransitionNotExecuted(transition)
             case .executed:

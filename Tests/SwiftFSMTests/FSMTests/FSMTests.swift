@@ -113,7 +113,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         output: String,
         line: UInt = #line
     ) {
-        fsm.handleEvent(event, predicates: predicates)
+        try! fsm.handleEvent(event, predicates: predicates)
         assertEventHandled(state: state, output: output, line: line)
     }
 
@@ -251,7 +251,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
             }
         }
 
-        fsm.handleEvent(1.1, predicates: P.a, Q.b)
+        try! fsm.handleEvent(1.1, predicates: P.a, Q.b)
         assertEventHandled(state: 2, output: "pass")
     }
 
