@@ -26,7 +26,6 @@ final class SentenceComponentTests: SyntaxTestsBase {
     
     func testCondition() {
         assertCondition(condition({ true }), expected: true)
-        assertCondition(Condition({ true }), expected: true)
     }
             
     func testWhen() {
@@ -58,22 +57,27 @@ final class SentenceComponentTests: SyntaxTestsBase {
     
     func testMatchingWhenThenActions() {
         let mwta1 = matching(P.a) | when(1, or: 2) | then(1) | pass; let l1 = #line
+        let mwta2 = matching(P.a) | when(1, or: 2) | then(1) | pass & pass; let l2 = #line
+
         assertMWTA(mwta1.node, sutLine: l1)
+        assertMWTA(mwta2.node,
+                   expectedOutput: Self.defaultOutput + Self.defaultOutput,
+                   sutLine: l2)
     }
 
     func testMatchingWhenThenActions_withEvent() {
-        let mwta2 = matching(P.a) | when(1, or: 2) | then(1) | passWithEvent; let l2 = #line
-        assertMWTA(mwta2.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)
+        let mwta = matching(P.a) | when(1, or: 2) | then(1) | passWithEvent; let l2 = #line
+        assertMWTA(mwta.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)
     }
 
     func testMatchingWhenThenActionsAsync() {
-        let mwta1 = matching(P.a) | when(1, or: 2) | then(1) | passAsync; let l1 = #line
-        assertMWTA(mwta1.node, sutLine: l1)
+        let mwta = matching(P.a) | when(1, or: 2) | then(1) | passAsync; let l1 = #line
+        assertMWTA(mwta.node, sutLine: l1)
     }
 
     func testMatchingWhenThenActionsAsync_withEvent() {
-        let mwta2 = matching(P.a) | when(1, or: 2) | then(1) | passWithEventAsync; let l2 = #line
-        assertMWTA(mwta2.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)
+        let mwta = matching(P.a) | when(1, or: 2) | then(1) | passWithEventAsync; let l2 = #line
+        assertMWTA(mwta.node, event: 111, expectedOutput: "pass, event: 111", sutLine: l2)
     }
 
     func testWhenThen() {
@@ -93,7 +97,10 @@ final class SentenceComponentTests: SyntaxTestsBase {
     
     func testWhenThenActions() {
         let wta1 = when(1, or: 2) | then(1) | pass; let l1 = #line
+        let wta2 = when(1, or: 2) | then(1) | pass & pass; let l2 = #line
+
         assertWTA(wta1.node, sutLine: l1)
+        assertWTA(wta2.node, expectedOutput: Self.defaultOutput + Self.defaultOutput, sutLine: l2)
     }
 
     func testWhenThenActionsAsync() {

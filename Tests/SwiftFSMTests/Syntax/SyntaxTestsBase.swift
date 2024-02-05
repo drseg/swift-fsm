@@ -221,7 +221,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
         xctFile xf: StaticString = #file,
-        sutLine sl: Int,
+        sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) {
         let actions = n as! ActionsNode
@@ -251,10 +251,10 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ n: AnyNode,
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
-        sutFile sf: String,
-        xctFile xf: StaticString,
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
         sutLine sl: Int,
-        xctLine xl: UInt
+        xctLine xl: UInt = #line
     ) {
         let actions = n as! ActionsNode
         let when = actions.rest.first as! WhenNode
@@ -273,10 +273,10 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ n: AnyNode,
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
-        sutFile sf: String,
-        xctFile xf: StaticString,
-        sutLine sl: Int,
-        xctLine xl: UInt
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
+        sutLine sl: Int = #line,
+        xctLine xl: UInt = #line
     ) {
         let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
@@ -331,10 +331,10 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ n: AnyNode,
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
-        sutFile sf: String,
-        xctFile xf: StaticString,
-        sutLine sl: Int,
-        xctLine xl: UInt
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
+        sutLine sl: Int = #line,
+        xctLine xl: UInt = #line
     ) {
         let actions = n as! ActionsNode
         let when = actions.rest.first as! WhenNode
@@ -350,10 +350,10 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ n: AnyNode,
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
-        sutFile sf: String,
-        xctFile xf: StaticString,
-        sutLine sl: Int,
-        xctLine xl: UInt
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
+        sutLine sl: Int = #line,
+        xctLine xl: UInt = #line
     ) {
         let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
@@ -375,10 +375,10 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ n: AnyNode,
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
-        sutFile sf: String,
-        xctFile xf: StaticString,
-        sutLine sl: Int,
-        xctLine xl: UInt
+        sutFile sf: String = #file,
+        xctFile xf: StaticString = #file,
+        sutLine sl: Int = #line,
+        xctLine xl: UInt = #line
     ) {
         let actions = n as! ActionsNode
         let match = actions.rest.first as! MatchNode

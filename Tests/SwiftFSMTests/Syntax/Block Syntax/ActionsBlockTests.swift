@@ -93,6 +93,9 @@ class ActionsBlockTests: BlockTestsBase {
                    expectedNodeOutput: eventOutput,
                    expectedRestOutput: eventOutput,
                    restLine: mwtaLineWithEvent)
+
+        assertMWTA(actions(pass & pass) { mwtaBlock},
+                   expectedNodeOutput: Self.defaultOutput + Self.defaultOutput)
     }
 
     func testMWABlocks() {
@@ -130,6 +133,10 @@ class ActionsBlockTests: BlockTestsBase {
                   expectedNodeOutput: eventOutput,
                   expectedRestOutput: eventOutput,
                   restLine: mwaLineWithEvent)
+
+        assertMWA(actions(pass & pass) { mwaBlock },
+                  expectedNodeOutput: Self.defaultOutput + Self.defaultOutput,
+                  restLine: mwaLine)
     }
 
     func testMTABlocks() {
@@ -169,6 +176,9 @@ class ActionsBlockTests: BlockTestsBase {
                   expectedRestOutput: eventOutput,
                   restLine: mtaLineWithEvent)
 
+        assertMTA(actions(pass & pass) { mtaBlock },
+                  expectedNodeOutput: Self.defaultOutput + Self.defaultOutput,
+                  restLine: mtaLine)
     }
 
     func testCompoundMWTABlocks() {

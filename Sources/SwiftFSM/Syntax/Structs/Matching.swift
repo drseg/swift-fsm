@@ -69,6 +69,13 @@ extension Conditional {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
+    public static func | (
+        lhs: Self,
+        rhs: [AnyAction]
+    ) -> Internal.MatchingActions<Event> {
+        .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
+    }
+
     var blockNode: MatchBlockNode {
         MatchBlockNode(match: node.match,
                        rest: node.rest,

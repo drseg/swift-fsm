@@ -30,6 +30,13 @@ public extension Syntax {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
+        public static func | (
+            lhs: Self,
+            rhs: [AnyAction]
+        ) -> Internal.MatchingThenActions<Event> {
+            .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
+        }
+
         let node: ThenNode
         let file: String
         let line: Int

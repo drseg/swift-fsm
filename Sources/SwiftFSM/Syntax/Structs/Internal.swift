@@ -43,6 +43,13 @@ public enum Internal {
 
         public static func | (
             lhs: Self,
+            rhs: [AnyAction]
+        ) -> MatchingWhenActions<Event> {
+            .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
             rhs: Syntax.Then<State, Event>
         ) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
@@ -80,6 +87,13 @@ public enum Internal {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
+        public static func | (
+            lhs: Self,
+            rhs: [AnyAction]
+        ) -> MatchingThenActions<Event> {
+            .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
+        }
+
         let node: ThenNode
     }
 
@@ -114,6 +128,13 @@ public enum Internal {
             rhs: @escaping FSMAsyncActionWithEvent<Event>
         ) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
+        }
+
+        public static func | (
+            lhs: Self,
+            rhs: [AnyAction]
+        ) -> MatchingWhenThenActions<Event> {
+            .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
         }
 
         let node: ThenNode
