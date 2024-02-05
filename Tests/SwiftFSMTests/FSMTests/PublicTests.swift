@@ -79,24 +79,24 @@ final class PublicTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertTrue(fsm.fsm is EagerFSM<Int, Int>)
     }
 
-    func testExecutesAlwaysByDefault() {
+    func testExecutesOnChangeOnlyByDefault() {
         let lazy = FSM<Int, Int>(type: .lazy, initialState: 1)
         let eager = FSM<Int, Int>(type: .eager, initialState: 1)
 
-        XCTAssertEqual(lazy.fsm.stateActionsPolicy, .executeAlways)
-        XCTAssertEqual(eager.fsm.stateActionsPolicy, .executeAlways)
+        XCTAssertEqual(lazy.fsm.stateActionsPolicy, .executeOnChangeOnly)
+        XCTAssertEqual(eager.fsm.stateActionsPolicy, .executeOnChangeOnly)
     }
 
     func testRespectsActionsPolicy() {
         let lazy = FSM<Int, Int>(
-            type: .lazy, initialState: 1, actionsPolicy: .executeOnChangeOnly
+            type: .lazy, initialState: 1, actionsPolicy: .executeAlways
         )
         let eager = FSM<Int, Int>(
-            type: .eager, initialState: 1, actionsPolicy: .executeOnChangeOnly
+            type: .eager, initialState: 1, actionsPolicy: .executeAlways
         )
 
-        XCTAssertEqual(lazy.fsm.stateActionsPolicy, .executeOnChangeOnly)
-        XCTAssertEqual(eager.fsm.stateActionsPolicy, .executeOnChangeOnly)
+        XCTAssertEqual(lazy.fsm.stateActionsPolicy, .executeAlways)
+        XCTAssertEqual(eager.fsm.stateActionsPolicy, .executeAlways)
     }
 
     func testBuildTable() throws {

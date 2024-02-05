@@ -12,7 +12,7 @@ public class FSM<State: Hashable, Event: Hashable> {
     public init(
         type: PredicateHandling = .eager,
         initialState initial: State,
-        actionsPolicy policy: StateActionsPolicy = .executeAlways
+        actionsPolicy policy: StateActionsPolicy = .executeOnChangeOnly
     ) {
         fsm = switch type {
         case .eager: EagerFSM(initialState: initial, actionsPolicy: policy)
