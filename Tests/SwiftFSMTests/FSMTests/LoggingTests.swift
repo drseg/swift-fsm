@@ -133,7 +133,17 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(expected, fsm[keyPath: actual], line: line)
         XCTAssertEqual(expected, lazyFSM[keyPath: actual], line: line)
     }
-    
+
+    func testTransitionExecutedIsNotLogged() async {
+        buildTable {
+            define(1) {
+                when(1) | then(1)
+            }
+        }
+        await handleEvent(1)
+        assertEqual([], \.loggedEvents)
+    }
+
     func testTransitionNotFoundIsLogged() async {
         enum P: Predicate { case a }
         await handleEvent(1, P.a)
