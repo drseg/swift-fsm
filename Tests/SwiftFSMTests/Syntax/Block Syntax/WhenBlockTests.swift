@@ -40,23 +40,10 @@ class WhenBlockTests: BlockTestsBase {
     }
 
     func testWhenBlockWithMA() {
-        let l1 = #line; let w1 = when(1, or: 2) { maBlockSync }
-        assert(w1, nodeLine: l1, restLine: maLineSync)
+        let l1 = #line; let w1 = when(1, or: 2) { maBlock }
+        assert(w1, nodeLine: l1, restLine: maLine)
 
-        let l3 = #line; let w3 = when(1) { maBlockSync }
-        assert(w3, events: [1], nodeLine: l3, restLine: maLineSync)
-
-        let l5 = #line; let w5 = when(1, or: 2) { maBlockWithEventSync }
-        assert(w5,
-               expectedOutput: Self.defaultOutputWithEvent,
-               nodeLine: l5,
-               restLine: maLineWithEventSync)
-
-        let l7 = #line; let w7 = when(1) { maBlockWithEventSync }
-        assert(w7,
-               expectedOutput: Self.defaultOutputWithEvent,
-               events: [1],
-               nodeLine: l7,
-               restLine: maLineWithEventSync)
+        let l3 = #line; let w3 = when(1) { maBlock }
+        assert(w3, events: [1], nodeLine: l3, restLine: maLine)
     }
 }

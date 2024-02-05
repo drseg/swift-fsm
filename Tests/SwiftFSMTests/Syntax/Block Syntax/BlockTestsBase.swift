@@ -13,59 +13,20 @@ class BlockTestsBase: SyntaxTestsBase {
     let mwtaLine = #line + 1; @MWTABuilder var mwtaBlock: [MWTA] {
         matching(P.a) | when(1, or: 2) | then(1) | pass
                         when(1, or: 2) | then(1) | pass
-        matching(P.a) | when(1, or: 2) | then(1) | passAsync
-                        when(1, or: 2) | then(1) | passAsync
-    }
-
-    let mwtaLineWithEvent = #line + 1; @MWTABuilder var mwtaBlockWithEvent: [MWTA] {
-        matching(P.a) | when(1, or: 2) | then(1) | passWithEvent
-                        when(1, or: 2) | then(1) | passWithEvent
-        matching(P.a) | when(1, or: 2) | then(1) | passWithEventAsync
-                        when(1, or: 2) | then(1) | passWithEventAsync
     }
 
     let mwaLine = #line + 1; @MWABuilder var mwaBlock: [MWA] {
         matching(P.a) | when(1, or: 2) | pass
                         when(1, or: 2) | pass
-        matching(P.a) | when(1, or: 2) | passAsync
-                        when(1, or: 2) | passAsync
-    }
-
-    let mwaLineWithEvent = #line + 1; @MWABuilder var mwaBlockWithEvent: [MWA] {
-        matching(P.a) | when(1, or: 2) | passWithEvent
-                        when(1, or: 2) | passWithEvent
-        matching(P.a) | when(1, or: 2) | passWithEventAsync
-                        when(1, or: 2) | passWithEventAsync
-    }
-
-    let mtaLineWithEvent = #line + 1; @MTABuilder var mtaBlockWithEvent: [MTA] {
-        matching(P.a) | then(1) | passWithEvent
-                        then(1) | passWithEvent
-        matching(P.a) | then(1) | passWithEventAsync
-                        then(1) | passWithEventAsync
     }
 
     let mtaLine = #line + 1; @MTABuilder var mtaBlock: [MTA] {
         matching(P.a) | then(1) | pass
                         then(1) | pass
-        matching(P.a) | then(1) | passAsync
-                        then(1) | passAsync
     }
 
-    let maLineSync = #line + 1; var maBlockSync: MA {
+    let maLine = #line + 1; var maBlock: MA {
         matching(P.a) | pass
-    }
-
-    let maLineAsync = #line + 1; var maBlockAsync: MA {
-        matching(P.a) | passAsync
-    }
-
-    let maLineWithEventSync = #line + 1; var maBlockWithEventSync: MA {
-        matching(P.a) | passWithEvent
-    }
-
-    let maLineWithEventAsync = #line + 1; var maBlockWithEventAsync: MA {
-        matching(P.a) | passWithEventAsync
     }
 
     func outputEntry1() { output("entry1") }

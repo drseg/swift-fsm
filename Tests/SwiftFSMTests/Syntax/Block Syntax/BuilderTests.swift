@@ -2,7 +2,6 @@ import XCTest
 @testable import SwiftFSM
 
 class BuilderTests: BlockTestsBase {
-    #warning("now that these have bee factored out, there's duplication to remove elsewhere")
     func testMWTA() {
         let line = #line; @MWTABuilder var mwta: [MWTA] {
             matching(P.a) | when(1, or: 2) | then(1) | pass

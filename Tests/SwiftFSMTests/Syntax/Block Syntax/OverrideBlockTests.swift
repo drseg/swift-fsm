@@ -17,10 +17,10 @@ class OverrideBlockTests: BlockTestsBase {
 
         let g = d.node.rest.first as! GivenNode
 
-        XCTAssertEqual(8, g.rest.count)
+        XCTAssertEqual(4, g.rest.count)
 
-        let overridden = g.rest.prefix(4).map { $0 as! OverridableNode }
-        let notOverridden = g.rest.suffix(4).map { $0 as! OverridableNode }
+        let overridden = g.rest.prefix(2).map { $0 as! OverridableNode }
+        let notOverridden = g.rest.suffix(2).map { $0 as! OverridableNode }
 
         overridden.forEach {
             XCTAssertTrue($0.isOverride)

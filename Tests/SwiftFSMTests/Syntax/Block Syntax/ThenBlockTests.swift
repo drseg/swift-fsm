@@ -31,23 +31,8 @@ class ThenBlockTests: BlockTestsBase {
     }
 
     func testThenBlockWithMA() {
-        let l1 = #line; let w1 = then(1) { maBlockSync }
-        assert(w1, nodeLine: l1, restLine: maLineSync)
-
-        let l3 = #line; let w3 = then(1) { maBlockAsync }
-        assert(w3, nodeLine: l3, restLine: maLineAsync)
-
-        let l5 = #line; let w5 = then(1) { maBlockWithEventSync }
-        assert(w5,
-               expectedOutput: Self.defaultOutputWithEvent,
-               nodeLine: l5,
-               restLine: maLineWithEventSync)
-
-        let l7 = #line; let w7 = then(1) { maBlockWithEventAsync }
-        assert(w7,
-               expectedOutput: Self.defaultOutputWithEvent,
-               nodeLine: l7,
-               restLine: maLineWithEventAsync)
+        let l1 = #line; let w1 = then(1) { maBlock }
+        assert(w1, nodeLine: l1, restLine: maLine)
     }
 }
 

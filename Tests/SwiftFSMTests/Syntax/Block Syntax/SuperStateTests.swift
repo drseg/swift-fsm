@@ -6,9 +6,9 @@ class SuperStateTests: BlockTestsBase {
         let s1 = SuperState { mwtaBlock }
         let nodes = SuperState(adopts: s1, s1).nodes
 
-        XCTAssertEqual(8, nodes.count)
-        assertMWTAResult(Array(nodes.prefix(4)), sutLine: mwtaLine)
-        assertMWTAResult(Array(nodes.suffix(4)), sutLine: mwtaLine)
+        XCTAssertEqual(4, nodes.count)
+        assertMWTAResult(Array(nodes.prefix(2)), sutLine: mwtaLine)
+        assertMWTAResult(Array(nodes.suffix(2)), sutLine: mwtaLine)
     }
 
     func testSuperStateSetsGroupIDForOwnNodesOnly() {
