@@ -5,7 +5,7 @@ public enum Syntax {
 }
 
 public enum Internal {
-    public struct MatchingWhen<State: Hashable, Event: Hashable> {
+    public struct MatchingWhen<State: FSMType, Event: FSMType> {
         public static func | (
             lhs: Self,
             rhs: Syntax.Then<State, Event>
@@ -58,9 +58,9 @@ public enum Internal {
         let node: WhenNode
     }
 
-    public struct MatchingThen<Event: Hashable> {
+    public struct MatchingThen<Event: FSMType> {
         public static func | (
-            lhs: Self, 
+            lhs: Self,
             rhs: @escaping FSMSyncAction
         ) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
@@ -97,11 +97,11 @@ public enum Internal {
         let node: ThenNode
     }
 
-    public final class MatchingActions<Event: Hashable>: MA { }
-    public final class MatchingWhenActions<Event: Hashable>: MWA { }
-    public final class MatchingThenActions<Event: Hashable>: MTA { }
+    public final class MatchingActions<Event: FSMType>: MA { }
+    public final class MatchingWhenActions<Event: FSMType>: MWA { }
+    public final class MatchingThenActions<Event: FSMType>: MTA { }
 
-    public struct MatchingWhenThen<Event: Hashable> {
+    public struct MatchingWhenThen<Event: FSMType> {
         public static func | (
             lhs: Self,
             rhs: @escaping FSMSyncAction
@@ -169,7 +169,7 @@ public enum Internal {
 
 protocol BlockSentence {
     var node: any Node<DefaultIO> { get }
-    
+
     init(node: any Node<DefaultIO>)
 }
 

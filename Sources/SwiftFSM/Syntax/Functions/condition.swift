@@ -4,7 +4,7 @@ public extension ExpandedSyntaxBuilder {
     typealias Condition = Syntax.Expanded.Condition
 
     func condition(
-        _ condition: @escaping () -> Bool,
+        _ condition: @escaping ConditionAction,
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [MWTA]
@@ -14,7 +14,7 @@ public extension ExpandedSyntaxBuilder {
     }
 
     func condition(
-        _ condition: @escaping () -> Bool,
+        _ condition: @escaping ConditionAction,
         file: String = #file,
         line: Int = #line
     ) -> Condition<State, Event> {
@@ -22,7 +22,7 @@ public extension ExpandedSyntaxBuilder {
     }
 
     func condition(
-        _ condition: @escaping () -> Bool,
+        _ condition: @escaping ConditionAction,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [MWA]
@@ -32,7 +32,7 @@ public extension ExpandedSyntaxBuilder {
     }
 
     func condition(
-        _ condition: @escaping () -> Bool,
+        _ condition: @escaping ConditionAction,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [MTA]

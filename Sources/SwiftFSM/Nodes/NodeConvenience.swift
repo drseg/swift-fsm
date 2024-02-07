@@ -26,7 +26,7 @@ class OverridableNode {
     }
 }
 
-struct DefaultIO {
+struct DefaultIO: Sendable {
     let match: Match,
         event: AnyTraceable?,
         state: AnyTraceable?,
@@ -61,7 +61,6 @@ func makeDefaultIO(
 ) -> [DefaultIO] {
     [DefaultIO(match, event, state, actions, groupID, isOverride)]
 }
-
 
 extension String: LocalizedError {
     public var errorDescription: String? { self }

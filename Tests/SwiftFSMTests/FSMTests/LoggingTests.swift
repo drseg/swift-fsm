@@ -75,7 +75,8 @@ class LoggerTests: XCTestCase {
         let output = logger.transitionNotExecutedString(Transition(nil, 1, [], 1, 1, []))
         XCTAssertEqual(
             "conditional transition { define(1) | matching([]) | when(1) | then(1) } not executed",
-            output)
+            output
+        )
     }
 }
 
@@ -134,6 +135,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(expected, lazyFSM[keyPath: actual], line: line)
     }
 
+    #warning("Why is it not logged?")
     func testTransitionExecutedIsNotLogged() async {
         buildTable {
             define(1) {
@@ -153,12 +155,12 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     func testTransitionNotExecutedIsLogged() async {
         buildTable {
             define(1) {
-                condition({ false }) | when(1) | then(1)
+                condition({ false }) | when(2) | then(3)
             }
         }
-        await handleEvent(1)
+        await handleEvent(2)
 
-        let t = Transition(nil, 1, [], 1, 1, [])
+        let t = Transition(nil, 1, [], 2, 3, [])
         assertEqual([t, t], \.loggedTransitions)
     }
 }

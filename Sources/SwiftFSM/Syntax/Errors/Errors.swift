@@ -18,7 +18,7 @@ struct SwiftFSMError: LocalizedError, CustomStringConvertible {
     }
 }
 
-class MatchError: Error {
+class MatchError: @unchecked Sendable, Error {
     let predicates: [AnyPredicate]
     let files: [String]
     let lines: [Int]
@@ -178,7 +178,7 @@ struct TableAlreadyBuiltError: LocalizedError {
 
 protocol ValidationError: LocalizedError {}
 extension ValidationError {
-    func description<K: Hashable, V: Collection>(
+    func description<K: FSMType, V: Collection>(
         _ header: String,
         _ dict: [K: V],
         @StringBuilder _ eachGroup: (V.Element) -> [String]
@@ -192,7 +192,7 @@ extension ValidationError {
         }
     }
 
-    func eachGroupDescription<K: Hashable, V: Collection>(
+    func eachGroupDescription<K: FSMType, V: Collection>(
         _ header: String,
         _ group: (K, V),
         @StringBuilder _ eachGroup: (V.Element) -> [String]

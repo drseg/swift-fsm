@@ -1,6 +1,6 @@
 import Foundation
 
-struct IntermediateIO {
+struct IntermediateIO: Sendable {
     let state: AnyTraceable,
         match: Match,
         event: AnyTraceable,

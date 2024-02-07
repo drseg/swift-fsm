@@ -2,11 +2,11 @@ import Foundation
 
 public typealias FSMSyncAction = @MainActor () -> Void
 public typealias FSMAsyncAction = @MainActor () async -> Void
-public typealias FSMSyncActionWithEvent<Event: Hashable> = @MainActor (Event) -> Void
-public typealias FSMAsyncActionWithEvent<Event: Hashable> = @MainActor (Event) async -> Void
+public typealias FSMSyncActionWithEvent<Event: FSMType> = @MainActor (Event) -> Void
+public typealias FSMAsyncActionWithEvent<Event: FSMType> = @MainActor (Event) async -> Void
 
-public struct AnyAction {
-    public enum NullEvent: Hashable { case null }
+public struct AnyAction: @unchecked Sendable {
+    public enum NullEvent: FSMType { case null }
 
     private let base: Any
 
@@ -18,29 +18,29 @@ public struct AnyAction {
         base = action
     }
 
-    init<Event: Hashable>(_ action: @escaping FSMSyncActionWithEvent<Event>) {
+    init<Event: FSMType>(_ action: @escaping FSMSyncActionWithEvent<Event>) {
         base = action
     }
 
-    init<Event: Hashable>(_ action: @escaping FSMAsyncActionWithEvent<Event>) {
+    init<Event: FSMType>(_ action: @escaping FSMAsyncActionWithEvent<Event>) {
         base = action
     }
 
     @MainActor
-    func callAsFunction<Event: Hashable>(_ event: Event = NullEvent.null) throws {
+    func callAsFunction<Event: FSMType>(_ event: Event = NullEvent.null) throws {
         if let base = base as? FSMSyncAction {
             base()
         } else if let base = base as? FSMSyncActionWithEvent<Event> {
             base(event)
         } else if base is FSMAsyncAction || base is FSMAsyncActionWithEvent<Event> {
-            throw "Action with async function called synchronously"
+            throw "'handleEvent' can only call synchronous actions. Use 'handleEventAsync' instead"
         } else {
             throw "Action that takes an Event argument called without an Event"
         }
     }
 
     @MainActor
-    func callAsFunction<Event: Hashable>(_ event: Event = NullEvent.null) async {
+    func callAsFunction<Event: FSMType>(_ event: Event = NullEvent.null) async {
         if let base = base as? FSMSyncAction {
             base()
         } else if let base = base as? FSMSyncActionWithEvent<Event> {

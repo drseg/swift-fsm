@@ -1,8 +1,8 @@
 import Foundation
 
 protocol Node<Output> {
-    associatedtype Input
-    associatedtype Output
+    associatedtype Input: Sendable
+    associatedtype Output: Sendable
 
     typealias Result = (output: [Output], errors: [Error])
 

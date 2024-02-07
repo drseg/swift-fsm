@@ -3,7 +3,7 @@ import Foundation
 typealias PredicateSets = Set<PredicateSet>
 typealias PredicateSet = Set<AnyPredicate>
 
-public protocol Predicate: CaseIterable, Hashable { }
+public protocol Predicate: CaseIterable, FSMType { }
 
 extension Predicate {
     func erased() -> AnyPredicate {
@@ -15,7 +15,7 @@ extension Predicate {
     }
 }
 
-struct AnyPredicate: CustomStringConvertible, Hashable {
+struct AnyPredicate: @unchecked Sendable, CustomStringConvertible, Hashable {
     let base: AnyHashable
 
     init<P: Predicate>(base: P) {

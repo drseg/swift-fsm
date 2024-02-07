@@ -10,6 +10,7 @@ enum U: Predicate { case a, b    }
 enum V: Predicate { case a, b    }
 enum W: Predicate { case a, b    }
 
+@MainActor
 class MatchTests: XCTestCase {
     let p1 = P.a, p2 = P.b, p3 = P.c
     let q1 = Q.a, q2 = Q.b

@@ -76,42 +76,42 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     
     func testConditionTurnstile() throws {
         var bool = false
-        
+
         try fsm.buildTable {
             let resetable = SuperState {
                 condition { bool } | when(.reset) | then(.locked)
             }
-            
+
             define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 condition { bool } | when(.coin) | then(.unlocked)
                 condition { bool } | when(.pass) | then(.alarming)
             }
-            
+
             define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 condition { bool } | when(.coin) | then(.unlocked) | thankyou
                 condition { bool } | when(.pass) | then(.locked)
             }
-            
+
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
-        
+
         assertEventAction(.coin,  "")
         assertEventAction(.pass,  "")
         assertEventAction(.reset,  "")
 
         fsm.state = AnyHashable(State.unlocked)
-        
+
         assertEventAction(.coin,  "")
         assertEventAction(.pass,  "")
         assertEventAction(.reset,  "")
-        
+
         fsm.state = AnyHashable(State.alarming)
-        
+
         assertEventAction(.reset,  "")
 
         fsm.state = AnyHashable(State.locked)
         bool = true
-        
+
         assertTurnstile()
     }
     

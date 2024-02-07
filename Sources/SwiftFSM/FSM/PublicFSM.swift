@@ -4,7 +4,7 @@ public enum StateActionsPolicy {
     case executeAlways, executeOnChangeOnly
 }
 
-public class FSM<State: Hashable, Event: Hashable> {
+public class FSM<State: FSMType, Event: FSMType> {
     public enum PredicateHandling { case eager, lazy }
 
     var fsm: any FSMProtocol<State, Event>

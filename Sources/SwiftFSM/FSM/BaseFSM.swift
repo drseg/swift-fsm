@@ -9,11 +9,11 @@ import ReflectiveEquality
 /// The struct TableBuilder below should be internal, but when marked as such, Swift fails to link when compiling in release mode
 
 @resultBuilder
-public struct TableBuilder<State: Hashable, Event: Hashable>: ResultBuilder {
+public struct TableBuilder<State: FSMType, Event: FSMType>: ResultBuilder {
     public typealias T = Syntax.Define<State, Event>
 }
 
-struct TableKey: Hashable {
+struct TableKey: @unchecked Sendable, Hashable {
     let state: AnyHashable,
         predicates: PredicateSet,
         event: AnyHashable
@@ -31,13 +31,13 @@ struct TableKey: Hashable {
     }
 }
 
-enum TransitionStatus<Event: Hashable> {
+enum TransitionStatus<Event: FSMType> {
     case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
 }
 
 protocol FSMProtocol<State, Event>: AnyObject {
-    associatedtype State: Hashable
-    associatedtype Event: Hashable
+    associatedtype State: FSMType
+    associatedtype Event: FSMType
 
     var stateActionsPolicy: StateActionsPolicy { get }
     var table: [TableKey: Transition] { get set }
@@ -154,7 +154,7 @@ extension FSMProtocol {
         if result.output.isEmpty {
             throw makeError(EmptyTableError())
         }
-        
+
         let firstOutput = result.output.first
         let stateEvent = (firstOutput?.state, firstOutput?.event)
         if deepDescription(stateEvent).contains("NSObject") {
@@ -175,7 +175,7 @@ extension FSMProtocol {
     }
 }
 
-class BaseFSM<State: Hashable, Event: Hashable> {
+class BaseFSM<State: FSMType, Event: FSMType> {
     let stateActionsPolicy: StateActionsPolicy
 
     var table: [TableKey: Transition] = [:]
@@ -198,11 +198,11 @@ class BaseFSM<State: Hashable, Event: Hashable> {
 
 @MainActor
 private extension Transition {
-    func executeActions<E: Hashable>(event: E) throws {
+    func executeActions<E: FSMType>(event: E) throws {
         try actions.forEach { try $0(event) }
     }
 
-    func executeActions<E: Hashable>(event: E) async {
+    func executeActions<E: FSMType>(event: E) async {
         for action in actions {
             await action(event)
         }

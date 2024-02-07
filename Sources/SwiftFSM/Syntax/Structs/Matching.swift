@@ -1,8 +1,8 @@
 import Foundation
 
 public protocol Conditional<State, Event> {
-    associatedtype State: Hashable
-    associatedtype Event: Hashable
+    associatedtype State: FSMType
+    associatedtype Event: FSMType
 }
 
 extension Conditional {
@@ -110,8 +110,10 @@ protocol _Conditional: Conditional {
     var name: String { get }
 }
 
+public typealias ConditionAction = @MainActor @Sendable () -> Bool
+
 public extension Syntax.Expanded {
-    struct Condition<State: Hashable, Event: Hashable>: _Conditional {
+    struct Condition<State: FSMType, Event: FSMType>: _Conditional {
         let node: MatchNode
         let file: String
         let line: Int
@@ -119,7 +121,7 @@ public extension Syntax.Expanded {
         var name: String { "condition" }
 
         init(
-            _ condition: @escaping () -> Bool,
+            _ condition: @escaping ConditionAction,
             file: String = #file,
             line: Int = #line
         ) {
@@ -132,7 +134,7 @@ public extension Syntax.Expanded {
         }
     }
 
-    struct Matching<State: Hashable, Event: Hashable>: _Conditional {
+    struct Matching<State: FSMType, Event: FSMType>: _Conditional {
         let node: MatchNode
         let file: String
         let line: Int

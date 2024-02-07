@@ -11,7 +11,7 @@ public struct SuperState {
         onEntry: [AnyAction] = [],
         onExit: [AnyAction] = []
     ) {
-        self.init(superStates: [superState] + andSuperStates, 
+        self.init(superStates: [superState] + andSuperStates,
                   onEntry: onEntry,
                   onExit: onExit)
     }

@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Syntax {
-    struct Actions<Event: Hashable> {
+    struct Actions<Event: FSMType> {
         let actions: [AnyAction]
         let file: String
         let line: Int

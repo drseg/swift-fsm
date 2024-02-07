@@ -4,8 +4,8 @@ import XCTest
 
 @MainActor
 protocol FSMTestsProtocol<State, Event> {
-    associatedtype State: Hashable
-    associatedtype Event: Hashable
+    associatedtype State: FSMType
+    associatedtype Event: FSMType
 
     var initialState: State { get }
 
@@ -13,7 +13,7 @@ protocol FSMTestsProtocol<State, Event> {
 }
 
 @MainActor
-class FSMTestsBase<State: Hashable, Event: Hashable>:
+class FSMTestsBase<State: FSMType, Event: FSMType>:
     XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
     var fsm: (any FSMProtocol<State, Event>)!
     var actionsPolicy = StateActionsPolicy.executeOnChangeOnly

@@ -1,6 +1,8 @@
 import Foundation
 
+public typealias FSMType = Hashable & Sendable
+
 public protocol SyntaxBuilder {
-    associatedtype State: Hashable
-    associatedtype Event: Hashable
+    associatedtype State: FSMType
+    associatedtype Event: FSMType
 }

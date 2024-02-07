@@ -1,7 +1,7 @@
 import Foundation
 
-struct Transition {
-    let condition: (() -> Bool)?,
+struct Transition: @unchecked Sendable {
+    let condition: ConditionAction?,
         state: AnyHashable,
         predicates: PredicateSet,
         event: AnyHashable,
@@ -9,7 +9,7 @@ struct Transition {
         actions: [AnyAction]
 
     init(
-        _ condition: (() -> Bool)?,
+        _ condition: ConditionAction?,
         _ state: AnyHashable,
         _ predicates: PredicateSet,
         _ event: AnyHashable,
@@ -71,7 +71,7 @@ final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
         let clashes: ImplicitClashesDictionary
     }
 
-    struct ImplicitClashesKey: Hashable {
+    struct ImplicitClashesKey: FSMType {
         let state: AnyTraceable,
             predicates: PredicateSet,
             event: AnyTraceable

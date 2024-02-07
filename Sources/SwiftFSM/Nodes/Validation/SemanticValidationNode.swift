@@ -1,6 +1,6 @@
 import Foundation
 
-protocol SVNKey: Hashable {
+protocol SVNKey: FSMType {
     init(_ input: SemanticValidationNode.Input)
 }
 
@@ -13,7 +13,7 @@ class SemanticValidationNode: Node {
         let clashes: ClashesDictionary
     }
 
-    class OverrideError: Error {
+    class OverrideError: @unchecked Sendable, Error {
         let override: IntermediateIO
 
         init(_ override: IntermediateIO) {

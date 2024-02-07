@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Syntax {
-    struct Define<State: Hashable, Event: Hashable> {
+    struct Define<State: FSMType, Event: FSMType> {
         let node: DefineNode
 
         init(

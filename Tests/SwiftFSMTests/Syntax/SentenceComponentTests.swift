@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-final class SentenceComponentTests: SyntaxTestsBase {
+final class SentenceComponentTests: SyntaxTestsBase, Sendable {
     func assertMW(_ mw: MatchingWhen<State, Event>, sutLine sl: Int, xctLine xl: UInt = #line) {
         assertMWNode(mw.node, sutLine: sl, xctLine: xl)
     }

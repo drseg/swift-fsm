@@ -1,13 +1,13 @@
 import Foundation
 
-class Match {
+class Match: Sendable {
     typealias Result = Swift.Result<Match, MatchError>
     typealias AnyPP = any Predicate
 
     let matchAny: [[AnyPredicate]]
     let matchAll: [AnyPredicate]
 
-    let condition: (() -> Bool)?
+    let condition: ConditionAction?
 
     let file: String
     let line: Int
@@ -15,7 +15,7 @@ class Match {
     var next: Match?
     var originalSelf: Match?
 
-    convenience init(condition: @escaping () -> Bool, file: String = #file, line: Int = #line) {
+    convenience init(condition: @escaping ConditionAction, file: String = #file, line: Int = #line) {
         self.init(any: [], all: [], condition: condition, file: file, line: line)
     }
 
@@ -39,7 +39,7 @@ class Match {
     init(
         any: [[AnyPredicate]],
         all: [AnyPredicate],
-        condition: (() -> Bool)? = nil,
+        condition: ConditionAction? = nil,
         file: String = #file,
         line: Int = #line
     ) {
@@ -113,7 +113,7 @@ class Match {
     }
 
     func adding(_ other: Match) -> Match {
-        var condition: (() -> Bool)? {
+        var condition: ConditionAction? {
             return switch (self.condition == nil, other.condition == nil) {
             case (true, true): nil
             case (true, false): other.condition!
@@ -183,7 +183,7 @@ extension Match: Hashable {
     }
 }
 
-struct RankedPredicates: Hashable {
+struct RankedPredicates: FSMType {
     let predicates: PredicateSet
     let rank: Int
 
@@ -203,7 +203,7 @@ extension Match.Result {
     }
 }
 
-extension Collection where Element: Collection & Hashable, Element.Element: Hashable {
+extension Collection where Element: Collection & FSMType, Element.Element: FSMType {
     var asSets: Set<Set<Element.Element>> {
         Set(map(Set.init)).removingEmpties
     }

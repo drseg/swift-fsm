@@ -1,11 +1,11 @@
 import Foundation
 
-struct AnyTraceable {
+struct AnyTraceable: @unchecked Sendable {
     let base: AnyHashable
     let file: String
     let line: Int
 
-    init<H: Hashable>(_ base: H?, file: String, line: Int) {
+    init<H: FSMType>(_ base: H?, file: String, line: Int) {
         self.base = base!
         self.file = file
         self.line = line

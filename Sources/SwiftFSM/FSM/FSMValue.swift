@@ -1,6 +1,6 @@
 import Foundation
 
-public enum FSMValue<T: Hashable>: Hashable {
+public enum FSMValue<T: FSMType>: FSMType {
     case some(T), any
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
@@ -18,7 +18,7 @@ public enum FSMValue<T: Hashable>: Hashable {
     }
 
     private var isSome: Bool {
-        return if case .some(_) = self {
+        return if case .some = self {
             true
         } else {
             false
@@ -26,14 +26,14 @@ public enum FSMValue<T: Hashable>: Hashable {
     }
 }
 
-public protocol EventWithValues: Hashable { }
+public protocol EventWithValues: FSMType { }
 public extension EventWithValues {
     func hash(into hasher: inout Hasher) {
         hasher.combine(String.caseName(self))
     }
 }
 
-public protocol EventValue: Hashable, CaseIterable {
+public protocol EventValue: FSMType, CaseIterable {
     static var any: Self { get }
 }
 

@@ -20,7 +20,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
-        .package(url: "https://github.com/drseg/reflective-equality", from: "1.0.0"),
+        .package(url: "https://github.com/drseg/reflective-equality", from: "1.0.1"),
 //        .package(url: "https://github.com/drseg/swift-fsm-macros", branch: "master"),
 //        .package(url: "https://github.com/realm/SwiftLint", from: "0.50.0")
     ],
@@ -33,8 +33,9 @@ let package = Package(
             ],
             swiftSettings: [
                 .define("DEVELOPMENT", .when(configuration: .debug)),
-                .enableExperimentalFeature("StrictConcurrency=targeted")
+                .enableExperimentalFeature("StrictConcurrency=complete")
             ]
+//            plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
         ),
 
         .testTarget(
