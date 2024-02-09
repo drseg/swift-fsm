@@ -5,7 +5,7 @@ public enum Syntax {
 }
 
 public enum Internal {
-    public struct MatchingWhen<State: FSMType, Event: FSMType> {
+    public struct MatchingWhen<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,
             rhs: Syntax.Then<State, Event>
@@ -58,7 +58,7 @@ public enum Internal {
         let node: WhenNode
     }
 
-    public struct MatchingThen<Event: FSMType> {
+    public struct MatchingThen<Event: FSMHashable> {
         public static func | (
             lhs: Self,
             rhs: @escaping FSMSyncAction
@@ -97,11 +97,11 @@ public enum Internal {
         let node: ThenNode
     }
 
-    public final class MatchingActions<Event: FSMType>: MA { }
-    public final class MatchingWhenActions<Event: FSMType>: MWA { }
-    public final class MatchingThenActions<Event: FSMType>: MTA { }
+    public final class MatchingActions<Event: FSMHashable>: MA { }
+    public final class MatchingWhenActions<Event: FSMHashable>: MWA { }
+    public final class MatchingThenActions<Event: FSMHashable>: MTA { }
 
-    public struct MatchingWhenThen<Event: FSMType> {
+    public struct MatchingWhenThen<Event: FSMHashable> {
         public static func | (
             lhs: Self,
             rhs: @escaping FSMSyncAction

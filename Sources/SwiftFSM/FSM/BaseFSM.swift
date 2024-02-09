@@ -9,7 +9,7 @@ import ReflectiveEquality
 /// The struct TableBuilder below should be internal, but when marked as such, Swift fails to link when compiling in release mode
 
 @resultBuilder
-public struct TableBuilder<State: FSMType, Event: FSMType>: ResultBuilder {
+public struct TableBuilder<State: FSMHashable, Event: FSMHashable>: ResultBuilder {
     public typealias T = Syntax.Define<State, Event>
 }
 
@@ -31,13 +31,13 @@ struct TableKey: @unchecked Sendable, Hashable {
     }
 }
 
-enum TransitionStatus<Event: FSMType> {
+enum TransitionStatus<Event: FSMHashable> {
     case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
 }
 
 protocol FSMProtocol<State, Event>: AnyObject {
-    associatedtype State: FSMType
-    associatedtype Event: FSMType
+    associatedtype State: FSMHashable
+    associatedtype Event: FSMHashable
 
     var stateActionsPolicy: StateActionsPolicy { get }
     var table: [TableKey: Transition] { get set }
@@ -165,7 +165,7 @@ extension FSMProtocol {
     }
 }
 
-class BaseFSM<State: FSMType, Event: FSMType> {
+class BaseFSM<State: FSMHashable, Event: FSMHashable> {
     let stateActionsPolicy: StateActionsPolicy
 
     var table: [TableKey: Transition] = [:]
@@ -188,11 +188,11 @@ class BaseFSM<State: FSMType, Event: FSMType> {
 
 @MainActor
 private extension Transition {
-    func executeActions<E: FSMType>(event: E) throws {
+    func executeActions<E: FSMHashable>(event: E) throws {
         try actions.forEach { try $0(event) }
     }
 
-    func executeActions<E: FSMType>(event: E) async {
+    func executeActions<E: FSMHashable>(event: E) async {
         for action in actions {
             await action(event)
         }

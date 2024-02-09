@@ -1,6 +1,6 @@
 import Foundation
 
-protocol SVNKey: FSMType {
+protocol SVNKey: FSMHashable {
     init(_ input: SemanticValidationNode.Input)
 }
 

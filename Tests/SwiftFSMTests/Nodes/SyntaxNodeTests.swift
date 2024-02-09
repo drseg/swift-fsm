@@ -376,7 +376,7 @@ extension Collection {
         forEach { $0() }
     }
 
-    func executeAll<Event: FSMType>(_ event: Event = "TILT") async where Element == AnyAction {
+    func executeAll<Event: FSMHashable>(_ event: Event = "TILT") async where Element == AnyAction {
         for action in self {
             await action(event)
         }

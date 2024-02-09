@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Syntax {
-    struct When<State: FSMType, Event: FSMType> {
+    struct When<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,
             rhs: Then<State, Event>

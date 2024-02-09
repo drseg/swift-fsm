@@ -71,7 +71,7 @@ final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
         let clashes: ImplicitClashesDictionary
     }
 
-    struct ImplicitClashesKey: FSMType {
+    struct ImplicitClashesKey: FSMHashable {
         let state: AnyTraceable,
             predicates: PredicateSet,
             event: AnyTraceable

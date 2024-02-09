@@ -178,7 +178,7 @@ struct TableAlreadyBuiltError: LocalizedError {
 
 protocol ValidationError: LocalizedError {}
 extension ValidationError {
-    func description<K: FSMType, V: Collection>(
+    func description<K: FSMHashable, V: Collection>(
         _ header: String,
         _ dict: [K: V],
         @StringBuilder _ eachGroup: (V.Element) -> [String]
@@ -192,7 +192,7 @@ extension ValidationError {
         }
     }
 
-    func eachGroupDescription<K: FSMType, V: Collection>(
+    func eachGroupDescription<K: FSMHashable, V: Collection>(
         _ header: String,
         _ group: (K, V),
         @StringBuilder _ eachGroup: (V.Element) -> [String]

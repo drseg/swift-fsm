@@ -1,6 +1,6 @@
 import Foundation
 
-class Logger<Event: FSMType> {
+class Logger<Event: FSMHashable> {
     func transitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
 #if DEVELOPMENT
         warning(transitionNotFoundString(event, predicates))

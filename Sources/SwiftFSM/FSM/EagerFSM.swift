@@ -1,6 +1,6 @@
 import Foundation
 
-class EagerFSM<State: FSMType, Event: FSMType>: BaseFSM<State, Event>, FSMProtocol {
+class EagerFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FSMProtocol {
     func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         EagerMatchResolvingNode(rest: rest)
     }

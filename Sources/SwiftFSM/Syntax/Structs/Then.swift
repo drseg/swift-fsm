@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Syntax {
-    struct Then<State: FSMType, Event: FSMType> {
+    struct Then<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,
             rhs: @escaping FSMSyncAction

@@ -5,7 +5,7 @@ struct AnyTraceable: @unchecked Sendable {
     let file: String
     let line: Int
 
-    init<H: FSMType>(_ base: H?, file: String, line: Int) {
+    init<H: FSMHashable>(_ base: H?, file: String, line: Int) {
         self.base = base!
         self.file = file
         self.line = line

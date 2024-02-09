@@ -189,7 +189,7 @@ extension Match: Hashable {
     }
 }
 
-struct RankedPredicates: FSMType {
+struct RankedPredicates: FSMHashable {
     let predicates: PredicateSet
     let rank: Int
 
@@ -209,7 +209,7 @@ extension Match.Result {
     }
 }
 
-extension Collection where Element: Collection & FSMType, Element.Element: FSMType {
+extension Collection where Element: Collection & FSMHashable, Element.Element: FSMHashable {
     var asSets: Set<Set<Element.Element>> {
         Set(map(Set.init)).removingEmpties
     }
