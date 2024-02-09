@@ -14,9 +14,9 @@ public struct TableBuilder<State: FSMHashable, Event: FSMHashable>: ResultBuilde
 }
 
 struct TableKey: @unchecked Sendable, Hashable {
-    let state: AnyHashable,
-        predicates: PredicateSet,
-        event: AnyHashable
+    let state: AnyHashable
+    let predicates: PredicateSet
+    let event: AnyHashable
 
     init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable) {
         self.state = state

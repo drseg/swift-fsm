@@ -15,7 +15,7 @@ extension Predicate {
     }
 }
 
-struct AnyPredicate: @unchecked Sendable, CustomStringConvertible, Hashable {
+struct AnyPredicate: @unchecked Sendable, Hashable, CustomStringConvertible {
     let base: AnyHashable
 
     init<P: Predicate>(base: P) {
