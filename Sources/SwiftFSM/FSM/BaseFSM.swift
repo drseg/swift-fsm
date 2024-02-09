@@ -55,16 +55,6 @@ protocol FSMProtocol<State, Event>: AnyObject {
 
 extension FSMProtocol {
     @MainActor
-    func handleEvent(_ event: Event) throws {
-        try handleEvent(event, predicates: [])
-    }
-
-    @MainActor
-    func handleEventAsync(_ event: Event) async {
-        await handleEventAsync(event, predicates: [])
-    }
-
-    @MainActor
     func handleEvent(_ event: Event, predicates: any Predicate...) throws {
         try handleEvent(event, predicates: predicates)
     }

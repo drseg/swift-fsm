@@ -8,8 +8,8 @@ class EagerFSM<State: FSMType, Event: FSMType>: BaseFSM<State, Event>, FSMProtoc
     @MainActor
     func handleEvent(_ event: Event, predicates: [any Predicate]) throws {
         try handleResult(_handleEvent(event, predicates: predicates),
-                     for: event,
-                     with: predicates)
+                         for: event,
+                         with: predicates)
     }
 
     @MainActor

@@ -1,6 +1,6 @@
 import Foundation
 
-class Match: Sendable {
+final class Match: Sendable {
     typealias Result = Swift.Result<Match, MatchError>
     typealias AnyPP = any Predicate
 
@@ -8,12 +8,11 @@ class Match: Sendable {
     let matchAll: [AnyPredicate]
 
     let condition: ConditionAction?
+    let next: Match?
+    let originalSelf: Match?
 
     let file: String
     let line: Int
-
-    var next: Match?
-    var originalSelf: Match?
 
     convenience init(condition: @escaping ConditionAction, file: String = #file, line: Int = #line) {
         self.init(any: [], all: [], condition: condition, file: file, line: line)
@@ -40,19 +39,28 @@ class Match: Sendable {
         any: [[AnyPredicate]],
         all: [AnyPredicate],
         condition: ConditionAction? = nil,
+        next: Match? = nil,
+        originalSelf: Match? = nil,
         file: String = #file,
         line: Int = #line
     ) {
         self.matchAny = any
         self.matchAll = all
         self.condition = condition
+        self.next = next
+        self.originalSelf = originalSelf
         self.file = file
         self.line = line
     }
 
     func prepend(_ m: Match) -> Match {
-        m.next = self
-        return m
+        .init(any: m.matchAny,
+              all: m.matchAll,
+              condition: m.condition,
+              next: self,
+              originalSelf: m.originalSelf,
+              file: m.file,
+              line: m.line)
     }
 
     func finalised() -> Result {
@@ -122,15 +130,13 @@ class Match: Sendable {
             }
         }
 
-        let m = Match(any: matchAny + other.matchAny,
-                      all: matchAll + other.matchAll,
-                      condition: condition,
-                      file: file,
-                      line: line)
-        m.next = next
-        m.originalSelf = self
-
-        return m
+        return Match(any: matchAny + other.matchAny,
+                     all: matchAll + other.matchAll,
+                     condition: condition,
+                     next: next,
+                     originalSelf: self,
+                     file: file,
+                     line: line)
     }
 
     func allPredicateCombinations(_ predicatePool: PredicateSets) -> Set<RankedPredicates> {
