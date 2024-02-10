@@ -422,26 +422,39 @@ try fsm.buildTable {
         when(.reset) | then(.locked)
     }
 
-    define(.locked, adopts: resetable, onEntry: [lock]) {
+    define(.locked, adopts: resetable, onEntry: lock*) {
         when(.coin) | then(.unlocked)
         when(.pass) | then(.alarming)
     }
 
-    define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+    define(.unlocked, adopts: resetable, onEntry: unlock*) {
         when(.coin) | then(.unlocked) | thankyou
         when(.pass) | then(.locked)
     }
 
-    define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+    define(.alarming, adopts: resetable, onEntry: alarmOn*, onExit: alarmOff*)
 }
 ```
 
-`onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state. Note that these require array syntax rather than varargs, as a work around for limitations in Swift’s matching algorithm for functions that take multiple closure arguments.
+`onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state. Note that these require array syntax rather than varargs, as a work around for limitations in Swift’s matching algorithm for functions that take multiple closure arguments. 
+
+As the array is heterogeneous (it can include any of the four function types accepted by SwiftFSM as valid actions), a special postfix operator `*` is provided to convert a single one of these into an array of `AnyAction`. Wrapping the single action in an Array Initializer (`Array(unlock)`) is equivalent, and as previously, multiple actions can be combined into a heterogenous Array using the `&` operator.
+
+```swift
+let _ = unlock* // preferred syntax, same as...
+let _ = Array(unlock) // same as...
+let _ = [AnyAction(unlock)]
+
+let _ = unlock & thankyou // preferred syntax, same as...
+let _ = AnyAction(unlock) & thankyou // same as...
+let _ = AnyAction(unlock) & AnyAction(thankyou) // same as...
+let _ = [AnyAction(unlock), AnyAction(thankyou)]
+```
 
 `SuperState` instances can also accept entry and exit actions:
 
 ```swift
-let resetable = SuperState(onEntry: [lock]) {
+let resetable = SuperState(onEntry: lock*) {
     when(.reset) | then(.locked)
 }
 
@@ -452,7 +465,7 @@ define(.locked, adopts: resetable) {
 
 // equivalent to:
 
-define(.locked, onEntry: [lock]) {
+define(.locked, onEntry: lock*) {
     when(.reset) | then(.locked)
     when(.coin)  | then(.unlocked)
     when(.pass)  | then(.alarming)
@@ -517,35 +530,35 @@ Actions can receive the event that led to their being called, which can be usefu
 
 ```swift
 enum Event: EventWithValues {
-	case .coin(FSMValue<Int>)
+    case .coin(FSMValue<Int>)
 }
 
-try fsm.buildTable(initialState: .locked) {
-    define(.locked) {
-	    when(.coin(.any)) | then(.verifyingPayment) | verifyPayment
+func main() throws {
+    try fsm.buildTable(initialState: .locked) {
+        define(.locked) {
+            when(.coin(.any)) | then(.verifyingPayment) | verifyPayment
+        }
     }
-}
 
-try fsm.handleEvent(.coin(.some(50)))
+    try fsm.handleEvent(.coin(.some(50)))
+}
 
 func verifyPayment(_ event: Event) {
-	guard case .coin(let amount) = event else { return }
+    guard case .coin(let amount) = event else { return }
 
-	if let amount = amount.wrappedValue {
-		if amount >= requiredAmount {
-			letThemThrough()
-		} else {
-			insufficientPayment(shortfall: requiredAmount - amount)
-		}
-	}
+    if let amount = amount.wrappedValue {
+        if amount >= requiredAmount {
+            letThemThrough()
+        } else {
+            insufficientPayment(shortfall: requiredAmount - amount)
+        }
+    }
 }
-
-try fsm.handleEvent(.coin(.some(50)))
 ```
 
 In this example, the transition to `.verifyingPayment` will be activated when in the `.locked` state when any `.coin` event is triggered, no matter what the wrapped value is. That wrapped value, whatever it may be, is then passed into the `verifyPayment(_ event:)` function where it can be examined. `FSMValue` provides the convenience method `wrappedValue`, which returns an optional value, in order to reduce the burden of having to write more case let syntax to extract its wrapped value.
 
-In order for this to work, we need two elements - the `EventWithValues` protocol, to which your event must conform, and the use of `FSMValue<T>` to wrap the values you wish to pass. These allow you to write the `when` statement using the `.any` case of FSMValue, allowing this row in the table to match with any wrapped value and pass it on.
+In order for this to work, we need two FSM-provided helpers - the `EventWithValues` protocol, to which your event must conform, and the use of `FSMValue<T>` to wrap the values you wish to pass. These allow you to write the `when` statement using the `.any` case of FSMValue, allowing this row in the table to match with any wrapped value and then pass it on to your action.
 
 Because `.any` matches all cases, the following would throw an error:
 
@@ -555,7 +568,9 @@ try fsm.buildTable(initialState: .locked) {
 	    when(.coin(.any))     | then(.verifyingPayment) | verifyPayment
 		when(.coin(.some(50)) | then(.unlocked)         | pass
     }
-} //💥 error: dupicate transitions
+} 
+
+//💥 error: logical clash
 ```
 
 The `.any` case already includes `.some(50)` and this specific case is therefore referenced ambiguously. It would however be possible to write the following:
@@ -566,7 +581,9 @@ try fsm.buildTable(initialState: .locked) {
 	    when(.coin(.some(20)) | then(.verifyingPayment) | verifyPayment
 		when(.coin(.some(50)) | then(.unlocked)         | pass
     }
-} // ✅
+} 
+
+// ✅ transitions are logically distinct
 ```
 
 ### Limitations of `@resultBuilder` Implementation

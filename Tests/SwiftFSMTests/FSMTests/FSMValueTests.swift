@@ -22,6 +22,34 @@ final class FSMValueTests: XCTestCase {
         XCTAssertEqual(v2.wrappedValue, "1")
         XCTAssertEqual(v3.wrappedValue, "2")
     }
+
+    func testConvenienceEquatable() {
+        XCTAssertTrue(v2 == "1")
+        XCTAssertTrue(v2 != "2")
+        XCTAssertFalse(v2 != "1")
+        XCTAssertFalse(v2 == "2")
+
+        XCTAssertTrue("1" == v2)
+        XCTAssertTrue("2" != v2)
+        XCTAssertFalse("1" != v2)
+        XCTAssertFalse("2" == v2)
+    }
+
+    func testConvenienceComparable() {
+        XCTAssertTrue(v3 > "1")
+        XCTAssertFalse(v3 < "1")
+        XCTAssertFalse(v3 <= "1")
+        XCTAssertTrue(v2 >= "1")
+        XCTAssertFalse(v2 > "1")
+        XCTAssertTrue(v2 <= "1")
+
+        XCTAssertTrue("1" < v3)
+        XCTAssertFalse("1" > v3)
+        XCTAssertFalse("1" >= v3)
+        XCTAssertTrue("1" <= v2)
+        XCTAssertFalse("1" < v2)
+        XCTAssertTrue("1" >= v2)
+    }
 }
 
 final class EventValueTests: XCTestCase {

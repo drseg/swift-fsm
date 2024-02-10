@@ -10,6 +10,22 @@ public enum FSMValue<T: FSMHashable>: FSMHashable {
         return lhs.wrappedValue == rhs.wrappedValue
     }
 
+    public static func == (lhs: Self, rhs: T) -> Bool {
+        lhs.wrappedValue == rhs
+    }
+
+    public static func == (lhs: T, rhs: Self) -> Bool {
+        lhs == rhs.wrappedValue
+    }
+
+    public static func != (lhs: Self, rhs: T) -> Bool {
+        lhs.wrappedValue != rhs
+    }
+
+    public static func != (lhs: T, rhs: Self) -> Bool {
+        lhs != rhs.wrappedValue
+    }
+
     public var wrappedValue: T? {
         return if case let .some(value) = self {
             value
@@ -24,6 +40,56 @@ public enum FSMValue<T: FSMHashable>: FSMHashable {
         } else {
             false
         }
+    }
+}
+
+extension FSMValue where T: Comparable {
+    public static func > (lhs: Self, rhs: T) -> Bool {
+        guard let value = lhs.wrappedValue else { return false }
+
+        return value > rhs
+    }
+
+    public static func < (lhs: Self, rhs: T) -> Bool {
+        guard let value = lhs.wrappedValue else { return false }
+
+        return value < rhs
+    }
+
+    public static func >= (lhs: Self, rhs: T) -> Bool {
+        guard let value = lhs.wrappedValue else { return false }
+
+        return value >= rhs
+    }
+
+    public static func <= (lhs: Self, rhs: T) -> Bool {
+        guard let value = lhs.wrappedValue else { return false }
+
+        return value <= rhs
+    }
+
+    public static func > (lhs: T, rhs: Self) -> Bool {
+        guard let value = rhs.wrappedValue else { return false }
+
+        return lhs > value
+    }
+
+    public static func < (lhs: T, rhs: Self) -> Bool {
+        guard let value = rhs.wrappedValue else { return false }
+
+        return lhs < value
+    }
+
+    public static func >= (lhs: T, rhs: Self) -> Bool {
+        guard let value = rhs.wrappedValue else { return false }
+
+        return lhs >= value
+    }
+
+    public static func <= (lhs: T, rhs: Self) -> Bool {
+        guard let value = rhs.wrappedValue else { return false }
+
+        return lhs <= value
     }
 }
 
