@@ -291,25 +291,25 @@ define(.locked, adopts: s1) {
 }
 ```
 
-If you wish to override a `SuperState` transition, you must make this explicit using the `override { }` block:
+If you wish to override a `SuperState` transition, you must make this explicit using the `overriding { }` block:
 
 ```swift
 let s1 = SuperState { when(.coin) | then(.unlocked) | unlock  }
 
 let s2 = SuperState(adopts: s1) {
-    overrides { 
+    overriding { 
         when(.coin) | then(.locked) | beGrumpy // ✅ overrides inherited transition
     }
 }
 
 define(.locked, adopts: s1) {
-    overrides { 
+    overriding { 
         when(.coin) | then(.locked) | beGrumpy // ✅ overrides inherited transition
     }
 }
 ```
 
-The `overrides` block indicates to Swift FSM that any transitions contained within it override any inherited transitions with the same initial states and events. 
+The `overriding` block indicates to Swift FSM that any transitions contained within it override any inherited transitions with the same initial states and events. 
 
 As multiple inheritance is allowed, overrides replace all matching transitions:
 
@@ -318,7 +318,7 @@ let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething      }
 let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse  }
 
 define(.locked, adopts: s1, s2) {
-    overrides { 
+    overriding { 
         when(.coin) | then(.locked) | doYetAnotherThing // ✅ overrides both inherited transitions
     }
 }
@@ -333,21 +333,21 @@ let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse  }
 define(.locked, adopts: s1, s2) // 💥 error: duplicate transitions
 ```
 
-If `override` is used where there is nothing to override, the FSM will throw:
+If `overriding` is used where there is nothing to override, the FSM will throw:
 
 ```swift
 define(.locked) {
-    overrides { 
+    overriding { 
         when(.coin) | then(.locked) | beGrumpy // 💥 error: nothing to override
     }
 }
 ```
 
-Writing `override` in the parent rather than the child will throw:
+Writing `overriding` in the parent rather than the child will throw:
 
 ```swift
 let s1 = SuperState {
-    overrides { 
+    overriding { 
         when(.coin) | then(.locked) | beGrumpy
     }
 }
@@ -362,7 +362,7 @@ Attempting to override within the same `SuperState { }` or `define { }` will als
 ```swift
 define(.locked) {
     when(.coin) | then(.locked) | doSomething
-    overrides { 
+    overriding { 
         when(.coin) | then(.locked) | doSomethingElse
     }
 }
@@ -372,18 +372,18 @@ define(.locked) {
 
 In this scope, the word override has no meaning and therefore is ignored by the error handler. What remains is therefore two duplicate transitions, resulting in an error.
 
-#### Overriding Overrides
+#### Override Chains
 
 Overrides in Swift FSM follow the usual rules of inheritance. In a chain of overrides, it is the final transition in that chain that takes precedence:
 
 ```swift
 let s1 = SuperState { when(.coin) | then(.unlocked) | a1  }
-let s2 = SuperState(adopts: s1) { overrides { when(.coin) | then(.unlocked) | a2 } }
-let s3 = SuperState(adopts: s2) { overrides { when(.coin) | then(.unlocked) | a3 } }
-let s4 = SuperState(adopts: s3) { overrides { when(.coin) | then(.unlocked) | a4 } }
+let s2 = SuperState(adopts: s1) { overriding { when(.coin) | then(.unlocked) | a2 } }
+let s3 = SuperState(adopts: s2) { overriding { when(.coin) | then(.unlocked) | a3 } }
+let s4 = SuperState(adopts: s3) { overriding { when(.coin) | then(.unlocked) | a4 } }
 
 define(.locked, adopts: s4) {
-    overrides { when(.coin) | then(.unlocked) | a5 } // ✅ overrides all others
+    overriding { when(.coin) | then(.unlocked) | a5 } // ✅ overrides all others
 }
 
 fsm.handleEvent(.coin) // 'a5' is called

@@ -125,7 +125,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 when(.coin) | then(.unlocked)
                 when(.pass) | then(.alarming)
                 
-                overrides {
+                overriding {
                     when(.reset) | then(.locked) | thankyou
                 }
             }
@@ -134,7 +134,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 when(.coin) | then(.unlocked) | thankyou
                 when(.pass) | then(.locked)
                 
-                overrides {
+                overriding {
                     when(.reset) | then(.locked) | lock
                 }
             }
@@ -156,12 +156,12 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         
         try fsm.buildTable {
             let s1 = SuperState { when(.coin) | then(.unlocked) | fail  }
-            let s2 = SuperState(adopts: s1) { overrides { when(.coin) | then(.unlocked) | fail } }
-            let s3 = SuperState(adopts: s2) { overrides { when(.coin) | then(.unlocked) | fail } }
-            let s4 = SuperState(adopts: s3) { overrides { when(.coin) | then(.unlocked) | fail } }
+            let s2 = SuperState(adopts: s1) { overriding { when(.coin) | then(.unlocked) | fail } }
+            let s3 = SuperState(adopts: s2) { overriding { when(.coin) | then(.unlocked) | fail } }
+            let s4 = SuperState(adopts: s3) { overriding { when(.coin) | then(.unlocked) | fail } }
             
             define(.locked, adopts: s4) {
-                overrides { when(.coin) | then(.unlocked) | unlock }
+                overriding { when(.coin) | then(.unlocked) | unlock }
             }
         }
 
@@ -534,7 +534,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         XCTAssertThrowsError (
             try fsm.buildTable {
                 define(.locked) {
-                    overrides { when(.coin) | then(.unlocked) }
+                    overriding { when(.coin) | then(.unlocked) }
                 }
             }
         ) {
@@ -548,7 +548,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         XCTAssertThrowsError (
             try fsm.buildTable {
                 let s = SuperState {
-                    overrides { when(.coin) | then(.unlocked) }
+                    overriding { when(.coin) | then(.unlocked) }
                 }
                 
                 define(.locked, adopts: s) {
