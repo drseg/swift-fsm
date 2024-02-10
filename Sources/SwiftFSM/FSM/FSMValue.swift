@@ -1,15 +1,16 @@
 import Foundation
 
+#warning("This should probably have convenience overloads for all the comparative and mathematical operators to make the wrapping transparent")
 public enum FSMValue<T: FSMHashable>: FSMHashable {
     case some(T), any
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
         guard lhs.isSome, rhs.isSome else { return true }
 
-        return lhs.value == rhs.value
+        return lhs.wrappedValue == rhs.wrappedValue
     }
 
-    public var value: T? {
+    public var wrappedValue: T? {
         return if case let .some(value) = self {
             value
         } else {

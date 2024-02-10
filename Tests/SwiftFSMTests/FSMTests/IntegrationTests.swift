@@ -576,7 +576,7 @@ enum ComplexEvent: EventWithValues {
 
     var stringValue: String? {
         switch self {
-        case let .didSetOtherValue(value): value.value
+        case let .didSetOtherValue(value): value.wrappedValue
         case let .didSetValue(value): value.rawValue
         default: nil
         }

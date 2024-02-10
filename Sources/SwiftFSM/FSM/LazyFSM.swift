@@ -9,7 +9,7 @@ import Algorithms
 ///
 /// It should be possible to inherit from:
 ///
-/// _FSMBase<State, Event> & HandleEventProtocol<Event>
+/// BaseFSM<State, Event> & FSMProtocol<Event>
 ///
 /// but the compiler currently won't allow it (even though it is officially supported).
 
