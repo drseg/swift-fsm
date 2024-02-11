@@ -209,6 +209,18 @@ public protocol FSMDictionary: Collection {
 
 extension Dictionary: FSMDictionary { }
 
+extension FSMValue: ExpressibleByBooleanLiteral where T == Bool {
+    public init(booleanLiteral value: Bool) {
+        self = .some(value)
+    }
+}
+
+extension FSMValue: ExpressibleByNilLiteral where T: ExpressibleByNilLiteral {
+    public init(nilLiteral: ()) {
+        self = .some(nil)
+    }
+}
+
 public protocol EventWithValues: FSMHashable { }
 public extension EventWithValues {
     func hash(into hasher: inout Hasher) {
