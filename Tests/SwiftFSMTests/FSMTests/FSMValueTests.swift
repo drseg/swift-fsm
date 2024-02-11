@@ -36,38 +36,89 @@ final class FSMValueTests: XCTestCase {
     }
 
     func testConvenienceComparable() {
+        XCTAssertFalse(.any > "1")
         XCTAssertTrue(v3 > "1")
+
+        XCTAssertFalse(.any < "1")
         XCTAssertFalse(v3 < "1")
+
+        XCTAssertFalse(.any <= "1")
         XCTAssertFalse(v3 <= "1")
+
+        XCTAssertFalse(.any >= "1")
         XCTAssertTrue(v2 >= "1")
+
+        XCTAssertFalse(.any > "1")
         XCTAssertFalse(v2 > "1")
+
+        XCTAssertFalse(.any <= "1")
         XCTAssertTrue(v2 <= "1")
 
+        XCTAssertFalse("1" < .any)
         XCTAssertTrue("1" < v3)
+
+        XCTAssertFalse("1" > .any)
         XCTAssertFalse("1" > v3)
+
+        XCTAssertFalse("1" >= .any)
         XCTAssertFalse("1" >= v3)
+
+        XCTAssertFalse("1" <= .any)
         XCTAssertTrue("1" <= v2)
+
+        XCTAssertFalse("1" < .any)
         XCTAssertFalse("1" < v2)
+
+        XCTAssertFalse("1" >= .any)
         XCTAssertTrue("1" >= v2)
     }
-}
 
-final class EventValueTests: XCTestCase {
-    enum Event: EventValue {
-        case first, second, any
+    func testIntLiteral() {
+        let i8: FSMValue<Int8> = 1
+        let i16: FSMValue<Int16> = 1
+        let i32: FSMValue<Int32> = 1
+        let i64: FSMValue<Int64> = 1
+        let i: FSMValue<Int> = 1
+
+        XCTAssertEqual(1, i8)
+        XCTAssertEqual(1, i16)
+        XCTAssertEqual(1, i32)
+        XCTAssertEqual(1, i64)
+        XCTAssertEqual(1, i)
     }
 
-    func testEquality() {
-        let e1 = Event.first
-        let e2 = Event.second
-        let e3 = Event.any
+    func testFloatLiteral() {
+        let f: FSMValue<Float> = 1.0
+        let f32: FSMValue<Float32> = 1.0
+        let f64: FSMValue<Float64> = 1.0
+        let f80: FSMValue<Float80> = 1.0
+        let d: FSMValue<Double> = 1.0
 
-        XCTAssertEqual(e1, e1)
-        XCTAssertEqual(e1, e3)
-        XCTAssertEqual(e2, e2)
-        XCTAssertEqual(e2, e3)
+        XCTAssertEqual(1.0, f)
+        XCTAssertEqual(1.0, f32)
+        XCTAssertEqual(1.0, f64)
+        XCTAssertEqual(1.0, f80)
+        XCTAssertEqual(1.0, d)
+    }
 
-        XCTAssertNotEqual(e1, e2)
+
+    func testArrayLiteralAndAccess() {
+        let a1: FSMValue<Array<String>> = ["cat", "cat"]
+
+        XCTAssertEqual(a1, ["cat", "cat"])
+        XCTAssertEqual(a1[0], "cat")
+        XCTAssertEqual(a1.first, "cat")
+        XCTAssertTrue(a1.allSatisfy { $0 == "cat" })
+        XCTAssertEqual(a1.index(after: 0), 1)
+        XCTAssertEqual(a1.index(before: 1), 0)
+    }
+
+    func testDictionaryLiteral() {
+        let d1: FSMValue<Dictionary<String, String>> = ["cat": "fish"]
+
+        XCTAssertEqual(d1["cat"], "fish")
+        XCTAssertEqual(d1["bat"], nil)
+        XCTAssertEqual(d1["bat", default: "cat"], "cat")
     }
 }
 

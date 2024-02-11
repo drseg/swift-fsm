@@ -531,6 +531,11 @@ Actions can receive the event that led to their being called, which can be usefu
 ```swift
 enum Event: EventWithValues {
     case .coin(FSMValue<Int>)
+
+    var coinValue: Int? {
+        guard case .coin(let amount) = event else { return nil }
+        return amount.wrappedValue
+    }
 }
 
 func main() throws {
@@ -540,13 +545,11 @@ func main() throws {
         }
     }
 
-    try fsm.handleEvent(.coin(.some(50)))
+    try fsm.handleEvent(.coin(50))
 }
 
 func verifyPayment(_ event: Event) {
-    guard case .coin(let amount) = event else { return }
-
-    if let amount = amount.wrappedValue {
+    if let amount = event.coinValue {
         if amount >= requiredAmount {
             letThemThrough()
         } else {

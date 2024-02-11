@@ -570,21 +570,15 @@ class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
 }
 
 enum ComplexEvent: EventWithValues {    
-    case didSetValue(Animal)
     case didSetOtherValue(FSMValue<String>)
     case null
 
     var stringValue: String? {
         switch self {
         case let .didSetOtherValue(value): value.wrappedValue
-        case let .didSetValue(value): value.rawValue
         default: nil
         }
     }
-}
-
-enum Animal: String, EventValue {
-    case cat, dog, fish, any
 }
 
 class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent> {
@@ -638,29 +632,11 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
         assertValue(fish)
     }
 
-    func testEventPassingUsingEventValueProtocol() {
-        assertEventPassing(cat: .didSetValue(.cat),
-                           fish: .didSetValue(.fish),
-                           dog: .didSetValue(.dog),
-                           any: .didSetValue(.any))
-    }
-
     func testEventPassingUsingValueEnum() {
         assertEventPassing(cat: .didSetOtherValue(.some("cat")),
                            fish: .didSetOtherValue(.some("fish")),
                            dog: .didSetOtherValue(.some("dog")),
                            any: .didSetOtherValue(.any))
-    }
-
-    func testDuplicatesDetectedAsExpectedUsingProtocol() {
-        XCTAssertThrowsError(
-            try fsm.buildTable {
-                define(.locked) {
-                    when(.didSetValue(.cat))  | then() | setEvent
-                    when(.didSetValue(.any))  | then() | setEvent
-                }
-            }
-        )
     }
 
     func testDuplicatesDetectedAsExpectedUsingStruct() {
