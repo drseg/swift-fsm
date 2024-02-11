@@ -53,13 +53,11 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
         }
     }
 
-    #warning("is there anything that catches the reversed here?")
     func makeCombinations(_ predicates: [any Predicate]) -> [[any Predicate]] {
         (0..<predicates.count)
-            .lazy
             .reversed()
             .reduce(into: [predicates]) {
-            $0.append(contentsOf: predicates.combinations(ofCount: $1))
-        }
+                $0.append(contentsOf: predicates.combinations(ofCount: $1))
+            }
     }
 }

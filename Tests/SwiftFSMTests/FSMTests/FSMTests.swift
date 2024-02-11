@@ -231,7 +231,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         assertHandleEvent(1.1, predicates: P.c, state: 3, output: "pass")
     }
 
-    func testHandleEventWithImplicitPredicates() async throws {
+    func testHandleEventWithImplicitPredicatesAsync() async throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a) | when(1.1) | then(2) | passAsync
