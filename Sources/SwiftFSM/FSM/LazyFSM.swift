@@ -18,19 +18,11 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
         LazyMatchResolvingNode(rest: rest)
     }
 
-    #warning("There must be some way to reduce this duplication")
     @MainActor
     func handleEvent(_ event: Event, predicates: [any Predicate]) throws {
         for p in makeCombinations(predicates) {
-            switch try _handleEvent(event, predicates: p) {
-            case let .executed(transition):
-                logTransitionExecuted(transition)
+            if logTransitionStatus(try _handleEvent(event, predicates: p)) {
                 return
-            case let .notExecuted(transition):
-                logTransitionNotExecuted(transition)
-                return
-            case .notFound:
-                break
             }
         }
 
@@ -40,21 +32,28 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
     @MainActor
     func handleEventAsync(_ event: Event, predicates: [any Predicate]) async {
         for p in makeCombinations(predicates) {
-            switch await _handleEventAsync(event, predicates: p) {
-            case let .executed(transition):
-                logTransitionExecuted(transition)
+            if logTransitionStatus(await _handleEventAsync(event, predicates: p)) {
                 return
-            case let .notExecuted(transition):
-                logTransitionNotExecuted(transition)
-                return
-            case .notFound:
-                break
             }
         }
 
         logTransitionNotFound(event, predicates)
     }
 
+    private func logTransitionStatus(_ tr: TransitionStatus<Event>) -> Bool {
+        switch tr {
+        case let .executed(transition):
+            logTransitionExecuted(transition)
+            return true
+        case let .notExecuted(transition):
+            logTransitionNotExecuted(transition)
+            return true
+        case .notFound:
+            return false
+        }
+    }
+
+    #warning("is there anything that catches the reversed here?")
     func makeCombinations(_ predicates: [any Predicate]) -> [[any Predicate]] {
         (0..<predicates.count)
             .lazy
