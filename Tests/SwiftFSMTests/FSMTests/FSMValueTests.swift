@@ -101,7 +101,7 @@ final class FSMValueTests: XCTestCase {
     }
 
     func testArrayLiteralAndAccess() {
-        let a1: FSMValue<Array<String>> = ["cat", "cat"]
+        let a1: FSMValue<[String]> = ["cat", "cat"]
 
         XCTAssertEqual(a1, ["cat", "cat"])
         XCTAssertEqual(a1[0], "cat")
@@ -112,7 +112,7 @@ final class FSMValueTests: XCTestCase {
     }
 
     func testDictionaryLiteralAndAccess() {
-        let d1: FSMValue<Dictionary<String, String>> = ["cat": "fish"]
+        let d1: FSMValue<[String: String]> = ["cat": "fish"]
 
         XCTAssertEqual(d1["cat"], "fish")
         XCTAssertEqual(d1["bat"], nil)

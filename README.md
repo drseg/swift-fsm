@@ -326,7 +326,7 @@ define(.locked, adopts: s1, s2) {
 }
 ```
 
-Without the `override`, this multiple inheritance would otherwise create duplicate transitions:
+Without the `overriding`, this multiple inheritance would otherwise create duplicate transitions:
 
 ```swift
 let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething      }
