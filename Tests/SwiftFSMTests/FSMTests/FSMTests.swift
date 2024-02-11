@@ -390,6 +390,48 @@ class LazyFSMTests: FSMTests {
         assertHandleEvent(1.1, predicates: P.a, state: 1, output: "pass")
         assertHandleEvent(1.1, predicates: P.b, state: 2, output: "pass")
     }
+
+    func testHandleEventEarlyReturnAsync() async throws {
+        try fsm.buildTable {
+            define(1) {
+                matching(P.a) | when(1.1) | then(1) | passAsync
+                                when(1.1) | then(2) | passAsync
+            }
+        }
+
+        await assertHandleEvent(1.1, predicates: P.a, state: 1, output: "pass")
+        await assertHandleEvent(1.1, predicates: P.b, state: 2, output: "pass")
+    }
+
+    class EarlyReturnSpy: LazyFSM<State, Event> {
+        override func logTransitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
+            XCTFail("should never be called in this test")
+        }
+    }
+
+    func testHandleEventEarlyReturnWithCondition() throws {
+        fsm = EarlyReturnSpy(initialState: 1)
+
+        try fsm.buildTable {
+            define(1) {
+                condition { false } | when(1.1) | then(2) | pass
+            }
+        }
+
+        assertHandleEvent(1.1, predicates: P.a, state: 1, output: "")
+    }
+
+    func testHandleEventEarlyReturnWithConditionAsync() async throws {
+        fsm = EarlyReturnSpy(initialState: 1)
+
+        try fsm.buildTable {
+            define(1) {
+                condition { false } | when(1.1) | then(1) | passAsync
+            }
+        }
+
+        await assertHandleEvent(1.1, predicates: P.a, state: 1, output: "")
+    }
 }
 
 class NSObjectTests1: FSMTestsBase<NSObject, Int> {

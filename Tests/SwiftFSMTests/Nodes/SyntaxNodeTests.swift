@@ -1,5 +1,4 @@
 import XCTest
-import Algorithms
 @testable import SwiftFSM
 
 @MainActor

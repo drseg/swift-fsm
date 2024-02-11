@@ -24,6 +24,7 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
             switch try _handleEvent(event, predicates: p) {
             case let .notExecuted(transition):
                 logTransitionNotExecuted(transition)
+                return
             case .executed:
                 return
             case .notFound:
@@ -40,6 +41,7 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
             switch await _handleEventAsync(event, predicates: p) {
             case let .notExecuted(transition):
                 logTransitionNotExecuted(transition)
+                return
             case .executed:
                 return
             case .notFound:
@@ -51,7 +53,10 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
     }
 
     func makeCombinations(_ predicates: [any Predicate]) -> [[any Predicate]] {
-        (0..<predicates.count).reversed().reduce(into: [predicates]) {
+        (0..<predicates.count)
+            .lazy
+            .reversed()
+            .reduce(into: [predicates]) {
             $0.append(contentsOf: predicates.combinations(ofCount: $1))
         }
     }
