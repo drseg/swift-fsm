@@ -1,5 +1,4 @@
 import XCTest
-//import SwiftFSMMacros
 @testable import SwiftFSM
 
 final class FSMValueTests: XCTestCase {
