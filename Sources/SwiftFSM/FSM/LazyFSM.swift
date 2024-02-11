@@ -18,6 +18,7 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
         LazyMatchResolvingNode(rest: rest)
     }
 
+    #warning("There must be some way to reduce this duplication")
     @MainActor
     func handleEvent(_ event: Event, predicates: [any Predicate]) throws {
         for p in makeCombinations(predicates) {

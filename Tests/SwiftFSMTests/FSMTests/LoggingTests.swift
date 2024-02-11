@@ -147,9 +147,14 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     
     func handleEvent(_ event: Int, _ predicates: any Predicate...) async {
         try! fsm.handleEvent(event, predicates: predicates)
+        fsm.state = 1
         await fsm.handleEventAsync(event, predicates: predicates)
+        fsm.state = 1
+        
         try! lazyFSM.handleEvent(event, predicates: predicates)
+        lazyFSM.state = 1
         await lazyFSM.handleEventAsync(event, predicates: predicates)
+        lazyFSM.state = 1
     }
     
     func assertEqual<T: Equatable>(
@@ -164,11 +169,12 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     func testTransitionExecutedIsLogged() async {
         buildTable {
             define(1) {
-                when(1) | then(1)
+                when(2) | then(3)
             }
         }
-        await handleEvent(1)
-        let t = Transition(nil, 1, [], 1, 1, [])
+        await handleEvent(2)
+
+        let t = Transition(nil, 1, [], 2, 3, [])
         assertEqual([t, t], \.loggedTransitions)
     }
 
