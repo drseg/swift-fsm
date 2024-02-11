@@ -22,12 +22,12 @@ class EagerFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, F
     @MainActor
     private func handleResult(_ result: TransitionStatus<Event>, for event: Event, with predicates: [any Predicate]) {
         switch result {
+        case let .executed(transition):
+            logTransitionExecuted(transition)
         case let .notExecuted(transition):
             logTransitionNotExecuted(transition)
         case .notFound:
             logTransitionNotFound(event, predicates)
-        case .executed:
-            return
         }
     }
 }

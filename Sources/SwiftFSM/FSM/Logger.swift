@@ -28,6 +28,16 @@ class Logger<Event: FSMHashable> {
         "conditional transition \(t.toString) not executed"
     }
 
+    func transitionExecuted(_ t: Transition) {
+#if DEVELOPMENT
+        info(transitionExecutedString(t))
+#endif
+    }
+
+    func transitionExecutedString(_ t: Transition) -> String {
+        "transition \(t.toString) was executed"
+    }
+
     private func warning(_ s: String) {
         print(intro + "Warning: " + s)
     }

@@ -32,7 +32,7 @@ struct TableKey: @unchecked Sendable, Hashable {
 }
 
 enum TransitionStatus<Event: FSMHashable> {
-    case executed, notFound(Event, [any Predicate]), notExecuted(Transition)
+    case executed(Transition), notFound(Event, [any Predicate]), notExecuted(Transition)
 }
 
 protocol FSMProtocol<State, Event>: AnyObject {
@@ -96,7 +96,7 @@ extension FSMProtocol {
 
         state = transition.nextState
         try transition.executeActions(event: event)
-        return .executed
+        return .executed(transition)
     }
 
     @discardableResult @MainActor
@@ -114,7 +114,7 @@ extension FSMProtocol {
 
         state = transition.nextState
         await transition.executeActions(event: event)
-        return .executed
+        return .executed(transition)
     }
 
     @MainActor
@@ -183,6 +183,10 @@ class BaseFSM<State: FSMHashable, Event: FSMHashable> {
 
     func logTransitionNotExecuted(_ t: Transition) {
         logger.transitionNotExecuted(t)
+    }
+
+    func logTransitionExecuted(_ t: Transition) {
+        logger.transitionExecuted(t)
     }
 }
 

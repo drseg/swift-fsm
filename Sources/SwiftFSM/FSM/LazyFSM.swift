@@ -22,10 +22,11 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
     func handleEvent(_ event: Event, predicates: [any Predicate]) throws {
         for p in makeCombinations(predicates) {
             switch try _handleEvent(event, predicates: p) {
+            case let .executed(transition):
+                logTransitionExecuted(transition)
+                return
             case let .notExecuted(transition):
                 logTransitionNotExecuted(transition)
-                return
-            case .executed:
                 return
             case .notFound:
                 break
@@ -39,10 +40,11 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
     func handleEventAsync(_ event: Event, predicates: [any Predicate]) async {
         for p in makeCombinations(predicates) {
             switch await _handleEventAsync(event, predicates: p) {
+            case let .executed(transition):
+                logTransitionExecuted(transition)
+                return
             case let .notExecuted(transition):
                 logTransitionNotExecuted(transition)
-                return
-            case .executed:
                 return
             case .notFound:
                 break

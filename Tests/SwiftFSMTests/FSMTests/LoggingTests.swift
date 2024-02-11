@@ -36,6 +36,11 @@ class LoggerTests: XCTestCase {
             appendFunctionName(#function)
             return super.transitionNotExecutedString(t)
         }
+
+        override func transitionExecutedString(_ t: Transition) -> String {
+            appendFunctionName(#function)
+            return super.transitionExecutedString(t)
+        }
     }
     
     let logger = LoggerSpy()
@@ -78,6 +83,19 @@ class LoggerTests: XCTestCase {
             output
         )
     }
+
+    func testTransitionExecutedCallsForString() {
+        logger.transitionExecuted(Transition(nil, 1, [], 1, 1, []))
+        assertStack(["transitionExecutedString"])
+    }
+
+    func testTransitionExecutedString() {
+        let output = logger.transitionExecutedString(Transition(nil, 1, [], 1, 1, []))
+        XCTAssertEqual(
+            "transition { define(1) | matching([]) | when(1) | then(1) } was executed",
+            output
+        )
+    }
 }
 
 @MainActor
@@ -96,6 +114,10 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         override func logTransitionNotExecuted(_ t: Transition) {
             loggedTransitions.append(t)
         }
+
+        override func logTransitionExecuted(_ t: Transition) {
+            loggedTransitions.append(t)
+        }
     }
     
     class LazyFSMSpy: LazyFSM<Int, Int>, LoggableFSM {
@@ -107,6 +129,10 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         }
         
         override func logTransitionNotExecuted(_ t: Transition) {
+            loggedTransitions.append(t)
+        }
+
+        override func logTransitionExecuted(_ t: Transition) {
             loggedTransitions.append(t)
         }
     }
@@ -135,15 +161,15 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(expected, lazyFSM[keyPath: actual], line: line)
     }
 
-    #warning("Why is it not logged?")
-    func testTransitionExecutedIsNotLogged() async {
+    func testTransitionExecutedIsLogged() async {
         buildTable {
             define(1) {
                 when(1) | then(1)
             }
         }
         await handleEvent(1)
-        assertEqual([], \.loggedEvents)
+        let t = Transition(nil, 1, [], 1, 1, [])
+        assertEqual([t, t], \.loggedTransitions)
     }
 
     func testTransitionNotFoundIsLogged() async {
