@@ -161,11 +161,43 @@ FSMValue<String>.any has no value - performing operations on it as if it did is 
 
     func testAdditionSubtraction() {
         let i: FSMValue<Int> = 1
+        let d: FSMValue<Double> = 1.0
 
+        XCTAssertEqual(d + 1, 2)
         XCTAssertEqual(i + 1, 2)
+
+        XCTAssertEqual(1 + d, 2)
         XCTAssertEqual(1 + i, 2)
+
+        XCTAssertEqual(d - 1, 0)
         XCTAssertEqual(i - 1, 0)
+
+        XCTAssertEqual(1 - d, 0)
         XCTAssertEqual(1 - i, 0)
+    }
+
+    func testMultiplicationDivision() {
+        let i: FSMValue<Int> = 1
+        let d: FSMValue<Double> = 1.0
+
+        XCTAssertEqual(d * 2, 2)
+        XCTAssertEqual(i * 2, 2)
+
+        XCTAssertEqual(2 * d, 2)
+        XCTAssertEqual(2 * i, 2)
+
+        XCTAssertEqual(d / 2, 0.5)
+        XCTAssertEqual(i / 2, 0)
+
+        XCTAssertEqual(2 / d, 2)
+        XCTAssertEqual(2 / i, 2)
+    }
+
+    func testModulus() {
+        let i: FSMValue<Int> = 1
+
+        XCTAssertEqual(i % 2, 1)
+        XCTAssertEqual(2 % i, 0)
     }
 }
 

@@ -58,3 +58,41 @@ extension FSMValue where T: AdditiveArithmetic {
     }
 }
 
+extension FSMValue where T: Numeric {
+    public static func * (lhs: Self, rhs: T) -> T {
+        lhs.unsafeWrappedValue * rhs
+    }
+
+    public static func * (lhs: T, rhs: Self) -> T {
+        lhs * rhs.unsafeWrappedValue
+    }
+}
+
+extension FSMValue where T: BinaryInteger {
+    public static func / (lhs: Self, rhs: T) -> T {
+        lhs.unsafeWrappedValue / rhs
+    }
+
+    public static func / (lhs: T, rhs: Self) -> T {
+        lhs / rhs.unsafeWrappedValue
+    }
+
+    public static func % (lhs: Self, rhs: T) -> T {
+        lhs.unsafeWrappedValue % rhs
+    }
+
+    public static func % (lhs: T, rhs: Self) -> T {
+        lhs % rhs.unsafeWrappedValue
+    }
+}
+
+extension FSMValue where T: FloatingPoint {
+    public static func / (lhs: Self, rhs: T) -> T {
+        lhs.unsafeWrappedValue / rhs
+    }
+
+    public static func / (lhs: T, rhs: Self) -> T {
+        lhs / rhs.unsafeWrappedValue
+    }
+}
+
