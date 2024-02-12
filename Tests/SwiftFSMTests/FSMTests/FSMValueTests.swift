@@ -6,6 +6,24 @@ final class FSMValueTests: XCTestCase {
     let v2 = FSMValue.some("1")
     let v3 = FSMValue.some("2")
 
+    func testValue() {
+        XCTAssertEqual(v1.wrappedValue, nil)
+        XCTAssertEqual(v2.wrappedValue, "1")
+        XCTAssertEqual(v3.wrappedValue, "2")
+    }
+
+    func testThrowingValue() {
+        XCTAssertThrowsError(try v1.throwingWrappedValue()) {
+            XCTAssertEqual($0.localizedDescription,
+"""
+FSMValue<String>.any has no value - performing operations on it as if it did is forbidden.
+"""
+            )
+        }
+        XCTAssertNoThrow(try v2.throwingWrappedValue())
+        XCTAssertEqual(v2.unsafeWrappedValue, "1")
+    }
+
     func testEquality() {
         XCTAssertEqual(v1, v1)
         XCTAssertEqual(v1, v2)
@@ -14,12 +32,6 @@ final class FSMValueTests: XCTestCase {
         XCTAssertEqual(v3, v3)
 
         XCTAssertNotEqual(v2, v3)
-    }
-
-    func testValue() {
-        XCTAssertEqual(v1.wrappedValue, nil)
-        XCTAssertEqual(v2.wrappedValue, "1")
-        XCTAssertEqual(v3.wrappedValue, "2")
     }
 
     func testConvenienceEquatable() {

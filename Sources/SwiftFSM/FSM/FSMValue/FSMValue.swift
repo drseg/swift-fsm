@@ -4,10 +4,18 @@ public enum FSMValue<T: FSMHashable>: FSMHashable {
     case some(T), any
 
     public var wrappedValue: T? {
-        return if case let .some(value) = self {
-            value
+        try? throwingWrappedValue()
+    }
+
+    var unsafeWrappedValue: T {
+        try! throwingWrappedValue()
+    }
+
+    func throwingWrappedValue() throws -> T {
+        if case let .some(value) = self {
+            return value
         } else {
-            nil
+            throw "\(String(describing: Self.self)).\(String(describing: self)) has no value - performing operations on it as if it did is forbidden."
         }
     }
 

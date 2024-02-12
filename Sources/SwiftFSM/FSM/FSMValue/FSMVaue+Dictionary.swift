@@ -6,14 +6,14 @@ extension FSMValue: ExpressibleByDictionaryLiteral where T: FSMDictionary {
     }
 
     public subscript(key: Key) -> Value? {
-        wrappedValue![key]
+        unsafeWrappedValue[key]
     }
 
     public subscript(
         key: Key,
         default defaultValue: @autoclosure () -> Value
     ) -> Value {
-        wrappedValue![key, default: defaultValue()]
+        unsafeWrappedValue[key, default: defaultValue()]
     }
 }
 
