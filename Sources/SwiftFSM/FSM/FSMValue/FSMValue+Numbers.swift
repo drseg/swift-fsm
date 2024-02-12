@@ -1,5 +1,17 @@
 import Foundation
 
+public protocol FSMFloat { }
+extension Float: FSMFloat { }
+extension Float80: FSMFloat { }
+extension Double: FSMFloat { }
+
+public protocol FSMInt { }
+extension Int8: FSMInt { }
+extension Int: FSMInt { }
+extension Int16: FSMInt { }
+extension Int32: FSMInt { }
+extension Int64: FSMInt { }
+
 extension FSMValue: ExpressibleByIntegerLiteral where T: FSMInt {
     public init(integerLiteral value: Int) {
         if T.self == Int8.self {
@@ -28,14 +40,21 @@ extension FSMValue: ExpressibleByFloatLiteral where T: FSMFloat {
     }
 }
 
-public protocol FSMFloat { }
-extension Float: FSMFloat { }
-extension Float80: FSMFloat { }
-extension Double: FSMFloat { }
+extension FSMValue where T: AdditiveArithmetic {
+    public static func + (lhs: Self, rhs: T) -> T {
+        lhs.wrappedValue! + rhs
+    }
 
-public protocol FSMInt { }
-extension Int8: FSMInt { }
-extension Int: FSMInt { }
-extension Int16: FSMInt { }
-extension Int32: FSMInt { }
-extension Int64: FSMInt { }
+    public static func + (lhs: T, rhs: Self) -> T {
+        lhs + rhs.wrappedValue!
+    }
+
+    public static func - (lhs: Self, rhs: T) -> T {
+        lhs.wrappedValue! - rhs
+    }
+
+    public static func - (lhs: T, rhs: Self) -> T {
+        lhs - rhs.wrappedValue!
+    }
+}
+

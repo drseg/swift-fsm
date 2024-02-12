@@ -562,11 +562,11 @@ func verifyPayment(_ event: Event) {
 
 In order for this to work, we need two FSM-provided helpers - the `EventWithValues` protocol, to which your event must conform, and the use of `FSMValue<T>` to wrap the values you wish to pass. These allow you to write the `when` statement using the `.any` case of FSMValue, allowing this row in the table to match with any wrapped value and then pass it on to your action.
 
-In this example, the transition to `.verifyingPayment` will be activated when in the `.locked` state when any `.coin` event is triggered, no matter what the wrapped value is. That wrapped value, whatever it may be, is then passed into the `verifyPayment(_ event:)` function where it can be examined. `FSMValue` provides the convenience method `wrappedValue`, which returns an optional value, in order to reduce the burden of having to write more case let syntax to extract its wrapped value.
+In this example, the transition to `.verifyingPayment` will be activated when in the `.locked` state when any `.coin` event is triggered, no matter what the wrapped value is. That wrapped value, whatever it may be, is then passed into the `verifyPayment(_ event:)` function where it can be examined. `FSMValue` provides the convenience method `wrappedValue`, which returns an optional value, in order to reduce the burden of having to write more `case let` syntax to extract its wrapped value.
 
 #### Literal Expression Implementations
 
-FSMValue conforms to `ExpressibleByIntegerLiteral`, `ExpressibleByFloatLiteral`, `ExpressibleByArrayLiteral`, `ExpressibleByDictionaryLiteral`, `ExpressionByNilLiteral`, `ExpressionByStringLiteral` where such conformances would be valid for the wrapped type.
+FSMValue conforms to `ExpressibleByIntegerLiteral`, `ExpressibleByFloatLiteral`, `ExpressibleByArrayLiteral`, `ExpressibleByDictionaryLiteral`, `ExpressionByNilLiteral`, and `ExpressionByStringLiteral` where such conformances would be valid for the wrapped type.
 
 **Warning**: where subscript access is available, be aware that this will crash if you attempt to access a value on a `.any` instance - in practice, this should never occur. `.any` should only appear inside a define statement - there are no circumstances in which it would be useful or meaningful to pass such a `.any` Event to `handleEvent`.
 

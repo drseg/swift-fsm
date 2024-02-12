@@ -72,6 +72,19 @@ final class FSMValueTests: XCTestCase {
         XCTAssertTrue("1" >= v2)
     }
 
+    func testStringLiteral() {
+        let s: FSMValue<String> = "1"
+        let us: FSMValue<String> = .init(unicodeScalarLiteral: "1")
+        let egc: FSMValue<String> = .init(extendedGraphemeClusterLiteral: "1")
+
+        XCTAssertEqual(s, "1")
+        XCTAssertEqual(us, "1")
+        XCTAssertEqual(egc, "1")
+
+        XCTAssertEqual(s + "1", "11")
+        XCTAssertEqual("1" + s, "11")
+    }
+
     func testIntLiteral() {
         let i8: FSMValue<Int8> = 1
         let i16: FSMValue<Int16> = 1
