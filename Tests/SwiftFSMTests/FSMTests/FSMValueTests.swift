@@ -128,6 +128,15 @@ final class FSMValueTests: XCTestCase {
         let optional: FSMValue<Bool?> = nil
         XCTAssertEqual(optional, nil)
     }
+
+    func testAdditionSubtraction() {
+        let i: FSMValue<Int> = 1
+
+        XCTAssertEqual(i + 1, 2)
+        XCTAssertEqual(1 + i, 2)
+        XCTAssertEqual(i - 1, 0)
+        XCTAssertEqual(1 - i, 0)
+    }
 }
 
 final class EventWithValueTests: XCTestCase {
