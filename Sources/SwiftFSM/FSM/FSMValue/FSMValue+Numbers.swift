@@ -14,28 +14,22 @@ extension Int64: FSMInt { }
 
 extension FSMValue: ExpressibleByIntegerLiteral where T: FSMInt {
     public init(integerLiteral value: Int) {
-        if T.self == Int8.self {
-            self = .some(Int8(value) as! T)
-        } else if T.self == Int16.self {
-            self = .some(Int16(value) as! T)
-        } else if T.self == Int32.self {
-            self = .some(Int32(value) as! T)
-        } else if T.self == Int64.self {
-            self = .some(Int64(value) as! T)
-        } else {
-            self = .some(value as! T)
+        self = switch T.self {
+        case is Int8.Type: .some(Int8(value) as! T)
+        case is Int16.Type: .some(Int16(value) as! T)
+        case is Int32.Type: .some(Int32(value) as! T)
+        case is Int64.Type: .some(Int64(value) as! T)
+        default: .some(value as! T)
         }
     }
 }
 
 extension FSMValue: ExpressibleByFloatLiteral where T: FSMFloat {
     public init(floatLiteral value: Double) {
-        if T.self == Float.self {
-            self = .some(Float(value) as! T)
-        } else if T.self == Float80.self {
-            self = .some(Float80(value) as! T)
-        } else {
-            self = .some(value as! T)
+        self = switch T.self {
+        case is Float.Type: .some(Float(value) as! T)
+        case is Float80.Type: .some(Float80(value) as! T)
+        default: .some(value as! T)
         }
     }
 }
