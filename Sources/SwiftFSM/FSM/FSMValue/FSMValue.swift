@@ -32,14 +32,12 @@ public enum FSMValue<T: FSMHashable>: FSMHashable {
 }
 
 public protocol EventWithValues: FSMHashable { }
-public extension EventWithValues {
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(String.caseName(self))
+extension EventWithValues {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(caseName)
     }
-}
 
-extension String {
-    static func caseName(_ enumInstance: Any) -> String {
-        String(String(describing: enumInstance).split(separator: "(").first!)
+    var caseName: some StringProtocol {
+        String(describing: self).split(separator: "(").first!
     }
 }
