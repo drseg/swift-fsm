@@ -527,7 +527,7 @@ define(.locked) {
 
 ### Using Events to Pass Values
 
-Actions can receive the event that led to their being called, which can be useful if that event includes a value you may wish to pass on. SwiftFSM requires a special struct and protocol that in combination enable you to do this as follows:
+Actions can receive the event that led to their being called, which can be useful if that event includes a value you may wish to pass on. SwiftFSM requires a special struct `FSMValue<T>` and protocol `EventWithValues` that work together to enable you to do this.
 
 ```swift
 enum Event: EventWithValues {
@@ -543,10 +543,12 @@ func main() throws {
     try fsm.buildTable(initialState: .locked) {
         define(.locked) {
             when(.coin(.any)) | then(.verifyingPayment) | verifyPayment
+            // here we use .any to match any value
         }
     }
 
     try fsm.handleEvent(.coin(50))
+    // here we pass a specific value that will be matched by .any
 }
 
 func verifyPayment(_ event: Event) {
@@ -560,15 +562,43 @@ func verifyPayment(_ event: Event) {
 }
 ```
 
-In order for this to work, we need two FSM-provided helpers - the `EventWithValues` protocol, to which your event must conform, and the use of `FSMValue<T>` to wrap the values you wish to pass. These allow you to write the `when` statement using the `.any` case of FSMValue, allowing this row in the table to match with any wrapped value and then pass it on to your action.
+The purpose here is for the event `when(.coin(.any))` to work polymorphically. We wish to write a single transition row that will match against any value inside `.coin(someValue)` and pass that on to the `verifyPayment` function. Without the combination of `EventWithValues` and `FSMValue<T>`, the table would have to be written as follows:
 
-In this example, the transition to `.verifyingPayment` will be activated when in the `.locked` state when any `.coin` event is triggered, no matter what the wrapped value is. That wrapped value, whatever it may be, is then passed into the `verifyPayment(_ event:)` function where it can be examined. `FSMValue` provides the convenience method `wrappedValue`, which returns an optional value, in order to reduce the burden of having to write more `case let` syntax to extract its wrapped value.
+```swift
+try fsm.buildTable(initialState: .locked) {
+    define(.locked) {
+        when(.coin(1)) | then(.verifyingPayment) | verifyPayment
+        when(.coin(2)) | then(.verifyingPayment) | verifyPayment
+        when(.coin(3)) | then(.verifyingPayment) | verifyPayment
+        when(.coin(4)) | then(.verifyingPayment) | verifyPayment
+        ... // and so on for all relevant values
+    }
+}
+```
+
+By using a single `any`, the transition to `.verifyingPayment` will be activated when in the `.locked` state when a `.coin` event is triggered, no matter what the wrapped value is. That wrapped value is then passed into the `verifyPayment(_ event:)` function where it can be examined. `FSMValue` provides the convenience method `wrappedValue`, which returns an optional value, in order to reduce the burden of more `case let` syntax to extract its wrapped value.
 
 #### Literal Expression Implementations
 
-FSMValue conforms to `ExpressibleByIntegerLiteral`, `ExpressibleByFloatLiteral`, `ExpressibleByArrayLiteral`, `ExpressibleByDictionaryLiteral`, `ExpressionByNilLiteral`, and `ExpressionByStringLiteral` where such conformances would be valid for the wrapped type.
+FSMValue conforms to `ExpressibleByIntegerLiteral`, `ExpressibleByFloatLiteral`, `ExpressibleByArrayLiteral`, `ExpressibleByDictionaryLiteral`, `ExpressionByNilLiteral`, and `ExpressionByStringLiteral` where such conformances would be valid for the wrapped type. It also forwards conformances to `Equatable`, `Comparable`, and `AdditiveArithmetic` where relevant, as well as `RandomAccessCollection` and its parent protocols for Arrays, and subscript access for Dictionaries.
 
-**Warning**: where subscript access is available, be aware that this will crash if you attempt to access a value on a `.any` instance - in practice, this should never occur. `.any` should only appear inside a define statement - there are no circumstances in which it would be useful or meaningful to pass such a `.any` Event to `handleEvent`.
+A few examples:
+
+```swift
+let s: FSMValue<String> = "1" // equivalent to .some("1")
+let i: FSMValue<Int> = 1 // equivalent to .some(1)
+let ai: FSMValue<[Int]> = [1] // equivalent to .some([1])
+
+let _ = s + "1" // "11"
+let _ = i + 1 // 2
+let _ = ai[0] // 1
+let _ = ai[0] == i // true
+let _ = ai[0] > i // false
+```
+
+**Warning**: where forward operations are available on the wrapped type, be aware that this will crash if you attempt to access a value on a `.any` instance (as there is no instance of the wrapped type). `.any` should only appear inside a define statement - there are no circumstances in which it would be useful or meaningful to pass such an event with `FSMValue.any` to `handleEvent`.
+
+Equally, you should always unwrap `FSMValue<T>` instances before continuing - indeed, all convenience methods that return a value return an instance of `T` and *not* of `FSMValue<T>`. Comparing or hashing `FSMValue` instances is not recommended - they are specialised DTOs used by the FSM and should not escape.
 
 ### Limitations of `@resultBuilder` Implementation
 
