@@ -38,6 +38,6 @@ extension EventWithValues {
     }
 
     var caseName: some StringProtocol {
-        String(describing: self).split(separator: "(").first!
+        String(describing: self).lazy.split(separator: "(").first!
     }
 }
