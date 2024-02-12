@@ -525,9 +525,9 @@ define(.locked) {
 }
 ```
 
-### Using Events to Pass Values
+### Passing Values in Events
 
-Actions can receive the event that led to their being called, which can be useful if that event includes a value you may wish to pass on. SwiftFSM requires a special struct `FSMValue<T>` and protocol `EventWithValues` that work together to enable you to do this.
+Actions can receive the event that resulted in them being called, which can be useful if that event includes a value you may wish to pass on. SwiftFSM requires a special struct `FSMValue<T>` and protocol `EventWithValues` that work together to enable you to do this.
 
 ```swift
 enum Event: EventWithValues {
@@ -552,6 +552,7 @@ func main() throws {
 }
 
 func verifyPayment(_ event: Event) {
+    // here we receive the actual value passed to handleEvent: .coin(50)
     if let amount = event.coinValue {
         if amount >= requiredAmount {
             letThemThrough()
@@ -562,7 +563,7 @@ func verifyPayment(_ event: Event) {
 }
 ```
 
-The purpose here is for the event `when(.coin(.any))` to work polymorphically. We wish to write a single transition row that will match against any value inside `.coin(someValue)` and pass that on to the `verifyPayment` function. Without the combination of `EventWithValues` and `FSMValue<T>`, the table would have to be written as follows:
+ `when(.coin(.any))` works polymorphically. We wish to write a single transition row that will match against any value inside `.coin(someValue)` and pass that value on to the `verifyPayment` function. Without the combination of `EventWithValues` and `FSMValue<T>`, the table would have to be written as follows:
 
 ```swift
 try fsm.buildTable(initialState: .locked) {
@@ -576,7 +577,7 @@ try fsm.buildTable(initialState: .locked) {
 }
 ```
 
-By using a single `any`, the transition to `.verifyingPayment` will be activated when in the `.locked` state when a `.coin` event is triggered, no matter what the wrapped value is. That wrapped value is then passed into the `verifyPayment(_ event:)` function where it can be examined. `FSMValue` provides the convenience method `wrappedValue`, which returns an optional value, in order to reduce the burden of more `case let` syntax to extract its wrapped value.
+By using  `.any`, the transition to `.verifyingPayment` will be activated when a `.coin` event is received, no matter what the wrapped value is. That wrapped value is then passed into the `verifyPayment` function where it can be examined. `FSMValue` provides a convenience `var wrappedValue: T?`, which returns an optional value (potentially nil if it is called on a `.any` instance or if `T` is optional and nil).
 
 #### Literal Expression Implementations
 
