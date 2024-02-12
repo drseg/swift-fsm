@@ -15,7 +15,10 @@ public enum FSMValue<T: FSMHashable>: FSMHashable {
         if case let .some(value) = self {
             return value
         } else {
-            throw "\(String(describing: Self.self)).\(String(describing: self)) has no value - performing operations on it as if it did is forbidden."
+            throw 
+"""
+\(String(describing: Self.self)).\(String(describing: self)) has no value - performing operations on it as if it did is forbidden.
+"""
         }
     }
 

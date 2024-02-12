@@ -24,6 +24,11 @@ FSMValue<String>.any has no value - performing operations on it as if it did is 
         XCTAssertEqual(v2.unsafeWrappedValue, "1")
     }
 
+    func testIsSome() {
+        XCTAssertFalse(v1.isSome)
+        XCTAssertTrue(v2.isSome)
+    }
+
     func testEquality() {
         XCTAssertEqual(v1, v1)
         XCTAssertEqual(v1, v2)
