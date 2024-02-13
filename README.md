@@ -581,7 +581,7 @@ By using  `.any`, the transition to `.verifyingPayment` will be activated when a
 
 #### Literal Expression Implementations
 
-FSMValue conforms to `ExpressibleByIntegerLiteral`, `ExpressibleByFloatLiteral`, `ExpressibleByArrayLiteral`, `ExpressibleByDictionaryLiteral`, `ExpressionByNilLiteral`, and `ExpressionByStringLiteral` forwarding to the wrapped type where relevant. It also forwards conformances to `Equatable`, `Comparable`, and `AdditiveArithmetic` where relevant, as well as `RandomAccessCollection` and its parent protocols for Arrays, and subscript access for Dictionaries. Finally, it also forwards `CustomStringConvertible`, which also covers most uses of `ExpressibleByStringInterpolation`.
+FSMValue conforms to `ExpressibleByIntegerLiteral`, `ExpressibleByFloatLiteral`, `ExpressibleByArrayLiteral`, `ExpressibleByDictionaryLiteral`, `ExpressionByNilLiteral`, and `ExpressionByStringLiteral` forwarding to the wrapped type where relevant. It also forwards conformances to `Equatable`, `Comparable`, and `AdditiveArithmetic` where relevant, as well as `RandomAccessCollection` and its parent protocols for Arrays, and subscript access for Dictionaries. Finally, it forwards `CustomStringConvertible`, which also covers most uses of `ExpressibleByStringInterpolation`.
 
 A few examples:
 
@@ -595,6 +595,7 @@ let _ = i + 1 // 2
 let _ = ai[0] // 1
 let _ = ai[0] == i // true
 let _ = ai[0] > i // false
+let _ = "\(i)\(s)" // "11"
 ```
 
 **Warning**: where forward operations are available on the wrapped type, be aware that this will crash if you attempt to access a value on a `.any` instance (as there is no instance of the wrapped type). `.any` should only appear inside a define statement - there are no circumstances in which it would be useful or meaningful to pass such an event with `FSMValue.any` to `handleEvent`.

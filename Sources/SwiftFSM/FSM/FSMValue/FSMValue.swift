@@ -16,14 +16,6 @@ private struct Thrower: Throwing {
 public enum FSMValue<T: FSMHashable>: FSMHashable {
     case some(T), any
 
-    static func setThrower(_ t: some Throwing) {
-        thrower = t
-    }
-
-    static func resetErrorHandler() {
-        thrower = Thrower()
-    }
-
     public var wrappedValue: T? {
         try? throwingWrappedValue()
     }
@@ -47,6 +39,18 @@ public enum FSMValue<T: FSMHashable>: FSMHashable {
         }
     }
 }
+
+#if DEVELOPMENT
+extension FSMValue {
+    static func setThrower(_ t: some Throwing) {
+        thrower = t
+    }
+
+    static func resetThrower() {
+        thrower = Thrower()
+    }
+}
+#endif
 
 public protocol EventWithValues: FSMHashable { }
 extension EventWithValues {

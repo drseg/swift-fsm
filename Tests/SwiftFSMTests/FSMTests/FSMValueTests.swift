@@ -7,7 +7,7 @@ final class FSMValueTests: XCTestCase {
     let v2 = FSMValue.some("2")
 
     override func tearDown() {
-        FSMValue<String>.resetErrorHandler()
+        FSMValue<Int>.resetThrower()
     }
 
     func testValue() {
@@ -18,10 +18,9 @@ final class FSMValueTests: XCTestCase {
 
     func testThrowingValue() {
         XCTAssertThrowsError(try vAny.throwingWrappedValue(#function)) {
-            XCTAssertEqual($0.localizedDescription,
-"""
-FSMValue<String>.any has no value - the operation \(#function) is invalid.
-"""
+            XCTAssertEqual(
+                $0.localizedDescription,
+                "FSMValue<String>.any has no value - the operation \(#function) is invalid."
             )
         }
         XCTAssertNoThrow(try v1.throwingWrappedValue(""))
