@@ -29,23 +29,23 @@ FSMValue<String>.any has no value - the operation \(#function) is invalid.
     }
 
     func testUnsafeWrappedValuePassesCallersNameToError() {
-        struct ErrorSpy: _ErrorHandler {
+        struct Thrower: Throwing {
             let expectedFunction: String
             let expectation: XCTestExpectation
 
-            func throwError(instance: String, function: String) throws -> Never {
+            init(expectedFunction: String = #function, expectation: XCTestExpectation) {
+                self.expectedFunction = expectedFunction
+                self.expectation = expectation
+            }
+
+            func `throw`(instance: String, function: String) throws -> Never {
                 XCTAssertEqual(function, expectedFunction)
                 expectation.fulfill()
                 repeat { RunLoop.current.run() } while true
             }
         }
 
-        FSMValue<String>.setErrorHandler(
-            ErrorSpy(
-                expectedFunction: #function,
-                expectation: expectation(description: "")
-            )
-        )
+        FSMValue<Int>.setThrower(Thrower(expectation: expectation(description: "")))
         Task { let _ = vAny.unsafeWrappedValue() }
         waitForExpectations(timeout: 0.1)
     }
