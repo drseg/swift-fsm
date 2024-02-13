@@ -8,7 +8,7 @@ extension FSMValue: ExpressibleByArrayLiteral where T: FSMArray {
 
 extension FSMValue: Sequence where T: RandomAccessCollection {
     public func makeIterator() -> T.Iterator {
-        unsafeWrappedValue.makeIterator()
+        unsafeWrappedValue().makeIterator()
     }
 
     public typealias Iterator = T.Iterator
@@ -17,19 +17,19 @@ extension FSMValue: Sequence where T: RandomAccessCollection {
 
 extension FSMValue: Collection where T: RandomAccessCollection {
     public func index(after i: T.Index) -> T.Index {
-        unsafeWrappedValue.index(after: i)
+        unsafeWrappedValue().index(after: i)
     }
 
     public subscript(position: T.Index) -> T.Element {
-        unsafeWrappedValue[position]
+        unsafeWrappedValue()[position]
     }
 
     public var startIndex: T.Index {
-        unsafeWrappedValue.startIndex
+        unsafeWrappedValue().startIndex
     }
 
     public var endIndex: T.Index {
-        unsafeWrappedValue.endIndex
+        unsafeWrappedValue().endIndex
     }
 
     public typealias Index = T.Index
@@ -37,7 +37,7 @@ extension FSMValue: Collection where T: RandomAccessCollection {
 
 extension FSMValue: BidirectionalCollection where T: RandomAccessCollection {
     public func index(before i: T.Index) -> T.Index {
-        unsafeWrappedValue.index(before: i)
+        unsafeWrappedValue().index(before: i)
     }
 }
 

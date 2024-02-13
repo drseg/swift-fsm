@@ -1,24 +1,55 @@
 import Foundation
 
+protocol FSMValueErrorHandler {
+    func throwError(
+        typeName: String,
+        instanceName: String,
+        function: String
+    ) throws -> Never
+}
+
+private struct ErrorHandler: FSMValueErrorHandler {
+    func throwError(
+        typeName: String,
+        instanceName: String,
+        function: String
+    ) throws -> Never {
+        throw "\(typeName).\(instanceName) has no value - the operation \(function) is invalid."
+    }
+}
+
+#warning("uncomment below in Xcode 15.3/Swift 5.10 to fix the other warnings")
+/*nonisolated(unsafe)*/ private var errorHandler: any FSMValueErrorHandler = ErrorHandler()
+
 public enum FSMValue<T: FSMHashable>: FSMHashable {
     case some(T), any
 
+    static func setErrorHandler(_ h: some FSMValueErrorHandler) {
+        errorHandler = h
+    }
+
+    static func resetErrorHandler() {
+        errorHandler = ErrorHandler()
+    }
+
     public var wrappedValue: T? {
-        try? throwingWrappedValue()
+        try? throwingWrappedValue("")
     }
 
-    var unsafeWrappedValue: T {
-        try! throwingWrappedValue()
+    func unsafeWrappedValue(_ f: String = #function) -> T {
+        try! throwingWrappedValue(f)
     }
 
-    func throwingWrappedValue() throws -> T {
-        if case let .some(value) = self {
-            return value
-        } else {
-            throw 
-"""
-\(String(describing: Self.self)).\(String(describing: self)) has no value - performing operations on it as if it did is forbidden.
-"""
+    func throwingWrappedValue(_ f: String) throws -> T {
+        return switch self {
+        case let .some(value):
+            value
+        default:
+            try errorHandler.throwError(
+                typeName: String(describing: Self.self),
+                instanceName: String(describing: self),
+                function: f
+            )
         }
     }
 

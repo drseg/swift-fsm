@@ -6,6 +6,10 @@ final class FSMValueTests: XCTestCase {
     let v2 = FSMValue.some("1")
     let v3 = FSMValue.some("2")
 
+    override func tearDown() {
+        FSMValue<String>.resetErrorHandler()
+    }
+
     func testValue() {
         XCTAssertEqual(v1.wrappedValue, nil)
         XCTAssertEqual(v2.wrappedValue, "1")
@@ -13,15 +17,41 @@ final class FSMValueTests: XCTestCase {
     }
 
     func testThrowingValue() {
-        XCTAssertThrowsError(try v1.throwingWrappedValue()) {
+        XCTAssertThrowsError(try v1.throwingWrappedValue(#function)) {
             XCTAssertEqual($0.localizedDescription,
 """
-FSMValue<String>.any has no value - performing operations on it as if it did is forbidden.
+FSMValue<String>.any has no value - the operation \(#function) is invalid.
 """
             )
         }
-        XCTAssertNoThrow(try v2.throwingWrappedValue())
-        XCTAssertEqual(v2.unsafeWrappedValue, "1")
+        XCTAssertNoThrow(try v2.throwingWrappedValue(""))
+        XCTAssertEqual(v2.unsafeWrappedValue(), "1")
+    }
+
+    func testUnsafeWrappedValuePassesCallersNameToError() {
+        struct ErrorSpy: FSMValueErrorHandler {
+            let expectedFunction: String
+            let expectation: XCTestExpectation
+
+            func throwError(
+                typeName: String,
+                instanceName: String,
+                function: String
+            ) throws -> Never {
+                XCTAssertEqual(function, expectedFunction)
+                expectation.fulfill()
+                repeat { RunLoop.current.run() } while true
+            }
+        }
+
+        let e = expectation(description: "got the right function")
+        let spy = ErrorSpy(expectedFunction: #function, expectation: e)
+        FSMValue<String>.setErrorHandler(spy)
+
+        Task {
+            let _ = v1.unsafeWrappedValue()
+        }
+        waitForExpectations(timeout: 0.1)
     }
 
     func testIsSome() {

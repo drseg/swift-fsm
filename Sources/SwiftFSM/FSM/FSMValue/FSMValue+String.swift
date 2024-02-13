@@ -20,10 +20,10 @@ extension FSMValue: ExpressibleByStringLiteral where T == String {
 
 extension FSMValue where T == String {
     static func + (lhs: Self, rhs: String) -> String {
-        lhs.unsafeWrappedValue + rhs
+        lhs.unsafeWrappedValue() + rhs
     }
 
     static func + (lhs: String, rhs: Self) -> String {
-        lhs + rhs.unsafeWrappedValue
+        lhs + rhs.unsafeWrappedValue()
     }
 }

@@ -53,6 +53,7 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
         }
     }
 
+    #warning("find a way to make this lazy")
     func makeCombinations(_ predicates: [any Predicate]) -> [[any Predicate]] {
         (0..<predicates.count)
             .reversed()

@@ -36,57 +36,57 @@ extension FSMValue: ExpressibleByFloatLiteral where T: FSMFloat {
 
 extension FSMValue where T: AdditiveArithmetic {
     public static func + (lhs: Self, rhs: T) -> T {
-        lhs.unsafeWrappedValue + rhs
+        lhs.unsafeWrappedValue() + rhs
     }
 
     public static func + (lhs: T, rhs: Self) -> T {
-        lhs + rhs.unsafeWrappedValue
+        lhs + rhs.unsafeWrappedValue()
     }
 
     public static func - (lhs: Self, rhs: T) -> T {
-        lhs.unsafeWrappedValue - rhs
+        lhs.unsafeWrappedValue() - rhs
     }
 
     public static func - (lhs: T, rhs: Self) -> T {
-        lhs - rhs.unsafeWrappedValue
+        lhs - rhs.unsafeWrappedValue()
     }
 }
 
 extension FSMValue where T: Numeric {
     public static func * (lhs: Self, rhs: T) -> T {
-        lhs.unsafeWrappedValue * rhs
+        lhs.unsafeWrappedValue() * rhs
     }
 
     public static func * (lhs: T, rhs: Self) -> T {
-        lhs * rhs.unsafeWrappedValue
+        lhs * rhs.unsafeWrappedValue()
     }
 }
 
 extension FSMValue where T: BinaryInteger {
     public static func / (lhs: Self, rhs: T) -> T {
-        lhs.unsafeWrappedValue / rhs
+        lhs.unsafeWrappedValue() / rhs
     }
 
     public static func / (lhs: T, rhs: Self) -> T {
-        lhs / rhs.unsafeWrappedValue
+        lhs / rhs.unsafeWrappedValue()
     }
 
     public static func % (lhs: Self, rhs: T) -> T {
-        lhs.unsafeWrappedValue % rhs
+        lhs.unsafeWrappedValue() % rhs
     }
 
     public static func % (lhs: T, rhs: Self) -> T {
-        lhs % rhs.unsafeWrappedValue
+        lhs % rhs.unsafeWrappedValue()
     }
 }
 
 extension FSMValue where T: FloatingPoint {
     public static func / (lhs: Self, rhs: T) -> T {
-        lhs.unsafeWrappedValue / rhs
+        lhs.unsafeWrappedValue() / rhs
     }
 
     public static func / (lhs: T, rhs: Self) -> T {
-        lhs / rhs.unsafeWrappedValue
+        lhs / rhs.unsafeWrappedValue()
     }
 }
 
