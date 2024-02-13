@@ -145,13 +145,11 @@ final class FSMValueTests: XCTestCase {
         let f: FSMValue<Float> = 1.0
         let f32: FSMValue<Float32> = 1.0
         let f64: FSMValue<Float64> = 1.0
-        let f80: FSMValue<Float80> = 1.0
         let d: FSMValue<Double> = 1.0
 
         XCTAssertEqual(1.0, f)
         XCTAssertEqual(1.0, f32)
         XCTAssertEqual(1.0, f64)
-        XCTAssertEqual(1.0, f80)
         XCTAssertEqual(1.0, d)
     }
 

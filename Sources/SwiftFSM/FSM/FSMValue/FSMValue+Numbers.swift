@@ -2,7 +2,6 @@ import Foundation
 
 public protocol FSMFloat { }
 extension Float: FSMFloat { }
-extension Float80: FSMFloat { }
 extension Double: FSMFloat { }
 
 public protocol FSMInt { }
@@ -28,7 +27,6 @@ extension FSMValue: ExpressibleByFloatLiteral where T: FSMFloat {
     public init(floatLiteral value: Double) {
         self = switch T.self {
         case is Float.Type: .some(Float(value) as! T)
-        case is Float80.Type: .some(Float80(value) as! T)
         default: .some(value as! T)
         }
     }
