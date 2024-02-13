@@ -8,7 +8,7 @@ class BlockTestsBase: SyntaxTestsBase {
     typealias MABuilder = Internal.MABuilder
     typealias Actions = Syntax.Actions<Event>
 
-    let defaultFile = #file
+    let baseFile = #file
 
     let mwtaLine = #line + 1; @MWTABuilder var mwtaBlock: [MWTA] {
         matching(P.a) | when(1, or: 2) | then(1) | pass
@@ -140,7 +140,7 @@ class BlockTestsBase: SyntaxTestsBase {
         for i in 0..<result.count {
             assertMA(result[i],
                      expectedOutput: eo,
-                     sutFile: defaultFile,
+                     sutFile: baseFile,
                      xctFile: xf,
                      sutLine: sl + i,
                      xctLine: xl)

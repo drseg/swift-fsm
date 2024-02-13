@@ -89,4 +89,3 @@ extension FSMValue where T: FloatingPoint {
         lhs / rhs.unsafeWrappedValue()
     }
 }
-

@@ -9,7 +9,7 @@ class WhenBlockTests: BlockTestsBase {
         restLine rl: Int,
         xctLine xl: UInt = #line
     ) {
-        let node = b.whenBlockNode
+        let node = b.node as! WhenBlockNode
         assertWhenNode(node, events: events, sutLine: nl, xctLine: xl)
         assertMTAResult(node.rest, sutLine: rl, xctLine: xl)
     }
@@ -22,15 +22,14 @@ class WhenBlockTests: BlockTestsBase {
         restLine rl: Int,
         xctLine xl: UInt = #line
     ) {
-        #warning("use of defaultFile here highlights nasty file handling in all related tests")
-        let node = b.whenBlockNode
-        assertWhenNode(node, events: events, sutLine: nl, xctLine: xl)
+        let wbn = b.node as! WhenBlockNode
+        assertWhenNode(wbn, events: events, sutLine: nl, xctLine: xl)
 
-        let actionsNode = node.rest.first as! ActionsNode
+        let actionsNode = wbn.rest.first as! ActionsNode
         assertActions(actionsNode.actions, expectedOutput: eo, xctLine: xl)
 
         let matchNode = actionsNode.rest.first as! MatchNode
-        assertMatchNode(matchNode, all: [P.a], sutFile: defaultFile, sutLine: rl, xctLine: xl)
+        assertMatchNode(matchNode, all: [P.a], sutFile: baseFile, sutLine: rl, xctLine: xl)
     }
 
     func testWhenBlockWithMTA() {
@@ -41,11 +40,5 @@ class WhenBlockTests: BlockTestsBase {
     func testWhenBlockWithMA() {
         assert(when(1, or: 2) { maBlock }, restLine: maLine)
         assert(when(1) { maBlock }, events: [1], restLine: maLine)
-    }
-}
-
-private extension BlockSentence {
-    var whenBlockNode: WhenBlockNode {
-        node as! WhenBlockNode
     }
 }
