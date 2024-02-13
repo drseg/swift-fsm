@@ -20,9 +20,11 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
 
     @MainActor
     func handleEvent(_ event: Event, predicates: [any Predicate]) throws {
-        for p in makeCombinations(predicates) {
-            if logTransitionStatus(try _handleEvent(event, predicates: p)) {
-                return
+        for combinations in makeCombinationsSequences(predicates) {
+            for predicates in combinations {
+                if logTransitionStatus(try _handleEvent(event, predicates: predicates)) {
+                    return
+                }
             }
         }
 
@@ -31,9 +33,11 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
 
     @MainActor
     func handleEventAsync(_ event: Event, predicates: [any Predicate]) async {
-        for p in makeCombinations(predicates) {
-            if logTransitionStatus(await _handleEventAsync(event, predicates: p)) {
-                return
+        for combinations in makeCombinationsSequences(predicates) {
+            for predicates in combinations {
+                if logTransitionStatus(await _handleEventAsync(event, predicates: predicates)) {
+                    return
+                }
             }
         }
 
@@ -53,12 +57,13 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
         }
     }
 
-    #warning("find a way to make this lazy")
-    func makeCombinations(_ predicates: [any Predicate]) -> [[any Predicate]] {
+    func makeCombinationsSequences(
+        _ predicates: [any Predicate]
+    ) -> [some Sequence<[any Predicate]>] {
         (0..<predicates.count)
             .reversed()
-            .reduce(into: [predicates]) {
-                $0.append(contentsOf: predicates.combinations(ofCount: $1))
+            .reduce(into: [predicates.combinations(ofCount: predicates.count)]) {
+                $0.append(predicates.combinations(ofCount: $1))
             }
     }
 }
