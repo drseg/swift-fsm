@@ -1347,7 +1347,7 @@ Note: there is no performance advantage to using the keyword `matching` in fewer
 
 #### Lazy FSM
 
-`LazyFSM` does away with the look-ahead combinatorics algorithm described above. The result is smaller tables internally, and faster table compile time. The cost is at the call to `handleEvent()` where multiple lookup operations are now needed to find the correct transition. 
+Passing the `.lazy` argument to `FSM<State, Event>(type: .lazy)` does away with the look-ahead combinatorics algorithm described above. The result is smaller tables internally, and faster table compile time. The cost is at the call to `handleEvent()` where multiple lookup operations are now needed to find the correct transition. 
 
 Performance of`handleEvent()` decreases from O(1) to O(n!), where `n` is the number of `Predicate` types used *regardless of the number of cases*. Inversely, performance of `buildTable { }` increases from O(m^n\*o) to O(n), where n is now the number of transitions. 
 
