@@ -2,121 +2,117 @@ import XCTest
 @testable import SwiftFSM
 
 final class FSMValueTests: XCTestCase {
-    let v1 = FSMValue<String>.any
-    let v2 = FSMValue.some("1")
-    let v3 = FSMValue.some("2")
+    let vAny = FSMValue<String>.any
+    let v1 = FSMValue.some("1")
+    let v2 = FSMValue.some("2")
 
     override func tearDown() {
         FSMValue<String>.resetErrorHandler()
     }
 
     func testValue() {
-        XCTAssertEqual(v1.wrappedValue, nil)
-        XCTAssertEqual(v2.wrappedValue, "1")
-        XCTAssertEqual(v3.wrappedValue, "2")
+        XCTAssertEqual(vAny.wrappedValue, nil)
+        XCTAssertEqual(v1.wrappedValue, "1")
+        XCTAssertEqual(v2.wrappedValue, "2")
     }
 
     func testThrowingValue() {
-        XCTAssertThrowsError(try v1.throwingWrappedValue(#function)) {
+        XCTAssertThrowsError(try vAny.throwingWrappedValue(#function)) {
             XCTAssertEqual($0.localizedDescription,
 """
 FSMValue<String>.any has no value - the operation \(#function) is invalid.
 """
             )
         }
-        XCTAssertNoThrow(try v2.throwingWrappedValue(""))
-        XCTAssertEqual(v2.unsafeWrappedValue(), "1")
+        XCTAssertNoThrow(try v1.throwingWrappedValue(""))
+        XCTAssertEqual(v1.unsafeWrappedValue(), "1")
     }
 
     func testUnsafeWrappedValuePassesCallersNameToError() {
-        struct ErrorSpy: FSMValueErrorHandler {
+        struct ErrorSpy: _ErrorHandler {
             let expectedFunction: String
             let expectation: XCTestExpectation
 
-            func throwError(
-                typeName: String,
-                instanceName: String,
-                function: String
-            ) throws -> Never {
+            func throwError(instance: String, function: String) throws -> Never {
                 XCTAssertEqual(function, expectedFunction)
                 expectation.fulfill()
                 repeat { RunLoop.current.run() } while true
             }
         }
 
-        let e = expectation(description: "got the right function")
-        let spy = ErrorSpy(expectedFunction: #function, expectation: e)
-        FSMValue<String>.setErrorHandler(spy)
-
-        Task {
-            let _ = v1.unsafeWrappedValue()
-        }
+        FSMValue<String>.setErrorHandler(
+            ErrorSpy(
+                expectedFunction: #function,
+                expectation: expectation(description: "")
+            )
+        )
+        Task { let _ = vAny.unsafeWrappedValue() }
         waitForExpectations(timeout: 0.1)
     }
 
     func testIsSome() {
-        XCTAssertFalse(v1.isSome)
-        XCTAssertTrue(v2.isSome)
+        XCTAssertFalse(vAny.isSome)
+        XCTAssertTrue(v1.isSome)
     }
 
     func testEquality() {
+        XCTAssertEqual(vAny, vAny)
+        XCTAssertEqual(vAny, v1)
+        XCTAssertEqual(vAny, v2)
         XCTAssertEqual(v1, v1)
-        XCTAssertEqual(v1, v2)
-        XCTAssertEqual(v1, v3)
         XCTAssertEqual(v2, v2)
-        XCTAssertEqual(v3, v3)
 
-        XCTAssertNotEqual(v2, v3)
+        XCTAssertNotEqual(v1, v2)
     }
 
     func testConvenienceEquatable() {
-        XCTAssertTrue(v2 == "1")
-        XCTAssertTrue(v2 != "2")
-        XCTAssertFalse(v2 != "1")
-        XCTAssertFalse(v2 == "2")
+        XCTAssertTrue(v1 == "1")
+        XCTAssertTrue(v1 != "2")
+        XCTAssertFalse(v1 != "1")
+        XCTAssertFalse(v1 == "2")
 
-        XCTAssertTrue("1" == v2)
-        XCTAssertTrue("2" != v2)
-        XCTAssertFalse("1" != v2)
-        XCTAssertFalse("2" == v2)
+        XCTAssertTrue("1" == v1)
+        XCTAssertTrue("2" != v1)
+        XCTAssertFalse("1" != v1)
+        XCTAssertFalse("2" == v1)
     }
 
     func testConvenienceComparable() {
         XCTAssertFalse(.any > "1")
-        XCTAssertTrue(v3 > "1")
+        XCTAssertTrue(v2 > "1")
 
         XCTAssertFalse(.any < "1")
-        XCTAssertFalse(v3 < "1")
+        XCTAssertFalse(v2 < "1")
 
         XCTAssertFalse(.any <= "1")
-        XCTAssertFalse(v3 <= "1")
+        XCTAssertFalse(v2 <= "1")
 
         XCTAssertFalse(.any >= "1")
-        XCTAssertTrue(v2 >= "1")
+        XCTAssertTrue(v1 >= "1")
 
         XCTAssertFalse(.any > "1")
-        XCTAssertFalse(v2 > "1")
+        XCTAssertFalse(v1 > "1")
 
         XCTAssertFalse(.any <= "1")
-        XCTAssertTrue(v2 <= "1")
+        XCTAssertTrue(v1 <= "1")
 
         XCTAssertFalse("1" < .any)
-        XCTAssertTrue("1" < v3)
+        XCTAssertTrue("1" < v2)
 
         XCTAssertFalse("1" > .any)
-        XCTAssertFalse("1" > v3)
+        XCTAssertFalse("1" > v2)
 
         XCTAssertFalse("1" >= .any)
-        XCTAssertFalse("1" >= v3)
+        XCTAssertFalse("1" >= v2)
 
         XCTAssertFalse("1" <= .any)
-        XCTAssertTrue("1" <= v2)
+        XCTAssertTrue("1" <= v1)
 
         XCTAssertFalse("1" < .any)
-        XCTAssertFalse("1" < v2)
+        XCTAssertFalse("1" < v1)
 
         XCTAssertFalse("1" >= .any)
-        XCTAssertTrue("1" >= v2)
+        XCTAssertTrue("1" >= v1)
     }
 
     func testStringLiteral() {
@@ -228,6 +224,11 @@ FSMValue<String>.any has no value - the operation \(#function) is invalid.
 
         XCTAssertEqual(i % 2, 1)
         XCTAssertEqual(2 % i, 0)
+    }
+
+    func testInterpolation() {
+        XCTAssertEqual("\(v1)", "1")
+        XCTAssertEqual("\(FSMValue.some(1))", "1")
     }
 }
 
