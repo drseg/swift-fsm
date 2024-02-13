@@ -1,6 +1,6 @@
 import Foundation
 
-final class LazyMatchResolvingNode: MRNBase, MRNProtocol {
+final class LazyMatchResolvingNode: MRNBase, MatchResolvingNode {
     func combinedWithRest(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
         do {
             return try rest.reduce(into: []) { result, input in
@@ -9,9 +9,9 @@ final class LazyMatchResolvingNode: MRNBase, MRNProtocol {
                     guard !result.containsClash(t) else { throw "" }
                     result.append(t)
                 }
-                
+
                 let anyAndAll = input.match.combineAnyAndAll()
-                
+
                 if anyAndAll.isEmpty {
                     try appendTransition(predicates: [])
                 } else {
@@ -20,9 +20,7 @@ final class LazyMatchResolvingNode: MRNBase, MRNProtocol {
                     }
                 }
             }
-        }
-        
-        catch {
+        } catch {
             errors = EagerMatchResolvingNode(rest: self.rest).finalised().errors
             return []
         }
@@ -38,19 +36,17 @@ extension Transition {
         nextState = io.nextState.base
         actions = io.actions
     }
-    
+
     var predicateTypes: Set<String> {
         Set(predicates.map(\.type))
     }
-    
+
     func clashes(with t: Transition) -> Bool {
         (state, event) == (t.state, t.event)
     }
-    
+
     func predicateTypesOverlap(with t: Transition) -> Bool {
-        predicateTypes
-            .intersection(t.predicateTypes)
-            .isEmpty
+        predicateTypes.isDisjoint(with: t.predicateTypes)
     }
 }
 

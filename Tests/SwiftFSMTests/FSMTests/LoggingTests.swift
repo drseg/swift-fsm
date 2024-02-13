@@ -36,6 +36,11 @@ class LoggerTests: XCTestCase {
             appendFunctionName(#function)
             return super.transitionNotExecutedString(t)
         }
+
+        override func transitionExecutedString(_ t: Transition) -> String {
+            appendFunctionName(#function)
+            return super.transitionExecutedString(t)
+        }
     }
     
     let logger = LoggerSpy()
@@ -75,15 +80,30 @@ class LoggerTests: XCTestCase {
         let output = logger.transitionNotExecutedString(Transition(nil, 1, [], 1, 1, []))
         XCTAssertEqual(
             "conditional transition { define(1) | matching([]) | when(1) | then(1) } not executed",
-            output)
+            output
+        )
+    }
+
+    func testTransitionExecutedCallsForString() {
+        logger.transitionExecuted(Transition(nil, 1, [], 1, 1, []))
+        assertStack(["transitionExecutedString"])
+    }
+
+    func testTransitionExecutedString() {
+        let output = logger.transitionExecutedString(Transition(nil, 1, [], 1, 1, []))
+        XCTAssertEqual(
+            "transition { define(1) | matching([]) | when(1) | then(1) } was executed",
+            output
+        )
     }
 }
 
+@MainActor
 class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
     
-    class FSMSpy: FSM<Int, Int>, LoggableFSM {
+    class FSMSpy: EagerFSM<Int, Int>, LoggableFSM {
         var loggedEvents: [LogData] = []
         var loggedTransitions: [Transition] = []
         
@@ -92,6 +112,10 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         }
         
         override func logTransitionNotExecuted(_ t: Transition) {
+            loggedTransitions.append(t)
+        }
+
+        override func logTransitionExecuted(_ t: Transition) {
             loggedTransitions.append(t)
         }
     }
@@ -107,19 +131,30 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         override func logTransitionNotExecuted(_ t: Transition) {
             loggedTransitions.append(t)
         }
+
+        override func logTransitionExecuted(_ t: Transition) {
+            loggedTransitions.append(t)
+        }
     }
 
     let fsm = FSMSpy(initialState: 1)
     let lazyFSM = LazyFSMSpy(initialState: 1)
     
-    func buildTable(@TableBuilder<Int> _ block: () -> [Syntax.Define<Int>]) {
+    func buildTable(@TableBuilder<Int, Int> _ block: () -> [Syntax.Define<Int, Int>]) {
         try! fsm.buildTable(block)
         try! lazyFSM.buildTable(block)
     }
     
-    func handleEvent(_ event: Int, _ predicates: any Predicate...) {
-        fsm.handleEvent(event, predicates: predicates)
-        lazyFSM.handleEvent(event, predicates: predicates)
+    func handleEvent(_ event: Int, _ predicates: any Predicate...) async {
+        try! fsm.handleEvent(event, predicates: predicates)
+        fsm.state = 1
+        await fsm.handleEventAsync(event, predicates: predicates)
+        fsm.state = 1
+        
+        try! lazyFSM.handleEvent(event, predicates: predicates)
+        lazyFSM.state = 1
+        await lazyFSM.handleEventAsync(event, predicates: predicates)
+        lazyFSM.state = 1
     }
     
     func assertEqual<T: Equatable>(
@@ -130,23 +165,35 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(expected, fsm[keyPath: actual], line: line)
         XCTAssertEqual(expected, lazyFSM[keyPath: actual], line: line)
     }
-    
-    func testTransitionNotFoundIsLogged() {
-        enum P: Predicate { case a }
-        handleEvent(1, P.a)
-        assertEqual([LogData(1, [P.a])], \.loggedEvents)
-    }
-    
-    func testTransitionNotExecutedIsLogged() {
+
+    func testTransitionExecutedIsLogged() async {
         buildTable {
             define(1) {
-                condition({ false }) | when(1) | then(1)
+                when(2) | then(3)
             }
         }
-        handleEvent(1)
-        
-        let t = Transition(nil, 1, [], 1, 1, [])
-        assertEqual([t], \.loggedTransitions)
+        await handleEvent(2)
+
+        let t = Transition(nil, 1, [], 2, 3, [])
+        assertEqual([t, t], \.loggedTransitions)
+    }
+
+    func testTransitionNotFoundIsLogged() async {
+        enum P: Predicate { case a }
+        await handleEvent(1, P.a)
+        assertEqual([LogData(1, [P.a]), LogData(1, [P.a])], \.loggedEvents)
+    }
+    
+    func testTransitionNotExecutedIsLogged() async {
+        buildTable {
+            define(1) {
+                condition({ false }) | when(2) | then(3)
+            }
+        }
+        await handleEvent(2)
+
+        let t = Transition(nil, 1, [], 2, 3, [])
+        assertEqual([t, t], \.loggedTransitions)
     }
 }
 

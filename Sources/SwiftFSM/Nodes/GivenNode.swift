@@ -6,16 +6,16 @@ struct GivenNode: Node {
             match: Match,
             event: AnyTraceable,
             nextState: AnyTraceable,
-            actions: [Action],
+            actions: [AnyAction],
             groupID: UUID,
             isOverride: Bool
-        
+
         init(
             _ state: AnyTraceable,
             _ match: Match,
             _ event: AnyTraceable,
             _ nextState: AnyTraceable,
-            _ actions: [Action],
+            _ actions: [AnyAction],
             _ groupID: UUID,
             _ isOverride: Bool
         ) {
@@ -28,10 +28,10 @@ struct GivenNode: Node {
             self.isOverride = isOverride
         }
     }
-    
+
     let states: [AnyTraceable]
     var rest: [any Node<DefaultIO>] = []
-    
+
     func combinedWithRest(_ rest: [DefaultIO]) -> [Output] {
         states.reduce(into: []) { result, state in
             rest.forEach {

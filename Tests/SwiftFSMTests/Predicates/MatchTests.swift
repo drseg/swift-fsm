@@ -10,6 +10,7 @@ enum U: Predicate { case a, b    }
 enum V: Predicate { case a, b    }
 enum W: Predicate { case a, b    }
 
+@MainActor
 class MatchTests: XCTestCase {
     let p1 = P.a, p2 = P.b, p3 = P.c
     let q1 = Q.a, q2 = Q.b
@@ -143,6 +144,7 @@ class AdditionTests: MatchTests {
     }
 }
 
+@MainActor
 class FinalisationTests: MatchTests {
     func assertFinalise(_ m: Match, _ e: Match, line: UInt = #line) {
         XCTAssertEqual(e, try? m.finalised().get(), line: line)
@@ -436,6 +438,7 @@ extension Collection where Element == [any Predicate] {
 
 infix operator *
 
-func * (lhs: Int, rhs: Action) {
+@MainActor
+func * (lhs: Int, rhs: FSMSyncAction) {
     for _ in 1...lhs { rhs() }
 }

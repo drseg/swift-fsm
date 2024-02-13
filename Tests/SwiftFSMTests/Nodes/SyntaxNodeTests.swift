@@ -1,7 +1,7 @@
 import XCTest
-import Algorithms
 @testable import SwiftFSM
 
+@MainActor
 class SyntaxNodeTests: XCTestCase {
     let s1: AnyTraceable = "S1", s2: AnyTraceable = "S2", s3: AnyTraceable = "S3"
     let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
@@ -10,19 +10,19 @@ class SyntaxNodeTests: XCTestCase {
     var onEntryOutput = ""
     var onExitOutput = ""
     
-    var actions: [Action] {
+    var actions: [AnyAction] {
         [{ self.actionsOutput += "1" },
-         { self.actionsOutput += "2" }]
+         { self.actionsOutput += "2" }].map(AnyAction.init)
     }
     
-    var onEntry: [Action] {
+    var onEntry: [AnyAction] {
         [{ self.actionsOutput += "<" },
-         { self.actionsOutput += "<" }]
+         { self.actionsOutput += "<" }].map(AnyAction.init)
     }
     
-    var onExit: [Action] {
+    var onExit: [AnyAction] {
         [{ self.actionsOutput += ">" },
-         { self.actionsOutput += ">" }]
+         { self.actionsOutput += ">" }].map(AnyAction.init)
     }
     
     var actionsNode: ActionsNode {
@@ -224,9 +224,14 @@ class SyntaxNodeTests: XCTestCase {
                     file: file,
                     line: line)
         
-        result.map(\.actions).flattened.executeAll()
-        XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
-        XCTAssertTrue(errors.isEmpty, file: file, line: line)
+        let expectation = expectation(description: "async action")
+        Task {
+            await result.map(\.actions).flattened.executeAll()
+            XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
+            XCTAssertTrue(errors.isEmpty, file: file, line: line)
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 0.1)
     }
     
     func assertDefineNode(
@@ -244,15 +249,20 @@ class SyntaxNodeTests: XCTestCase {
                     rhs: result.map { MSES($0.match, $0.state, $0.event, $0.nextState) },
                     file: file,
                     line: line)
-        
-        result.forEach {
-            $0.onEntry.executeAll()
-            $0.actions.executeAll()
-            $0.onExit.executeAll()
+
+        let expectation = expectation(description: "async action")
+        Task {
+            for node in result {
+                await node.onEntry.executeAll()
+                await node.actions.executeAll()
+                await node.onExit.executeAll()
+            }
+
+            XCTAssertTrue(errors.isEmpty, file: file, line: line)
+            XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
+            expectation.fulfill()
         }
-        
-        XCTAssertTrue(errors.isEmpty, file: file, line: line)
-        XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
+        waitForExpectations(timeout: 0.1)
     }
     
     func assertDefaultIONodeChains(
@@ -264,13 +274,16 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
+
+        let actions = [{ self.actionsOutput += "chain" }]
+
         let nodeChains: [any Node<DefaultIO>] = {
             let nodes: [any DefaultIONode] =
             [MatchNode(match: Match(any: P.a, all: Q.a)),
              WhenNode(events: [e1]),
              ThenNode(state: s1),
-             ActionsNode(actions: [{ self.actionsOutput += "chain" }])]
-                        
+             ActionsNode(actions: actions.map(AnyAction.init))]
+
             return nodes.permutations(ofCount: 4).reduce(into: []) {
                 var one = $1[0].copy(),
                     two = $1[1].copy(),
@@ -311,14 +324,19 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func assertActions(
-        _ actions: [Action]?,
+        _ actions: [AnyAction]?,
         expectedOutput: String?,
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        actions?.executeAll()
-        XCTAssertEqual(actionsOutput, expectedOutput, file: file, line: line)
-        actionsOutput = ""
+        let expectation = expectation(description: "async action")
+        Task {
+            await actions?.executeAll()
+            XCTAssertEqual(actionsOutput, expectedOutput, file: file, line: line)
+            actionsOutput = ""
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 0.1)
     }
 }
 
@@ -328,8 +346,8 @@ class DefineConsumer: SyntaxNodeTests {
         _ m: Match,
         _ w: AnyTraceable,
         _ t: AnyTraceable,
-        entry: [Action]? = nil,
-        exit: [Action]? = nil,
+        entry: [AnyAction]? = nil,
+        exit: [AnyAction]? = nil,
         groupID: UUID = testGroupID,
         isOverride: Bool = false
     ) -> DefineNode {
@@ -347,13 +365,20 @@ class DefineConsumer: SyntaxNodeTests {
     }
 }
 
+@MainActor
 extension Collection {
     func executeAll() where Element == DefaultIO {
-        map(\.actions).flattened.forEach { $0() }
+        map(\.actions).flattened.forEach { try! $0() }
     }
-    
-    func executeAll() where Element == Action {
+
+    func executeAll() where Element == FSMSyncAction {
         forEach { $0() }
+    }
+
+    func executeAll<Event: FSMHashable>(_ event: Event = "TILT") async where Element == AnyAction {
+        for action in self {
+            await action(event)
+        }
     }
 }
 

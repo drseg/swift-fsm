@@ -44,11 +44,10 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         XCTAssert(finalised.errors.first is EMRN.ImplicitClashesError, line: line)
     }
     
-    func testInit() {
+    func testInit() async {
         let sut = makeSUT(rest: [defineNode(s1, m1, e1, s2)])
         let rest = SVN(rest: [ARN(rest: [defineNode(s1, m1, e1, s2)])])
-        
-        assertEqualFileAndLine(rest, sut.rest.first!)
+        await assertEqualFileAndLine(rest, sut.rest.first!)
     }
     
     func testEmptyMatchOutput() {

@@ -3,7 +3,7 @@ import Foundation
 class MatchNodeBase: OverridableNode {
     let match: Match
     var rest: [any Node<DefaultIO>]
-    
+
     init(
         match: Match,
         rest: [any Node<DefaultIO>] = [],
@@ -14,7 +14,7 @@ class MatchNodeBase: OverridableNode {
         self.rest = rest
         super.init(groupID: groupID, isOverride: isOverride)
     }
-    
+
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: []) {
             $0.append(DefaultIO($1.match.prepend(match),
@@ -37,7 +37,7 @@ class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
     let caller: String
     let file: String
     let line: Int
-    
+
     init(
         match: Match,
         rest: [any Node<Input>] = [],
@@ -50,13 +50,13 @@ class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
         self.caller = caller
         self.file = file
         self.line = line
-        
+
         super.init(match: match,
                    rest: rest,
                    groupID: groupID,
                    isOverride: isOverride)
     }
-    
+
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest)
     }

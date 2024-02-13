@@ -1,26 +1,33 @@
 import Foundation
 
-open class FSM<State: Hashable, Event: Hashable>: _FSMBase<State, Event> {
-    public override init(
-        initialState: State,
-        actionsPolicy: EntryExitActionsPolicy = .executeOnStateChangeOnly
-    ) {
-        super.init(initialState: initialState, actionsPolicy: actionsPolicy)
-    }
-    
-    override func makeMRN(rest: [any Node<IntermediateIO>]) -> any MRNProtocol {
+class EagerFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FSMProtocol {
+    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         EagerMatchResolvingNode(rest: rest)
     }
-    
-    public override func handleEvent(_ event: Event, predicates: [any Predicate]) {
-        switch _handleEvent(event, predicates: predicates) {
+
+    @MainActor
+    func handleEvent(_ event: Event, predicates: [any Predicate]) throws {
+        try handleResult(_handleEvent(event, predicates: predicates),
+                         for: event,
+                         with: predicates)
+    }
+
+    @MainActor
+    func handleEventAsync(_ event: Event, predicates: [any Predicate]) async {
+        handleResult(await _handleEventAsync(event, predicates: predicates),
+                     for: event,
+                     with: predicates)
+    }
+
+    @MainActor
+    private func handleResult(_ result: TransitionStatus<Event>, for event: Event, with predicates: [any Predicate]) {
+        switch result {
+        case let .executed(transition):
+            logTransitionExecuted(transition)
         case let .notExecuted(transition):
             logTransitionNotExecuted(transition)
         case .notFound:
             logTransitionNotFound(event, predicates)
-        case .executed:
-            return
         }
     }
 }
-

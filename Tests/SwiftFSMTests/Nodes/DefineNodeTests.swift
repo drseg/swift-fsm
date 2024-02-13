@@ -18,8 +18,8 @@ final class DefineNodeTests: SyntaxNodeTests {
     func testDefineNodeWithActionsButNoRestProducesError() {
         assertEmptyNodeWithError(
             DefineNode(
-                onEntry: [{ }],
-                onExit: [{ }],
+                onEntry: [AnyAction({ })],
+                onExit: [AnyAction({ })],
                 rest: [],
                 caller: "caller",
                 file: "file",

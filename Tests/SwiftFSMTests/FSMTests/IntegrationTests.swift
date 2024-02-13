@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+//import SwiftFSMMacros
 @testable import SwiftFSM
 
 enum TurnstileState: String, CustomStringConvertible {
@@ -24,20 +25,8 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     
     override var initialState: TurnstileState { .locked }
     
-    override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
-    ) -> _FSMBase<State, Event> {
-        FSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
-    }
-}
-
-final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
-    override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
-    ) -> _FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeEager()
     }
 }
 
@@ -48,7 +37,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     
     func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
         actual += a
-        fsm.handleEvent(e)
+        try! fsm.handleEvent(e)
         XCTAssertEqual(actions, actual, line: line)
     }
     
@@ -69,17 +58,17 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
 
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 when(.coin) | then(.unlocked)
                 when(.pass) | then(.alarming)
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 when(.coin) | then(.unlocked) | thankyou
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertTurnstile()
@@ -87,42 +76,42 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     
     func testConditionTurnstile() throws {
         var bool = false
-        
+
         try fsm.buildTable {
             let resetable = SuperState {
                 condition { bool } | when(.reset) | then(.locked)
             }
-            
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 condition { bool } | when(.coin) | then(.unlocked)
                 condition { bool } | when(.pass) | then(.alarming)
             }
-            
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 condition { bool } | when(.coin) | then(.unlocked) | thankyou
                 condition { bool } | when(.pass) | then(.locked)
             }
-            
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
-        
+
         assertEventAction(.coin,  "")
         assertEventAction(.pass,  "")
         assertEventAction(.reset,  "")
 
         fsm.state = AnyHashable(State.unlocked)
-        
+
         assertEventAction(.coin,  "")
         assertEventAction(.pass,  "")
         assertEventAction(.reset,  "")
-        
+
         fsm.state = AnyHashable(State.alarming)
-        
+
         assertEventAction(.reset,  "")
 
         fsm.state = AnyHashable(State.locked)
         bool = true
-        
+
         assertTurnstile()
     }
     
@@ -132,25 +121,25 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
 
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 when(.coin) | then(.unlocked)
                 when(.pass) | then(.alarming)
                 
-                override {
+                overriding {
                     when(.reset) | then(.locked) | thankyou
                 }
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 when(.coin) | then(.unlocked) | thankyou
                 when(.pass) | then(.locked)
                 
-                override {
+                overriding {
                     when(.reset) | then(.locked) | lock
                 }
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertEventAction(.reset, "thankyou")
@@ -167,12 +156,12 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         
         try fsm.buildTable {
             let s1 = SuperState { when(.coin) | then(.unlocked) | fail  }
-            let s2 = SuperState(adopts: s1) { override { when(.coin) | then(.unlocked) | fail } }
-            let s3 = SuperState(adopts: s2) { override { when(.coin) | then(.unlocked) | fail } }
-            let s4 = SuperState(adopts: s3) { override { when(.coin) | then(.unlocked) | fail } }
+            let s2 = SuperState(adopts: s1) { overriding { when(.coin) | then(.unlocked) | fail } }
+            let s3 = SuperState(adopts: s2) { overriding { when(.coin) | then(.unlocked) | fail } }
+            let s4 = SuperState(adopts: s3) { overriding { when(.coin) | then(.unlocked) | fail } }
             
             define(.locked, adopts: s4) {
-                override { when(.coin) | then(.unlocked) | unlock }
+                overriding { when(.coin) | then(.unlocked) | unlock }
             }
         }
 
@@ -180,12 +169,9 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     }
 }
 
-class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
-    override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
-    ) -> _FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeLazy()
     }
 }
 
@@ -203,7 +189,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         if !(a.first?.isEmpty ?? false) {
             actual += a
         }
-        fsm.handleEvent(e, predicates: [Enforcement.weak, Reward.punishing])
+        try! fsm.handleEvent(e, predicates: [Enforcement.weak, Reward.punishing])
         XCTAssertEqual(actions, actual, line: line)
     }
     
@@ -224,21 +210,21 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
             
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 matching(Enforcement.weak)   | when(.pass) | then(.locked)
                 matching(Enforcement.strong) | when(.pass) | then(.alarming)
                 
                 when(.coin) | then(.unlocked)
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 matching(Reward.rewarding) | when(.coin) | then(.unlocked) | thankyou
                 matching(Reward.punishing) | when(.coin) | then(.unlocked) | idiot
                 
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertTable()
@@ -250,7 +236,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
             
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 when(.pass) {
                     matching(Enforcement.weak)   | then(.locked)
                     matching(Enforcement.strong) | then(.alarming)
@@ -259,7 +245,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.coin) | then(.unlocked)
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 when(.coin) {
                     then(.unlocked) {
                         matching(Reward.rewarding) | thankyou
@@ -270,42 +256,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
-        }
-        
-        assertTable()
-    }
-    
-    func testTypealiasSyntaxTurnstile() throws {
-        typealias S = Syntax.Define<State>
-        typealias E = Syntax.When<Event>
-        typealias NS = Syntax.Then<State>
-        typealias If = Syntax.Expanded.Matching
-        
-        try fsm.buildTable {
-            let resetable = SuperState {
-                E(.reset) | NS(.locked)
-            }
-            
-            S(.locked, adopts: resetable, onEntry: [lock]) {
-                E(.pass) {
-                    If(Enforcement.weak)   | NS(.locked)
-                    If(Enforcement.strong) | NS(.alarming)
-                }
-                
-                E(.coin) | NS(.unlocked)
-            }
-            
-            S(.unlocked, adopts: resetable, onEntry: [unlock]) {
-                NS(.unlocked) {
-                    If(Reward.rewarding) | E(.coin) | thankyou
-                    If(Reward.punishing) | E(.coin) | idiot
-                }
-                
-                E(.pass) | NS(.locked)
-            }
-            
-            S(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertTable()
@@ -317,7 +268,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.reset) | then(.locked)
             }
             
-            define(.locked, adopts: resetable, onEntry: [lock]) {
+            define(.locked, adopts: resetable, onEntry: Array(lock)) {
                 when(.pass) {
                     matching(Enforcement.weak)   | then(.locked)
                     matching(Enforcement.strong) | then(.alarming)
@@ -326,7 +277,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.coin) | then(.unlocked)
             }
             
-            define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+            define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
                 then(.unlocked) {
                     actions(thankyou) {
                         matching(Reward.rewarding) | when(.coin)
@@ -340,19 +291,16 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
                 when(.pass) | then(.locked)
             }
             
-            define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+            define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
         assertTable()
     }
 }
 
-class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
-    override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
-    ) -> _FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeLazy()
     }
 }
 
@@ -376,18 +324,18 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
             }
         }
         
-        fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a, V.a)
+        try! fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual(["thankyou"], actions)
         
-        fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a, V.a)
+        try! fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual(["thankyou", "thankyou"], actions)
         
         actions = []
-        fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a, V.a)
+        try! fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual([], actions)
         
         actions = []
-        fsm.handleEvent(.coin, predicates: P.a, Q.b, R.b, S.b, T.b, U.b, V.b)
+        try! fsm.handleEvent(.coin, predicates: P.a, Q.b, R.b, S.b, T.b, U.b, V.b)
         XCTAssertEqual(["unlock"], actions)
     }
     
@@ -402,17 +350,15 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
             }
         }
         
-        fsm.handleEvent(.coin, predicates: P.a)
+        try! fsm.handleEvent(.coin, predicates: P.a)
         XCTAssertEqual(["thankyou", "lock", "unlock"], actions)
     }
 }
 
-class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
-    override func makeSUT<State: Hashable, Event: Hashable>(
-        initialState: State,
-        actionsPolicy: _FSMBase<State, Event>.EntryExitActionsPolicy = .executeOnStateChangeOnly
-    ) -> _FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+
+class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeLazy()
     }
 }
 
@@ -584,11 +530,11 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         }
     }
     
-    func testNothingToOverridesThrowErrors() {
+    func testNothingToOverrideThrowsErrors() {
         XCTAssertThrowsError (
             try fsm.buildTable {
                 define(.locked) {
-                    override { when(.coin) | then(.unlocked) }
+                    overriding { when(.coin) | then(.unlocked) }
                 }
             }
         ) {
@@ -602,7 +548,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         XCTAssertThrowsError (
             try fsm.buildTable {
                 let s = SuperState {
-                    override { when(.coin) | then(.unlocked) }
+                    overriding { when(.coin) | then(.unlocked) }
                 }
                 
                 define(.locked, adopts: s) {
@@ -614,6 +560,100 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssertEqual(1, errors?.count)
             XCTAssert(errors?.first is SemanticValidationNode.OverrideOutOfOrder)
         }
+    }
+}
+
+class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeLazy()
+    }
+}
+
+enum ComplexEvent: EventWithValues {    
+    case didSetOtherValue(FSMValue<String>)
+    case null
+
+    var stringValue: String? {
+        switch self {
+        case let .didSetOtherValue(value): value.wrappedValue
+        default: nil
+        }
+    }
+}
+
+class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent> {
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeEager()
+    }
+
+    override var initialState: TurnstileState { .locked }
+    var event = ComplexEvent.null
+
+    func setEvent(_ e: ComplexEvent) {
+        event = e
+    }
+
+    func assertEventPassing(
+        cat: ComplexEvent,
+        fish: ComplexEvent,
+        dog: ComplexEvent,
+        any: ComplexEvent
+    ) {
+        func assertValue(_ expectedValue: ComplexEvent) {
+            XCTAssertEqual(expectedValue.stringValue, event.stringValue)
+            event = .null
+        }
+
+        try! fsm.buildTable {
+            define(.locked) {
+                when(cat)  | then() | setEvent
+                when(fish) | then() | setEvent
+            }
+
+            define(.unlocked) {
+                when(any) | then() | setEvent
+            }
+        }
+
+        try! fsm.handleEvent(cat)
+        assertValue(cat)
+
+        try! fsm.handleEvent(fish)
+        assertValue(fish)
+
+        try! fsm.handleEvent(dog)
+        XCTAssertEqual(event, .null)
+
+        fsm.state = AnyHashable(State.unlocked)
+        try! fsm.handleEvent(cat)
+        assertValue(cat)
+
+        try! fsm.handleEvent(fish)
+        assertValue(fish)
+    }
+
+    func testEventPassingUsingValueEnum() {
+        assertEventPassing(cat: .didSetOtherValue(.some("cat")),
+                           fish: .didSetOtherValue(.some("fish")),
+                           dog: .didSetOtherValue(.some("dog")),
+                           any: .didSetOtherValue(.any))
+    }
+
+    func testDuplicatesDetectedAsExpectedUsingStruct() {
+        XCTAssertThrowsError(
+            try fsm.buildTable {
+                define(.locked) {
+                    when(.didSetOtherValue(.some("cat"))) | then() | setEvent
+                    when(.didSetOtherValue(.any))         | then() | setEvent
+                }
+            }
+        )
+    }
+}
+
+final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
+    override func makeSUT() -> any FSMProtocol<State, Event> {
+        makeLazy()
     }
 }
 

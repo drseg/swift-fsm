@@ -1,7 +1,8 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.8
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import CompilerPluginSupport
 
 let package = Package(
     name: "swift-fsm",
@@ -19,19 +20,28 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
-        .package(url: "https://github.com/drseg/reflective-equality", from: "1.0.0")
+        .package(url: "https://github.com/drseg/reflective-equality", from: "1.0.1"),
+//        .package(url: "https://github.com/realm/SwiftLint", from: "0.50.0")
     ],
     targets: [
         .target(
             name: "SwiftFSM",
-            dependencies:
-                [.product(name: "ReflectiveEquality", package: "reflective-equality"),
-                 .product(name: "Algorithms", package: "swift-algorithms")],
-            swiftSettings: [.define("DEVELOPMENT", .when(configuration: .debug))]
+            dependencies: [
+                .product(name: "ReflectiveEquality", package: "reflective-equality"),
+                .product(name: "Algorithms", package: "swift-algorithms"),
+            ],
+            swiftSettings: [
+                .define("DEVELOPMENT", .when(configuration: .debug)),
+                .enableExperimentalFeature("StrictConcurrency=complete")
+            ]
+//            plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
         ),
+
         .testTarget(
             name: "SwiftFSMTests",
-            dependencies: ["SwiftFSM"]
+            dependencies: [
+                "SwiftFSM",
+            ]
         ),
     ]
 )

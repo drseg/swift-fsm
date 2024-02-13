@@ -6,19 +6,19 @@ final class DefineNode: NeverEmptyNode {
             match: Match,
             event: AnyTraceable,
             nextState: AnyTraceable,
-            actions: [Action],
-            onEntry: [Action],
-            onExit: [Action],
+            actions: [AnyAction],
+            onEntry: [AnyAction],
+            onExit: [AnyAction],
             groupID: UUID,
             isOverride: Bool
-        
+
         init(_ state: AnyTraceable,
              _ match: Match,
              _ event: AnyTraceable,
              _ nextState: AnyTraceable,
-             _ actions: [Action],
-             _ onEntry: [Action],
-             _ onExit: [Action],
+             _ actions: [AnyAction],
+             _ onEntry: [AnyAction],
+             _ onExit: [AnyAction],
              _ groupID: UUID,
              _ isOverride: Bool
         ) {
@@ -33,20 +33,20 @@ final class DefineNode: NeverEmptyNode {
             self.isOverride = isOverride
         }
     }
-    
-    let onEntry: [Action]
-    let onExit: [Action]
+
+    let onEntry: [AnyAction]
+    let onExit: [AnyAction]
     var rest: [any Node<GivenNode.Output>] = []
-    
+
     let caller: String
     let file: String
     let line: Int
-        
+
     private var errors: [Error] = []
-    
+
     init(
-        onEntry: [Action],
-        onExit: [Action],
+        onEntry: [AnyAction],
+        onExit: [AnyAction],
         rest: [any Node<GivenNode.Output>] = [],
         caller: String = #function,
         file: String = #file,
@@ -59,7 +59,7 @@ final class DefineNode: NeverEmptyNode {
         self.file = file
         self.line = line
     }
-    
+
     func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         let output = rest.reduce(into: [Output]()) {
             if let match = finalise($1.match) {
@@ -76,17 +76,17 @@ final class DefineNode: NeverEmptyNode {
                 )
             }
         }
-        
+
         return errors.isEmpty ? output : []
     }
-    
+
     private func finalise(_ m: Match) -> Match? {
         switch m.finalised() {
         case .failure(let e): errors.append(e); return nil
         case .success(let m): return m
         }
     }
-    
+
     func validate() -> [Error] {
         makeError(if: rest.isEmpty) + errors
     }

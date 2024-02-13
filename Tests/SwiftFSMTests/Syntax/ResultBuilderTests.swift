@@ -53,7 +53,7 @@ class ResultBuilderTests: XCTestCase {
         XCTAssertEqual("The cat sat on the mat", s)
     }
     
-    func testBuilderWithEmptyArrayArguent() {
+    func testBuilderWithEmptyArrayArgument() {
         let s = build {
             []
         }
@@ -69,7 +69,7 @@ class ResultBuilderTests: XCTestCase {
         XCTAssertEqual("The cat sat on the mat", s)
     }
     
-    func testBuilderWithEmptyArrayArguents() {
+    func testBuilderWithEmptyArrayArguments() {
         let s = build {
             []
             []

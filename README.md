@@ -7,36 +7,11 @@ Inspired by [Uncle Bob's SMC][2] syntax, Swift FSM is a pure Swift DSL for decla
 
 This guide presumes some familiarity with FSMs and specifically the SMC syntax linked above. Swift FSM makes liberal use of [`@resultBuilder`][3] blocks,  [operator overloads][4],  [`callAsFunction()`][5], and [trailing closures][6], all in combination with one another - familiarity with these concepts will also be helpful.
 
-## Contents
-
-- [Requirements][7]
-- [Basic Syntax][8]
-	- [Optional Arguments][9]
-	- [Super States][10]
-	- [Entry and Exit Actions][11]
-	- [Syntax Order][12]
-	- [Syntax Variations][13]
-	- [Syntactic Sugar][14]
-	- [Runtime Errors][15]
-	- [Performance][16]
-- [Expanded Syntax][17]
-	- [Example][18]
-	- [ExpandedSyntaxBuilder and Predicate][19]
-	- [Implicit Matching Statements][20]
-	- [Multiple Predicates][21]
-	- [Implicit Clashes][22]
-	- [Deduplication][23]
-	- [Chaining Blocks][24]
-	- [Condition Statements][25]
-	- [Runtime Errors][26]
-	- [Predicate Performance][27]
-- [Troubleshooting][28]
-
 ## Requirements
 
-Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13, iOS 16, tvOS 16 and watchOS 9, alongside Swift 5.7 or later. If you need support for older platforms, please check out the [backport][29] branch.
+Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13, iOS 16, tvOS 16 and watchOS 9 or later, alongside Swift 5.8 or later. It supports Swift Concurrency, and is tested and compiled against Swift 6 concurrency rules.
 
-It has two dependencies - Apple’s [Algorithms][30], and ([in one small corner][31]) my own [Reflective Equality][32]
+It has two dependencies - Apple’s [Algorithms][7], and ([in one small corner][8]) my own [Reflective Equality][9].
 
 ## Basic Syntax
 
@@ -92,7 +67,7 @@ class MyClass: SyntaxBuilder {
             }
         }
 
-        fsm.handleEvent(.coin)
+        try fsm.handleEvent(.coin)
     }
 }
 ```
@@ -101,7 +76,7 @@ class MyClass: SyntaxBuilder {
 > class MyClass: SyntaxBuilder {
 > ```
 
-The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable`.
+The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable & Sendable`.
 
 > ```swift
 > let fsm = FSM<State, Event>(initialState: .locked)
@@ -135,13 +110,48 @@ As we are inside a `define` block, we take the `.locked` state as a given. We ca
 > when(.coin) | then(.unlocked) | { unlock() //; otherFunction(); etc. }
 > ```
 
+(see [Arrays of Actions][10] for other syntax variants)
+
 The `|` (pipe) operator binds transitions together. It feeds the output of the left hand side into the input of the right hand side, as you might expect in a terminal.
 
 > ```swift
-> fsm.handleEvent(.coin)
+> try fsm.handleEvent(.coin)
 > ```
 
 The `FSM` instance will look up the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, the `FSM` will call the `unlock` function and transition to the `unlocked` state.  If no transition is found, it will do nothing, and if compiled for debugging, will print a warning message.
+
+#### Actions and Concurrency
+
+Currently, in order to work reasonably in a SwiftUI world, the FSM runs its critical loops on the Main Actor, and expects that the actions you pass it will do so as well. Internally, the method `handleEvent` and all actions are therefore annotated `@MainActor`.
+
+There are two versions of `handleEvent`, the first as shown above and in all the examples, and the second named `handleEventAsync` which must be called with `await`. 
+
+The four function signatures for actions that are accepted are as follows:
+
+```swift
+@MainActor () -> Void
+@MainActor () async -> Void
+@MainActor (Event) -> Void
+@MainActor (Event) async -> Void
+```
+
+These are handled interchangeably without any additional syntax. The tradeoff is that you must choose the appropriate `handleEvent` function to call when using the FSM. The synchronous `handleEvent` function must be called with `try`, because it will throw if it is asked to call an async action. Though the asynchronous `handleEventAsync` function must be called with `await`, it does not throw any errors as it is a valid context from which to call both synchronous and asynchronous actions.
+
+Note also that there are action signatures that take an event as an argument. This can be useful in situations where you wish to pass an associated value along with an event enum that can then be received by your callback function (see [Using Events to Pass Values][11] for more details on how to implement this) .
+
+##### Arrays of Actions
+
+If you wish to pass an array of actions anywhere where such arrays are accepted, you will need to use a special `&` operator in order to enable mixing and matching of the four different action signatures:
+
+```swift
+when(.coin) | then(.unlocked) | first & secondAsync & thirdWithEvent ...
+```
+
+This is equivalent to the more verbose (but equally valid):
+
+```swift
+when(.coin) | then(.unlocked) | { event in first(); await secondAsync(); thirdWithEvent(event) ... }
+```
 
 ### Optional Arguments
 
@@ -178,11 +188,11 @@ try fsm.buildTable {
     define(.locked) {
         when(.coin)  | then(.unlocked) | unlock
         when(.pass)  | then(.alarming) | alarmOn
-        when(.reset) | then()          | { alarmOff(); lock() }
+        when(.reset) | then()          | alarmOff & lock
     }
 
     define(.unlocked) {
-        when(.reset) | then(.locked)   | { alarmOff(); lock() }
+        when(.reset) | then(.locked)   | alarmOff & lock
         when(.coin)  | then(.unlocked) | thankyou
         when(.pass)  | then(.locked)   | lock
     }
@@ -190,7 +200,7 @@ try fsm.buildTable {
     define(.alarming) {
         when(.coin)  | then()
         when(.pass)  | then()
-        when(.reset) | then(.locked) | { alarmOff(); lock() }
+        when(.reset) | then(.locked)   | alarmOff & lock
     }
 }
 ```
@@ -229,7 +239,7 @@ Swift FSM:
 ```swift
 try fsm.buildTable {
     let resetable = SuperState {
-        when(.reset) | then(.locked) | { alarmOff(); lock() }
+        when(.reset) | then(.locked)  | alarmOff & lock
     }
 
     define(.locked, adopts: resetable) {
@@ -282,63 +292,63 @@ define(.locked, adopts: s1) {
 }
 ```
 
-If you wish to override a `SuperState` transition, you must make this explicit using the `override { }` block:
+If you wish to override a `SuperState` transition, you must make this explicit using the `overriding { }` block:
 
 ```swift
 let s1 = SuperState { when(.coin) | then(.unlocked) | unlock  }
 
 let s2 = SuperState(adopts: s1) {
-    override { 
+    overriding { 
         when(.coin) | then(.locked) | beGrumpy // ✅ overrides inherited transition
     }
 }
 
 define(.locked, adopts: s1) {
-    override { 
+    overriding { 
         when(.coin) | then(.locked) | beGrumpy // ✅ overrides inherited transition
     }
 }
 ```
 
-The `override` block indicates to Swift FSM that any transitions contained within it override any inherited transitions with the same initial states and events. 
+The `overriding` block indicates to Swift FSM that any transitions contained within it override any inherited transitions with the same initial states and events. 
 
 As multiple inheritance is allowed, overrides replace all matching transitions:
 
 ```swift
-let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething      }
-let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse  }
+let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething     }
+let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse }
 
 define(.locked, adopts: s1, s2) {
-    override { 
+    overriding { 
         when(.coin) | then(.locked) | doYetAnotherThing // ✅ overrides both inherited transitions
     }
 }
 ```
 
-Without the `override`, this multiple inheritance would otherwise create duplicate transitions:
+Without the `overriding`, this multiple inheritance would otherwise create duplicate transitions:
 
 ```swift
-let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething      }
-let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse  }
+let s1 = SuperState { when(.coin) | then(.unlocked) | doSomething     }
+let s2 = SuperState { when(.coin) | then(.unlocked) | doSomethingElse }
 
 define(.locked, adopts: s1, s2) // 💥 error: duplicate transitions
 ```
 
-If `override` is used where there is nothing to override, the FSM will throw:
+If `overriding` is used where there is nothing to override, the FSM will throw:
 
 ```swift
 define(.locked) {
-    override { 
+    overriding { 
         when(.coin) | then(.locked) | beGrumpy // 💥 error: nothing to override
     }
 }
 ```
 
-Writing `override` in the parent rather than the child will throw:
+Writing `overriding` in the parent rather than the child will throw:
 
 ```swift
 let s1 = SuperState {
-    override { 
+    overriding { 
         when(.coin) | then(.locked) | beGrumpy
     }
 }
@@ -353,7 +363,7 @@ Attempting to override within the same `SuperState { }` or `define { }` will als
 ```swift
 define(.locked) {
     when(.coin) | then(.locked) | doSomething
-    override { 
+    overriding { 
         when(.coin) | then(.locked) | doSomethingElse
     }
 }
@@ -363,18 +373,18 @@ define(.locked) {
 
 In this scope, the word override has no meaning and therefore is ignored by the error handler. What remains is therefore two duplicate transitions, resulting in an error.
 
-#### Overriding Overrides
+#### Override Chains
 
 Overrides in Swift FSM follow the usual rules of inheritance. In a chain of overrides, it is the final transition in that chain that takes precedence:
 
 ```swift
 let s1 = SuperState { when(.coin) | then(.unlocked) | a1  }
-let s2 = SuperState(adopts: s1) { override { when(.coin) | then(.unlocked) | a2 } }
-let s3 = SuperState(adopts: s2) { override { when(.coin) | then(.unlocked) | a3 } }
-let s4 = SuperState(adopts: s3) { override { when(.coin) | then(.unlocked) | a4 } }
+let s2 = SuperState(adopts: s1) { overriding { when(.coin) | then(.unlocked) | a2 } }
+let s3 = SuperState(adopts: s2) { overriding { when(.coin) | then(.unlocked) | a3 } }
+let s4 = SuperState(adopts: s3) { overriding { when(.coin) | then(.unlocked) | a4 } }
 
 define(.locked, adopts: s4) {
-    override { when(.coin) | then(.unlocked) | a5 } // ✅ overrides all others
+    overriding { when(.coin) | then(.unlocked) | a5 } // ✅ overrides all others
 }
 
 fsm.handleEvent(.coin) // 'a5' is called
@@ -413,26 +423,39 @@ try fsm.buildTable {
         when(.reset) | then(.locked)
     }
 
-    define(.locked, adopts: resetable, onEntry: [lock]) {
+    define(.locked, adopts: resetable, onEntry: lock*) {
         when(.coin) | then(.unlocked)
         when(.pass) | then(.alarming)
     }
 
-    define(.unlocked, adopts: resetable, onEntry: [unlock]) {
+    define(.unlocked, adopts: resetable, onEntry: unlock*) {
         when(.coin) | then(.unlocked) | thankyou
         when(.pass) | then(.locked)
     }
 
-    define(.alarming, adopts: resetable, onEntry: [alarmOn], onExit: [alarmOff])
+    define(.alarming, adopts: resetable, onEntry: alarmOn*, onExit: alarmOff*)
 }
 ```
 
-`onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state. Note that these require array syntax rather than varargs, as a work around for limitations in Swift’s matching algorithm for functions that take multiple closure arguments.
+`onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state. Note that these require array syntax rather than varargs, as a work around for limitations in Swift’s matching algorithm for functions that take multiple closure arguments. 
+
+As the array is heterogeneous (it can include any of the four function types accepted by SwiftFSM as valid actions), a special postfix operator `*` is provided to convert a single one of these into an array of `AnyAction`. 
+
+```swift
+let _ = unlock* // preferred syntax, same as...
+let _ = Array(unlock) // same as...
+let _ = [AnyAction(unlock)]
+
+let _ = unlock & thankyou // preferred syntax, same as...
+let _ = AnyAction(unlock) & thankyou // same as...
+let _ = AnyAction(unlock) & AnyAction(thankyou) // same as...
+let _ = [AnyAction(unlock), AnyAction(thankyou)]
+```
 
 `SuperState` instances can also accept entry and exit actions:
 
 ```swift
-let resetable = SuperState(onEntry: [lock]) {
+let resetable = SuperState(onEntry: lock*) {
     when(.reset) | then(.locked)
 }
 
@@ -443,7 +466,7 @@ define(.locked, adopts: resetable) {
 
 // equivalent to:
 
-define(.locked, onEntry: [lock]) {
+define(.locked, onEntry: lock*) {
     when(.reset) | then(.locked)
     when(.coin)  | then(.unlocked)
     when(.pass)  | then(.alarming)
@@ -453,8 +476,8 @@ define(.locked, onEntry: [lock]) {
 `SuperState` instances also inherit entry and exit actions from their superstates:
 
 ```swift
-let s1 = SuperState(onEntry: [unlock])  { when(.coin) | then(.unlocked) }
-let s2 = SuperState(onEntry: [alarmOn]) { when(.pass) | then(.alarming) }
+let s1 = SuperState(onEntry: unlock*)  { when(.coin) | then(.unlocked) }
+let s2 = SuperState(onEntry: alarmOn*) { when(.pass) | then(.alarming) }
 
 let s3 = SuperState(adopts: s1, s2)
 
@@ -478,37 +501,11 @@ This policy is configurable, by passing `.executeAlways` as the second argument 
 FSM<State, Event>(initialState: .locked, actionsPolicy: .executeAlways)
 ```
 
-This setting replicates SMC entry/exit action behaviour. The default is `.executeOnStateChangeOnly` and is not a required argument.
+This setting replicates SMC entry/exit action behaviour. The default is `.executeOnChangeOnly` and is not a required argument.
 
 ### Syntax Order
 
-All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][33] below for exceptions to this rule.
-
-### Syntax Variations
-
-Though `define`, `when`, and `then` are functions, there are matching structs with equivalent capitalised names contained in the `SwiftFSM.Syntax` namespace. You can therefore leverage Swift’s `typealias` support to modify the syntax naming conventions to fit your use case.
-
-Here is one minimalistic example:
-
-```swift
-typealias d = Syntax.Define<State>
-typealias w = Syntax.When<Event>
-typealias t = Syntax.Then<State>
-
-try fsm.buildTable {
-    d(.locked) {
-        w(.coin) | t(.unlocked) | unlock
-        w(.pass) | t(.locked)   | alarm
-    }
-
-    d(.unlocked) {
-        w(.coin) | t(.unlocked) | thankyou
-        w(.pass) | t(.locked)   | lock
-    }
-}
-```
-
-It you wish to use this alternative syntax, it is recommended (but not required) that you do not implement `SyntaxBuilder`.
+All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][12] below for exceptions to this rule.
 
 ### Syntactic Sugar
 
@@ -528,6 +525,83 @@ define(.locked) {
 }
 ```
 
+### Passing Values in Events
+
+Actions can receive the event that resulted in them being called, which can be useful if that event includes a value you may wish to pass on. SwiftFSM requires a special struct `FSMValue<T>` and protocol `EventWithValues` that work together to enable you to do this.
+
+```swift
+enum Event: EventWithValues {
+    case .coin(FSMValue<Int>), ...
+
+    var coinValue: Int? {
+        guard case .coin(let amount) = event else { return nil }
+        return amount.wrappedValue
+    }
+}
+
+func main() throws {
+    try fsm.buildTable(initialState: .locked) {
+        define(.locked) {
+            when(.coin(.any)) | then(.verifyingPayment) | verifyPayment
+            // here we use .any to match any value
+        }
+    }
+
+    try fsm.handleEvent(.coin(50))
+    // here we pass a specific value that will be matched by .any
+}
+
+func verifyPayment(_ event: Event) {
+    // here we receive the actual value passed to handleEvent: .coin(50)
+    if let amount = event.coinValue {
+        if amount >= requiredAmount {
+            letThemThrough()
+        } else {
+            insufficientPayment(shortfall: requiredAmount - amount)
+        }
+    }
+}
+```
+
+ `when(.coin(.any))` works polymorphically. We wish to write a single transition row that will match against any value inside `.coin(someValue)` and pass that value on to the `verifyPayment` function. Without the combination of `EventWithValues` and `FSMValue<T>`, the table would have to be written as follows:
+
+```swift
+try fsm.buildTable(initialState: .locked) {
+    define(.locked) {
+        when(.coin(1)) | then(.verifyingPayment) | verifyPayment
+        when(.coin(2)) | then(.verifyingPayment) | verifyPayment
+        when(.coin(3)) | then(.verifyingPayment) | verifyPayment
+        when(.coin(4)) | then(.verifyingPayment) | verifyPayment
+        ... // and so on for all relevant values
+    }
+}
+```
+
+By using  `.any`, the transition to `.verifyingPayment` will be activated when a `.coin` event is received, no matter what the wrapped value is. That wrapped value is then passed into the `verifyPayment` function where it can be examined. `FSMValue` provides a convenience `var wrappedValue: T?`, which returns an optional value (potentially nil if it is called on a `.any` instance or if `T` is optional and nil).
+
+#### Literal Expression Implementations
+
+FSMValue conforms to `ExpressibleByIntegerLiteral`, `ExpressibleByFloatLiteral`, `ExpressibleByArrayLiteral`, `ExpressibleByDictionaryLiteral`, `ExpressionByNilLiteral`, and `ExpressionByStringLiteral` forwarding to the wrapped type where relevant. It also forwards conformances to `Equatable`, `Comparable`, and `AdditiveArithmetic` where relevant, as well as `RandomAccessCollection` and its parent protocols for Arrays, and subscript access for Dictionaries. Finally, it forwards `CustomStringConvertible`, which also covers most uses of `ExpressibleByStringInterpolation`.
+
+A few examples:
+
+```swift
+let s: FSMValue<String> = "1" // equivalent to .some("1")
+let i: FSMValue<Int> = 1 // equivalent to .some(1)
+let ai: FSMValue<[Int]> = [1] // equivalent to .some([1])
+
+let _ = s + "1" // "11"
+let _ = i + 1 // 2
+let _ = ai[0] // 1
+let _ = ai[0] == i // true
+let _ = ai[0] > i // false
+let _ = "\(i)\(s)" // "11"
+```
+
+**Warning**: where forward operations are available on the wrapped type, be aware that this will crash if you attempt to access a value on a `.any` instance (as there is no instance of the wrapped type). `.any` should only appear inside a define statement - there are no circumstances in which it would be useful or meaningful to pass such an event with `FSMValue.any` to `handleEvent`.
+
+Equally, you should always unwrap `FSMValue<T>` instances before continuing - indeed, all convenience methods that return a value return an instance of `T` and *not* of `FSMValue<T>`. Comparing or hashing `FSMValue` instances is not recommended - they are specialised DTOs used by the FSM and should not escape.
+
 ### Limitations of `@resultBuilder` Implementation
 
 The `@resultBuilder` blocks in SwiftFSM do not support control flow logic. Though is it possible to enable such logic, it would be misleading:
@@ -545,11 +619,11 @@ define(.locked) {
 
 If the `if/else` block were evaluated by the FSM at transition time, this would be a useful addition. However what we are doing inside these blocks is *compiling* our state transition table. The use of `if` and `else` in this manner is more akin to the conditional compilation statements `#if/#else` - based on a value defined at compile time, only one transition or the other will be added to the table.
 
-If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][34] for alternative ways to evaluate conditional statements at transition time rather than compile time.
+If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][13] for alternative ways to evaluate conditional statements at transition time rather than compile time.
 
 ### Runtime Errors
 
-**Important** - most Swift FSM function calls and initialisers take additional parameters `file: String = #file`  and `line: Int = #line`. This is similar to `XCTest` assertions, and allows Swift FSM to produce errors that pinpoint the location of problematic statement/s.
+**Warning** - most Swift FSM function calls and initialisers take additional parameters `file: String = #file`  and `line: Int = #line`. This is similar to `XCTest` assertions, and allows Swift FSM to produce errors that pinpoint the location of problematic statement/s.
 
 As these cannot be hidden, please note that there are unlikely to be any circumstances in which it would be useful or necessary to override these default arguments with alternate values.
 
@@ -596,6 +670,34 @@ try fsm.buildTable {
 
 Though the two transitions are distinct from one another, logically they cannot co-exist - the `.coin` event must lead either to the `.unlocked` state or to the `.locked` state. It cannot lead to both.
 
+#### FSMValue - incorrect use of .any
+
+Because `.any` matches all cases, the following would throw an error:
+
+```swift
+try fsm.buildTable(initialState: .locked) {
+    define(.locked) {
+        when(.coin(.any)) | then(.verifyingPayment) | verifyPayment
+        when(.coin(50)    | then(.unlocked)         | pass
+    }
+} 
+
+//💥 error: logical clash
+```
+
+The `.any` case already includes `.some(50)` and this specific case is therefore referenced ambiguously. It would however be possible to write the following:
+
+```swift
+try fsm.buildTable(initialState: .locked) {
+    define(.locked) {
+        when(.coin(20) | then(.verifyingPayment) | verifyPayment
+        when(.coin(50) | then(.unlocked)         | pass
+    }
+} 
+
+// ✅ transitions are logically distinct
+```
+
 #### Duplicate `buildTable` Calls
 
 Additional calls to `fsm.buildTable { }` will throw a `TableAlreadyBuiltError`.
@@ -606,7 +708,7 @@ Swift FSM will throw an error if your `State` and/or `Event` types (or their chi
 
 `State` and `Event` instances are hashed to produce keys for the transition `Dictionary`. These keys are then recreated and reused each time `fsm.handleEvent` is called. This is not an issue for most Swift types, as `Hashable` conformance will have to be declared explicitly. `NSObject` however already conforms to `Hashable`, and is hashed *by instance identity*, rather than by value. This would lead to a defunct transition table where all transition lookups fail, and therefore throws an error.
 
-This is an edge case and it is extremely unlikely that you will ever encounter this error. Nonetheless, the check is quite exhaustive - If you would like to know more about the mechanism involved, see [Reflective Equality][35].
+This is an edge case and it is extremely unlikely that you will ever encounter this error. Nonetheless, the check is quite exhaustive - If you would like to know more about the mechanism involved, see [Reflective Equality][14].
 
 ### Performance
 
@@ -715,11 +817,9 @@ In this system, only those statements that depend upon the `Enforcement` policy 
 
 ### ExpandedSyntaxBuilder and Predicate
 
-`ExpandedSyntaxBuilder` implements `SyntaxBuilder`, providing all the SMC-equivalent syntax, alongside the new `matching` statements for working with predicates. 
+`ExpandedSyntaxBuilder` implements `SyntaxBuilder`, providing all the SMC-equivalent syntax, alongside the new `matching` statements for working with predicates.  
 
-For the `Struct` based variant syntax, the equivalent namespace is `SwiftFSM.Syntax.Expanded`.  
-
-`Predicate` requires the conformer to be `Hashable` and `CaseIterable`. It is possible to use any type you wish, as long as your conformance to `Hashable` and `CaseIterable` makes logical sense. In practice, this is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`.
+`Predicate` requires the conformer to be `Hashable, Sendable` and `CaseIterable`. It is possible to use any type you wish, as long as your conformance to `Hashable` and `CaseIterable` makes logical sense. In practice, this is likely to limit `Predicates` to `Enums` without associated types, as these can be automatically conformed to `CaseIterable`.
 
 ### Implicit Matching Statements
 
@@ -744,7 +844,7 @@ Transitions in Swift FSM are are therefore `Predicate` agnostic by default, matc
 
 ### Multiple Predicates
 
-There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][36] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
+There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][15] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
 
 ```swift
 enum Enforcement: Predicate { case weak, strong }
@@ -812,9 +912,9 @@ In Swift FSM, `matching(and:)` means that we expect both predicates to be presen
 
 Swift FSM expects exactly one instance of each `Predicate` type present in the table to be passed to each call to `handleEvent`, as in the example above, where `fsm.handleEvent(.coin, predicates: A.x, B.x, C.x)` contains a single instance of types `A`, `B` and `C`. Accordingly, `A.x AND A.y` should never occur - only one can be present. Therefore, predicates passed to `matching(and:)` must all be of a different type.  This cannot be checked at compile time, and therefore throws at runtime if violated.
 
-In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][37] for more information on this limitation).
+In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][16] for more information on this limitation).
 
-**Important** - nested `matching` statements are combined by AND-ing them together, which makes it possible inadvertently to create a conflict.
+**Warning** - nested `matching` statements are combined by AND-ing them together, which makes it possible inadvertently to create a conflict.
 
 ```swift
 define(.locked) {
@@ -1046,7 +1146,7 @@ then(state) {
 }
 
 actions(functionCalls) { 
-   // everything in scope calls 'functionCalls'
+    // everything in scope calls 'functionCalls'
 }
 ```
 
@@ -1125,7 +1225,7 @@ Nested `actions` blocks sum the actions and perform all of them. Nested `matchin
 
 #### Mixing blocks and pipes
 
-Pipes can and must be used inside blocks, whereas blocks cannot be opened after pipes
+Pipes can and must be used inside blocks, whereas blocks cannot be opened after pipes.
 
 ```swift
 define(.locked) {
@@ -1137,7 +1237,7 @@ define(.locked) {
 
 ### Condition Statements
 
-Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][38] for a description of `matching` overhead).
+Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][17] for a description of `matching` overhead).
 
 If you need to make a specific transition conditional at runtime, then the `condition` statement may suffice. Some FSM implementations call this a `guard` statement, however the name `condition` was chosen here as `guard` is a reserved word in Swift.
 
@@ -1149,7 +1249,7 @@ define(.locked) {
 
 Here, `complexDecisionTree()` is a function that returns a `Bool`. If it is `true`, the transition is executed, and if it is not, nothing is executed.
 
-The keyword `condition` is syntactically interchangeable with `matching` - it works with pipe and block syntax, and is chainable (conditions are AND-ed together).
+The keyword `condition` is syntactically interchangeable with `matching` - it works with pipe and block syntax, and is chainable (conditions are `AND`-ed together).
 
 `matching` and `condition` blocks can also be combined freely:
 
@@ -1187,7 +1287,7 @@ There is no way to distinguish different `condition` statements, as the `() -> B
 
 ### Runtime Errors
 
-In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs no error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance. It is the caller’s responsibility to ensure that the predicates passed to `handleEvent` and the predicates used in the transition table are of the same type and number.
+In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs minimal error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance. It is the caller’s responsibility to ensure that the predicates passed to `handleEvent` and the predicates used in the transition table are of the same type and number.
 
 `try fsm.buildTable { }` does perform error handling to make sure the table is syntactically and semantically valid. In particular, it ensures that all `matching` statements are valid, and that there are no duplicate transitions and no logical clashes between transitions.
 
@@ -1224,7 +1324,7 @@ matching(A.a, or: A.b) { // ✅
 
 #### Implicit Clash Error
 
-See [Implicit Clashes][39]
+See [Implicit Clashes][18]
 
 ### Predicate Performance
 
@@ -1343,7 +1443,7 @@ try fsm.buildTable {
 }
 ```
 
-This is the original example from [Entry and Exit Actions][40], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
+This is the original example from [Entry and Exit Actions][19], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
 
 > **Cannot find '🦤' in scope**
 
@@ -1371,40 +1471,19 @@ Ignore these errors, and if there is no other error shown, you may have to hunt 
 [4]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators/
 [5]:	https://github.com/apple/swift-evolution/blob/main/proposals/0253-callable.md
 [6]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/closures/#Trailing-Closures
-[7]:	#requirements
-[8]:	#basic-syntax
-[9]:	#optional-arguments
-[10]:	#super-states
-[11]:	#entry-and-exit-actions
-[12]:	#syntax-order
-[13]:	#syntax-variations
-[14]:	#syntactic-sugar
-[15]:	#runtime-errors
-[16]:	#performance
-[17]:	#expanded-syntax
-[18]:	#example
-[19]:	#expandedsyntaxbuilder-and-predicate
-[20]:	#implicit-matching-statements
-[21]:	#multiple-predicates
-[22]:	#implicit-clashes
-[23]:	#deduplication
-[24]:	#chaining-blocks
-[25]:	#condition-statements
-[26]:	#error-handling
-[27]:	#predicate-performance
-[28]:	#troubleshooting
-[29]:	https://github.com/drseg/swift-fsm/tree/backport
-[30]:	https://github.com/apple/swift-algorithms
-[31]:	#nsobject-error
-[32]:	https://github.com/drseg/reflective-equality
-[33]:	#expanded-syntax
-[34]:	#expanded-syntax
-[35]:	https://github.com/drseg/reflective-equality
-[36]:	#predicate-performance
-[37]:	#implicit-clashes
-[38]:	#predicate-performance
-[39]:	#implicit-clashes
-[40]:	#entry-and-exit-actions
+[7]:	https://github.com/apple/swift-algorithms
+[8]:	#nsobject-error
+[9]:	https://github.com/drseg/reflective-equality
+[10]:	#arrays-of-actions
+[11]:	#using-events-to-pass-values
+[12]:	#expanded-syntax
+[13]:	#expanded-syntax
+[14]:	https://github.com/drseg/reflective-equality
+[15]:	#predicate-performance
+[16]:	#implicit-clashes
+[17]:	#predicate-performance
+[18]:	#implicit-clashes
+[19]:	#entry-and-exit-actions
 
 [image-1]:	https://codecov.io/gh/drseg/swift-fsm/branch/master/graph/badge.svg?token=4UV1D0M80T
 [image-2]:	https://img.shields.io/testspace/tests/drseg/drseg:swift-fsm/master

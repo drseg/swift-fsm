@@ -28,7 +28,8 @@ final class ActionsNodeTests: SyntaxNodeTests {
     }
     
     func testActionsPlusChainFinalisesCorrectly() {
-        let a = ActionsNode(actions: [{ self.actionsOutput += "action" }])
+        let actions = [{ self.actionsOutput += "action" }]
+        let a = ActionsNode(actions: actions.map(AnyAction.init))
         assertDefaultIONodeChains(node: a, expectedOutput: "actionchain")
     }
 }
