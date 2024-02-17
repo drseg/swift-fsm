@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-//import SwiftFSMMacros
 @testable import SwiftFSM
 
 enum TurnstileState: String, CustomStringConvertible {

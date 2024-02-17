@@ -122,7 +122,7 @@ final class Match: Sendable {
 
     func adding(_ other: Match) -> Match {
         var condition: ConditionAction? {
-            return switch (self.condition == nil, other.condition == nil) {
+            switch (self.condition == nil, other.condition == nil) {
             case (true, true): nil
             case (true, false): other.condition!
             case (false, true): self.condition!
