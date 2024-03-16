@@ -1,7 +1,6 @@
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 class ActionsBlockTests: BlockTestsBase {
     let eventOutput = ActionsBlockTests.defaultOutputWithEvent
 
