@@ -2,7 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 @MainActor
-final class PublicTests: XCTestCase, ExpandedSyntaxBuilder {
+final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
 
