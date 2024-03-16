@@ -4,9 +4,9 @@ import XCTest
 
 @MainActor
 class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
-    static let defaultOutput = "pass"
-    static let defaultOutputWithEvent = "\(SyntaxTestsBase.defaultOutput), event: \(SyntaxTestsBase.defaultEvent)"
-    static let defaultEvent = 111
+    nonisolated(unsafe) static let defaultOutput = "pass"
+    nonisolated(unsafe) static let defaultOutputWithEvent = "\(SyntaxTestsBase.defaultOutput), event: \(SyntaxTestsBase.defaultEvent)"
+    nonisolated(unsafe) static let defaultEvent = 111
 
     typealias State = Int
     typealias Event = Int
