@@ -1,8 +1,8 @@
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 final class AnyActionSyntaxTests: AnyActionTestsBase {
+    @MainActor
     func assertSync(_ actions: [AnyAction], expected: String, line: UInt = #line) {
         for a in actions {
             try! a("event")
@@ -22,6 +22,7 @@ final class AnyActionSyntaxTests: AnyActionTestsBase {
         output = ""
     }
 
+    @MainActor
     func testCanMakeAnyActionsArray() async {
         assertSync(AnyAction(pass) & pass, expected: "passpass")
         assertSync(AnyAction(pass) & passWithEvent, expected: "passevent")
@@ -29,6 +30,7 @@ final class AnyActionSyntaxTests: AnyActionTestsBase {
         await assertAsync(AnyAction(pass) & passWithEventAsync, expected: "passevent")
     }
 
+    @MainActor
     func testCombinesAnyActionsArrays() async {
         let a = AnyAction(pass) & pass
 
@@ -38,6 +40,7 @@ final class AnyActionSyntaxTests: AnyActionTestsBase {
         await assertAsync(a & passWithEventAsync, expected: "passpassevent")
     }
 
+    @MainActor
     func testOperatorChains() async {
         assertSync(AnyAction(pass) & pass & pass, expected: "passpasspass")
         assertSync(AnyAction(pass) & pass & passWithEvent, expected: "passpassevent")
@@ -45,6 +48,7 @@ final class AnyActionSyntaxTests: AnyActionTestsBase {
         await assertAsync(AnyAction(pass) & pass & passWithEventAsync, expected: "passpassevent")
     }
 
+    @MainActor
     func testCombinesRawActionsToFormAnyActions() async {
         assertSync(pass & pass, expected: "passpass")
         assertSync(pass & passWithEvent, expected: "passevent")
@@ -67,6 +71,7 @@ final class AnyActionSyntaxTests: AnyActionTestsBase {
         await assertAsync(passWithEventAsync & passWithEventAsync, expected: "eventevent")
     }
 
+    @MainActor
     func testFormsArrayWithSingleAction() async {
         assertSync(Array(pass), expected: "pass")
         assertSync(pass*, expected: "pass")

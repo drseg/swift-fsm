@@ -2,6 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 class BuilderTests: BlockTestsBase {
+    @MainActor
     func testMWTA() {
         let line = #line; @MWTABuilder var mwta: [MWTA] {
             matching(P.a) | when(1, or: 2) | then(1) | pass
@@ -36,6 +37,7 @@ class BuilderTests: BlockTestsBase {
                   sutLine: line + 10)
     }
 
+    @MainActor
     func testMWA() {
         let line = #line; @MWABuilder var mwa: [MWA] {
             matching(P.a) | when(1, or: 2) | pass
@@ -70,6 +72,7 @@ class BuilderTests: BlockTestsBase {
                  sutLine: line + 10)
     }
 
+    @MainActor
     func testMTA() {
         let line = #line; @MTABuilder var mta: [MTA] {
             matching(P.a) | then(1) | pass
@@ -104,6 +107,7 @@ class BuilderTests: BlockTestsBase {
                  sutLine: line + 10)
     }
 
+    @MainActor
     func testMA() {
         let line = #line; @MABuilder var ma: [MA] {
             matching(P.a) | pass

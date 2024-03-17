@@ -82,6 +82,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         assertCount(result.errors, expected: 0)
     }
     
+    @MainActor
     func testTableWithNoMatches() {
         let d = defineNode(s1, Match(), e1, s2)
         let result = matchResolvingNode(rest: [d]).finalised()
@@ -95,6 +96,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
                                                   t: s2))
     }
     
+    @MainActor
     func testMatchCondition() {
         let d = defineNode(s1, Match(condition: { false }), e1, s2)
         let result = matchResolvingNode(rest: [d]).finalised()
@@ -102,6 +104,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         XCTAssertEqual(false, result.output.first?.condition?())
     }
     
+    @MainActor
     func testImplicitMatch() {
         let d1 = defineNode(s1, Match(), e1, s2)
         let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
@@ -151,6 +154,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         XCTAssertFalse(r2.errors.isEmpty)
     }
     
+    @MainActor
     func testPassesConditionToOutput() {
         let d1 = defineNode(s1, Match(condition: { false }), e1, s2)
         let result = matchResolvingNode(rest: [d1]).finalised()

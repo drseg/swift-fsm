@@ -13,6 +13,7 @@ final class AnyTraceableTests: SyntaxNodeTests {
         XCTAssertNotEqual(t1, t3)
     }
     
+    @MainActor
     func testTraceableHashing() {
         var randomCat: AnyTraceable { randomisedTrace("cat") }
         

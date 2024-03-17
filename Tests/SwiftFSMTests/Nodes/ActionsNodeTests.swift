@@ -20,6 +20,7 @@ final class ActionsNodeTests: SyntaxNodeTests {
         assertCount(ActionsBlockNode(actions: [], rest: []).finalised().output, expected: 0)
     }
     
+    @MainActor
     func testActionsFinalisesCorrectly() {
         let n = actionsNode
         n.finalised().output.executeAll()

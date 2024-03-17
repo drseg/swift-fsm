@@ -71,6 +71,7 @@ class MRNTestBase: StringableNodeTest {
               actionsOutput: a)
     }
     
+    @MainActor
     func assertResult(
         _ result: MRNResult,
         expected: ExpectedMRNOutput,
@@ -87,6 +88,7 @@ class MRNTestBase: StringableNodeTest {
         }, file: file, line: line)
     }
     
+    @MainActor
     func assertEqual(
         _ lhs: ExpectedMRNOutput?,
         _ rhs: Transition?,

@@ -12,6 +12,7 @@ class ConditionBlockTests: BlockTestsBase {
         n as! MatchBlockNode
     }
 
+    @MainActor
     func assertMWTANode(
         _ b: MatchBlockNode,
         expected: Bool,
@@ -23,6 +24,7 @@ class ConditionBlockTests: BlockTestsBase {
         assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
+    @MainActor
     func assertMWANode(
         _ b: MatchBlockNode,
         expected: Bool,
@@ -34,6 +36,7 @@ class ConditionBlockTests: BlockTestsBase {
         assertMWAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
+    @MainActor
     func assertMTANode(
         _ b: MatchBlockNode,
         expected: Bool,
@@ -45,6 +48,7 @@ class ConditionBlockTests: BlockTestsBase {
         assertMTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
+    @MainActor
     func assertMatchBlock(
         _ b: MatchBlockNode,
         expected: Bool,
@@ -55,6 +59,7 @@ class ConditionBlockTests: BlockTestsBase {
         assertMatchNode(b, condition: expected, caller: "condition", sutLine: sl, xctLine: xl)
     }
 
+    @MainActor
     func testMWTABlocks() {
         func assertMWTABlock(
             _ b: Internal.MWTASentence,
@@ -75,6 +80,7 @@ class ConditionBlockTests: BlockTestsBase {
         assertMWTABlock(c1, condition: false, nodeLine: l1)
     }
 
+    @MainActor
     func testMWABlocks() {
         func assertMWABlock(
             _ b: Internal.MWASentence,
@@ -93,6 +99,7 @@ class ConditionBlockTests: BlockTestsBase {
         assertMWABlock(c1, condition: false, nodeLine: l1)
     }
 
+    @MainActor
     func testMTABlocks() {
         func assertMTABlock(
             _ b: Internal.MTASentence,
@@ -111,6 +118,7 @@ class ConditionBlockTests: BlockTestsBase {
         assertMTABlock(c1, condition: false, nodeLine: l1)
     }
 
+    @MainActor
     func testCompoundMWTABlocks() {
         func assertCompoundMWTABlock(
             _ b: Internal.MWTASentence,
@@ -132,6 +140,7 @@ class ConditionBlockTests: BlockTestsBase {
         assertCompoundMWTABlock(c1, condition: false, nodeLine: l1)
     }
 
+    @MainActor
     func testCompoundMWABlocks() {
         func assertCompoundMWABlock(
             _ b: Internal.MWASentence,
@@ -153,6 +162,7 @@ class ConditionBlockTests: BlockTestsBase {
         assertCompoundMWABlock(c1, condition: false, nodeLine: l1)
     }
 
+    @MainActor
     func testCompoundMTABlocks() {
         func assertCompoundMTABlock(
             _ b: Internal.MTASentence,
