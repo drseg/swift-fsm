@@ -18,6 +18,7 @@ final class WhenNodeTests: SyntaxNodeTests {
         assertCount(WhenBlockNode(events: [e1]).finalised().output, expected: 0)
     }
     
+    @MainActor
     func testWhenNodeWithEmptyRest() {
         assertWhen(state: nil,
                    actionsCount: 0,
@@ -26,6 +27,7 @@ final class WhenNodeTests: SyntaxNodeTests {
                    line: #line)
     }
     
+    @MainActor
     func assertWhenNodeWithActions(
         expected: String = "1212",
         _ w: WhenNode,
@@ -38,6 +40,7 @@ final class WhenNodeTests: SyntaxNodeTests {
                    line: line)
     }
     
+    @MainActor
     func testWhenNodeFinalisesCorrectly() {
         assertWhenNodeWithActions(WhenNode(events: [e1, e2], rest: [thenNode]))
     }
@@ -47,6 +50,7 @@ final class WhenNodeTests: SyntaxNodeTests {
         assertDefaultIONodeChains(node: w, expectedEvent: e3)
     }
     
+    @MainActor
     func testWhenNodeCanSetRestAfterInit() {
         let w = WhenNode(events: [e1, e2])
         w.rest.append(thenNode)

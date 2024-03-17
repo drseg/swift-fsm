@@ -1,7 +1,6 @@
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 class AnyActionTestsBase: XCTestCase {
     var output = ""
 
@@ -23,6 +22,7 @@ class AnyActionTestsBase: XCTestCase {
 }
 
 final class AnyActionTests: AnyActionTestsBase {
+    @MainActor
     func testCanCallActionWithNoArgs() {
         let action = AnyAction(pass)
         try! action()
@@ -30,6 +30,7 @@ final class AnyActionTests: AnyActionTestsBase {
         XCTAssertEqual(output, "pass")
     }
 
+    @MainActor
     func testActionWithNoArgsIgnoresEvent() {
         let action = AnyAction(pass)
         try! action("fail")
@@ -58,6 +59,7 @@ final class AnyActionTests: AnyActionTestsBase {
         XCTAssertEqual(output, "pass")
     }
 
+    @MainActor
     func testCanCallActionWithEventArg() {
         let action = AnyAction(passWithEvent)
         try! action("pass")
@@ -65,6 +67,7 @@ final class AnyActionTests: AnyActionTestsBase {
         XCTAssertEqual(output, "pass")
     }
 
+    @MainActor
     func testCannotCallActionWithEventArgWithoutEvent() {
         let action = AnyAction(passWithEvent)
         XCTAssertThrowsError(try action())
@@ -84,6 +87,7 @@ final class AnyActionTests: AnyActionTestsBase {
         XCTAssertEqual(output, "pass")
     }
 
+    @MainActor
     func testCallingSyncFunctionWithAsyncBlockThrows() {
         let a1 = AnyAction(passAsync)
         let a2 = AnyAction(passWithEventAsync)
