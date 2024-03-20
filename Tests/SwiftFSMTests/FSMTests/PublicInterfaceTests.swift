@@ -27,9 +27,7 @@ final class PublicInterfaceTests: XCTestCase {
     var alarmCalled = false
     var thankyouCalled = false
     
-    func unlock() {
-      unlockCalled = true
-    }
+    func unlock() { unlockCalled = true }
     func alarm() { alarmCalled = true }
     func thankyou() { thankyouCalled = true }
     func lock() { lockCalled = true }
