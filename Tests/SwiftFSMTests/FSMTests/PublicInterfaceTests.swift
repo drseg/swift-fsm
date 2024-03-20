@@ -1,7 +1,7 @@
 import XCTest
 import SwiftFSM
 
-final class SimplifiedPublicTests: XCTestCase {
+final class PublicInterfaceTests: XCTestCase {
   final class MyClass: SyntaxBuilder {
     enum State { case locked, unlocked }
     enum Event { case coin, pass }
