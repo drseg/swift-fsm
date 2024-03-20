@@ -36,15 +36,20 @@ final class PublicInterfaceTests: XCTestCase {
   @MainActor
   func testPublicInterface() throws {
     let sut = try MyClass()
+    
     try sut.fsm.handleEvent(.coin)
     XCTAssertTrue(sut.unlockCalled)
     XCTAssertFalse(sut.thankyouCalled)
+    
     try sut.fsm.handleEvent(.coin)
     XCTAssertTrue(sut.thankyouCalled)
+    
     try sut.fsm.handleEvent(.coin)
     XCTAssertFalse(sut.lockCalled)
+    
     try sut.fsm.handleEvent(.pass)
     XCTAssertTrue(sut.lockCalled)
+    
     try sut.fsm.handleEvent(.pass)
     XCTAssertTrue(sut.alarmCalled)
   }
