@@ -264,10 +264,12 @@ class StringableNodeTest: DefineConsumer {
     
 
     func toString(_ n: some Node, printFileAndLine: Bool = false, indent: Int = 0) async -> String {
+        var output = ""
+
         func string(_ indent: Int) -> String {
             String(repeating: " ", count: indent)
         }
-        
+
         func addRest() async {
             if !n.rest.isEmpty {
                 output.append(" {\n")
@@ -280,24 +282,22 @@ class StringableNodeTest: DefineConsumer {
                 output.append("\n" + string(indent) + "}")
             }
         }
-        
+
         func fileAndLine(_ file: String, _ line: Int) -> String {
             " (\(file) \(line))"
         }
-        
-        var output = ""
-        
-        if let n = n as? ActionsNodeBase {
+
+        func visit(_ n: ActionsNodeBase) async {
             await n.actions.executeAll()
             output.append("A: \(actionsOutput.formatted)")
-            
+
             if let n = n as? ActionsBlockNode, printFileAndLine {
                 output.append(fileAndLine(n.file, n.line))
             }
             actionsOutput = ""
         }
-        
-        if let n = n as? ThenNodeBase {
+
+        func visit(_ n: ThenNodeBase) async {
             if let state = n.state {
                 if let n = n as? ThenBlockNode, printFileAndLine {
                     output.append("T" + fileAndLine(n.file, n.line) + ": \(state)")
@@ -311,11 +311,11 @@ class StringableNodeTest: DefineConsumer {
                 output.append("T: default")
             }
         }
-        
-        if let n = n as? WhenNodeBase {
+
+        func visit(_ n: WhenNodeBase) async {
             if printFileAndLine {
                 let description = n.events.map { $0.description + fileAndLine($0.file, $0.line) }
-                
+
                 if let n = n as? WhenBlockNode, printFileAndLine {
                     output.append("W" + fileAndLine(n.file, n.line)
                                   + ": \(description.joined(separator: ", "))")
@@ -327,8 +327,8 @@ class StringableNodeTest: DefineConsumer {
                 output.append("W: \(n.events.map(\.description).joined(separator: ", "))")
             }
         }
-        
-        if let n = n as? MatchNodeBase {
+
+        func visit(_ n: MatchNodeBase) async  {
             if let n = n as? MatchBlockNode, printFileAndLine {
                 output.append("M" + fileAndLine(n.file, n.line)
                               + ": any: \(n.match.matchAny), all: \(n.match.matchAll)")
@@ -339,8 +339,8 @@ class StringableNodeTest: DefineConsumer {
                 output.append(fileAndLine(n.match.file, n.match.line))
             }
         }
-        
-        if let n = n as? GivenNode {
+
+        func visit(_ n: GivenNode) async {
             if printFileAndLine {
                 let description = n.states.map { $0.description + fileAndLine($0.file, $0.line) }
                 output.append("G: \(description.joined(separator: ", "))")
@@ -348,8 +348,8 @@ class StringableNodeTest: DefineConsumer {
                 output.append("G: \(n.states.map(\.description).joined(separator: ", "))")
             }
         }
-        
-        if let n = n as? DefineNode {
+
+        func visit(_ n: DefineNode) async {
             await n.onEntry.executeAll()
             await n.onExit.executeAll()
             output.append("D: entry: \(onEntryOutput.formatted), exit: \(onExitOutput.formatted)")
@@ -359,13 +359,25 @@ class StringableNodeTest: DefineConsumer {
             onEntryOutput = ""
             onExitOutput = ""
         }
-        
-        if n is ActionsResolvingNodeBase {
+
+        func visit(_ n: ActionsResolvingNodeBase) async {
             output.append("ARN:")
         }
-        
-        if n is SemanticValidationNode {
+
+        func visit(_ n: SemanticValidationNode) async {
             output.append("SVN:")
+        }
+
+        switch n {
+        case let n as ActionsNodeBase: await visit(n)
+        case let n as ThenNodeBase: await visit(n)
+        case let n as WhenNodeBase: await visit(n)
+        case let n as MatchNodeBase: await visit(n)
+        case let n as GivenNode: await visit(n)
+        case let n as DefineNode: await visit(n)
+        case let n as ActionsResolvingNodeBase: await visit(n)
+        case let n as SemanticValidationNode: await visit(n)
+        default: break
         }
         
         await addRest()
