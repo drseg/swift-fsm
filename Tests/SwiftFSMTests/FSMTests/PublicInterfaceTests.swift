@@ -21,36 +21,37 @@ final class PublicInterfaceTests: XCTestCase {
                 }
             }
         }
-        
-        var unlockCalled = false
-        var lockCalled = false
-        var alarmCalled = false
-        var thankyouCalled = false
-        
-        func unlock() { unlockCalled = true }
-        func alarm() { alarmCalled = true }
-        func thankyou() { thankyouCalled = true }
-        func lock() { lockCalled = true }
+
+        var callLog = [String]()
+
+        func unlock()   { logCalled() }
+        func alarm()    { logCalled() }
+        func thankyou() { logCalled() }
+        func lock()     { logCalled() }
+
+        private func logCalled(_ function: String = #function) {
+            callLog.append(function)
+        }
     }
-    
+
+    private var sut: MyClass!
+
+    override func setUp() async throws {
+        sut = try MyClass()
+    }
+
+    @MainActor
+    private func handleEvents(_ events: MyClass.Event...) throws {
+        try events.forEach(sut.fsm.handleEvent)
+    }
+
+    private func assertLog(_ expected: String..., line: UInt = #line) {
+        XCTAssertEqual(sut.callLog, expected, line: line)
+    }
+
     @MainActor
     func testPublicInterface() throws {
-        let sut = try MyClass()
-        
-        try sut.fsm.handleEvent(.coin)
-        XCTAssertTrue(sut.unlockCalled)
-        XCTAssertFalse(sut.thankyouCalled)
-        
-        try sut.fsm.handleEvent(.coin)
-        XCTAssertTrue(sut.thankyouCalled)
-        
-        try sut.fsm.handleEvent(.coin)
-        XCTAssertFalse(sut.lockCalled)
-        
-        try sut.fsm.handleEvent(.pass)
-        XCTAssertTrue(sut.lockCalled)
-        
-        try sut.fsm.handleEvent(.pass)
-        XCTAssertTrue(sut.alarmCalled)
+        try handleEvents(.coin, .coin, .coin, .pass, .pass)
+        assertLog("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
     }
 }
