@@ -218,13 +218,18 @@ class StringableNodeTestTests: StringableNodeTest {
             await assertEqual(t1, t2)
             await assertEqual(t1, t3)
             await assertEqual(t2, t3)
-
-            XCTExpectFailure()
-            await assertEqual(t1, whenNode)
-            await assertEqualFileAndLine(t1, whenNode)
-            await assertEqualFileAndLine(t1, t2)
-            await assertEqualFileAndLine(t1, t3)
-            await assertEqualFileAndLine(t2, t3)
+            
+            let e = expectation(description: "")
+            Task {
+                XCTExpectFailure()
+                await assertEqual(t1, whenNode)
+                await assertEqualFileAndLine(t1, whenNode)
+                await assertEqualFileAndLine(t1, t2)
+                await assertEqualFileAndLine(t1, t3)
+                await assertEqualFileAndLine(t2, t3)
+                e.fulfill()
+            }
+            await fulfillment(of: [e])
         } else {
             throw XCTSkip("XCTExpectFailure() is slow, therefore this test runs only occasionally")
         }
