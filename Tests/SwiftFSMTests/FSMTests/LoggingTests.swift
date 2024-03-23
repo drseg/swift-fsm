@@ -79,7 +79,15 @@ class LoggerTests: XCTestCase {
     func testTransitionNotExecutedString() {
         let output = logger.transitionNotExecutedString(Transition(nil, 1, [], 1, 1, []))
         XCTAssertEqual(
-            "conditional transition { define(1) | matching([]) | when(1) | then(1) } not executed",
+            "conditional transition { define(1) | when(1) | then(1) } not executed",
+            output
+        )
+    }
+
+    func testTransitionNotExecutedStringWithPredicates() {
+        let output = logger.transitionNotExecutedString(Transition(nil, 1, [P.a.erased()], 1, 1, []))
+        XCTAssertEqual(
+            "conditional transition { define(1) | matching([P.a]) | when(1) | then(1) } not executed",
             output
         )
     }
@@ -92,7 +100,15 @@ class LoggerTests: XCTestCase {
     func testTransitionExecutedString() {
         let output = logger.transitionExecutedString(Transition(nil, 1, [], 1, 1, []))
         XCTAssertEqual(
-            "transition { define(1) | matching([]) | when(1) | then(1) } was executed",
+            "transition { define(1) | when(1) | then(1) } was executed",
+            output
+        )
+    }
+
+    func testTransitionExecutedStringWithPredicates() {
+        let output = logger.transitionExecutedString(Transition(nil, 1, [P.a.erased()], 1, 1, []))
+        XCTAssertEqual(
+            "transition { define(1) | matching([P.a]) | when(1) | then(1) } was executed",
             output
         )
     }
