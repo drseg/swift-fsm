@@ -24,12 +24,12 @@ final class PublicInterfaceTests: XCTestCase {
 
         var callLog = [String]()
 
-        func unlock()   { logCalled() }
-        func alarm()    { logCalled() }
-        func thankyou() { logCalled() }
-        func lock()     { logCalled() }
+        func unlock()   { log() }
+        func alarm()    { log() }
+        func thankyou() { log() }
+        func lock()     { log() }
 
-        private func logCalled(_ function: String = #function) {
+        private func log(_ function: String = #function) {
             callLog.append(function)
         }
     }

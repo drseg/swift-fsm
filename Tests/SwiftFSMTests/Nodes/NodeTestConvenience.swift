@@ -285,7 +285,6 @@ class StringableNodeTest: DefineConsumer {
         return output
     }
 
-
     private func visit(
         _ n: ActionsNodeBase,
         _ output: inout String,
@@ -345,8 +344,8 @@ class StringableNodeTest: DefineConsumer {
         _ printFileAndLine: Bool
     ) async  {
         if let n = n as? MatchBlockNode, printFileAndLine {
-            output.append("M" + fileAndLine(n.file, n.line)
-                          + ": any: \(n.match.matchAny), all: \(n.match.matchAll)")
+            output.append("M" + fileAndLine(n.file, n.line) +
+                          ": any: \(n.match.matchAny), all: \(n.match.matchAll)")
         } else {
             output.append("M: any: \(n.match.matchAny), all: \(n.match.matchAll)")
         }
@@ -427,9 +426,7 @@ class StringableNodeTest: DefineConsumer {
 }
 
 extension Sequence {
-    func asyncMap<T>(
-        _ transform: (Element) async throws -> T
-    ) async rethrows -> [T] {
+    func asyncMap<T>(_ transform: (Element) async throws -> T) async rethrows -> [T] {
         var values = [T]()
 
         for element in self {

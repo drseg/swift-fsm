@@ -53,6 +53,8 @@ class Logger<Event: FSMHashable> {
 
 private extension Transition {
     var toString: String {
-        "{ define(\(state)) | matching(\(predicates)) | when(\(event)) | then(\(nextState)) }"
+        predicates.isEmpty 
+        ? "{ define(\(state)) | when(\(event)) | then(\(nextState)) }"
+        : "{ define(\(state)) | matching(\(predicates)) | when(\(event)) | then(\(nextState)) }"
     }
 }
