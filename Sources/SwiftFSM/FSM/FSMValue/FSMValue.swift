@@ -10,7 +10,8 @@ private struct Thrower: Throwing {
     }
 }
 
-nonisolated(unsafe) private var thrower: any Throwing = Thrower()
+#warning("uncomment below in Xcode 15.3/Swift 5.10 to fix the other warnings")
+/*nonisolated(unsafe)*/ private var thrower: any Throwing = Thrower()
 
 public enum FSMValue<T: FSMHashable>: FSMHashable {
     case some(T), any

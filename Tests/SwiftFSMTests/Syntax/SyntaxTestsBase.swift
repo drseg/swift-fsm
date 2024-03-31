@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
+@MainActor
 class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     static let defaultOutput = "pass"
     static let defaultOutputWithEvent = "\(SyntaxTestsBase.defaultOutput), event: \(SyntaxTestsBase.defaultEvent)"
@@ -34,7 +35,6 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         passWithEvent(event)
     }
 
-    @MainActor
     func assertMatching(
         _ m: Matching,
         any: any Predicate...,
@@ -54,7 +54,6 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
                         xctLine: xl)
     }
     
-    @MainActor
     func assertCondition(
         _ c: Condition,
         expected: Bool,
@@ -73,7 +72,6 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
                         xctLine: xl)
     }
     
-    @MainActor
     func assertMatchNode(
         _ node: MatchNodeBase,
         any: [[any Predicate]] = [],
@@ -189,7 +187,6 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         assertActions(n.actions, event: e, expectedOutput: eo, file: xf, xctLine: xl)
     }
 
-    @MainActor
     func assertActionsMatchNode(
         _ n: ActionsNodeBase,
         event e: Event = SyntaxTestsBase.defaultEvent,
@@ -218,7 +215,6 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(caller, node.caller, file: xf, line: xl)
     }
     
-    @MainActor
     func assertMWTA(
         _ n: AnyNode,
         event e: Event = SyntaxTestsBase.defaultEvent,
@@ -251,7 +247,6 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         assertMatchNode(match, all: [P.a], sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
     }
     
-    @MainActor
     func assertMWA(
         _ n: AnyNode,
         event: Event = BlockTestsBase.defaultEvent,
@@ -274,7 +269,6 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         assertMatchNode(match, all: [P.a], sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
     }
     
-    @MainActor
     func assertMTA(
         _ n: AnyNode,
         event: Event = BlockTestsBase.defaultEvent,
@@ -377,7 +371,6 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
                               xctLine: xl)
     }
 
-    @MainActor
     func assertMA(
         _ n: AnyNode,
         event: Event = BlockTestsBase.defaultEvent,

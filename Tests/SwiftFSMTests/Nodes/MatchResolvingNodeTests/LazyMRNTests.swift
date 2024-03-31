@@ -8,7 +8,6 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         .init(rest: [SVN(rest: [ARN(rest: rest)])])
     }
     
-    @MainActor
     func assertNotMatchClash(_ m1: Match, _ m2: Match, line: UInt = #line) {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
@@ -51,7 +50,6 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         await assertEqualFileAndLine(rest, sut.rest.first!)
     }
     
-    @MainActor
     func testEmptyMatchOutput() {
         let sut = makeSUT(rest: [defineNode(s1, Match(), e1, s2)])
         let result = sut.finalised()
@@ -62,8 +60,7 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         assertEqual(makeOutput(c: nil, g: s1, m: Match(), p: [], w: e1, t: s2),
                     result.output.first)
     }
-
-    @MainActor
+    
     func testPredicateMatchOutput() {
         let sut = makeSUT(rest: [defineNode(s1, m1, e1, s2)])
         let result = sut.finalised()
@@ -75,7 +72,6 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
                     result.output.first)
     }
     
-    @MainActor
     func testImplicitMatchClashes() {
         assertNotMatchClash(Match(), Match(all: P.a))
         assertNotMatchClash(Match(), Match(all: P.a, Q.a))

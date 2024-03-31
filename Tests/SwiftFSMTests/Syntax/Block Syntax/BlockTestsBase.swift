@@ -40,7 +40,6 @@ class BlockTestsBase: SyntaxTestsBase {
     var exit1: [AnyAction]  { Array(outputExit1)  }
     var exit2: [AnyAction]  { Array(outputExit2)  }
 
-    @MainActor
     func assertMWTAResult(
         _ result: [AnyNode],
         event: Event = BlockTestsBase.defaultEvent,
@@ -73,7 +72,6 @@ class BlockTestsBase: SyntaxTestsBase {
         }
     }
 
-    @MainActor
     func assertMWAResult(
         _ result: [AnyNode],
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
@@ -103,7 +101,6 @@ class BlockTestsBase: SyntaxTestsBase {
         }
     }
 
-    @MainActor
     func assertMTAResult(
         _ result: [AnyNode],
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
@@ -133,7 +130,6 @@ class BlockTestsBase: SyntaxTestsBase {
         }
     }
 
-    @MainActor
     func assertMAResult(
         _ result: [AnyNode],
         expectedOutput eo: String = BlockTestsBase.defaultOutput,

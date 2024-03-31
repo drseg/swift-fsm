@@ -1,6 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
+@MainActor
 final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
@@ -111,7 +112,6 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertTrue(spy.log[3].contains("Define"))
     }
 
-    @MainActor
     func testHandleEvent() async {
         func assertHandleEvent(_ predicates: String..., function: String = "handleEvent") {
             XCTAssertTrue(spy.log[0].contains(function))

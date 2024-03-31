@@ -12,6 +12,7 @@ protocol FSMTestsProtocol<State, Event> {
     func makeSUT() -> any FSMProtocol<State, Event>
 }
 
+@MainActor
 class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
     XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
     var fsm: (any FSMProtocol<State, Event>)!
