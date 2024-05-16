@@ -2,6 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 class WhenBlockTests: BlockTestsBase {
+    @MainActor
     func assert(
         _ b: Internal.MWTASentence,
         events: [Int] = [1, 2],
@@ -14,6 +15,7 @@ class WhenBlockTests: BlockTestsBase {
         assertMTAResult(node.rest, sutLine: rl, xctLine: xl)
     }
 
+    @MainActor
     func assert(
         _ b: Internal.MWASentence,
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
@@ -32,11 +34,13 @@ class WhenBlockTests: BlockTestsBase {
         assertMatchNode(matchNode, all: [P.a], sutFile: baseFile, sutLine: rl, xctLine: xl)
     }
 
+    @MainActor
     func testWhenBlockWithMTA() {
         assert(when(1, or: 2) { mtaBlock }, restLine: mtaLine)
         assert(when(1) { mtaBlock }, events: [1], restLine: mtaLine)
     }
 
+    @MainActor
     func testWhenBlockWithMA() {
         assert(when(1, or: 2) { maBlock }, restLine: maLine)
         assert(when(1) { maBlock }, events: [1], restLine: maLine)

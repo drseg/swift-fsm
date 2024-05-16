@@ -1,7 +1,6 @@
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 class SyntaxNodeTests: XCTestCase {
     let s1: AnyTraceable = "S1", s2: AnyTraceable = "S2", s3: AnyTraceable = "S3"
     let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
@@ -151,6 +150,7 @@ class SyntaxNodeTests: XCTestCase {
                        line: line)
     }
     
+    @MainActor
     func assertWhen(
         state: AnyTraceable?,
         actionsCount: Int,

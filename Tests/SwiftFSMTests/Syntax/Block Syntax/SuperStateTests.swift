@@ -2,6 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 class SuperStateTests: BlockTestsBase {
+    @MainActor
     func testSuperStateAddsSuperStateNodes() {
         let s1 = SuperState { mwtaBlock }
         let nodes = SuperState(adopts: s1, s1).nodes
@@ -24,6 +25,7 @@ class SuperStateTests: BlockTestsBase {
         assertGroupID(s2.nodes)
     }
 
+    @MainActor
     func testSuperStateCombinesSuperStateNodesParentFirst() {
         let l1 = #line + 1; let s1 = SuperState {
             matching(P.a) | when(1, or: 2) | then(1) | pass
@@ -57,6 +59,7 @@ class SuperStateTests: BlockTestsBase {
         assertActions(s2.onExit, expectedOutput: "exit1exit2")
     }
 
+    @MainActor
     func testSuperStateBlock() {
         let s = SuperState { mwtaBlock }
         assertMWTAResult(s.nodes, sutLine: mwtaLine)
