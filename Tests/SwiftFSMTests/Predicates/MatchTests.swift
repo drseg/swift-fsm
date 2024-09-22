@@ -408,13 +408,13 @@ class MatchCombinationsTests: MatchTests {
     }
 }
 
-extension Match: CustomStringConvertible {
+extension Match: @retroactive CustomStringConvertible {
     public var description: String {
         "\(matchAny), \(matchAll)"
     }
 }
 
-extension MatchError: CustomStringConvertible {
+extension MatchError: @retroactive CustomStringConvertible {
     public var description: String {
         String {
             "Predicates: \(predicates)"
@@ -424,7 +424,7 @@ extension MatchError: CustomStringConvertible {
     }
 }
 
-extension MatchError: Equatable {
+extension MatchError: @retroactive Equatable {
     public static func == (lhs: MatchError, rhs: MatchError) -> Bool {
         lhs.files.sorted() == rhs.files.sorted() &&
         lhs.lines.sorted() == rhs.lines.sorted()

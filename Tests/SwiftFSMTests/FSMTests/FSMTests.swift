@@ -477,11 +477,11 @@ class LazyNSObjectTests2: NSObjectTests2 {
     }
 }
 
-extension Int: Predicate {
+extension Int: @retroactive Predicate {
     public static var allCases: [Int] { [] }
 }
 
-extension Double: Predicate {
+extension Double: @retroactive Predicate {
     public static var allCases: [Double] { [] }
 }
 

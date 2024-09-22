@@ -197,7 +197,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     }
 }
 
-extension Transition: Equatable {
+extension Transition: @retroactive Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.state == rhs.state &&
         lhs.predicates == rhs.predicates &&

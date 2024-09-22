@@ -73,7 +73,7 @@ class MatchError: @unchecked Sendable, Error {
     }
 }
 
-class DuplicateMatchTypes: MatchError, LocalizedError {
+class DuplicateMatchTypes: MatchError, LocalizedError, @unchecked Sendable {
     var firstLine: String {
         String {
             let dupes = duplicates(\.type)
@@ -95,7 +95,7 @@ class DuplicateMatchTypes: MatchError, LocalizedError {
     }
 }
 
-class DuplicateAnyValues: MatchError, LocalizedError {
+class DuplicateAnyValues: MatchError, LocalizedError, @unchecked Sendable {
     public var errorDescription: String? {
         String {
             let dupes = duplicates(\.description)
@@ -106,7 +106,7 @@ class DuplicateAnyValues: MatchError, LocalizedError {
     }
 }
 
-class ConflictingAnyTypes: MatchError, LocalizedError {
+class ConflictingAnyTypes: MatchError, LocalizedError, @unchecked Sendable {
     var errorDescription: String? {
         String {
             let predicates = predicatesString(separator: " OR ")
@@ -117,7 +117,7 @@ class ConflictingAnyTypes: MatchError, LocalizedError {
     }
 }
 
-class DuplicateAnyAllValues: MatchError, LocalizedError {
+class DuplicateAnyAllValues: MatchError, LocalizedError, @unchecked Sendable {
     public var errorDescription: String? {
         String {
             let dupes = duplicates(\.description)
