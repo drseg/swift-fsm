@@ -24,8 +24,8 @@ public extension AnyAction {
     }
 }
 
+// MARK: - init with a single FSMAction element, avoiding AnyAction.init
 public extension Array<AnyAction> {
-    // MARK: init with a single FSMAction element, avoiding AnyAction.init
 
     init(_ action: @escaping FSMSyncAction) {
         self.init(arrayLiteral: AnyAction(action))
@@ -67,7 +67,7 @@ public extension Array<AnyAction> {
     }
 }
 
-// MARK: convenience operators, avoiding AnyAction.init
+// MARK: - convenience operators, avoiding AnyAction.init
 public func & (
     lhs: @escaping FSMSyncAction,
     rhs: @escaping FSMSyncAction
@@ -166,8 +166,7 @@ public func & <LHSEvent: FSMHashable, RHSEvent: FSMHashable> (
     [.init(lhs), .init(rhs)]
 }
 
-// MARK: Array convenience operators
-
+// MARK: - Array convenience operators
 postfix operator *
 
 public postfix func * (_ value: @escaping FSMSyncAction) -> [AnyAction] {

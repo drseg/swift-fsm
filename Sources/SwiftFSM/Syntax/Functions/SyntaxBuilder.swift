@@ -7,6 +7,7 @@ public protocol SyntaxBuilder {
     associatedtype Event: FSMHashable
 }
 
+// MARK: - Define
 public extension SyntaxBuilder {
     func define(
         _ state: State,
@@ -45,6 +46,7 @@ public extension SyntaxBuilder {
     }
 }
 
+// MARK: - Actions
 public extension SyntaxBuilder {
     func actions(
         _ action: @escaping FSMSyncAction,
@@ -197,6 +199,7 @@ public extension SyntaxBuilder {
     }
 }
 
+// MARK: - Then
 public extension SyntaxBuilder {
     func then(
         _ state: State? = nil,
@@ -227,6 +230,7 @@ public extension SyntaxBuilder {
     }
 }
 
+// MARK: - When
 public extension SyntaxBuilder {
     func when(
         _ event: Event,
@@ -288,6 +292,7 @@ public extension SyntaxBuilder {
     }
 }
 
+// MARK: - Overriding
 public extension SyntaxBuilder {
     func overriding(
         @Internal.MWTABuilder _ block: () -> [MWTA]
