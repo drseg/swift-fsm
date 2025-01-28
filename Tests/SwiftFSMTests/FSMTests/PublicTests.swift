@@ -112,7 +112,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     }
 
     @MainActor
-    func testHandleEvent() async {
+    func testHandleEvent() async throws {
         func assertHandleEvent(_ predicates: String..., function: String = "handleEvent") {
             XCTAssertTrue(spy.log[0].contains(function))
             for (i, p) in predicates.enumerated() {
@@ -123,13 +123,13 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             spy.reset()
         }
 
-        try! fsm.handleEvent(1)
+        try fsm.handleEvent(1)
         assertHandleEvent()
 
-        try! fsm.handleEvent(1, predicates: P.a)
+        try fsm.handleEvent(1, predicates: P.a)
         assertHandleEvent("a")
 
-        try! fsm.handleEvent(1, predicates: P.a, P.b)
+        try fsm.handleEvent(1, predicates: P.a, P.b)
         assertHandleEvent("a", "b")
 
         await fsm.handleEventAsync(1)

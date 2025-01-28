@@ -23,17 +23,17 @@ class AnyActionTestsBase: XCTestCase {
 
 final class AnyActionTests: AnyActionTestsBase {
     @MainActor
-    func testCanCallActionWithNoArgs() {
+    func testCanCallActionWithNoArgs() throws {
         let action = AnyAction(pass)
-        try! action()
+        try action()
 
         XCTAssertEqual(output, "pass")
     }
 
     @MainActor
-    func testActionWithNoArgsIgnoresEvent() {
+    func testActionWithNoArgsIgnoresEvent() throws {
         let action = AnyAction(pass)
-        try! action("fail")
+        try action("fail")
 
         XCTAssertEqual(output, "pass")
     }
@@ -60,9 +60,9 @@ final class AnyActionTests: AnyActionTestsBase {
     }
 
     @MainActor
-    func testCanCallActionWithEventArg() {
+    func testCanCallActionWithEventArg() throws {
         let action = AnyAction(passWithEvent)
-        try! action("pass")
+        try action("pass")
 
         XCTAssertEqual(output, "pass")
     }
