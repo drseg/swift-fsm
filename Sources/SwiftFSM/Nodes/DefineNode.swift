@@ -9,7 +9,7 @@ final class DefineNode: NeverEmptyNode {
             actions: [AnyAction],
             onEntry: [AnyAction],
             onExit: [AnyAction],
-            groupID: UUID,
+            overrideGroupID: UUID,
             isOverride: Bool
 
         init(_ state: AnyTraceable,
@@ -19,7 +19,7 @@ final class DefineNode: NeverEmptyNode {
              _ actions: [AnyAction],
              _ onEntry: [AnyAction],
              _ onExit: [AnyAction],
-             _ groupID: UUID,
+             _ overrideGroupID: UUID,
              _ isOverride: Bool
         ) {
             self.state = state
@@ -29,7 +29,7 @@ final class DefineNode: NeverEmptyNode {
             self.actions = actions
             self.onEntry = onEntry
             self.onExit = onExit
-            self.groupID = groupID
+            self.overrideGroupID = overrideGroupID
             self.isOverride = isOverride
         }
     }
@@ -71,7 +71,7 @@ final class DefineNode: NeverEmptyNode {
                            $1.actions,
                            onEntry,
                            onExit,
-                           $1.groupID,
+                           $1.overrideGroupID,
                            $1.isOverride)
                 )
             }

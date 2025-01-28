@@ -7,12 +7,12 @@ class MatchNodeBase: OverridableNode {
     init(
         match: Match,
         rest: [any Node<DefaultIO>] = [],
-        groupID: UUID = UUID(),
+        overrideGroupID: UUID = UUID(),
         isOverride: Bool = false
     ) {
         self.match = match
         self.rest = rest
-        super.init(groupID: groupID, isOverride: isOverride)
+        super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
 
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
@@ -21,7 +21,7 @@ class MatchNodeBase: OverridableNode {
                                 $1.event,
                                 $1.state,
                                 $1.actions,
-                                groupID,
+                                overrideGroupID,
                                 isOverride))
         }
     }
@@ -41,7 +41,7 @@ class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
     init(
         match: Match,
         rest: [any Node<Input>] = [],
-        groupID: UUID = UUID(),
+        overrideGroupID: UUID = UUID(),
         isOverride: Bool = false,
         caller: String = #function,
         file: String = #file,
@@ -53,7 +53,7 @@ class MatchBlockNode: MatchNodeBase, NeverEmptyNode {
 
         super.init(match: match,
                    rest: rest,
-                   groupID: groupID,
+                   overrideGroupID: overrideGroupID,
                    isOverride: isOverride)
     }
 

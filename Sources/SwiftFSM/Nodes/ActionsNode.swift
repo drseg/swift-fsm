@@ -7,22 +7,26 @@ class ActionsNodeBase: OverridableNode {
     init(
         actions: [AnyAction] = [],
         rest: [any Node<DefaultIO>] = [],
-        groupID: UUID = UUID(),
+        overrideGroupID: UUID = UUID(),
         isOverride: Bool = false
     ) {
         self.actions = actions
         self.rest = rest
-        super.init(groupID: groupID, isOverride: isOverride)
+        super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
-
+    
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: []) {
-            $0.append(DefaultIO($1.match,
-                                $1.event,
-                                $1.state,
-                                actions + $1.actions,
-                                groupID,
-                                isOverride))
+            $0.append(
+                DefaultIO(
+                    $1.match,
+                    $1.event,
+                    $1.state,
+                    actions + $1.actions,
+                    overrideGroupID,
+                    isOverride
+                )
+            )
         }
     }
 }
@@ -41,7 +45,7 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
     init(
         actions: [AnyAction],
         rest: [any Node<Input>],
-        groupID: UUID = UUID(),
+        overrideGroupID: UUID = UUID(),
         isOverride: Bool = false,
         caller: String = #function,
         file: String = #file,
@@ -50,13 +54,15 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
         self.caller = caller
         self.file = file
         self.line = line
-
-        super.init(actions: actions,
-                   rest: rest,
-                   groupID: groupID,
-                   isOverride: isOverride)
+        
+        super.init(
+            actions: actions,
+            rest: rest,
+            overrideGroupID: overrideGroupID,
+            isOverride: isOverride
+        )
     }
-
+    
     func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest)
     }

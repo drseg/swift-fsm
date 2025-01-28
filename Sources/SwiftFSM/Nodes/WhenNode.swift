@@ -11,7 +11,7 @@ class WhenNodeBase: OverridableNode {
     init(
         events: [AnyTraceable],
         rest: [any Node<DefaultIO>] = [],
-        groupID: UUID = UUID(),
+        overrideGroupID: UUID = UUID(),
         isOverride: Bool = false,
         caller: String = #function,
         file: String = #file,
@@ -23,7 +23,7 @@ class WhenNodeBase: OverridableNode {
         self.file = file
         self.line = line
 
-        super.init(groupID: groupID, isOverride: isOverride)
+        super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
 
     func makeOutput(_ rest: [DefaultIO], _ event: AnyTraceable) -> [DefaultIO] {
@@ -32,7 +32,7 @@ class WhenNodeBase: OverridableNode {
                                 event,
                                 $1.state,
                                 $1.actions,
-                                groupID,
+                                overrideGroupID,
                                 isOverride))
         }
     }

@@ -75,13 +75,15 @@ extension Conditional {
     ) -> Internal.MatchingActions<Event> {
         .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
     }
-
+    
     var blockNode: MatchBlockNode {
-        MatchBlockNode(match: node.match,
-                       rest: node.rest,
-                       caller: name,
-                       file: file,
-                       line: line)
+        MatchBlockNode(
+            match: node.match,
+            rest: node.rest,
+            caller: name,
+            file: file,
+            line: line
+        )
     }
 
     public func callAsFunction(
@@ -119,15 +121,17 @@ public extension Syntax.Expanded {
         let line: Int
 
         var name: String { "condition" }
-
+        
         init(
             _ condition: @escaping ConditionAction,
             file: String = #file,
             line: Int = #line
         ) {
-            let match = Match(condition: condition,
-                              file: file,
-                              line: line)
+            let match = Match(
+                condition: condition,
+                file: file,
+                line: line
+            )
             self.node = MatchNode(match: match, rest: [])
             self.file = file
             self.line = line
@@ -149,9 +153,18 @@ public extension Syntax.Expanded {
             line: Int = #line
         ) {
             if or.isEmpty {
-                self.init(any: [], all: [predicate] + and, file: file, line: line)
+                self.init(
+                    any: [], all: [predicate] + and,
+                    file: file,
+                    line: line
+                )
             } else {
-                self.init(any: [predicate] + or, all: and, file: file, line: line)
+                self.init(
+                    any: [predicate] + or,
+                    all: and,
+                    file: file,
+                    line: line
+                )
             }
         }
 
@@ -161,11 +174,13 @@ public extension Syntax.Expanded {
             file: String = #file,
             line: Int = #line
         ) {
-            let match = Match(any: any.erased(),
-                              all: all.erased(),
-                              file: file,
-                              line: line)
-
+            let match = Match(
+                any: any.erased(),
+                all: all.erased(),
+                file: file,
+                line: line
+            )
+            
             self.node = MatchNode(match: match, rest: [])
             self.file = file
             self.line = line

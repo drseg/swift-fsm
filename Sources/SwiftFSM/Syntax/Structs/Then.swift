@@ -50,11 +50,10 @@ public extension Syntax {
         }
 
         init(_ state: State? = nil, file: String = #file, line: Int = #line) {
-            node = ThenNode(
-                state: state != nil ? AnyTraceable(state,
-                                                   file: file,
-                                                   line: line) : nil
-            )
+            let state = state != nil ? AnyTraceable(state,
+                                                    file: file,
+                                                    line: line) : nil
+            node = ThenNode(state: state)
             self.file = file
             self.line = line
         }

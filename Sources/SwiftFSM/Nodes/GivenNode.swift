@@ -7,7 +7,7 @@ struct GivenNode: Node {
             event: AnyTraceable,
             nextState: AnyTraceable,
             actions: [AnyAction],
-            groupID: UUID,
+            overrideGroupID: UUID,
             isOverride: Bool
 
         init(
@@ -16,7 +16,7 @@ struct GivenNode: Node {
             _ event: AnyTraceable,
             _ nextState: AnyTraceable,
             _ actions: [AnyAction],
-            _ groupID: UUID,
+            _ overrideGroupID: UUID,
             _ isOverride: Bool
         ) {
             self.state = state
@@ -24,7 +24,7 @@ struct GivenNode: Node {
             self.event = event
             self.nextState = nextState
             self.actions = actions
-            self.groupID = groupID
+            self.overrideGroupID = overrideGroupID
             self.isOverride = isOverride
         }
     }
@@ -40,7 +40,7 @@ struct GivenNode: Node {
                                      $0.event!,
                                      $0.state ?? state,
                                      $0.actions,
-                                     $0.groupID,
+                                     $0.overrideGroupID,
                                      $0.isOverride))
             }
         }

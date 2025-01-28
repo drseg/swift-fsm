@@ -316,7 +316,7 @@ class SyntaxNodeTests: XCTestCase {
             XCTAssertEqual(expectedEvent, result.event, file: file, line: line)
             XCTAssertEqual(expectedState, result.state, file: file, line: line)
             
-            XCTAssertEqual(testGroupID, result.groupID, file: file, line: line)
+            XCTAssertEqual(testGroupID, result.overrideGroupID, file: file, line: line)
             XCTAssertEqual(true, result.isOverride, file: file, line: line)
             
             assertActions(result.actions, expectedOutput: expectedOutput, file: file, line: line)
@@ -348,13 +348,13 @@ class DefineConsumer: SyntaxNodeTests {
         _ t: AnyTraceable,
         entry: [AnyAction]? = nil,
         exit: [AnyAction]? = nil,
-        groupID: UUID = testGroupID,
+        overrideGroupID: UUID = testGroupID,
         isOverride: Bool = false
     ) -> DefineNode {
-        let actions = ActionsNode(actions: actions, groupID: groupID, isOverride: isOverride)
-        let then = ThenNode(state: t, rest: [actions], groupID: groupID, isOverride: isOverride)
-        let when = WhenNode(events: [w], rest: [then], groupID: groupID, isOverride: isOverride)
-        let match = MatchNode(match: m, rest: [when], groupID: groupID, isOverride: isOverride)
+        let actions = ActionsNode(actions: actions, overrideGroupID: overrideGroupID, isOverride: isOverride)
+        let then = ThenNode(state: t, rest: [actions], overrideGroupID: overrideGroupID, isOverride: isOverride)
+        let when = WhenNode(events: [w], rest: [then], overrideGroupID: overrideGroupID, isOverride: isOverride)
+        let match = MatchNode(match: m, rest: [when], overrideGroupID: overrideGroupID, isOverride: isOverride)
         let given = GivenNode(states: [g], rest: [match])
         
         return .init(onEntry: entry ?? [],
@@ -386,25 +386,25 @@ protocol DefaultIONode: Node where Output == DefaultIO, Input == Output {
 
 extension ActionsNode: DefaultIONode {
     func copy() -> Self {
-        ActionsNode(actions: actions, rest: rest, groupID: testGroupID, isOverride: true) as! Self
+        ActionsNode(actions: actions, rest: rest, overrideGroupID: testGroupID, isOverride: true) as! Self
     }
 }
 
 extension ThenNode: DefaultIONode {
     func copy() -> Self {
-        ThenNode(state: state, rest: rest, groupID: testGroupID, isOverride: true) as! Self
+        ThenNode(state: state, rest: rest, overrideGroupID: testGroupID, isOverride: true) as! Self
     }
 }
 
 extension WhenNode: DefaultIONode {
     func copy() -> Self {
-        WhenNode(events: events, rest: rest, groupID: testGroupID, isOverride: true) as! Self
+        WhenNode(events: events, rest: rest, overrideGroupID: testGroupID, isOverride: true) as! Self
     }
 }
 
 extension MatchNode: DefaultIONode {
     func copy() -> Self {
-        MatchNode(match: match, rest: rest, groupID: testGroupID, isOverride: true) as! Self
+        MatchNode(match: match, rest: rest, overrideGroupID: testGroupID, isOverride: true) as! Self
     }
 }
 

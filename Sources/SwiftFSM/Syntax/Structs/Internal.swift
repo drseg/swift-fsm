@@ -187,11 +187,15 @@ extension BlockSentence {
         line: Int = #line,
         _ block: () -> [Sentence]
     ) {
-        self.init(node: ActionsBlockNode(actions: actions,
-                                         rest: block().nodes,
-                                         caller: "actions",
-                                         file: file,
-                                         line: line))
+        self.init(
+            node: ActionsBlockNode(
+                actions: actions,
+                rest: block().nodes,
+                caller: "actions",
+                file: file,
+                line: line
+            )
+        )
     }
 }
 

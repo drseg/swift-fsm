@@ -6,7 +6,7 @@ struct IntermediateIO: Sendable {
         event: AnyTraceable,
         nextState: AnyTraceable,
         actions: [AnyAction],
-        groupID: UUID,
+        overrideGroupID: UUID,
         isOverride: Bool
 
     init(
@@ -15,7 +15,7 @@ struct IntermediateIO: Sendable {
         _ event: AnyTraceable,
         _ nextState: AnyTraceable,
         _ actions: [AnyAction],
-        _ groupID: UUID = UUID(),
+        _ overrideGroupID: UUID = UUID(),
         _ isOverride: Bool = false
     ) {
         self.state = state
@@ -23,7 +23,7 @@ struct IntermediateIO: Sendable {
         self.event = event
         self.nextState = nextState
         self.actions = actions
-        self.groupID = groupID
+        self.overrideGroupID = overrideGroupID
         self.isOverride = isOverride
     }
 }
@@ -40,19 +40,23 @@ class ActionsResolvingNodeBase: Node {
         Set(rest.map(\.state)).forEach { state in
             onEntry[state] = rest.first { $0.state == state }?.onEntry
         }
-
+        
         return rest.reduce(into: []) {
             let actions = shouldAddEntryExitActions($1)
             ? $1.actions + $1.onExit + (onEntry[$1.nextState] ?? [])
             : $1.actions
-
-            $0.append(IntermediateIO($1.state,
-                                     $1.match,
-                                     $1.event,
-                                     $1.nextState,
-                                     actions,
-                                     $1.groupID,
-                                     $1.isOverride))
+            
+            $0.append(
+                IntermediateIO(
+                    $1.state,
+                    $1.match,
+                    $1.event,
+                    $1.nextState,
+                    actions,
+                    $1.overrideGroupID,
+                    $1.isOverride
+                )
+            )
         }
     }
 

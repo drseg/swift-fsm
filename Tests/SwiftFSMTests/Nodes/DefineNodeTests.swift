@@ -121,10 +121,10 @@ final class DefineNodeTests: SyntaxNodeTests {
     func testDefineNodePassesGroupIDAndIsOverrideParams() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1], rest: [t])
-        let m = MatchNode(match: m1, rest: [w], groupID: testGroupID, isOverride: true)
+        let m = MatchNode(match: m1, rest: [w], overrideGroupID: testGroupID, isOverride: true)
         let g = GivenNode(states: [s1], rest: [m])
         let output = DefineNode(onEntry: [], onExit: [], rest: [g]).finalised().output
         
-        XCTAssert(output.allSatisfy { $0.groupID == testGroupID && $0.isOverride == true })
+        XCTAssert(output.allSatisfy { $0.overrideGroupID == testGroupID && $0.isOverride == true })
     }
 }

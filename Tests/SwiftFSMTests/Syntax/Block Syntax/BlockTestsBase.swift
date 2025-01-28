@@ -157,11 +157,11 @@ class BlockTestsBase: SyntaxTestsBase {
 
         let defineOutput = output.dropFirst().flattened
         defineOutput.forEach {
-            XCTAssertEqual(defineOutput.first?.groupID, $0.groupID, line: line)
+            XCTAssertEqual(defineOutput.first?.overrideGroupID, $0.overrideGroupID, line: line)
         }
 
-        XCTAssertNotEqual(output.flattened.first?.groupID,
-                          output.flattened.last?.groupID,
+        XCTAssertNotEqual(output.flattened.first?.overrideGroupID,
+                          output.flattened.last?.overrideGroupID,
                           line: line)
     }
 }

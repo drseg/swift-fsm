@@ -10,11 +10,11 @@ final class SemanticValidationNodeTests: DefineConsumer {
         _ m: Match,
         _ w: AnyTraceable,
         _ t: AnyTraceable,
-        groupID: UUID = testGroupID,
+        overrideGroupID: UUID = testGroupID,
         isOverride: Bool = false
     ) -> ARN {
         ARN(rest: [defineNode(g, m, w, t,
-                              groupID: groupID,
+                              overrideGroupID: overrideGroupID,
                               isOverride: isOverride)])
     }
     
@@ -101,7 +101,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
     
     func testErrorIfNothingToOverride() {
         let id = UUID()
-        let d1 = defineNode(s1, Match(), e1, s2, groupID: id, isOverride: true)
+        let d1 = defineNode(s1, Match(), e1, s2, overrideGroupID: id, isOverride: true)
         let a = ARN(rest: [d1])
         
         let finalised = SVN(rest: [a]).finalised()
@@ -120,8 +120,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let id1 = UUID()
         let id2 = UUID()
         
-        let d1 = defineNode(s1, Match(), e1, s2, groupID: id1, isOverride: true)
-        let d2 = defineNode(s1, Match(), e1, s2, groupID: id2, isOverride: false)
+        let d1 = defineNode(s1, Match(), e1, s2, overrideGroupID: id1, isOverride: true)
+        let d2 = defineNode(s1, Match(), e1, s2, overrideGroupID: id2, isOverride: false)
         let a = ARN(rest: [d1, d2])
         
         let finalised = SVN(rest: [a]).finalised()
@@ -140,8 +140,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testNoErrorIfValidOverride() {
-        let d1 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: false)
-        let d2 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: true)
+        let d1 = defineNode(s1, Match(), e1, s2, overrideGroupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, Match(), e1, s2, overrideGroupID: UUID(), isOverride: true)
         let a = ARN(rest: [d1, d2])
         
         let finalised = SVN(rest: [a]).finalised()
@@ -152,9 +152,9 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testNoOutOfOrderErrorIfStatesDiffer() {
-        let d1 = defineNode(s1, Match(), e1, s1, groupID: UUID(), isOverride: false)
-        let d2 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: true)
-        let d3 = defineNode(s2, Match(), e1, s3, groupID: UUID(), isOverride: false)
+        let d1 = defineNode(s1, Match(), e1, s1, overrideGroupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, Match(), e1, s2, overrideGroupID: UUID(), isOverride: true)
+        let d3 = defineNode(s2, Match(), e1, s3, overrideGroupID: UUID(), isOverride: false)
         let a = ARN(rest: [d1, d2, d3])
         
         let finalised = SVN(rest: [a]).finalised()
@@ -165,9 +165,9 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testOverrideChain() {
-        let d1 = defineNode(s1, Match(), e1, s1, groupID: UUID(), isOverride: false)
-        let d2 = defineNode(s1, Match(), e1, s2, groupID: UUID(), isOverride: true)
-        let d3 = defineNode(s1, Match(), e1, s3, groupID: UUID(), isOverride: true)
+        let d1 = defineNode(s1, Match(), e1, s1, overrideGroupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, Match(), e1, s2, overrideGroupID: UUID(), isOverride: true)
+        let d3 = defineNode(s1, Match(), e1, s3, overrideGroupID: UUID(), isOverride: true)
 
         let a = ARN(rest: [d1, d2, d3])
         

@@ -4,30 +4,34 @@ public struct SuperState {
     var nodes: [any Node<DefaultIO>]
     var onEntry: [AnyAction]
     var onExit: [AnyAction]
-
+    
     public init(
         adopts superState: SuperState,
         _ andSuperStates: SuperState...,
         onEntry: [AnyAction] = [],
         onExit: [AnyAction] = []
     ) {
-        self.init(superStates: [superState] + andSuperStates,
-                  onEntry: onEntry,
-                  onExit: onExit)
+        self.init(
+            superStates: [superState] + andSuperStates,
+            onEntry: onEntry,
+            onExit: onExit
+        )
     }
-
+    
     public init(
         adopts superStates: SuperState...,
         onEntry: [AnyAction] = [],
         onExit: [AnyAction] = [],
         @Internal.MWTABuilder _ block: () -> [MWTA]
     ) {
-        self.init(nodes: block().nodes.withGroupID(),
-                  superStates: superStates,
-                  onEntry: onEntry,
-                  onExit: onExit)
+        self.init(
+            nodes: block().nodes.withOverrideGroupID(),
+            superStates: superStates,
+            onEntry: onEntry,
+            onExit: onExit
+        )
     }
-
+    
     private init(
         nodes: [any Node<DefaultIO>] = [],
         superStates: [SuperState],
@@ -41,9 +45,13 @@ public struct SuperState {
 }
 
 extension [any Node<DefaultIO>] {
-    func withGroupID() -> Self {
-        let groupID = UUID()
-        (self as? [OverridableNode])?.forEach { $0.groupID = groupID }
+    func withOverrideGroupID() -> Self {
+        let overrideGroupID = UUID()
+        overridableNodes?.forEach { $0.overrideGroupID = overrideGroupID }
         return self
+    }
+    
+    private var overridableNodes: [OverridableNode]? {
+        self as? [OverridableNode]
     }
 }

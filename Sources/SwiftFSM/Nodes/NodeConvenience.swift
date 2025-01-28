@@ -17,11 +17,11 @@ extension NeverEmptyNode {
 }
 
 class OverridableNode {
-    var groupID: UUID
+    var overrideGroupID: UUID
     var isOverride: Bool
 
-    init(groupID: UUID, isOverride: Bool) {
-        self.groupID = groupID
+    init(overrideGroupID: UUID, isOverride: Bool) {
+        self.overrideGroupID = overrideGroupID
         self.isOverride = isOverride
     }
 }
@@ -31,7 +31,7 @@ struct DefaultIO: Sendable {
         event: AnyTraceable?,
         state: AnyTraceable?,
         actions: [AnyAction],
-        groupID: UUID,
+        overrideGroupID: UUID,
         isOverride: Bool
 
     init(
@@ -39,14 +39,14 @@ struct DefaultIO: Sendable {
         _ event: AnyTraceable?,
         _ state: AnyTraceable?,
         _ actions: [AnyAction],
-        _ groupID: UUID = UUID(),
+        _ overrideGroupID: UUID = UUID(),
         _ isOverride: Bool = false
     ) {
         self.match = match
         self.event = event
         self.state = state
         self.actions = actions
-        self.groupID = groupID
+        self.overrideGroupID = overrideGroupID
         self.isOverride = isOverride
     }
 }
@@ -56,10 +56,10 @@ func makeDefaultIO(
     event: AnyTraceable? = nil,
     state: AnyTraceable? = nil,
     actions: [AnyAction] = [],
-    groupID: UUID = UUID(),
+    overrideGroupID: UUID = UUID(),
     isOverride: Bool = false
 ) -> [DefaultIO] {
-    [DefaultIO(match, event, state, actions, groupID, isOverride)]
+    [DefaultIO(match, event, state, actions, overrideGroupID, isOverride)]
 }
 
 extension String: @retroactive LocalizedError {

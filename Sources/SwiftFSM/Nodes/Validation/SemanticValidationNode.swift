@@ -85,9 +85,9 @@ class SemanticValidationNode: Node {
                 let haveClashingValues = T.init(lhs) == T.init(row)
                 let haveNoOverrides = !lhs.isOverride && !row.isOverride
                 let haveOverrides = lhs.isOverride || row.isOverride
-                let areSameGroup = lhs.groupID == row.groupID
+                let areSameOverrideGroup = lhs.overrideGroupID == row.overrideGroupID
 
-                return haveClashingValues && (haveNoOverrides || haveOverrides && areSameGroup)
+                return haveClashingValues && (haveNoOverrides || haveOverrides && areSameOverrideGroup)
             }
 
             func add<T: SVNKey>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {
@@ -176,7 +176,7 @@ extension IntermediateIO: Equatable {
         lhs.match == rhs.match &&
         lhs.event == rhs.event &&
         lhs.nextState == rhs.nextState &&
-        lhs.groupID == rhs.groupID &&
+        lhs.overrideGroupID == rhs.overrideGroupID &&
         lhs.isOverride == rhs.isOverride
     }
 }

@@ -7,12 +7,12 @@ class ThenNodeBase: OverridableNode {
     init(
         state: AnyTraceable?,
         rest: [any Node<DefaultIO>] = [],
-        groupID: UUID = UUID(),
+        overrideGroupID: UUID = UUID(),
         isOverride: Bool = false
     ) {
         self.state = state
         self.rest = rest
-        super.init(groupID: groupID, isOverride: isOverride)
+        super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
 
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
@@ -21,7 +21,7 @@ class ThenNodeBase: OverridableNode {
                                 $1.event,
                                 state,
                                 $1.actions,
-                                groupID,
+                                overrideGroupID,
                                 isOverride))
         }
     }
@@ -42,7 +42,7 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
         state: AnyTraceable?,
         rest: [any Node<Input>],
         caller: String = #function,
-        groupID: UUID = UUID(),
+        overrideGroupID: UUID = UUID(),
         isOverride: Bool = false,
         file: String = #file,
         line: Int = #line
@@ -53,7 +53,7 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
 
         super.init(state: state,
                    rest: rest,
-                   groupID: groupID,
+                   overrideGroupID: overrideGroupID,
                    isOverride: isOverride)
     }
 
