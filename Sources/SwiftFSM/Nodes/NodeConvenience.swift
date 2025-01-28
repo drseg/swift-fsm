@@ -62,7 +62,7 @@ func makeDefaultIO(
     [DefaultIO(match, event, state, actions, groupID, isOverride)]
 }
 
-extension String: LocalizedError {
+extension String: @retroactive LocalizedError {
     public var errorDescription: String? { self }
 }
 

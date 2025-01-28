@@ -21,7 +21,7 @@ class SemanticValidationNode: Node {
         }
     }
 
-    final class OverrideOutOfOrder: OverrideError {
+    final class OverrideOutOfOrder: OverrideError, @unchecked Sendable {
         let outOfOrder: [IntermediateIO]
 
         init(_ override: IntermediateIO, _ outOfOrder: [IntermediateIO]) {
@@ -30,7 +30,7 @@ class SemanticValidationNode: Node {
         }
     }
 
-    final class NothingToOverride: OverrideError { }
+    final class NothingToOverride: OverrideError, @unchecked Sendable { }
 
     struct DuplicatesKey: SVNKey {
         let state: AnyTraceable,

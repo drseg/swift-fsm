@@ -1,7 +1,6 @@
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 class SyntaxNodeTests: XCTestCase {
     let s1: AnyTraceable = "S1", s2: AnyTraceable = "S2", s3: AnyTraceable = "S3"
     let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
@@ -151,6 +150,7 @@ class SyntaxNodeTests: XCTestCase {
                        line: line)
     }
     
+    @MainActor
     func assertWhen(
         state: AnyTraceable?,
         actionsCount: Int,
@@ -371,10 +371,6 @@ extension Collection {
         map(\.actions).flattened.forEach { try! $0() }
     }
 
-    func executeAll() where Element == FSMSyncAction {
-        forEach { $0() }
-    }
-
     func executeAll<Event: FSMHashable>(_ event: Event = "TILT") async where Element == AnyAction {
         for action in self {
             await action(event)
@@ -426,21 +422,13 @@ struct MSES {
     }
 }
 
-extension [MSES] {
-    var description: String {
-        reduce(into: ["\n"]) {
-            $0.append("(\($1.match), \($1.state), \($1.event), \($1.nextState))")
-        }.joined(separator: "\n")
-    }
-}
-
-extension AnyTraceable: ExpressibleByStringLiteral {
+extension AnyTraceable: @retroactive ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
-        self.init(AnyHashable(value), file: "null", line: -1)
+        self.init(value, file: "null", line: -1)
     }
 }
 
-extension AnyTraceable: CustomStringConvertible {
+extension AnyTraceable: @retroactive CustomStringConvertible {
     public var description: String {
         base.description
     }

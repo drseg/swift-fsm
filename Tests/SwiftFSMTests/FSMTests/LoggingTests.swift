@@ -114,7 +114,6 @@ class LoggerTests: XCTestCase {
     }
 }
 
-@MainActor
 class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
@@ -161,6 +160,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         try! lazyFSM.buildTable(block)
     }
     
+    @MainActor
     func handleEvent(_ event: Int, _ predicates: any Predicate...) async {
         try! fsm.handleEvent(event, predicates: predicates)
         fsm.state = 1
@@ -213,7 +213,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     }
 }
 
-extension Transition: Equatable {
+extension Transition: @retroactive Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.state == rhs.state &&
         lhs.predicates == rhs.predicates &&

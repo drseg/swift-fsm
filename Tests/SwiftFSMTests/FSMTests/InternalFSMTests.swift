@@ -12,7 +12,6 @@ protocol FSMTestsProtocol<State, Event> {
     func makeSUT() -> any FSMProtocol<State, Event>
 }
 
-@MainActor
 class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
     XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
     var fsm: (any FSMProtocol<State, Event>)!
@@ -478,11 +477,11 @@ class LazyNSObjectTests2: NSObjectTests2 {
     }
 }
 
-extension Int: Predicate {
+extension Int: @retroactive Predicate {
     public static var allCases: [Int] { [] }
 }
 
-extension Double: Predicate {
+extension Double: @retroactive Predicate {
     public static var allCases: [Double] { [] }
 }
 

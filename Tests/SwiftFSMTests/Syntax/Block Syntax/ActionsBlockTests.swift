@@ -14,6 +14,7 @@ class ActionsBlockTests: BlockTestsBase {
         n as! ActionsBlockNode
     }
 
+    @MainActor
     func assertMWTANode(
         _ b: ActionsBlockNode,
         event: Event = BlockTestsBase.defaultEvent,
@@ -27,6 +28,7 @@ class ActionsBlockTests: BlockTestsBase {
         assertMWTAResult(b.rest, expectedOutput: er, sutLine: rl, xctLine: xl)
     }
 
+    @MainActor
     func assertMWANode(
         _ b: ActionsBlockNode,
         event: Event = BlockTestsBase.defaultEvent,
@@ -41,6 +43,7 @@ class ActionsBlockTests: BlockTestsBase {
         assertMWAResult(b.rest, expectedOutput: ero, sutFile: rf, sutLine: rl, xctLine: xl)
     }
 
+    @MainActor
     func assertMTANode(
         _ b: ActionsBlockNode,
         event: Event = BlockTestsBase.defaultEvent,
@@ -66,6 +69,7 @@ class ActionsBlockTests: BlockTestsBase {
         assertActions(b.actions, event: event, expectedOutput: eo, xctLine: xl)
     }
 
+    @MainActor
     func testMWTABlocks() {
         func assertMWTA(
             _ b: Internal.MWTASentence,
@@ -93,6 +97,7 @@ class ActionsBlockTests: BlockTestsBase {
                    expectedNodeOutput: Self.defaultOutput + Self.defaultOutput)
     }
 
+    @MainActor
     func testMWABlocks() {
         func assertMWA(
             _ b: Internal.MWASentence,
@@ -132,6 +137,7 @@ class ActionsBlockTests: BlockTestsBase {
                   restLine: mwaLine)
     }
 
+    @MainActor
     func testMTABlocks() {
         func assertMTA(
             _ b: Internal.MTASentence,
@@ -174,6 +180,7 @@ class ActionsBlockTests: BlockTestsBase {
                   restLine: mtaLine)
     }
 
+    @MainActor
     func testCompoundMWTABlocks() {
         func assertMWTA(
             _ b: Internal.MWTASentence,
@@ -208,6 +215,7 @@ class ActionsBlockTests: BlockTestsBase {
                    expectedNodeOutput: eventOutput)
     }
 
+    @MainActor
     func testCompoundMWABlocks() {
         func assertMWA(
             _ b: Internal.MWASentence,
@@ -242,6 +250,7 @@ class ActionsBlockTests: BlockTestsBase {
                   expectedNodeOutput: eventOutput)
     }
 
+    @MainActor
     func testCompoundMTABlocks() {
         func assertMTA(
             _ b: Internal.MTASentence,
