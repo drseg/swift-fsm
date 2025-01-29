@@ -23,35 +23,40 @@ final class PublicAPITests: XCTestCase {
             }
         }
         
-        var unlockCalled = false
-        var lockCalled = false
-        var alarmCalled = false
-        var thankyouCalled = false
+        func unlock() { logAction() }
+        func alarm() { logAction() }
+        func thankyou() { logAction() }
+        func lock() { logAction() }
         
-        func unlock() { unlockCalled = true }
-        func alarm() { alarmCalled = true }
-        func thankyou() { thankyouCalled = true }
-        func lock() { lockCalled = true }
+        var log = [String]()
+        
+        func logAction(_ f: String = #function) {
+            log.append(f)
+        }
     }
     
     @MainActor
     func testPublicAPI() throws {
+        func assertLog(_ a: String..., line: UInt = #line) {
+            XCTAssertEqual(sut.log, a, line: line)
+        }
+        
         let sut = try SUT()
+        XCTAssert(sut.log.isEmpty)
         
         try sut.fsm.handleEvent(.coin)
-        XCTAssertTrue(sut.unlockCalled)
-        XCTAssertFalse(sut.thankyouCalled)
+        assertLog("unlock()")
         
         try sut.fsm.handleEvent(.coin)
-        XCTAssertTrue(sut.thankyouCalled)
+        assertLog("unlock()", "thankyou()")
         
         try sut.fsm.handleEvent(.coin)
-        XCTAssertFalse(sut.lockCalled)
+        assertLog("unlock()", "thankyou()", "thankyou()")
         
         try sut.fsm.handleEvent(.pass)
-        XCTAssertTrue(sut.lockCalled)
+        assertLog("unlock()", "thankyou()", "thankyou()", "lock()")
         
         try sut.fsm.handleEvent(.pass)
-        XCTAssertTrue(sut.alarmCalled)
+        assertLog("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
     }
 }
