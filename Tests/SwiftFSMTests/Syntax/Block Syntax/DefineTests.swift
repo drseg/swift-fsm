@@ -34,7 +34,7 @@ class DefineTests: BlockTestsBase {
 
         assertEmpty(define(1, onEntry: entry1, onExit: exit1) { })
 
-        /// technically valid/non-empty but need to flag empty trailing block
+        // technically valid/non-empty but need to flag empty trailing block
         assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
     }
 
