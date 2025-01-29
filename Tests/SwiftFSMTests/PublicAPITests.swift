@@ -1,8 +1,9 @@
 import XCTest
 import SwiftFSM
+// Do not use @testable here //
 
 final class PublicAPITests: XCTestCase {
-    final class MyClass: SyntaxBuilder {
+    final class SUT: SyntaxBuilder {
         enum State { case locked, unlocked }
         enum Event { case coin, pass }
         
@@ -34,8 +35,8 @@ final class PublicAPITests: XCTestCase {
     }
     
     @MainActor
-    func testPublicInterface() throws {
-        let sut = try MyClass()
+    func testPublicAPI() throws {
+        let sut = try SUT()
         
         try sut.fsm.handleEvent(.coin)
         XCTAssertTrue(sut.unlockCalled)
