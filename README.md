@@ -82,7 +82,7 @@ The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` n
 > let fsm = FSM<State, Event>(initialState: .locked)
 > ```
 
-`FSM` is generic  over `State` and `Event`.  As with `SyntaxBuilder`, `State` and `Event` must be `Hashable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
+`FSM` is generic  over `State` and `Event`.  As with `SyntaxBuilder`, `State` and `Event` must be `Hashable & Sendable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
 
 > ```swift
 > try fsm.buildTable {
