@@ -206,18 +206,19 @@ class StringableNodeTestTests: StringableNodeTest {
         }, ThenNode(state: s1, rest: [actionsNode, actionsNode]))
     }
     
-    func testAssertEqual() async throws {
-        let t1 = ThenNode(state: AnyTraceable("", file: "f", line: 1))
-        let t2 = ThenNode(state: AnyTraceable("", file: "f", line: 2))
-        let t3 = ThenNode(state: AnyTraceable("", file: "g", line: 1))
-        
+    let t1 = ThenNode(state: AnyTraceable("", file: "f", line: 1))
+    let t2 = ThenNode(state: AnyTraceable("", file: "f", line: 2))
+    let t3 = ThenNode(state: AnyTraceable("", file: "g", line: 1))
+    
+    func testAssertEqualPass() async throws {
         await assertEqual(t1, t1)
-        await assertEqualFileAndLine(t1, t1)
-        
         await assertEqual(t1, t2)
         await assertEqual(t1, t3)
         await assertEqual(t2, t3)
-        
+        await assertEqualFileAndLine(t1, t1)
+    }
+    
+    func testAssertEqualFail() async throws {
         XCTExpectFailure()
         await assertEqual(t1, whenNode)
         await assertEqualFileAndLine(t1, whenNode)
