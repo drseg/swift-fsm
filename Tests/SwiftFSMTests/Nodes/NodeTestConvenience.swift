@@ -207,30 +207,27 @@ class StringableNodeTestTests: StringableNodeTest {
     }
     
     func testAssertEqual() async throws {
-        if Int.random(in: 1...20) == 1 {
-            let t1 = ThenNode(state: AnyTraceable("", file: "f", line: 1))
-            let t2 = ThenNode(state: AnyTraceable("", file: "f", line: 2))
-            let t3 = ThenNode(state: AnyTraceable("", file: "g", line: 1))
-
-            await assertEqual(t1, t1)
-            await assertEqualFileAndLine(t1, t1)
-
-            await assertEqual(t1, t2)
-            await assertEqual(t1, t3)
-            await assertEqual(t2, t3)
-
-            XCTExpectFailure()
-            await assertEqual(t1, whenNode)
-            await assertEqualFileAndLine(t1, whenNode)
-            await assertEqualFileAndLine(t1, t2)
-            await assertEqualFileAndLine(t1, t3)
-            await assertEqualFileAndLine(t2, t3)
-        } else {
-            throw XCTSkip("XCTExpectFailure() is slow, therefore this test runs only occasionally")
-        }
+        let t1 = ThenNode(state: AnyTraceable("", file: "f", line: 1))
+        let t2 = ThenNode(state: AnyTraceable("", file: "f", line: 2))
+        let t3 = ThenNode(state: AnyTraceable("", file: "g", line: 1))
+        
+        await assertEqual(t1, t1)
+        await assertEqualFileAndLine(t1, t1)
+        
+        await assertEqual(t1, t2)
+        await assertEqual(t1, t3)
+        await assertEqual(t2, t3)
+        
+        XCTExpectFailure()
+        await assertEqual(t1, whenNode)
+        await assertEqualFileAndLine(t1, whenNode)
+        await assertEqualFileAndLine(t1, t2)
+        await assertEqualFileAndLine(t1, t3)
+        await assertEqualFileAndLine(t2, t3)
     }
 }
 
+@MainActor
 class StringableNodeTest: DefineConsumer {
     func assertEqual(
         _ lhs: any Node,
@@ -251,13 +248,9 @@ class StringableNodeTest: DefineConsumer {
     ) async {
         let lhs = await toString(lhs, printFileAndLine: true)
         let rhs = await toString(rhs, printFileAndLine: true)
-        XCTAssertEqual(lhs,
-                       rhs,
-                       file: file,
-                       line: line)
+        XCTAssertEqual(lhs, rhs, file: file, line: line)
     }
     
-
     func toString(_ n: some Node, printFileAndLine: Bool = false, indent: Int = 0) async -> String {
         func string(_ indent: Int) -> String {
             String(repeating: " ", count: indent)
