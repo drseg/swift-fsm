@@ -3,7 +3,7 @@ import Foundation
 final class DefineNode: NeverEmptyNode {
     struct Output {
         let state: AnyTraceable,
-            match: Match,
+            match: MatchDescriptor,
             event: AnyTraceable,
             nextState: AnyTraceable,
             actions: [AnyAction],
@@ -13,7 +13,7 @@ final class DefineNode: NeverEmptyNode {
             isOverride: Bool
 
         init(_ state: AnyTraceable,
-             _ match: Match,
+             _ match: MatchDescriptor,
              _ event: AnyTraceable,
              _ nextState: AnyTraceable,
              _ actions: [AnyAction],
@@ -62,10 +62,10 @@ final class DefineNode: NeverEmptyNode {
 
     func combinedWithRest(_ rest: [GivenNode.Output]) -> [Output] {
         let output = rest.reduce(into: [Output]()) {
-            if let match = finalise($1.match) {
+            if let descriptor = finalise($1.descriptor) {
                 $0.append(
                     Output($1.state,
-                           match,
+                           descriptor,
                            $1.event,
                            $1.nextState,
                            $1.actions,
@@ -80,8 +80,8 @@ final class DefineNode: NeverEmptyNode {
         return errors.isEmpty ? output : []
     }
 
-    private func finalise(_ m: Match) -> Match? {
-        switch m.finalised() {
+    private func finalise(_ m: MatchDescriptor) -> MatchDescriptor? {
+        switch m.resolved() {
         case .failure(let e): errors.append(e); return nil
         case .success(let m): return m
         }

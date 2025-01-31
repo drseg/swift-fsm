@@ -2,19 +2,19 @@ import XCTest
 @testable import SwiftFSM
 
 class ConditionBlockTests: BlockTestsBase {
-    func mbnComponents(of s: Sentence) -> (MatchBlockNode, MatchBlockNode) {
+    func mbnComponents(of s: Sentence) -> (MatchingBlockNode, MatchingBlockNode) {
         let a1 = mbn(s.node)
         let a2 = mbn(a1.rest.first!)
         return (a1, a2)
     }
 
-    func mbn(_ n: any Node<DefaultIO>) -> MatchBlockNode {
-        n as! MatchBlockNode
+    func mbn(_ n: any Node<DefaultIO>) -> MatchingBlockNode {
+        n as! MatchingBlockNode
     }
 
     @MainActor
     func assertMWTANode(
-        _ b: MatchBlockNode,
+        _ b: MatchingBlockNode,
         expected: Bool,
         nodeLine nl: Int,
         restLine rl: Int,
@@ -26,7 +26,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     @MainActor
     func assertMWANode(
-        _ b: MatchBlockNode,
+        _ b: MatchingBlockNode,
         expected: Bool,
         nodeLine nl: Int,
         restLine rl: Int,
@@ -38,7 +38,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     @MainActor
     func assertMTANode(
-        _ b: MatchBlockNode,
+        _ b: MatchingBlockNode,
         expected: Bool,
         nodeLine nl: Int,
         restLine rl: Int,
@@ -50,7 +50,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     @MainActor
     func assertMatchBlock(
-        _ b: MatchBlockNode,
+        _ b: MatchingBlockNode,
         expected: Bool,
         sutLine sl: Int,
         xctLine xl: UInt = #line

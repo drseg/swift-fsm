@@ -64,7 +64,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         xctLine xl: UInt = #line
     ) {
         XCTAssertTrue(c.node.rest.isEmpty, file: xf, line: xl)
-        XCTAssertEqual(expected, c.node.match.condition?(), file: xf, line: xl)
+        XCTAssertEqual(expected, c.node.descriptor.condition?(), file: xf, line: xl)
         assertMatchNode(c.node,
                         condition: expected,
                         sutFile: sf,
@@ -75,7 +75,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     
     @MainActor
     func assertMatchNode(
-        _ node: MatchNodeBase,
+        _ node: MatchingNodeBase,
         any: [[any Predicate]] = [],
         all: [any Predicate] = [],
         condition: Bool? = nil,
@@ -87,13 +87,13 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     ) {
         let any = any.map { $0.erased() }.filter { !$0.isEmpty }
         
-        XCTAssertEqual(any, node.match.matchAny, file: xf, line: xl)
-        XCTAssertEqual(all.erased(), node.match.matchAll, file: xf, line: xl)
-        XCTAssertEqual(condition, node.match.condition?(), file: xf, line: xl)
-        XCTAssertEqual(node.match.file, sf, file: xf, line: xl)
-        XCTAssertEqual(node.match.line, sl, file: xf, line: xl)
+        XCTAssertEqual(any, node.descriptor.matchingAny, file: xf, line: xl)
+        XCTAssertEqual(all.erased(), node.descriptor.matchingAll, file: xf, line: xl)
+        XCTAssertEqual(condition, node.descriptor.condition?(), file: xf, line: xl)
+        XCTAssertEqual(node.descriptor.file, sf, file: xf, line: xl)
+        XCTAssertEqual(node.descriptor.line, sl, file: xf, line: xl)
         
-        if let node = node as? MatchBlockNode {
+        if let node = node as? MatchingBlockNode {
             assertNeverEmptyNode(node,
                                  caller: caller,
                                  sutFile: sf,
@@ -200,7 +200,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         sutLine sl: Int,
         xctLine xl: UInt
     ) {
-        let matchNode = n.rest.first as! MatchNode
+        let matchNode = n.rest.first as! MatchingNode
         assertMatchNode(matchNode, all: [P.a], sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
         assertActions(n.actions, event: e, expectedOutput: eo, file: xf, xctLine: xl)
     }
@@ -231,7 +231,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
         let when = then.rest.first as! WhenNode
-        let match = when.rest.first as! MatchNode
+        let match = when.rest.first as! MatchingNode
         
         XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
         XCTAssertEqual(1, then.rest.count, file: xf,  line: xl)
@@ -263,7 +263,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     ) {
         let actions = n as! ActionsNode
         let when = actions.rest.first as! WhenNode
-        let match = when.rest.first as! MatchNode
+        let match = when.rest.first as! MatchingNode
         
         XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
         XCTAssertEqual(1, when.rest.count, file: xf, line: xl)
@@ -286,7 +286,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     ) {
         let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
-        let match = then.rest.first as! MatchNode
+        let match = then.rest.first as! MatchingNode
         
         XCTAssertEqual(1, actions.rest.count, line: xl)
         XCTAssertEqual(1, then.rest.count, line: xl)
@@ -388,7 +388,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         xctLine xl: UInt = #line
     ) {
         let actions = n as! ActionsNode
-        let match = actions.rest.first as! MatchNode
+        let match = actions.rest.first as! MatchingNode
 
         XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
         XCTAssertEqual(0, match.rest.count, file: xf, line: xl)

@@ -154,67 +154,67 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testSingleMatchAsArray() {
-        let array = try? Match(any: P.a).finalised().get() .asArray
-        XCTAssertEqual(array, [Match(any: P.a)])
+        let array = try? MatchDescriptor(any: P.a).resolved().get() .asArray
+        XCTAssertEqual(array, [MatchDescriptor(any: P.a)])
     }
     
     func testMultipleMatchesAsArray() {
-        let array = try? Match(any: P.a)
-            .prepend(Match(any: R.a))
-            .prepend(Match())
-            .finalised()
+        let array = try? MatchDescriptor(any: P.a)
+            .prepend(MatchDescriptor(any: R.a))
+            .prepend(MatchDescriptor())
+            .resolved()
             .get()
             .asArray
         
-        XCTAssertEqual(array, [Match(), Match(any: R.a), Match(any: P.a)])
+        XCTAssertEqual(array, [MatchDescriptor(), MatchDescriptor(any: R.a), MatchDescriptor(any: P.a)])
     }
     
     func testMatchDescriptionWithCondition() {
-        let match = Match(condition: { true }, file: "/f", line: 1)
+        let match = MatchDescriptor(condition: { true }, file: "/f", line: 1)
         
         XCTAssertEqual("condition(() -> Bool) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithNoPredicates() {
-        let match = Match(file: "f", line: 1)
+        let match = MatchDescriptor(file: "f", line: 1)
         
         XCTAssertEqual("matching()",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithOrOnly() {
-        let match = Match(any: [[P.a, P.b]], file: "/f", line: 1)
+        let match = MatchDescriptor(any: [[P.a, P.b]], file: "/f", line: 1)
         
         XCTAssertEqual("matching((P.a OR P.b)) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithMultipleOrOnly() {
-        let match = Match(any: [[P.a, P.b], [Q.a, Q.b]], file: "/f", line: 1)
+        let match = MatchDescriptor(any: [[P.a, P.b], [Q.a, Q.b]], file: "/f", line: 1)
         
         XCTAssertEqual("matching((P.a OR P.b) AND (Q.a OR Q.b)) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithAndOnly() {
-        let match = Match(all: R.a, S.a, file: "/f", line: 1)
+        let match = MatchDescriptor(all: R.a, S.a, file: "/f", line: 1)
         
         XCTAssertEqual("matching(R.a AND S.a) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithOrAndAnd() {
-        let match = Match(any: [[P.a, P.b]], all: R.a, S.a, file: "/f", line: 1)
+        let match = MatchDescriptor(any: [[P.a, P.b]], all: R.a, S.a, file: "/f", line: 1)
         
         XCTAssertEqual("matching((P.a OR P.b) AND R.a AND S.a) @f: 1",
                        match.errorDescription)
     }
     
     func testMatchDescriptionWithNext() {
-        let match = try? Match(any: [[Q.a, Q.b]], file: "/2", line: 2)
-            .prepend(Match(any: [[P.a, P.b]], all: R.a, S.a, file: "/1", line: 1))
-            .finalised()
+        let match = try? MatchDescriptor(any: [[Q.a, Q.b]], file: "/2", line: 2)
+            .prepend(MatchDescriptor(any: [[P.a, P.b]], all: R.a, S.a, file: "/1", line: 1))
+            .resolved()
             .get()
 
         XCTAssertEqual(String {
@@ -229,7 +229,7 @@ final class ErrorTests: SyntaxNodeTests {
     typealias SVN = SemanticValidationNode
     
     func s1(_ line: Int) -> AnyTraceable { AnyTraceable("s1", file: "/fs", line: line) }
-    func m1(_ line: Int) -> Match { Match(any: P.a, all: Q.a, R.a, file: "/fm", line: line) }
+    func m1(_ line: Int) -> MatchDescriptor { MatchDescriptor(any: P.a, all: Q.a, R.a, file: "/fm", line: line) }
     func e1(_ line: Int) -> AnyTraceable { AnyTraceable("e1", file: "/fe", line: line) }
     func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "/fns", line: line) }
     
@@ -310,7 +310,7 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testSVNNothingToOverrideError() {
-        let m = Match(all: P.a, file: "/fm", line: 2)
+        let m = MatchDescriptor(all: P.a, file: "/fm", line: 2)
         let override = IntermediateIO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
         e = SVN.NothingToOverride(override)
         e.assertDescription(
@@ -331,7 +331,7 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testSVNOutOfOrderOverrideError() {
-        let m = Match(all: P.a, file: "/fm", line: 2)
+        let m = MatchDescriptor(all: P.a, file: "/fm", line: 2)
         let override = IntermediateIO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
         e = SVN.OverrideOutOfOrder(override, [override, override])
         e.assertDescription(
@@ -368,8 +368,8 @@ final class ErrorTests: SyntaxNodeTests {
     }
 
     func testMRNClashesError() {
-        let m1 = Match(any: P.a, file: "/fm", line: 2)
-        let m2 = Match(any: Q.a, file: "/fm", line: 6)
+        let m1 = MatchDescriptor(any: P.a, file: "/fm", line: 2)
+        let m2 = MatchDescriptor(any: Q.a, file: "/fm", line: 6)
         
         let pr1 = Set([P.a.erased(), Q.a.erased()])
         let pr2 = Set([R.a.erased(), S.a.erased()])

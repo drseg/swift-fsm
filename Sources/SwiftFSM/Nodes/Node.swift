@@ -6,7 +6,7 @@ protocol Node<Output> {
 
     typealias Result = (output: [Output], errors: [Error])
 
-    func finalised() -> Result
+    func resolved() -> Result
     func validate() -> [Error]
 
     func combinedWithRest(_ rest: [Input]) -> [Output]
@@ -14,12 +14,12 @@ protocol Node<Output> {
 }
 
 extension Node {
-    func finalised() -> Result {
+    func resolved() -> Result {
         var output = [Input]()
         var errors = [Error]()
 
         rest.forEach {
-            let finalised = $0.finalised()
+            let finalised = $0.resolved()
             output.append(contentsOf: finalised.0)
             errors.append(contentsOf: finalised.1)
         }

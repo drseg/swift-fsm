@@ -9,7 +9,7 @@ final class SentenceComponentTests: SyntaxTestsBase {
     
     @MainActor
     func assertMWNode(_ whenNode: WhenNode, sutLine sl: Int, xctLine xl: UInt = #line) {
-        let matchNode = whenNode.rest.first as! MatchNode
+        let matchNode = whenNode.rest.first as! MatchingNode
         
         XCTAssertEqual(1, whenNode.rest.count, line: xl)
         XCTAssertEqual(0, matchNode.rest.count, line: xl)

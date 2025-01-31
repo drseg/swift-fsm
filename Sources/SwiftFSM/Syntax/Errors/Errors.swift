@@ -214,7 +214,7 @@ extension SemanticValidationNode.DuplicatesError: ValidationError {
     var errorDescription: String? {
         description("The FSM table contains duplicate groups", duplicates) {
             $0.state.defineDescription
-            $0.match.errorDescription
+            $0.descriptor.errorDescription
             $0.event.whenDescription
             $0.nextState.thenDescription
         }
@@ -225,7 +225,7 @@ extension SemanticValidationNode.ClashError: ValidationError {
     var errorDescription: String? {
         description("The FSM table contains logical clash groups", clashes) {
             $0.state.defineDescription
-            $0.match.errorDescription
+            $0.descriptor.errorDescription
             $0.event.whenDescription
         }
     }
@@ -235,7 +235,7 @@ extension SemanticValidationNode.OverrideError {
     func describe(_ o: IntermediateIO) -> String {
         String {
             let define = override.state.defineDescription
-            let matching = override.match.errorDescription
+            let matching = override.descriptor.errorDescription
             let when = override.event.whenDescription
             let then = override.nextState.thenDescription
 
@@ -294,7 +294,7 @@ extension EagerMatchResolvingNode.ImplicitClashesError: ValidationError {
                 ""
                 eachGroupDescription("Context \(i + 1):", clashGroup) { c in
                     c.state.defineDescription
-                    c.match.errorDescription
+                    c.descriptor.errorDescription
                     c.event.whenDescription
                     c.nextState.thenDescription
                 }
@@ -303,13 +303,13 @@ extension EagerMatchResolvingNode.ImplicitClashesError: ValidationError {
     }
 }
 
-extension Match {
-    var asArray: [Match] {
+extension MatchDescriptor {
+    var asArray: [MatchDescriptor] {
         [originalSelf?.removingNext ?? removingNext] + (next?.asArray ?? [])
     }
 
-    var removingNext: Match {
-        Match(any: matchAny, all: matchAll, file: file, line: line)
+    var removingNext: MatchDescriptor {
+        MatchDescriptor(any: matchingAny, all: matchingAll, file: file, line: line)
     }
 
     var errorDescription: String {
@@ -317,7 +317,7 @@ extension Match {
             return "condition(() -> Bool) @\(file.name): \(line)"
         }
 
-        let or = matchAny.reduce([String]()) { result, predicates in
+        let or = matchingAny.reduce([String]()) { result, predicates in
             let firstPredicateString = predicates.first!.description
 
             return result + [predicates.dropFirst().reduce(firstPredicateString) {
@@ -325,10 +325,10 @@ extension Match {
             }]
         }.joined(separator: " AND ")
 
-        let and = matchAll.map(\.description).joined(separator: " AND ")
+        let and = matchingAll.map(\.description).joined(separator: " AND ")
 
         var summary: String
-        switch (matchAll.isEmpty, matchAny.isEmpty) {
+        switch (matchingAll.isEmpty, matchingAny.isEmpty) {
         case (true, true): summary = ""
         case (true, false): summary = "matching(\(or))"
         case (false, true): summary = "matching(\(and))"

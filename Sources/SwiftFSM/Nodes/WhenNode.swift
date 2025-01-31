@@ -28,7 +28,7 @@ class WhenNodeBase: OverridableNode {
 
     func makeOutput(_ rest: [DefaultIO], _ event: AnyTraceable) -> [DefaultIO] {
         rest.reduce(into: []) {
-            $0.append(DefaultIO($1.match,
+            $0.append(DefaultIO($1.descriptor,
                                 event,
                                 $1.state,
                                 $1.actions,

@@ -19,7 +19,7 @@ final class ThenNodeTests: SyntaxNodeTests {
     }
     
     func testEmptyThenBlockNodeHasNoOutput() {
-        assertCount(ThenBlockNode(state: s1, rest: []).finalised().output, expected: 0)
+        assertCount(ThenBlockNode(state: s1, rest: []).resolved().output, expected: 0)
     }
     
     func testThenNodeFinalisesCorrectly() {

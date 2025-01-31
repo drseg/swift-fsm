@@ -1,31 +1,31 @@
 import Foundation
 
-final class Match: Sendable {
-    typealias Result = Swift.Result<Match, MatchError>
+final class MatchDescriptor: Sendable {
+    typealias ResolvedMatchDescriptor = Swift.Result<MatchDescriptor, MatchError>
     typealias AnyPP = any Predicate
-
-    let matchAny: [[AnyPredicate]]
-    let matchAll: [AnyPredicate]
-
-    let condition: ConditionAction?
-    let next: Match?
-    let originalSelf: Match?
-
+    
+    let matchingAny: [[AnyPredicate]]
+    let matchingAll: [AnyPredicate]
+    
+    let condition: ConditionProvider?
+    let next: MatchDescriptor?
+    let originalSelf: MatchDescriptor?
+    
     let file: String
     let line: Int
-
-    convenience init(condition: @escaping ConditionAction, file: String = #file, line: Int = #line) {
+    
+    convenience init(condition: @escaping ConditionProvider, file: String = #file, line: Int = #line) {
         self.init(any: [], all: [], condition: condition, file: file, line: line)
     }
-
+    
     convenience init(any: AnyPP..., all: AnyPP..., file: String = #file, line: Int = #line) {
         self.init(any: any.erased(), all: all.erased(), file: file, line: line)
     }
-
+    
     convenience init(any: [[AnyPP]], all: AnyPP..., file: String = #file, line: Int = #line) {
         self.init(any: any.map { $0.erased() }, all: all.erased(), file: file, line: line)
     }
-
+    
     convenience init(
         any: [AnyPredicate],
         all: [AnyPredicate],
@@ -34,28 +34,30 @@ final class Match: Sendable {
     ) {
         self.init(any: [any].filter { !$0.isEmpty }, all: all, file: file, line: line)
     }
-
+    
     init(
         any: [[AnyPredicate]],
         all: [AnyPredicate],
-        condition: ConditionAction? = nil,
-        next: Match? = nil,
-        originalSelf: Match? = nil,
+        condition: ConditionProvider? = nil,
+        next: MatchDescriptor? = nil,
+        originalSelf: MatchDescriptor? = nil,
         file: String = #file,
         line: Int = #line
     ) {
-        self.matchAny = any
-        self.matchAll = all
+        self.matchingAny = any
+        self.matchingAll = all
         self.condition = condition
         self.next = next
         self.originalSelf = originalSelf
         self.file = file
         self.line = line
     }
+}
 
-    func prepend(_ m: Match) -> Match {
-        .init(any: m.matchAny,
-              all: m.matchAll,
+extension MatchDescriptor {
+    func prepend(_ m: MatchDescriptor) -> MatchDescriptor {
+        .init(any: m.matchingAny,
+              all: m.matchingAll,
               condition: m.condition,
               next: self,
               originalSelf: m.originalSelf,
@@ -63,11 +65,11 @@ final class Match: Sendable {
               line: m.line)
     }
 
-    func finalised() -> Result {
+    func resolved() -> ResolvedMatchDescriptor {
         guard let next else { return self.validate() }
 
         let firstResult = self.validate()
-        let restResult = next.finalised()
+        let restResult = next.resolved()
 
         return switch (firstResult, restResult) {
         case (.success, .success(let rest)):
@@ -84,8 +86,8 @@ final class Match: Sendable {
         }
     }
 
-    func validate() -> Result {
-        func failure<C: Collection>(predicates: C, type: MatchError.Type) -> Result
+    func validate() -> ResolvedMatchDescriptor {
+        func failure<C: Collection>(predicates: C, type: MatchError.Type) -> ResolvedMatchDescriptor
         where C.Element == AnyPredicate {
             .failure(
                 type.init(
@@ -96,23 +98,23 @@ final class Match: Sendable {
             )
         }
 
-        guard matchAll.areUniquelyTyped else {
-            return failure(predicates: matchAll, type: DuplicateMatchTypes.self)
+        guard matchingAll.areUniquelyTyped else {
+            return failure(predicates: matchingAll, type: DuplicateMatchTypes.self)
         }
 
-        guard matchAny.flattened.elementsAreUnique else {
-            return failure(predicates: matchAny.flattened, type: DuplicateAnyValues.self)
+        guard matchingAny.flattened.elementsAreUnique else {
+            return failure(predicates: matchingAny.flattened, type: DuplicateAnyValues.self)
         }
 
-        guard matchAny.hasNoDuplicateTypes else {
-            return failure(predicates: matchAny.flattened, type: DuplicateMatchTypes.self)
+        guard matchingAny.hasNoDuplicateTypes else {
+            return failure(predicates: matchingAny.flattened, type: DuplicateMatchTypes.self)
         }
 
-        guard matchAny.hasNoConflictingTypes else {
-            return failure(predicates: matchAny.flattened, type: ConflictingAnyTypes.self)
+        guard matchingAny.hasNoConflictingTypes else {
+            return failure(predicates: matchingAny.flattened, type: ConflictingAnyTypes.self)
         }
 
-        let duplicates = matchAll.filter { matchAny.flattened.contains($0) }
+        let duplicates = matchingAll.filter { matchingAny.flattened.contains($0) }
         guard duplicates.isEmpty else {
             return failure(predicates: duplicates, type: DuplicateAnyAllValues.self)
         }
@@ -120,8 +122,8 @@ final class Match: Sendable {
         return .success(self)
     }
 
-    func adding(_ other: Match) -> Match {
-        var condition: ConditionAction? {
+    func adding(_ other: MatchDescriptor) -> MatchDescriptor {
+        var condition: ConditionProvider? {
             return switch (self.condition == nil, other.condition == nil) {
             case (true, true): nil
             case (true, false): other.condition!
@@ -130,8 +132,8 @@ final class Match: Sendable {
             }
         }
 
-        return Match(any: matchAny + other.matchAny,
-                     all: matchAll + other.matchAll,
+        return MatchDescriptor(any: matchingAny + other.matchingAny,
+                     all: matchingAll + other.matchingAll,
                      condition: condition,
                      next: next,
                      originalSelf: self,
@@ -158,14 +160,14 @@ final class Match: Sendable {
     }
 
     func combineAnyAndAll() -> PredicateSets {
-        matchAny.combinations().reduce(into: PredicateSets()) {
-            $0.insert(Set(matchAll + $1))
-        } ??? [matchAll].asSets
+        matchingAny.combinations().reduce(into: PredicateSets()) {
+            $0.insert(Set(matchingAll + $1))
+        } ??? [matchingAll].asSets
     }
 }
 
-extension Match: Hashable {
-    public static func == (lhs: Match, rhs: Match) -> Bool {
+extension MatchDescriptor: Hashable {
+    public static func == (lhs: MatchDescriptor, rhs: MatchDescriptor) -> Bool {
         func sort(_ any: [[AnyPredicate]]) -> [[AnyPredicate]] {
             any.map { $0.sorted(by: sort) }
         }
@@ -174,18 +176,18 @@ extension Match: Hashable {
             String(describing: p1) > String(describing: p2)
         }
 
-        let lhsAny = sort(lhs.matchAny)
-        let rhsAny = sort(rhs.matchAny)
+        let lhsAny = sort(lhs.matchingAny)
+        let rhsAny = sort(rhs.matchingAny)
 
-        return lhs.matchAny.count == rhs.matchAny.count &&
-        lhs.matchAll.count == rhs.matchAll.count &&
+        return lhs.matchingAny.count == rhs.matchingAny.count &&
+        lhs.matchingAll.count == rhs.matchingAll.count &&
         lhsAny.allSatisfy({ rhsAny.contains($0) }) &&
-        lhs.matchAll.allSatisfy({ rhs.matchAll.contains($0) })
+        lhs.matchingAll.allSatisfy({ rhs.matchingAll.contains($0) })
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(matchAny)
-        hasher.combine(matchAll)
+        hasher.combine(matchingAny)
+        hasher.combine(matchingAll)
     }
 }
 
@@ -199,7 +201,7 @@ struct RankedPredicates: FSMHashable {
     }
 }
 
-extension Match.Result {
+extension MatchDescriptor.ResolvedMatchDescriptor {
     func appending(file: String, line: Int) -> Self {
         appending(files: [file], lines: [line])
     }

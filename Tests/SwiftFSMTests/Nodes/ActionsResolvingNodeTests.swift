@@ -4,7 +4,7 @@ import XCTest
 class ActionsResolvingNodeTests: DefineConsumer {
     func testEmptyNode() {
         let node = ConditionalActionsResolvingNode()
-        let finalised = node.finalised()
+        let finalised = node.resolved()
         XCTAssertTrue(finalised.output.isEmpty)
         XCTAssertTrue(finalised.errors.isEmpty)
     }
@@ -12,14 +12,14 @@ class ActionsResolvingNodeTests: DefineConsumer {
     func assertNode<T: ActionsResolvingNodeBase>(
         type: T.Type,
         g: AnyTraceable,
-        m: Match,
+        m: MatchDescriptor,
         w: AnyTraceable,
         t: AnyTraceable,
         output: String,
         line: UInt = #line
     ) {
         let node = T.init(rest: [defineNode(g, m, w, t, exit: onExit)])
-        let finalised = node.finalised()
+        let finalised = node.resolved()
         XCTAssertTrue(finalised.errors.isEmpty, line: line)
         guard assertCount(finalised.output, expected: 1, line: line) else { return }
         
@@ -30,14 +30,14 @@ class ActionsResolvingNodeTests: DefineConsumer {
     func assertResult(
         _ result: ConditionalActionsResolvingNode.Output,
         _ g: AnyTraceable,
-        _ m: Match,
+        _ m: MatchDescriptor,
         _ w: AnyTraceable,
         _ t: AnyTraceable,
         _ output: String,
         _ line: UInt = #line
     ) {
         XCTAssertEqual(result.state, g, line: line)
-        XCTAssertEqual(result.match, m, line: line)
+        XCTAssertEqual(result.descriptor, m, line: line)
         XCTAssertEqual(result.event, w, line: line)
         XCTAssertEqual(result.nextState, t, line: line)
         XCTAssertEqual(result.overrideGroupID, testGroupID, line: line)
@@ -46,7 +46,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
         assertActions(result.actions, expectedOutput: output, line: line)
     }
     
-    let m = Match()
+    let m = MatchDescriptor()
     
     func testConditionalDoesNotAddExitActionsWithoutStateChange() {
         assertNode(type: ConditionalActionsResolvingNode.self,
@@ -65,7 +65,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     
     func testConditionalDoesNotAddEntryActionsWithoutStateChange() {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: [])
-        let result = ConditionalActionsResolvingNode(rest: [d1]).finalised()
+        let result = ConditionalActionsResolvingNode(rest: [d1]).resolved()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 1) else { return }
@@ -75,7 +75,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     
     func testUnconditionalAddsEntryActionsWithoutStateChange() {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: onExit)
-        let result = ActionsResolvingNode(rest: [d1]).finalised()
+        let result = ActionsResolvingNode(rest: [d1]).resolved()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 1) else { return }
@@ -86,7 +86,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     func testConditionalAddsEntryActionsForStateChange() {
         let d1 = defineNode(s1, m, e1, s2)
         let d2 = defineNode(s2, m, e1, s3, entry: onEntry, exit: onExit)
-        let result = ConditionalActionsResolvingNode(rest: [d1, d2]).finalised()
+        let result = ConditionalActionsResolvingNode(rest: [d1, d2]).resolved()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 2) else { return }

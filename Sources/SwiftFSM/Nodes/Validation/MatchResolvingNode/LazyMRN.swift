@@ -10,7 +10,7 @@ final class LazyMatchResolvingNode: MRNBase, MatchResolvingNode {
                     result.append(t)
                 }
 
-                let anyAndAll = input.match.combineAnyAndAll()
+                let anyAndAll = input.descriptor.combineAnyAndAll()
 
                 if anyAndAll.isEmpty {
                     try appendTransition(predicates: [])
@@ -21,7 +21,7 @@ final class LazyMatchResolvingNode: MRNBase, MatchResolvingNode {
                 }
             }
         } catch {
-            errors = EagerMatchResolvingNode(rest: self.rest).finalised().errors
+            errors = EagerMatchResolvingNode(rest: self.rest).resolved().errors
             return []
         }
     }
@@ -29,7 +29,7 @@ final class LazyMatchResolvingNode: MRNBase, MatchResolvingNode {
 
 extension Transition {
     init(io: IntermediateIO, predicates p: PredicateSet) {
-        condition = io.match.condition
+        condition = io.descriptor.condition
         state = io.state.base
         predicates = p
         event = io.event.base

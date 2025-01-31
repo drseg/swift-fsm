@@ -17,7 +17,7 @@ class ThenNodeBase: OverridableNode {
 
     func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
         rest.reduce(into: []) {
-            $0.append(DefaultIO($1.match,
+            $0.append(DefaultIO($1.descriptor,
                                 $1.event,
                                 state,
                                 $1.actions,

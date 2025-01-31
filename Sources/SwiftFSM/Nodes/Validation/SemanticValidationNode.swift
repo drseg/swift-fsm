@@ -34,13 +34,13 @@ class SemanticValidationNode: Node {
 
     struct DuplicatesKey: SVNKey {
         let state: AnyTraceable,
-            match: Match,
+            match: MatchDescriptor,
             event: AnyTraceable,
             nextState: AnyTraceable
 
         init(_ input: Input) {
             state = input.state
-            match = input.match
+            match = input.descriptor
             event = input.event
             nextState = input.nextState
         }
@@ -48,12 +48,12 @@ class SemanticValidationNode: Node {
 
     struct ClashesKey: SVNKey {
         let state: AnyTraceable,
-            match: Match,
+            match: MatchDescriptor,
             event: AnyTraceable
 
         init(_ input: Input) {
             state = input.state
-            match = input.match
+            match = input.descriptor
             event = input.event
         }
     }
@@ -126,7 +126,7 @@ class SemanticValidationNode: Node {
         overrides.forEach { override in
             func isOverridden(_ candidate: IntermediateIO) -> Bool {
                 candidate.state == override.state &&
-                candidate.match == override.match &&
+                candidate.descriptor == override.descriptor &&
                 candidate.event == override.event
             }
 
@@ -173,7 +173,7 @@ class SemanticValidationNode: Node {
 extension IntermediateIO: Equatable {
     static func == (lhs: IntermediateIO, rhs: IntermediateIO) -> Bool {
         lhs.state == rhs.state &&
-        lhs.match == rhs.match &&
+        lhs.descriptor == rhs.descriptor &&
         lhs.event == rhs.event &&
         lhs.nextState == rhs.nextState &&
         lhs.overrideGroupID == rhs.overrideGroupID &&

@@ -4,7 +4,7 @@ import XCTest
 class EagerMatchResolvingNodeTests: MRNTestBase {
     struct ExpectedMRNError {
         let state: AnyTraceable,
-            match: Match,
+            match: MatchDescriptor,
             predicates: PredicateSet,
             event: AnyTraceable,
             nextState: AnyTraceable,
@@ -23,7 +23,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     func makeErrorOutput(
         _ g: AnyTraceable,
-        _ m: Match,
+        _ m: MatchDescriptor,
         _ p: [any Predicate],
         _ w: AnyTraceable,
         _ t: AnyTraceable,
@@ -57,7 +57,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         expected.forEach { exp in
             assertEqual(exp, errors.first {
                 $0.state == exp.state &&
-                $0.match == exp.match &&
+                $0.descriptor == exp.match &&
                 $0.event == exp.event &&
                 $0.nextState == exp.nextState
             }, line: line)
@@ -70,13 +70,13 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         line: UInt = #line
     ) {
         XCTAssertEqual(lhs?.state, rhs?.state, line: line)
-        XCTAssertEqual(lhs?.match, rhs?.match, line: line)
+        XCTAssertEqual(lhs?.match, rhs?.descriptor, line: line)
         XCTAssertEqual(lhs?.event, rhs?.event, line: line)
         XCTAssertEqual(lhs?.nextState, rhs?.nextState, line: line)
     }
     
     func testEmptyNode() {
-        let result = matchResolvingNode(rest: []).finalised()
+        let result = matchResolvingNode(rest: []).resolved()
         
         assertCount(result.output, expected: 0)
         assertCount(result.errors, expected: 0)
@@ -84,13 +84,13 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     @MainActor
     func testTableWithNoMatches() {
-        let d = defineNode(s1, Match(), e1, s2)
-        let result = matchResolvingNode(rest: [d]).finalised()
+        let d = defineNode(s1, MatchDescriptor(), e1, s2)
+        let result = matchResolvingNode(rest: [d]).resolved()
 
         assertCount(result.output, expected: 1)
         assertResult(result, expected: makeOutput(c: nil,
                                                   g: s1,
-                                                  m: Match(),
+                                                  m: MatchDescriptor(),
                                                   p: [],
                                                   w: e1,
                                                   t: s2))
@@ -98,39 +98,39 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     @MainActor
     func testMatchCondition() {
-        let d = defineNode(s1, Match(condition: { false }), e1, s2)
-        let result = matchResolvingNode(rest: [d]).finalised()
+        let d = defineNode(s1, MatchDescriptor(condition: { false }), e1, s2)
+        let result = matchResolvingNode(rest: [d]).resolved()
         
         XCTAssertEqual(false, result.output.first?.condition?())
     }
     
     @MainActor
     func testImplicitMatch() {
-        let d1 = defineNode(s1, Match(), e1, s2)
-        let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
-        let result = matchResolvingNode(rest: [d1, d2]).finalised()
+        let d1 = defineNode(s1, MatchDescriptor(), e1, s2)
+        let d2 = defineNode(s1, MatchDescriptor(any: Q.a), e1, s3)
+        let result = matchResolvingNode(rest: [d1, d2]).resolved()
         
         assertCount(result.output, expected: 2)
         
         assertResult(result, expected: makeOutput(c: nil,
                                                   g: s1,
-                                                  m: Match(),
+                                                  m: MatchDescriptor(),
                                                   p: [Q.b],
                                                   w: e1,
                                                   t: s2))
         
         assertResult(result, expected: makeOutput(c: nil,
                                                   g: s1,
-                                                  m: Match(any: Q.a),
+                                                  m: MatchDescriptor(any: Q.a),
                                                   p: [Q.a],
                                                   w: e1,
                                                   t: s3))
     }
     
     func testImplicitMatchClash() {
-        let d1 = defineNode(s1, Match(any: P.a), e1, s2)
-        let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
-        let result = matchResolvingNode(rest: [d1, d2]).finalised()
+        let d1 = defineNode(s1, MatchDescriptor(any: P.a), e1, s2)
+        let d2 = defineNode(s1, MatchDescriptor(any: Q.a), e1, s3)
+        let result = matchResolvingNode(rest: [d1, d2]).resolved()
 
         guard assertCount(result.errors, expected: 1) else { return }
         guard let clashError = result.errors[0] as? EMRN.ImplicitClashesError else {
@@ -138,17 +138,17 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         }
         
         guard assertCount(clashError.clashes.first?.value, expected: 2) else { return }
-        assertError(result, expected: [makeErrorOutput(s1, Match(any: P.a), [P.a, Q.a], e1, s2),
-                                       makeErrorOutput(s1, Match(any: Q.a), [P.a, Q.a], e1, s3)])
+        assertError(result, expected: [makeErrorOutput(s1, MatchDescriptor(any: P.a), [P.a, Q.a], e1, s2),
+                                       makeErrorOutput(s1, MatchDescriptor(any: Q.a), [P.a, Q.a], e1, s3)])
     }
     
     func testMoreSubtleImplicitMatchClashes() throws {
-        let d1 = defineNode(s1, Match(any: P.a, R.a), e1, s2)
-        let d2 = defineNode(s1, Match(any: Q.a), e1, s3)
-        let d3 = defineNode(s1, Match(any: Q.a, S.a), e1, s1)
+        let d1 = defineNode(s1, MatchDescriptor(any: P.a, R.a), e1, s2)
+        let d2 = defineNode(s1, MatchDescriptor(any: Q.a), e1, s3)
+        let d3 = defineNode(s1, MatchDescriptor(any: Q.a, S.a), e1, s1)
         
-        let r1 = matchResolvingNode(rest: [d1, d2]).finalised()
-        let r2 = matchResolvingNode(rest: [d1, d3]).finalised()
+        let r1 = matchResolvingNode(rest: [d1, d2]).resolved()
+        let r2 = matchResolvingNode(rest: [d1, d3]).resolved()
         
         XCTAssertFalse(r1.errors.isEmpty)
         XCTAssertFalse(r2.errors.isEmpty)
@@ -156,8 +156,8 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     @MainActor
     func testPassesConditionToOutput() {
-        let d1 = defineNode(s1, Match(condition: { false }), e1, s2)
-        let result = matchResolvingNode(rest: [d1]).finalised()
+        let d1 = defineNode(s1, MatchDescriptor(condition: { false }), e1, s2)
+        let result = matchResolvingNode(rest: [d1]).resolved()
         
         guard assertCount(result.errors, expected: 0) else { return }
         guard assertCount(result.output, expected: 1) else { return }

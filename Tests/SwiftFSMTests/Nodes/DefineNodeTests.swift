@@ -29,13 +29,13 @@ final class DefineNodeTests: SyntaxNodeTests {
     }
     
     func testCompleteNodeWithInvalidMatchProducesErrorAndNoOutput() {
-        let invalidMatch = Match(all: P.a, P.a)
+        let invalidMatch = MatchDescriptor(all: P.a, P.a)
         
-        let m = MatchNode(match: invalidMatch, rest: [WhenNode(events: [e1])])
+        let m = MatchingNode(descriptor: invalidMatch, rest: [WhenNode(events: [e1])])
         let g = GivenNode(states: [s1], rest: [m])
         let d = DefineNode(onEntry: [], onExit: [], rest: [g])
         
-        let result = d.finalised()
+        let result = d.resolved()
         
         XCTAssertEqual(0, result.output.count)
         XCTAssertEqual(1, result.errors.count)
@@ -61,7 +61,7 @@ final class DefineNodeTests: SyntaxNodeTests {
     func testDefineNodeCanSetRestAfterInit() {
         let t = ThenNode(state: s3, rest: [])
         let w = WhenNode(events: [e1, e2], rest: [t])
-        let m = MatchNode(match: m1, rest: [w])
+        let m = MatchingNode(descriptor: m1, rest: [w])
         let g = GivenNode(states: [s1, s2], rest: [m])
         
         let d = DefineNode(onEntry: [],
@@ -121,9 +121,9 @@ final class DefineNodeTests: SyntaxNodeTests {
     func testDefineNodePassesGroupIDAndIsOverrideParams() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1], rest: [t])
-        let m = MatchNode(match: m1, rest: [w], overrideGroupID: testGroupID, isOverride: true)
+        let m = MatchingNode(descriptor: m1, rest: [w], overrideGroupID: testGroupID, isOverride: true)
         let g = GivenNode(states: [s1], rest: [m])
-        let output = DefineNode(onEntry: [], onExit: [], rest: [g]).finalised().output
+        let output = DefineNode(onEntry: [], onExit: [], rest: [g]).resolved().output
         
         XCTAssert(output.allSatisfy { $0.overrideGroupID == testGroupID && $0.isOverride == true })
     }

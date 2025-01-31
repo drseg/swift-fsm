@@ -3,7 +3,7 @@ import Foundation
 struct GivenNode: Node {
     struct Output {
         let state: AnyTraceable,
-            match: Match,
+            descriptor: MatchDescriptor,
             event: AnyTraceable,
             nextState: AnyTraceable,
             actions: [AnyAction],
@@ -12,7 +12,7 @@ struct GivenNode: Node {
 
         init(
             _ state: AnyTraceable,
-            _ match: Match,
+            _ match: MatchDescriptor,
             _ event: AnyTraceable,
             _ nextState: AnyTraceable,
             _ actions: [AnyAction],
@@ -20,7 +20,7 @@ struct GivenNode: Node {
             _ isOverride: Bool
         ) {
             self.state = state
-            self.match = match
+            self.descriptor = match
             self.event = event
             self.nextState = nextState
             self.actions = actions
@@ -36,7 +36,7 @@ struct GivenNode: Node {
         states.reduce(into: []) { result, state in
             rest.forEach {
                 result.append(Output(state,
-                                     $0.match,
+                                     $0.descriptor,
                                      $0.event!,
                                      $0.state ?? state,
                                      $0.actions,

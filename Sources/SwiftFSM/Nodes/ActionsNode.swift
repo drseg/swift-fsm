@@ -19,7 +19,7 @@ class ActionsNodeBase: OverridableNode {
         rest.reduce(into: []) {
             $0.append(
                 DefaultIO(
-                    $1.match,
+                    $1.descriptor,
                     $1.event,
                     $1.state,
                     actions + $1.actions,

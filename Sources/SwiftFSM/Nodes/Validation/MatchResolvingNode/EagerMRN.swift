@@ -1,45 +1,20 @@
 import Foundation
 
-struct Transition: @unchecked Sendable {
-    let condition: ConditionAction?,
-        state: AnyHashable,
-        predicates: PredicateSet,
-        event: AnyHashable,
-        nextState: AnyHashable,
-        actions: [AnyAction]
-
-    init(
-        _ condition: ConditionAction?,
-        _ state: AnyHashable,
-        _ predicates: PredicateSet,
-        _ event: AnyHashable,
-        _ nextState: AnyHashable,
-        _ actions: [AnyAction]
-    ) {
-        self.condition = condition
-        self.state = state
-        self.predicates = predicates
-        self.event = event
-        self.nextState = nextState
-        self.actions = actions
-    }
-}
-
 final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
     struct ErrorOutput {
         let state: AnyTraceable,
-            match: Match,
+            descriptor: MatchDescriptor,
             event: AnyTraceable,
             nextState: AnyTraceable
 
         init(
             _ state: AnyTraceable,
-            _ match: Match,
+            _ match: MatchDescriptor,
             _ event: AnyTraceable,
             _ nextState: AnyTraceable
         ) {
             self.state = state
-            self.match = match
+            self.descriptor = match
             self.event = event
             self.nextState = nextState
         }
@@ -47,14 +22,14 @@ final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
 
     struct RankedOutput {
         let state: AnyTraceable,
-            match: Match,
+            descriptor: MatchDescriptor,
             predicateResult: RankedPredicates,
             event: AnyTraceable,
             nextState: AnyTraceable,
             actions: [AnyAction]
 
         var toTransition: Transition {
-            Transition(match.condition,
+            Transition(descriptor.condition,
                        state.base,
                        predicateResult.predicates,
                        event.base,
@@ -63,7 +38,7 @@ final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
         }
 
         var toErrorOutput: ErrorOutput {
-            ErrorOutput(state, match, event, nextState)
+            ErrorOutput(state, descriptor, event, nextState)
         }
     }
 
@@ -98,7 +73,7 @@ final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
         let result = rest.reduce(into: [RankedOutput]()) { result, input in
             func appendInput(_ predicateResult: RankedPredicates = RankedPredicates()) {
                 let ro = RankedOutput(state: input.state,
-                                      match: input.match,
+                                      descriptor: input.descriptor,
                                       predicateResult: predicateResult,
                                       event: input.event,
                                       nextState: input.nextState,
@@ -127,7 +102,7 @@ final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
                 }
             }
 
-            let allPredicateCombinations = input.match.allPredicateCombinations(allCases)
+            let allPredicateCombinations = input.descriptor.allPredicateCombinations(allCases)
             guard !allPredicateCombinations.isEmpty else {
                 appendInput(); return
             }
@@ -152,9 +127,9 @@ extension RankedPredicates {
 
 extension [SemanticValidationNode.Output] {
     func allCases() -> PredicateSets {
-        let matches = map(\.match)
-        let anys = matches.map(\.matchAny)
-        let alls = matches.map(\.matchAll)
+        let descriptors = map(\.descriptor)
+        let anys = descriptors.map(\.matchingAny)
+        let alls = descriptors.map(\.matchingAll)
         return (alls + anys.flattened).flattened.combinationsOfAllCases
     }
 }

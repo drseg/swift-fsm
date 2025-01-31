@@ -7,6 +7,7 @@ struct AnyTraceable: @unchecked Sendable {
 
     init<H: FSMHashable>(_ base: H?, file: String, line: Int) {
         self.base = base!
+        // this arcane syntax ensures 'base' is never optional
         self.file = file
         self.line = line
     }

@@ -37,7 +37,7 @@ final class PublicAPITests: XCTestCase {
     
     @MainActor
     func testPublicAPI() throws {
-        func assertLog(_ a: String..., line: UInt = #line) {
+        func assertLogged(_ a: String..., line: UInt = #line) {
             XCTAssertEqual(sut.log, a, line: line)
         }
         
@@ -45,18 +45,18 @@ final class PublicAPITests: XCTestCase {
         XCTAssert(sut.log.isEmpty)
         
         try sut.fsm.handleEvent(.coin)
-        assertLog("unlock()")
+        assertLogged("unlock()")
         
         try sut.fsm.handleEvent(.coin)
-        assertLog("unlock()", "thankyou()")
+        assertLogged("unlock()", "thankyou()")
         
         try sut.fsm.handleEvent(.coin)
-        assertLog("unlock()", "thankyou()", "thankyou()")
+        assertLogged("unlock()", "thankyou()", "thankyou()")
         
         try sut.fsm.handleEvent(.pass)
-        assertLog("unlock()", "thankyou()", "thankyou()", "lock()")
+        assertLogged("unlock()", "thankyou()", "thankyou()", "lock()")
         
         try sut.fsm.handleEvent(.pass)
-        assertLog("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
+        assertLogged("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
     }
 }

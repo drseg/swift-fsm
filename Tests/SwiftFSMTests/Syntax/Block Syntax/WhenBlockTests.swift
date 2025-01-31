@@ -30,7 +30,7 @@ class WhenBlockTests: BlockTestsBase {
         let actionsNode = wbn.rest.first as! ActionsNode
         assertActions(actionsNode.actions, expectedOutput: eo, xctLine: xl)
 
-        let matchNode = actionsNode.rest.first as! MatchNode
+        let matchNode = actionsNode.rest.first as! MatchingNode
         assertMatchNode(matchNode, all: [P.a], sutFile: baseFile, sutLine: rl, xctLine: xl)
     }
 

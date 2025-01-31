@@ -27,7 +27,7 @@ class OverridableNode {
 }
 
 struct DefaultIO: Sendable {
-    let match: Match,
+    let descriptor: MatchDescriptor,
         event: AnyTraceable?,
         state: AnyTraceable?,
         actions: [AnyAction],
@@ -35,14 +35,14 @@ struct DefaultIO: Sendable {
         isOverride: Bool
 
     init(
-        _ match: Match,
+        _ match: MatchDescriptor,
         _ event: AnyTraceable?,
         _ state: AnyTraceable?,
         _ actions: [AnyAction],
         _ overrideGroupID: UUID = UUID(),
         _ isOverride: Bool = false
     ) {
-        self.match = match
+        self.descriptor = match
         self.event = event
         self.state = state
         self.actions = actions
@@ -52,7 +52,7 @@ struct DefaultIO: Sendable {
 }
 
 func makeDefaultIO(
-    match: Match = Match(),
+    match: MatchDescriptor = MatchDescriptor(),
     event: AnyTraceable? = nil,
     state: AnyTraceable? = nil,
     actions: [AnyAction] = [],

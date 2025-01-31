@@ -2,7 +2,7 @@ import Foundation
 
 struct IntermediateIO: Sendable {
     let state: AnyTraceable,
-        match: Match,
+        descriptor: MatchDescriptor,
         event: AnyTraceable,
         nextState: AnyTraceable,
         actions: [AnyAction],
@@ -11,7 +11,7 @@ struct IntermediateIO: Sendable {
 
     init(
         _ state: AnyTraceable,
-        _ match: Match,
+        _ match: MatchDescriptor,
         _ event: AnyTraceable,
         _ nextState: AnyTraceable,
         _ actions: [AnyAction],
@@ -19,7 +19,7 @@ struct IntermediateIO: Sendable {
         _ isOverride: Bool = false
     ) {
         self.state = state
-        self.match = match
+        self.descriptor = match
         self.event = event
         self.nextState = nextState
         self.actions = actions

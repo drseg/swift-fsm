@@ -192,7 +192,7 @@ class StringableNodeTestTests: StringableNodeTest {
     }
     
     func testMatchBlockNodeFileAndLine() async {
-        let w = MatchBlockNode(match: m1, file: "null", line: -1)
+        let w = MatchingBlockNode(descriptor: m1, file: "null", line: -1)
         await assertToString("M (null -1): any: [[P.a]], all: [Q.a] (null -1)",
                        w, fileAndLine: true)
     }
@@ -323,15 +323,15 @@ class StringableNodeTest: DefineConsumer {
             }
         }
         
-        if let n = n as? MatchNodeBase {
-            if let n = n as? MatchBlockNode, printFileAndLine {
+        if let n = n as? MatchingNodeBase {
+            if let n = n as? MatchingBlockNode, printFileAndLine {
                 output.append("M" + fileAndLine(n.file, n.line)
-                              + ": any: \(n.match.matchAny), all: \(n.match.matchAll)")
+                              + ": any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)")
             } else {
-                output.append("M: any: \(n.match.matchAny), all: \(n.match.matchAll)")
+                output.append("M: any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)")
             }
             if printFileAndLine {
-                output.append(fileAndLine(n.match.file, n.match.line))
+                output.append(fileAndLine(n.descriptor.file, n.descriptor.line))
             }
         }
         

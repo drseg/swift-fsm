@@ -39,7 +39,7 @@ final class GivenNodeTests: SyntaxNodeTests {
     func testGivenNodeCanSetRestAfterInitialisation() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
-        let m = MatchNode(match: m1, rest: [w])
+        let m = MatchingNode(descriptor: m1, rest: [w])
         var g = GivenNode(states: [s1, s2])
         g.rest.append(m)
         
@@ -56,7 +56,7 @@ final class GivenNodeTests: SyntaxNodeTests {
     func testGivenNodeWithMultipleWhenNodes() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
-        let m = MatchNode(match: m1, rest: [w, w])
+        let m = MatchingNode(descriptor: m1, rest: [w, w])
         let g = GivenNode(states: [s1, s2], rest: [m])
         
         let expected = [MSES(m1, s1, e1, s3),
@@ -76,8 +76,8 @@ final class GivenNodeTests: SyntaxNodeTests {
     func testGivenNodePassesGroupIDAndIsOverrideParams() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1], rest: [t])
-        let m = MatchNode(match: m1, rest: [w], overrideGroupID: testGroupID, isOverride: true)
-        let output = GivenNode(states: [s1], rest: [m]).finalised().output
+        let m = MatchingNode(descriptor: m1, rest: [w], overrideGroupID: testGroupID, isOverride: true)
+        let output = GivenNode(states: [s1], rest: [m]).resolved().output
         
         XCTAssert(output.allSatisfy { $0.overrideGroupID == testGroupID && $0.isOverride == true })
     }

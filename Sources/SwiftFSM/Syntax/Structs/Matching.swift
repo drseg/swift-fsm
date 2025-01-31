@@ -6,7 +6,7 @@ public protocol Conditional<State, Event> {
 }
 
 extension Conditional {
-    var node: MatchNode { this.node }
+    var node: MatchingNode { this.node }
     var file: String { this.file }
     var line: Int { this.line }
     var name: String { this.name }
@@ -76,9 +76,9 @@ extension Conditional {
         .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
     }
     
-    var blockNode: MatchBlockNode {
-        MatchBlockNode(
-            match: node.match,
+    var blockNode: MatchingBlockNode {
+        MatchingBlockNode(
+            descriptor: node.descriptor,
             rest: node.rest,
             caller: name,
             file: file,
@@ -106,40 +106,40 @@ extension Conditional {
 }
 
 protocol _Conditional: Conditional {
-    var node: MatchNode { get }
+    var node: MatchingNode { get }
     var file: String { get }
     var line: Int { get }
     var name: String { get }
 }
 
-public typealias ConditionAction = @MainActor @Sendable () -> Bool
+public typealias ConditionProvider = @MainActor @Sendable () -> Bool
 
 public extension Syntax.Expanded {
     struct Condition<State: FSMHashable, Event: FSMHashable>: _Conditional {
-        let node: MatchNode
+        let node: MatchingNode
         let file: String
         let line: Int
 
         var name: String { "condition" }
         
         init(
-            _ condition: @escaping ConditionAction,
+            _ condition: @escaping ConditionProvider,
             file: String = #file,
             line: Int = #line
         ) {
-            let match = Match(
+            let match = MatchDescriptor(
                 condition: condition,
                 file: file,
                 line: line
             )
-            self.node = MatchNode(match: match, rest: [])
+            self.node = MatchingNode(descriptor: match, rest: [])
             self.file = file
             self.line = line
         }
     }
 
     struct Matching<State: FSMHashable, Event: FSMHashable>: _Conditional {
-        let node: MatchNode
+        let node: MatchingNode
         let file: String
         let line: Int
 
@@ -174,14 +174,14 @@ public extension Syntax.Expanded {
             file: String = #file,
             line: Int = #line
         ) {
-            let match = Match(
+            let match = MatchDescriptor(
                 any: any.erased(),
                 all: all.erased(),
                 file: file,
                 line: line
             )
             
-            self.node = MatchNode(match: match, rest: [])
+            self.node = MatchingNode(descriptor: match, rest: [])
             self.file = file
             self.line = line
         }

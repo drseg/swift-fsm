@@ -9,14 +9,14 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     }
     
     @MainActor
-    func assertNotMatchClash(_ m1: Match, _ m2: Match, line: UInt = #line) {
+    func assertNotMatchClash(_ m1: MatchDescriptor, _ m2: MatchDescriptor, line: UInt = #line) {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
         
         let p1 = m1.combineAnyAndAll().first ?? []
         let p2 = m2.combineAnyAndAll().first ?? []
         
-        let result = makeSUT(rest: [d1, d2]).finalised()
+        let result = makeSUT(rest: [d1, d2]).resolved()
         
         guard
             assertCount(result.errors, expected: 0, line: line),
@@ -32,10 +32,10 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
                     line: line)
     }
     
-    func assertMatchClash(_ m1: Match, _ m2: Match, line: UInt = #line) {
+    func assertMatchClash(_ m1: MatchDescriptor, _ m2: MatchDescriptor, line: UInt = #line) {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
-        let finalised = makeSUT(rest: [d1, d2]).finalised()
+        let finalised = makeSUT(rest: [d1, d2]).resolved()
         
         guard
             assertCount(finalised.output, expected: 0, line: line),
@@ -53,20 +53,20 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     
     @MainActor
     func testEmptyMatchOutput() {
-        let sut = makeSUT(rest: [defineNode(s1, Match(), e1, s2)])
-        let result = sut.finalised()
+        let sut = makeSUT(rest: [defineNode(s1, MatchDescriptor(), e1, s2)])
+        let result = sut.resolved()
         
         assertCount(result.errors, expected: 0)
         assertCount(result.output, expected: 1)
         
-        assertEqual(makeOutput(c: nil, g: s1, m: Match(), p: [], w: e1, t: s2),
+        assertEqual(makeOutput(c: nil, g: s1, m: MatchDescriptor(), p: [], w: e1, t: s2),
                     result.output.first)
     }
 
     @MainActor
     func testPredicateMatchOutput() {
         let sut = makeSUT(rest: [defineNode(s1, m1, e1, s2)])
-        let result = sut.finalised()
+        let result = sut.resolved()
         
         assertCount(result.errors, expected: 0)
         assertCount(result.output, expected: 1)
@@ -77,16 +77,16 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     
     @MainActor
     func testImplicitMatchClashes() {
-        assertNotMatchClash(Match(), Match(all: P.a))
-        assertNotMatchClash(Match(), Match(all: P.a, Q.a))
-        assertNotMatchClash(Match(all: P.a), Match(all: Q.a, S.a))
+        assertNotMatchClash(MatchDescriptor(), MatchDescriptor(all: P.a))
+        assertNotMatchClash(MatchDescriptor(), MatchDescriptor(all: P.a, Q.a))
+        assertNotMatchClash(MatchDescriptor(all: P.a), MatchDescriptor(all: Q.a, S.a))
         
-        assertNotMatchClash(Match(all: P.a), Match(all: P.b))
-        assertNotMatchClash(Match(all: P.a), Match(all: P.b, Q.b))
-        assertNotMatchClash(Match(all: P.a, Q.a), Match(all: P.b, Q.b))
+        assertNotMatchClash(MatchDescriptor(all: P.a), MatchDescriptor(all: P.b))
+        assertNotMatchClash(MatchDescriptor(all: P.a), MatchDescriptor(all: P.b, Q.b))
+        assertNotMatchClash(MatchDescriptor(all: P.a, Q.a), MatchDescriptor(all: P.b, Q.b))
                 
-        assertMatchClash(Match(all: P.a), Match(all: Q.a))
-        assertMatchClash(Match(all: P.a), Match(any: Q.a))
-        assertMatchClash(Match(all: P.a, R.a), Match(all: Q.a, S.a))
+        assertMatchClash(MatchDescriptor(all: P.a), MatchDescriptor(all: Q.a))
+        assertMatchClash(MatchDescriptor(all: P.a), MatchDescriptor(any: Q.a))
+        assertMatchClash(MatchDescriptor(all: P.a, R.a), MatchDescriptor(all: Q.a, S.a))
     }
 }
