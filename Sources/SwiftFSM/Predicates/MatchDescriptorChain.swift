@@ -1,28 +1,42 @@
 import Foundation
 
-final class MatchDescriptor: Sendable {
-    typealias ResolvedMatchDescriptor = Swift.Result<MatchDescriptor, MatchError>
+final class MatchDescriptorChain: Sendable {
+    typealias ResolvedMatchDescriptor = Swift.Result<MatchDescriptorChain, MatchError>
     typealias AnyPP = any Predicate
     
     let matchingAny: [[AnyPredicate]]
     let matchingAll: [AnyPredicate]
-    
     let condition: ConditionProvider?
-    let next: MatchDescriptor?
-    let originalSelf: MatchDescriptor?
+    
+    let childDescriptor: MatchDescriptorChain?
+    let originalSelf: MatchDescriptorChain?
     
     let file: String
     let line: Int
     
-    convenience init(condition: @escaping ConditionProvider, file: String = #file, line: Int = #line) {
+    convenience init(
+        condition: @escaping ConditionProvider,
+        file: String = #file,
+        line: Int = #line
+    ) {
         self.init(any: [], all: [], condition: condition, file: file, line: line)
     }
     
-    convenience init(any: AnyPP..., all: AnyPP..., file: String = #file, line: Int = #line) {
+    convenience init(
+        any: AnyPP...,
+        all: AnyPP...,
+        file: String = #file,
+        line: Int = #line
+    ) {
         self.init(any: any.erased(), all: all.erased(), file: file, line: line)
     }
     
-    convenience init(any: [[AnyPP]], all: AnyPP..., file: String = #file, line: Int = #line) {
+    convenience init(
+        any: [[AnyPP]],
+        all: AnyPP...,
+        file: String = #file,
+        line: Int = #line
+    ) {
         self.init(any: any.map { $0.erased() }, all: all.erased(), file: file, line: line)
     }
     
@@ -39,44 +53,47 @@ final class MatchDescriptor: Sendable {
         any: [[AnyPredicate]],
         all: [AnyPredicate],
         condition: ConditionProvider? = nil,
-        next: MatchDescriptor? = nil,
-        originalSelf: MatchDescriptor? = nil,
+        childDescriptor: MatchDescriptorChain? = nil,
+        originalSelf: MatchDescriptorChain? = nil,
         file: String = #file,
         line: Int = #line
     ) {
         self.matchingAny = any
         self.matchingAll = all
         self.condition = condition
-        self.next = next
+        self.childDescriptor = childDescriptor
         self.originalSelf = originalSelf
         self.file = file
         self.line = line
     }
 }
 
-extension MatchDescriptor {
-    func prepend(_ m: MatchDescriptor) -> MatchDescriptor {
+extension MatchDescriptorChain {
+    func prepend(_ m: MatchDescriptorChain) -> MatchDescriptorChain {
         .init(any: m.matchingAny,
               all: m.matchingAll,
               condition: m.condition,
-              next: self,
+              childDescriptor: self,
               originalSelf: m.originalSelf,
               file: m.file,
               line: m.line)
     }
 
     func resolve() -> ResolvedMatchDescriptor {
-        guard let next else { return self.validate() }
+        guard let childDescriptor else { return self.validate() }
 
         let firstResult = self.validate()
-        let restResult = next.resolve()
+        let restResult = childDescriptor.resolve()
 
         return switch (firstResult, restResult) {
         case (.success, .success(let rest)):
-            combineWith(rest).validate().appending(file: rest.file, line: rest.line)
+            combineWith(rest)
+                .validate()
+                .appending(file: rest.file, line: rest.line)
 
         case (.failure, .failure(let e)):
-            firstResult.appending(files: e.files, lines: e.lines)
+            firstResult
+                .appending(files: e.files, lines: e.lines)
 
         case (.success, .failure):
             restResult
@@ -87,8 +104,10 @@ extension MatchDescriptor {
     }
 
     func validate() -> ResolvedMatchDescriptor {
-        func failure<C: Collection>(predicates: C, type: MatchError.Type) -> ResolvedMatchDescriptor
-        where C.Element == AnyPredicate {
+        func failure<C: Collection<AnyPredicate>>(
+            predicates: C,
+            type: MatchError.Type
+        ) -> ResolvedMatchDescriptor {
             .failure(
                 type.init(
                     predicates: predicates,
@@ -122,7 +141,7 @@ extension MatchDescriptor {
         return .success(self)
     }
 
-    func combineWith(_ other: MatchDescriptor) -> MatchDescriptor {
+    func combineWith(_ other: MatchDescriptorChain) -> MatchDescriptorChain {
         var condition: ConditionProvider? {
             return switch (self.condition == nil, other.condition == nil) {
             case (true, true): nil
@@ -132,11 +151,11 @@ extension MatchDescriptor {
             }
         }
         
-        return MatchDescriptor(
+        return MatchDescriptorChain(
             any: matchingAny + other.matchingAny,
             all: matchingAll + other.matchingAll,
             condition: condition,
-            next: next,
+            childDescriptor: childDescriptor,
             originalSelf: self,
             file: file,
             line: line
@@ -147,15 +166,15 @@ extension MatchDescriptor {
         let anyAndAll = combineAnyAndAll().removingEmpties
 
         return predicatePool.reduce(into: []) { result, poolElement in
-            func insertPoolElement(rank: Int) {
-                result.insert(.init(poolElement, rank: rank))
+            func insertPoolElement(priority: Int) {
+                result.insert(.init(poolElement, priority: priority))
             }
 
-            guard !anyAndAll.isEmpty else { insertPoolElement(rank: 0); return }
+            guard !anyAndAll.isEmpty else { insertPoolElement(priority: 0); return }
 
             anyAndAll.forEach {
                 if $0.allSatisfy(poolElement.contains) {
-                    insertPoolElement(rank: $0.count)
+                    insertPoolElement(priority: $0.count)
                 }
             }
         }
@@ -168,8 +187,8 @@ extension MatchDescriptor {
     }
 }
 
-extension MatchDescriptor: Hashable {
-    public static func == (lhs: MatchDescriptor, rhs: MatchDescriptor) -> Bool {
+extension MatchDescriptorChain: Hashable {
+    public static func == (lhs: MatchDescriptorChain, rhs: MatchDescriptorChain) -> Bool {
         func sort(_ any: [[AnyPredicate]]) -> [[AnyPredicate]] {
             any.map { $0.sorted(by: sort) }
         }
@@ -197,13 +216,13 @@ struct RankedPredicates: FSMHashable {
     let predicates: PredicateSet
     let rank: Int
 
-    init(_ predicates: PredicateSet, rank: Int) {
+    init(_ predicates: PredicateSet, priority: Int) {
         self.predicates = predicates
-        self.rank = rank
+        self.rank = priority
     }
 }
 
-extension MatchDescriptor.ResolvedMatchDescriptor {
+extension MatchDescriptorChain.ResolvedMatchDescriptor {
     func appending(file: String, line: Int) -> Self {
         appending(files: [file], lines: [line])
     }

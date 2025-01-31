@@ -3,7 +3,7 @@ import Foundation
 struct GivenNode: Node {
     struct Output {
         let state: AnyTraceable,
-            descriptor: MatchDescriptor,
+            descriptor: MatchDescriptorChain,
             event: AnyTraceable,
             nextState: AnyTraceable,
             actions: [AnyAction],
@@ -12,7 +12,7 @@ struct GivenNode: Node {
 
         init(
             _ state: AnyTraceable,
-            _ match: MatchDescriptor,
+            _ match: MatchDescriptorChain,
             _ event: AnyTraceable,
             _ nextState: AnyTraceable,
             _ actions: [AnyAction],

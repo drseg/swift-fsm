@@ -23,55 +23,55 @@ class BasicTests: MatchTests {
     func testFileAndLineInit() {
         let f = "f", l = 1
         
-        func assertFileAndLine(_ m: MatchDescriptor, line: UInt = #line) {
+        func assertFileAndLine(_ m: MatchDescriptorChain, line: UInt = #line) {
             XCTAssertEqual(f, m.file, line: line)
             XCTAssertEqual(l, m.line, line: line)
         }
         
-        assertFileAndLine(MatchDescriptor(file: f, line: l))
-        assertFileAndLine(MatchDescriptor(condition: { true }, file: f, line: l))
-        assertFileAndLine(MatchDescriptor(any: p1, file: f, line: l))
-        assertFileAndLine(MatchDescriptor(any: [[p1]], file: f, line: l))
-        assertFileAndLine(MatchDescriptor(any: [p1.erased()], all: [], file: f, line: l))
-        assertFileAndLine(MatchDescriptor(any: [[p1.erased()]], all: [], file: f, line: l))
+        assertFileAndLine(MatchDescriptorChain(file: f, line: l))
+        assertFileAndLine(MatchDescriptorChain(condition: { true }, file: f, line: l))
+        assertFileAndLine(MatchDescriptorChain(any: p1, file: f, line: l))
+        assertFileAndLine(MatchDescriptorChain(any: [[p1]], file: f, line: l))
+        assertFileAndLine(MatchDescriptorChain(any: [p1.erased()], all: [], file: f, line: l))
+        assertFileAndLine(MatchDescriptorChain(any: [[p1.erased()]], all: [], file: f, line: l))
     }
     
     @MainActor
     func testConditionInit() {
-        XCTAssertEqual(nil, MatchDescriptor().condition?())
-        XCTAssertEqual(true, MatchDescriptor(condition: { true }).condition?())
-        XCTAssertEqual(false, MatchDescriptor(condition: { false }).condition?())
+        XCTAssertEqual(nil, MatchDescriptorChain().condition?())
+        XCTAssertEqual(true, MatchDescriptorChain(condition: { true }).condition?())
+        XCTAssertEqual(false, MatchDescriptorChain(condition: { false }).condition?())
     }
     
     func testEquatable() {
-        XCTAssertEqual(MatchDescriptor(), MatchDescriptor())
+        XCTAssertEqual(MatchDescriptorChain(), MatchDescriptorChain())
         
-        XCTAssertEqual(MatchDescriptor(any: p1, p2, all: q1, r1),
-                       MatchDescriptor(any: p1, p2, all: q1, r1))
+        XCTAssertEqual(MatchDescriptorChain(any: p1, p2, all: q1, r1),
+                       MatchDescriptorChain(any: p1, p2, all: q1, r1))
         
-        XCTAssertEqual(MatchDescriptor(any: p1, p2, all: q1, r1),
-                       MatchDescriptor(any: p2, p1, all: r1, q1))
+        XCTAssertEqual(MatchDescriptorChain(any: p1, p2, all: q1, r1),
+                       MatchDescriptorChain(any: p2, p1, all: r1, q1))
         
-        XCTAssertEqual(MatchDescriptor(condition: { true }), MatchDescriptor(condition: { false }))
+        XCTAssertEqual(MatchDescriptorChain(condition: { true }), MatchDescriptorChain(condition: { false }))
         
-        XCTAssertNotEqual(MatchDescriptor(any: p1, p2, all: q1, r1),
-                          MatchDescriptor(any: p1, s2, all: q1, r1))
+        XCTAssertNotEqual(MatchDescriptorChain(any: p1, p2, all: q1, r1),
+                          MatchDescriptorChain(any: p1, s2, all: q1, r1))
         
-        XCTAssertNotEqual(MatchDescriptor(any: p1, p2, all: q1, r1),
-                          MatchDescriptor(any: p1, p2, all: q1, s1))
+        XCTAssertNotEqual(MatchDescriptorChain(any: p1, p2, all: q1, r1),
+                          MatchDescriptorChain(any: p1, p2, all: q1, s1))
         
-        XCTAssertNotEqual(MatchDescriptor(any: p1, p2, p2, all: q1, r1),
-                          MatchDescriptor(any: p1, p2, all: q1, r1))
+        XCTAssertNotEqual(MatchDescriptorChain(any: p1, p2, p2, all: q1, r1),
+                          MatchDescriptorChain(any: p1, p2, all: q1, r1))
         
-        XCTAssertNotEqual(MatchDescriptor(any: p1, p2, all: q1, r1, r1),
-                          MatchDescriptor(any: p1, p2, all: q1, r1))
+        XCTAssertNotEqual(MatchDescriptorChain(any: p1, p2, all: q1, r1, r1),
+                          MatchDescriptorChain(any: p1, p2, all: q1, r1))
     }
 }
 
 class AdditionTests: MatchTests {
     func testAdditionTakesFileAndLineFromLHS() {
-        let m1 = MatchDescriptor(file: "1", line: 1)
-        let m2 = MatchDescriptor(file: "2", line: 2)
+        let m1 = MatchDescriptorChain(file: "1", line: 1)
+        let m2 = MatchDescriptorChain(file: "2", line: 2)
         
         XCTAssertEqual(m1.combineWith(m2).file, "1")
         XCTAssertEqual(m2.combineWith(m1).file, "2")
@@ -81,59 +81,59 @@ class AdditionTests: MatchTests {
     }
     
     func testAddingEmptyMatches() {
-        XCTAssertEqual(MatchDescriptor().combineWith(MatchDescriptor()), MatchDescriptor())
+        XCTAssertEqual(MatchDescriptorChain().combineWith(MatchDescriptorChain()), MatchDescriptorChain())
     }
     
     func testAddingAnyToEmpty() {
-        XCTAssertEqual(MatchDescriptor().combineWith(MatchDescriptor(any: p1, p2)),
-                       MatchDescriptor(any: p1, p2))
+        XCTAssertEqual(MatchDescriptorChain().combineWith(MatchDescriptorChain(any: p1, p2)),
+                       MatchDescriptorChain(any: p1, p2))
     }
     
     func testAddingAllToEmpty() {
-        XCTAssertEqual(MatchDescriptor().combineWith(MatchDescriptor(all: p1)), MatchDescriptor(all: p1))
+        XCTAssertEqual(MatchDescriptorChain().combineWith(MatchDescriptorChain(all: p1)), MatchDescriptorChain(all: p1))
     }
     
     func testAddingAnyAndAllToEmpty() {
-        let addend = MatchDescriptor(any: p1, p2, all: q1, q2)
-        XCTAssertEqual(MatchDescriptor().combineWith(addend), addend)
+        let addend = MatchDescriptorChain(any: p1, p2, all: q1, q2)
+        XCTAssertEqual(MatchDescriptorChain().combineWith(addend), addend)
     }
     
     func testAddingAnytoAny() {
-        let m1 = MatchDescriptor(any: p1, p2)
-        let m2 = MatchDescriptor(any: q1, q2)
+        let m1 = MatchDescriptorChain(any: p1, p2)
+        let m2 = MatchDescriptorChain(any: q1, q2)
         
-        XCTAssertEqual(m1.combineWith(m2), MatchDescriptor(any: [[p1, p2], [q1, q2]]))
+        XCTAssertEqual(m1.combineWith(m2), MatchDescriptorChain(any: [[p1, p2], [q1, q2]]))
     }
     
     func testAddingAlltoAny() {
-        let m1 = MatchDescriptor(any: q1, q2)
-        let m2 = MatchDescriptor(all: p1, p2)
+        let m1 = MatchDescriptorChain(any: q1, q2)
+        let m2 = MatchDescriptorChain(all: p1, p2)
         
-        XCTAssertEqual(m1.combineWith(m2), MatchDescriptor(any: q1, q2,
+        XCTAssertEqual(m1.combineWith(m2), MatchDescriptorChain(any: q1, q2,
                                       all: p1, p2))
     }
     
     func testAddingAnyAndAlltoAny() {
-        let m1 = MatchDescriptor(any: q1, q2)
-        let m2 = MatchDescriptor(any: r1, r2, all: p1, p2)
+        let m1 = MatchDescriptorChain(any: q1, q2)
+        let m2 = MatchDescriptorChain(any: r1, r2, all: p1, p2)
         
-        XCTAssertEqual(m1.combineWith(m2), MatchDescriptor(any: [[q1, q2], [r1, r2]],
+        XCTAssertEqual(m1.combineWith(m2), MatchDescriptorChain(any: [[q1, q2], [r1, r2]],
                                       all: p1, p2))
     }
     
     func testAddingAnyAndAllToAnyAndAll() {
-        let m1 = MatchDescriptor(any: p1, p2, all: q1, q2)
-        let m2 = MatchDescriptor(any: r1, r2, all: s1, s2)
+        let m1 = MatchDescriptorChain(any: p1, p2, all: q1, q2)
+        let m2 = MatchDescriptorChain(any: r1, r2, all: s1, s2)
         
-        XCTAssertEqual(m1.combineWith(m2), MatchDescriptor(any: [[p1, p2], [r1, r2]],
+        XCTAssertEqual(m1.combineWith(m2), MatchDescriptorChain(any: [[p1, p2], [r1, r2]],
                                       all: q1, q2, s1, s2))
     }
     
     @MainActor
     func testAddingConditions() {
-        let m1 = MatchDescriptor(condition: { true })
-        let m2 = MatchDescriptor(condition: { false })
-        let m3 = MatchDescriptor()
+        let m1 = MatchDescriptorChain(condition: { true })
+        let m2 = MatchDescriptorChain(condition: { false })
+        let m3 = MatchDescriptorChain()
         
         XCTAssertEqual(true, m1.combineWith(m1).condition?())
         XCTAssertEqual(nil, m3.combineWith(m3).condition?())
@@ -146,44 +146,44 @@ class AdditionTests: MatchTests {
 }
 
 class FinalisationTests: MatchTests {
-    func assertFinalise(_ m: MatchDescriptor, _ e: MatchDescriptor, line: UInt = #line) {
+    func assertFinalise(_ m: MatchDescriptorChain, _ e: MatchDescriptorChain, line: UInt = #line) {
         XCTAssertEqual(e, try? m.resolve().get(), line: line)
     }
 
     func testMatchFinalisesToItself() {
-        assertFinalise(MatchDescriptor(all: p1),
-                       MatchDescriptor(all: p1))
+        assertFinalise(MatchDescriptorChain(all: p1),
+                       MatchDescriptorChain(all: p1))
     }
 
     func testEmptyMatchWithNextFinalisesToNext() {
-        assertFinalise(MatchDescriptor().prepend(MatchDescriptor(any: p1, p2)),
-                       MatchDescriptor(any: p1, p2))
+        assertFinalise(MatchDescriptorChain().prepend(MatchDescriptorChain(any: p1, p2)),
+                       MatchDescriptorChain(any: p1, p2))
     }
     
     func testMatchWithNextFinalisesToSum() {
-        assertFinalise(MatchDescriptor(any: p1, p2,
-                             all: q1, r1).prepend(MatchDescriptor(any: s1, s2,
+        assertFinalise(MatchDescriptorChain(any: p1, p2,
+                             all: q1, r1).prepend(MatchDescriptorChain(any: s1, s2,
                                                         all: t1, u1)),
-                       MatchDescriptor(any: [[p1, p2], [s1, s2]],
+                       MatchDescriptorChain(any: [[p1, p2], [s1, s2]],
                              all: q1, r1, t1, u1))
     }
     
     func testPreservesMatchChain() {
-        let result = try? MatchDescriptor().prepend(MatchDescriptor(any: p1, p2)).resolve().get()
-        XCTAssertEqual(result, MatchDescriptor(any: p1, p2))
-        XCTAssertEqual(result?.next, MatchDescriptor())
+        let result = try? MatchDescriptorChain().prepend(MatchDescriptorChain(any: p1, p2)).resolve().get()
+        XCTAssertEqual(result, MatchDescriptorChain(any: p1, p2))
+        XCTAssertEqual(result?.childDescriptor, MatchDescriptorChain())
     }
     
     @MainActor
     func testLongChain() {
-        var match = MatchDescriptor(all: p1)
-        100 * { match = match.prepend(MatchDescriptor()) }
-        XCTAssertEqual(MatchDescriptor(all: p1), try? match.resolve().get())
+        var match = MatchDescriptorChain(all: p1)
+        100 * { match = match.prepend(MatchDescriptorChain()) }
+        XCTAssertEqual(MatchDescriptorChain(all: p1), try? match.resolve().get())
     }
 }
 
 class ValidationTests: MatchTests {
-    func assert(match m: MatchDescriptor, is e: MatchError, line: UInt = #line) {
+    func assert(match m: MatchDescriptorChain, is e: MatchError, line: UInt = #line) {
         XCTAssertThrowsError(try m.resolve().get(), line: line) {
             XCTAssertEqual(String(describing: type(of: $0)),
                            String(describing: type(of: e)),
@@ -192,7 +192,7 @@ class ValidationTests: MatchTests {
         }
     }
     
-    func assertHasDuplicateTypes(_ m1: MatchDescriptor, line: UInt = #line) {
+    func assertHasDuplicateTypes(_ m1: MatchDescriptorChain, line: UInt = #line) {
         let error = DuplicateMatchTypes(predicates: [p1, p2].erased(),
                                         files: [m1.file],
                                         lines: [m1.line])
@@ -200,26 +200,26 @@ class ValidationTests: MatchTests {
     }
     
     func testEmptyMatch() {
-        XCTAssertEqual(MatchDescriptor().resolve(), .success(MatchDescriptor()))
+        XCTAssertEqual(MatchDescriptorChain().resolve(), .success(MatchDescriptorChain()))
     }
     
     func testAny_WithMultipleTypes() {
-        assert(match: MatchDescriptor(any: p1, q1, file: "f", line: 1),
+        assert(match: MatchDescriptorChain(any: p1, q1, file: "f", line: 1),
                is: ConflictingAnyTypes(predicates: [p1, q1].erased(),
                                        files: ["f"],
                                        lines: [1]))
     }
     
     func testAll_WithDuplicateTypes() {
-        assertHasDuplicateTypes(MatchDescriptor(all: p1, p2))
+        assertHasDuplicateTypes(MatchDescriptorChain(all: p1, p2))
     }
     
     func testAll_AddingAll_WithDuplicateTypes() {
-        assertHasDuplicateTypes(MatchDescriptor().prepend(MatchDescriptor(all: p1, p2)))
-        assertHasDuplicateTypes(MatchDescriptor(all: p1, p2).prepend(MatchDescriptor()))
+        assertHasDuplicateTypes(MatchDescriptorChain().prepend(MatchDescriptorChain(all: p1, p2)))
+        assertHasDuplicateTypes(MatchDescriptorChain(all: p1, p2).prepend(MatchDescriptorChain()))
     }
     
-    func assertDuplicateTypesWhenAdded(_ m1: MatchDescriptor, _ m2: MatchDescriptor, line: UInt = #line) {
+    func assertDuplicateTypesWhenAdded(_ m1: MatchDescriptorChain, _ m2: MatchDescriptorChain, line: UInt = #line) {
         let error = DuplicateMatchTypes(predicates: [p1, p2].erased(),
                                         files: [m1.file, m2.file],
                                         lines: [m1.line, m2.line])
@@ -228,17 +228,17 @@ class ValidationTests: MatchTests {
     }
     
     func testAllInvalid_AddingAllInvalid() {
-        assertDuplicateTypesWhenAdded(MatchDescriptor(all: p1, p2),
-                                      MatchDescriptor(all: p1, p2))
+        assertDuplicateTypesWhenAdded(MatchDescriptorChain(all: p1, p2),
+                                      MatchDescriptorChain(all: p1, p2))
     }
     
     func testAll_AddingAll_FormingDuplicateTypes() {
-        assertDuplicateTypesWhenAdded(MatchDescriptor(all: p1, q1),
-                                      MatchDescriptor(all: p1, q1))
+        assertDuplicateTypesWhenAdded(MatchDescriptorChain(all: p1, q1),
+                                      MatchDescriptorChain(all: p1, q1))
     }
     
     func testAny_All_WithSamePredicates() {
-        let m = MatchDescriptor(any: p1, p2, all: p1, q1)
+        let m = MatchDescriptorChain(any: p1, p2, all: p1, q1)
         let error = DuplicateAnyAllValues(predicates: [p1].erased(),
                                           files: [m.file],
                                           lines: [m.line])
@@ -247,8 +247,8 @@ class ValidationTests: MatchTests {
     }
     
     func assertDuplicateValuesWhenAdded<T: MatchError>(
-        _ m1: MatchDescriptor,
-        _ m2: MatchDescriptor,
+        _ m1: MatchDescriptorChain,
+        _ m2: MatchDescriptorChain,
         type: T.Type = DuplicateAnyValues.self,
         line: UInt = #line
     ) {
@@ -260,18 +260,18 @@ class ValidationTests: MatchTests {
     }
     
     func testAny_AddingAll_FormingDuplicateValues() {
-        assertDuplicateValuesWhenAdded(MatchDescriptor(any: p1, p2),
-                                       MatchDescriptor(all: p1, q1),
+        assertDuplicateValuesWhenAdded(MatchDescriptorChain(any: p1, p2),
+                                       MatchDescriptorChain(all: p1, q1),
                                        type: DuplicateAnyAllValues.self)
     }
     
     func testAny_AddingAny_FormingDuplicateValues() {
-        assertDuplicateValuesWhenAdded(MatchDescriptor(any: p1, p2),
-                                       MatchDescriptor(any: p1, p2))
+        assertDuplicateValuesWhenAdded(MatchDescriptorChain(any: p1, p2),
+                                       MatchDescriptorChain(any: p1, p2))
     }
     
     func testAnyAndAny_FormingDuplicateTypes() {
-        let match = MatchDescriptor(any: [[p1], [p2], [p3]])
+        let match = MatchDescriptorChain(any: [[p1], [p2], [p3]])
 
         assert(match: match, is: DuplicateMatchTypes(predicates: [p1, p2, p3].erased(),
                                                      files: [match.file],
@@ -290,7 +290,7 @@ class MatchCombinationsTests: MatchTests {
                          [Q.b, R.b, S.b]].erasedSets
 
     func assertCombinations(
-        match: MatchDescriptor,
+        match: MatchDescriptorChain,
         predicatePool: PredicateSets,
         expected: [[any Predicate]],
         eachRank: Int = 0,
@@ -306,18 +306,18 @@ class MatchCombinationsTests: MatchTests {
     }
     
     func testEmpties() {
-        assertCombinations(match: MatchDescriptor(), predicatePool: [], expected: [])
-        assertCombinations(match: MatchDescriptor(all: Q.a), predicatePool: [], expected: [])
+        assertCombinations(match: MatchDescriptorChain(), predicatePool: [], expected: [])
+        assertCombinations(match: MatchDescriptorChain(all: Q.a), predicatePool: [], expected: [])
     }
     
     func testNoMatch() {
-        assertCombinations(match: MatchDescriptor(all: P.a),
+        assertCombinations(match: MatchDescriptorChain(all: P.a),
                            predicatePool: predicatePool,
                            expected: [])
     }
     
     func testNoPredicateMatchesEntirePool() {
-        assertCombinations(match: MatchDescriptor(),
+        assertCombinations(match: MatchDescriptorChain(),
                            predicatePool: predicatePool,
                            expected: [[Q.a, R.a, S.a],
                                       [Q.b, R.a, S.a],
@@ -330,7 +330,7 @@ class MatchCombinationsTests: MatchTests {
     }
     
     func testAll_SinglePredicate() {
-        assertCombinations(match: MatchDescriptor(all: Q.a),
+        assertCombinations(match: MatchDescriptorChain(all: Q.a),
                            predicatePool: predicatePool,
                            expected: [[Q.a, R.a, S.a],
                                       [Q.a, R.b, S.a],
@@ -340,20 +340,20 @@ class MatchCombinationsTests: MatchTests {
     }
     
     func testAll_MultiPredicate() {
-        assertCombinations(match: MatchDescriptor(all: Q.a, R.a),
+        assertCombinations(match: MatchDescriptorChain(all: Q.a, R.a),
                            predicatePool: predicatePool,
                            expected: [[Q.a, R.a, S.a],
                                       [Q.a, R.a, S.b]],
                            eachRank: 2)
         
-        assertCombinations(match: MatchDescriptor(all: Q.a, R.a, S.a),
+        assertCombinations(match: MatchDescriptorChain(all: Q.a, R.a, S.a),
                            predicatePool: predicatePool,
                            expected: [[Q.a, R.a, S.a]],
                            eachRank: 3)
     }
     
     func testAny_MultiPredicate() {
-        assertCombinations(match: MatchDescriptor(any: Q.a, Q.b),
+        assertCombinations(match: MatchDescriptorChain(any: Q.a, Q.b),
                            predicatePool: predicatePool,
                            expected: [[Q.a, R.a, S.a],
                                       [Q.b, R.a, S.a],
@@ -365,7 +365,7 @@ class MatchCombinationsTests: MatchTests {
                                       [Q.b, R.b, S.b]],
                            eachRank: 1)
         
-        assertCombinations(match: MatchDescriptor(any: Q.a, R.a),
+        assertCombinations(match: MatchDescriptorChain(any: Q.a, R.a),
                            predicatePool: predicatePool,
                            expected: [[Q.a, R.a, S.a],
                                       [Q.b, R.a, S.a],
@@ -377,7 +377,7 @@ class MatchCombinationsTests: MatchTests {
     }
     
     func testMultiAny() {
-        assertCombinations(match: MatchDescriptor(any: [[Q.a, Q.b], [R.a, R.b]]),
+        assertCombinations(match: MatchDescriptorChain(any: [[Q.a, Q.b], [R.a, R.b]]),
                            predicatePool: predicatePool,
                            expected: [[Q.a, R.a, S.a],
                                       [Q.b, R.a, S.a],
@@ -391,7 +391,7 @@ class MatchCombinationsTests: MatchTests {
     }
     
     func testAnyAndAll() {
-        assertCombinations(match: MatchDescriptor(any: Q.a, Q.b, all: R.a),
+        assertCombinations(match: MatchDescriptorChain(any: Q.a, Q.b, all: R.a),
                            predicatePool: predicatePool,
                            expected: [[Q.a, R.a, S.a],
                                       [Q.b, R.a, S.a],
@@ -399,7 +399,7 @@ class MatchCombinationsTests: MatchTests {
                                       [Q.b, R.a, S.b]],
                            eachRank: 2)
         
-        assertCombinations(match: MatchDescriptor(any: Q.a, R.a, all: S.a),
+        assertCombinations(match: MatchDescriptorChain(any: Q.a, R.a, all: S.a),
                            predicatePool: predicatePool,
                            expected: [[Q.a, R.a, S.a],
                                       [Q.b, R.a, S.a],
@@ -408,7 +408,7 @@ class MatchCombinationsTests: MatchTests {
     }
 }
 
-extension MatchDescriptor: @retroactive CustomStringConvertible {
+extension MatchDescriptorChain: @retroactive CustomStringConvertible {
     public var description: String {
         "\(matchingAny), \(matchingAll)"
     }

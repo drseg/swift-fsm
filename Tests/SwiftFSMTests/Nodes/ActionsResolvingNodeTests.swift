@@ -12,7 +12,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     func assertNode<T: ActionsResolvingNodeBase>(
         type: T.Type,
         g: AnyTraceable,
-        m: MatchDescriptor,
+        m: MatchDescriptorChain,
         w: AnyTraceable,
         t: AnyTraceable,
         output: String,
@@ -30,7 +30,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     func assertResult(
         _ result: ConditionalActionsResolvingNode.Output,
         _ g: AnyTraceable,
-        _ m: MatchDescriptor,
+        _ m: MatchDescriptorChain,
         _ w: AnyTraceable,
         _ t: AnyTraceable,
         _ output: String,
@@ -46,7 +46,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
         assertActions(result.actions, expectedOutput: output, line: line)
     }
     
-    let m = MatchDescriptor()
+    let m = MatchDescriptorChain()
     
     func testConditionalDoesNotAddExitActionsWithoutStateChange() {
         assertNode(type: ConditionalActionsResolvingNode.self,

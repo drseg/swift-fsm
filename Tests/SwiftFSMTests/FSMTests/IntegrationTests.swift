@@ -442,7 +442,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssert(
                 duplicates.allSatisfy {
                     $0.state.isEqual(AnyTraceable(State.locked, file: #file, line: 1)) &&
-                    $0.descriptor.isEqual(MatchDescriptor(all: P.a, file: #file, line: 2)) &&
+                    $0.descriptor.isEqual(MatchDescriptorChain(all: P.a, file: #file, line: 2)) &&
                     $0.event.isEqual(AnyTraceable(Event.coin, file: #file, line: 3)) &&
                     $0.nextState.isEqual(AnyTraceable(State.unlocked, file: #file, line: 4))
                 }, "\(duplicates)"
@@ -451,7 +451,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssert(
                 clashes.allSatisfy {
                     $0.state.isEqual(AnyTraceable(State.locked, file: #file, line: 1)) &&
-                    $0.descriptor.isEqual(MatchDescriptor(all: P.a, file: #file, line: 2)) &&
+                    $0.descriptor.isEqual(MatchDescriptorChain(all: P.a, file: #file, line: 2)) &&
                     $0.event.isEqual(AnyTraceable(Event.coin, file: #file, line: 3))
                 }, "\(clashes)"
             )
@@ -488,13 +488,13 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             XCTAssert(clash?.contains {
                 $0.state.isEqual(AnyTraceable(State.locked, file: "1", line: 1)) &&
                 $0.event.isEqual(AnyTraceable(Event.coin, file: "1", line: 1)) &&
-                $0.descriptor.isEqual(MatchDescriptor(all: P.a, file: "1", line: 1))
+                $0.descriptor.isEqual(MatchDescriptorChain(all: P.a, file: "1", line: 1))
             } ?? false, "\(String(describing: clash))")
             
             XCTAssert(clash?.contains {
                 $0.state.isEqual(AnyTraceable(State.locked, file: "1", line: 1)) &&
                 $0.event.isEqual(AnyTraceable(Event.coin, file: "2", line: 2)) &&
-                $0.descriptor.isEqual(MatchDescriptor(all: Q.a, file: "2", line: 2))
+                $0.descriptor.isEqual(MatchDescriptorChain(all: Q.a, file: "2", line: 2))
             } ?? false, "\(String(describing: clash))")
             
             XCTAssertEqual(AnyHashable(State.unlocked), clash?.first?.nextState.base)
@@ -657,8 +657,8 @@ final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests
     }
 }
 
-private extension MatchDescriptor {
-    func isEqual(_ other: MatchDescriptor) -> Bool {
+private extension MatchDescriptorChain {
+    func isEqual(_ other: MatchDescriptorChain) -> Bool {
         self == other && file == other.file && line == other.line
     }
 }

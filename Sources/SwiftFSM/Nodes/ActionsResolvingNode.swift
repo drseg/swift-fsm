@@ -2,7 +2,7 @@ import Foundation
 
 struct IntermediateIO: Sendable {
     let state: AnyTraceable,
-        descriptor: MatchDescriptor,
+        descriptor: MatchDescriptorChain,
         event: AnyTraceable,
         nextState: AnyTraceable,
         actions: [AnyAction],
@@ -11,7 +11,7 @@ struct IntermediateIO: Sendable {
 
     init(
         _ state: AnyTraceable,
-        _ match: MatchDescriptor,
+        _ match: MatchDescriptorChain,
         _ event: AnyTraceable,
         _ nextState: AnyTraceable,
         _ actions: [AnyAction],

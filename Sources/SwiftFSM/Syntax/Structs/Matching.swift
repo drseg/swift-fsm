@@ -127,7 +127,7 @@ public extension Syntax.Expanded {
             file: String = #file,
             line: Int = #line
         ) {
-            let match = MatchDescriptor(
+            let match = MatchDescriptorChain(
                 condition: condition,
                 file: file,
                 line: line
@@ -174,7 +174,7 @@ public extension Syntax.Expanded {
             file: String = #file,
             line: Int = #line
         ) {
-            let match = MatchDescriptor(
+            let match = MatchDescriptorChain(
                 any: any.erased(),
                 all: all.erased(),
                 file: file,

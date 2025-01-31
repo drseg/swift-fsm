@@ -3,13 +3,13 @@ import Foundation
 final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
     struct ErrorOutput {
         let state: AnyTraceable,
-            descriptor: MatchDescriptor,
+            descriptor: MatchDescriptorChain,
             event: AnyTraceable,
             nextState: AnyTraceable
 
         init(
             _ state: AnyTraceable,
-            _ match: MatchDescriptor,
+            _ match: MatchDescriptorChain,
             _ event: AnyTraceable,
             _ nextState: AnyTraceable
         ) {
@@ -22,7 +22,7 @@ final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
 
     struct RankedOutput {
         let state: AnyTraceable,
-            descriptor: MatchDescriptor,
+            descriptor: MatchDescriptorChain,
             predicateResult: RankedPredicates,
             event: AnyTraceable,
             nextState: AnyTraceable,

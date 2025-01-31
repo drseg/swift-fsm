@@ -1,11 +1,11 @@
 import Foundation
 
 class MatchingNodeBase: OverridableNode {
-    let descriptor: MatchDescriptor
+    let descriptor: MatchDescriptorChain
     var rest: [any Node<DefaultIO>]
 
     init(
-        descriptor: MatchDescriptor,
+        descriptor: MatchDescriptorChain,
         rest: [any Node<DefaultIO>] = [],
         overrideGroupID: UUID = UUID(),
         isOverride: Bool = false
@@ -39,7 +39,7 @@ class MatchingBlockNode: MatchingNodeBase, NeverEmptyNode {
     let line: Int
 
     init(
-        descriptor: MatchDescriptor,
+        descriptor: MatchDescriptorChain,
         rest: [any Node<Input>] = [],
         overrideGroupID: UUID = UUID(),
         isOverride: Bool = false,

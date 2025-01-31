@@ -29,7 +29,7 @@ final class DefineNodeTests: SyntaxNodeTests {
     }
     
     func testCompleteNodeWithInvalidMatchProducesErrorAndNoOutput() {
-        let invalidMatch = MatchDescriptor(all: P.a, P.a)
+        let invalidMatch = MatchDescriptorChain(all: P.a, P.a)
         
         let m = MatchingNode(descriptor: invalidMatch, rest: [WhenNode(events: [e1])])
         let g = GivenNode(states: [s1], rest: [m])

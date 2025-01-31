@@ -4,7 +4,7 @@ import XCTest
 class EagerMatchResolvingNodeTests: MRNTestBase {
     struct ExpectedMRNError {
         let state: AnyTraceable,
-            match: MatchDescriptor,
+            match: MatchDescriptorChain,
             predicates: PredicateSet,
             event: AnyTraceable,
             nextState: AnyTraceable,
@@ -23,7 +23,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     func makeErrorOutput(
         _ g: AnyTraceable,
-        _ m: MatchDescriptor,
+        _ m: MatchDescriptorChain,
         _ p: [any Predicate],
         _ w: AnyTraceable,
         _ t: AnyTraceable,
@@ -84,13 +84,13 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     @MainActor
     func testTableWithNoMatches() {
-        let d = defineNode(s1, MatchDescriptor(), e1, s2)
+        let d = defineNode(s1, MatchDescriptorChain(), e1, s2)
         let result = matchResolvingNode(rest: [d]).resolve()
 
         assertCount(result.output, expected: 1)
         assertResult(result, expected: makeOutput(c: nil,
                                                   g: s1,
-                                                  m: MatchDescriptor(),
+                                                  m: MatchDescriptorChain(),
                                                   p: [],
                                                   w: e1,
                                                   t: s2))
@@ -98,7 +98,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     @MainActor
     func testMatchCondition() {
-        let d = defineNode(s1, MatchDescriptor(condition: { false }), e1, s2)
+        let d = defineNode(s1, MatchDescriptorChain(condition: { false }), e1, s2)
         let result = matchResolvingNode(rest: [d]).resolve()
         
         XCTAssertEqual(false, result.output.first?.condition?())
@@ -106,30 +106,30 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     @MainActor
     func testImplicitMatch() {
-        let d1 = defineNode(s1, MatchDescriptor(), e1, s2)
-        let d2 = defineNode(s1, MatchDescriptor(any: Q.a), e1, s3)
+        let d1 = defineNode(s1, MatchDescriptorChain(), e1, s2)
+        let d2 = defineNode(s1, MatchDescriptorChain(any: Q.a), e1, s3)
         let result = matchResolvingNode(rest: [d1, d2]).resolve()
         
         assertCount(result.output, expected: 2)
         
         assertResult(result, expected: makeOutput(c: nil,
                                                   g: s1,
-                                                  m: MatchDescriptor(),
+                                                  m: MatchDescriptorChain(),
                                                   p: [Q.b],
                                                   w: e1,
                                                   t: s2))
         
         assertResult(result, expected: makeOutput(c: nil,
                                                   g: s1,
-                                                  m: MatchDescriptor(any: Q.a),
+                                                  m: MatchDescriptorChain(any: Q.a),
                                                   p: [Q.a],
                                                   w: e1,
                                                   t: s3))
     }
     
     func testImplicitMatchClash() {
-        let d1 = defineNode(s1, MatchDescriptor(any: P.a), e1, s2)
-        let d2 = defineNode(s1, MatchDescriptor(any: Q.a), e1, s3)
+        let d1 = defineNode(s1, MatchDescriptorChain(any: P.a), e1, s2)
+        let d2 = defineNode(s1, MatchDescriptorChain(any: Q.a), e1, s3)
         let result = matchResolvingNode(rest: [d1, d2]).resolve()
 
         guard assertCount(result.errors, expected: 1) else { return }
@@ -138,14 +138,14 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         }
         
         guard assertCount(clashError.clashes.first?.value, expected: 2) else { return }
-        assertError(result, expected: [makeErrorOutput(s1, MatchDescriptor(any: P.a), [P.a, Q.a], e1, s2),
-                                       makeErrorOutput(s1, MatchDescriptor(any: Q.a), [P.a, Q.a], e1, s3)])
+        assertError(result, expected: [makeErrorOutput(s1, MatchDescriptorChain(any: P.a), [P.a, Q.a], e1, s2),
+                                       makeErrorOutput(s1, MatchDescriptorChain(any: Q.a), [P.a, Q.a], e1, s3)])
     }
     
     func testMoreSubtleImplicitMatchClashes() throws {
-        let d1 = defineNode(s1, MatchDescriptor(any: P.a, R.a), e1, s2)
-        let d2 = defineNode(s1, MatchDescriptor(any: Q.a), e1, s3)
-        let d3 = defineNode(s1, MatchDescriptor(any: Q.a, S.a), e1, s1)
+        let d1 = defineNode(s1, MatchDescriptorChain(any: P.a, R.a), e1, s2)
+        let d2 = defineNode(s1, MatchDescriptorChain(any: Q.a), e1, s3)
+        let d3 = defineNode(s1, MatchDescriptorChain(any: Q.a, S.a), e1, s1)
         
         let r1 = matchResolvingNode(rest: [d1, d2]).resolve()
         let r2 = matchResolvingNode(rest: [d1, d3]).resolve()
@@ -156,7 +156,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     
     @MainActor
     func testPassesConditionToOutput() {
-        let d1 = defineNode(s1, MatchDescriptor(condition: { false }), e1, s2)
+        let d1 = defineNode(s1, MatchDescriptorChain(condition: { false }), e1, s2)
         let result = matchResolvingNode(rest: [d1]).resolve()
         
         guard assertCount(result.errors, expected: 0) else { return }

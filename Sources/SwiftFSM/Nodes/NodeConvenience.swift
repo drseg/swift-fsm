@@ -27,7 +27,7 @@ class OverridableNode {
 }
 
 struct DefaultIO: Sendable {
-    let descriptor: MatchDescriptor,
+    let descriptor: MatchDescriptorChain,
         event: AnyTraceable?,
         state: AnyTraceable?,
         actions: [AnyAction],
@@ -35,7 +35,7 @@ struct DefaultIO: Sendable {
         isOverride: Bool
 
     init(
-        _ match: MatchDescriptor,
+        _ match: MatchDescriptorChain,
         _ event: AnyTraceable?,
         _ state: AnyTraceable?,
         _ actions: [AnyAction],
@@ -52,7 +52,7 @@ struct DefaultIO: Sendable {
 }
 
 func makeDefaultIO(
-    match: MatchDescriptor = MatchDescriptor(),
+    match: MatchDescriptorChain = MatchDescriptorChain(),
     event: AnyTraceable? = nil,
     state: AnyTraceable? = nil,
     actions: [AnyAction] = [],

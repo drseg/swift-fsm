@@ -10,7 +10,7 @@ class MRNTestBase: StringableNodeTest {
     struct ExpectedMRNOutput {
         let condition: Bool?,
             state: AnyHashable,
-            match: MatchDescriptor,
+            match: MatchDescriptorChain,
             predicates: PredicateSet,
             event: AnyHashable,
             nextState: AnyHashable,
@@ -19,7 +19,7 @@ class MRNTestBase: StringableNodeTest {
         init(
             condition: Bool? = false,
             state: AnyHashable,
-            match: MatchDescriptor,
+            match: MatchDescriptorChain,
             predicates: PredicateSet,
             event: AnyHashable,
             nextState: AnyHashable,
@@ -38,7 +38,7 @@ class MRNTestBase: StringableNodeTest {
     func makeOutput(
         c: Bool? = false,
         g: AnyTraceable,
-        m: MatchDescriptor,
+        m: MatchDescriptorChain,
         p: [any Predicate],
         w: AnyTraceable,
         t: AnyTraceable,
@@ -56,7 +56,7 @@ class MRNTestBase: StringableNodeTest {
     func makeOutput(
         c: Bool? = false,
         g: AnyTraceable,
-        m: MatchDescriptor,
+        m: MatchDescriptorChain,
         p: Set<AnyPredicate>,
         w: AnyTraceable,
         t: AnyTraceable,

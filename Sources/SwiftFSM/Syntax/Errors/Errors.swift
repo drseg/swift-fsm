@@ -303,13 +303,13 @@ extension EagerMatchResolvingNode.ImplicitClashesError: ValidationError {
     }
 }
 
-extension MatchDescriptor {
-    var asArray: [MatchDescriptor] {
-        [originalSelf?.removingNext ?? removingNext] + (next?.asArray ?? [])
+extension MatchDescriptorChain {
+    var asArray: [MatchDescriptorChain] {
+        [originalSelf?.removingNext ?? removingNext] + (childDescriptor?.asArray ?? [])
     }
 
-    var removingNext: MatchDescriptor {
-        MatchDescriptor(any: matchingAny, all: matchingAll, file: file, line: line)
+    var removingNext: MatchDescriptorChain {
+        MatchDescriptorChain(any: matchingAny, all: matchingAll, file: file, line: line)
     }
 
     var errorDescription: String {

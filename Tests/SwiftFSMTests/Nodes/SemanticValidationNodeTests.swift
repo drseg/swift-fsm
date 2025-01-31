@@ -7,7 +7,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
     
     func actionsResolvingNode(
         _ g: AnyTraceable,
-        _ m: MatchDescriptor,
+        _ m: MatchDescriptorChain,
         _ w: AnyTraceable,
         _ t: AnyTraceable,
         overrideGroupID: UUID = testGroupID,
@@ -45,7 +45,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testDuplicate() {
-        let a = actionsResolvingNode(s1, MatchDescriptor(), e1, s2)
+        let a = actionsResolvingNode(s1, MatchDescriptorChain(), e1, s2)
         let finalised = SVN(rest: [a, a]).resolve()
         
         guard assertCount(finalised.errors, expected: 1),
@@ -60,8 +60,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testClash() {
-        let a1 = actionsResolvingNode(s1, MatchDescriptor(), e1, s2)
-        let a2 = actionsResolvingNode(s1, MatchDescriptor(), e1, s3)
+        let a1 = actionsResolvingNode(s1, MatchDescriptorChain(), e1, s2)
+        let a2 = actionsResolvingNode(s1, MatchDescriptorChain(), e1, s3)
 
         let finalised = SVN(rest: [a1, a2]).resolve()
         
@@ -81,8 +81,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testNoError() {
-        let a1 = actionsResolvingNode(s1, MatchDescriptor(), e1, s2)
-        let a2 = actionsResolvingNode(s1, MatchDescriptor(), e2, s3)
+        let a1 = actionsResolvingNode(s1, MatchDescriptorChain(), e1, s2)
+        let a2 = actionsResolvingNode(s1, MatchDescriptorChain(), e2, s3)
         
         let finalised = SVN(rest: [a1, a2]).resolve()
 
@@ -101,7 +101,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
     
     func testErrorIfNothingToOverride() {
         let id = UUID()
-        let d1 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: id, isOverride: true)
+        let d1 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: id, isOverride: true)
         let a = ARN(rest: [d1])
         
         let finalised = SVN(rest: [a]).resolve()
@@ -112,7 +112,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
             XCTFail(); return
         }
         
-        let expectedOverride = IntermediateIO(s1, MatchDescriptor(), e1, s2, [], id, true)
+        let expectedOverride = IntermediateIO(s1, MatchDescriptorChain(), e1, s2, [], id, true)
         XCTAssertEqual(expectedOverride, error.override)
     }
     
@@ -120,8 +120,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let id1 = UUID()
         let id2 = UUID()
         
-        let d1 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: id1, isOverride: true)
-        let d2 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: id2, isOverride: false)
+        let d1 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: id1, isOverride: true)
+        let d2 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: id2, isOverride: false)
         let a = ARN(rest: [d1, d2])
         
         let finalised = SVN(rest: [a]).resolve()
@@ -132,16 +132,16 @@ final class SemanticValidationNodeTests: DefineConsumer {
             XCTFail(); return
         }
         
-        let expectedOverride = IntermediateIO(s1, MatchDescriptor(), e1, s2, [], id1, true)
-        let expectedOutOfOrder = IntermediateIO(s1, MatchDescriptor(), e1, s2, [], id2, false)
+        let expectedOverride = IntermediateIO(s1, MatchDescriptorChain(), e1, s2, [], id1, true)
+        let expectedOutOfOrder = IntermediateIO(s1, MatchDescriptorChain(), e1, s2, [], id2, false)
         
         XCTAssertEqual(expectedOverride, error.override)
         XCTAssertEqual([expectedOutOfOrder], error.outOfOrder)
     }
     
     func testNoErrorIfValidOverride() {
-        let d1 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: UUID(), isOverride: false)
-        let d2 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: UUID(), isOverride: true)
+        let d1 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: UUID(), isOverride: true)
         let a = ARN(rest: [d1, d2])
         
         let finalised = SVN(rest: [a]).resolve()
@@ -152,9 +152,9 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testNoOutOfOrderErrorIfStatesDiffer() {
-        let d1 = defineNode(s1, MatchDescriptor(), e1, s1, overrideGroupID: UUID(), isOverride: false)
-        let d2 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: UUID(), isOverride: true)
-        let d3 = defineNode(s2, MatchDescriptor(), e1, s3, overrideGroupID: UUID(), isOverride: false)
+        let d1 = defineNode(s1, MatchDescriptorChain(), e1, s1, overrideGroupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: UUID(), isOverride: true)
+        let d3 = defineNode(s2, MatchDescriptorChain(), e1, s3, overrideGroupID: UUID(), isOverride: false)
         let a = ARN(rest: [d1, d2, d3])
         
         let finalised = SVN(rest: [a]).resolve()
@@ -165,9 +165,9 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testOverrideChain() {
-        let d1 = defineNode(s1, MatchDescriptor(), e1, s1, overrideGroupID: UUID(), isOverride: false)
-        let d2 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: UUID(), isOverride: true)
-        let d3 = defineNode(s1, MatchDescriptor(), e1, s3, overrideGroupID: UUID(), isOverride: true)
+        let d1 = defineNode(s1, MatchDescriptorChain(), e1, s1, overrideGroupID: UUID(), isOverride: false)
+        let d2 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: UUID(), isOverride: true)
+        let d3 = defineNode(s1, MatchDescriptorChain(), e1, s3, overrideGroupID: UUID(), isOverride: true)
 
         let a = ARN(rest: [d1, d2, d3])
         

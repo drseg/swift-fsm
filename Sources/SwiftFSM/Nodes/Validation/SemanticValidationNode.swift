@@ -34,7 +34,7 @@ class SemanticValidationNode: Node {
 
     struct DuplicatesKey: SVNKey {
         let state: AnyTraceable,
-            match: MatchDescriptor,
+            match: MatchDescriptorChain,
             event: AnyTraceable,
             nextState: AnyTraceable
 
@@ -48,7 +48,7 @@ class SemanticValidationNode: Node {
 
     struct ClashesKey: SVNKey {
         let state: AnyTraceable,
-            match: MatchDescriptor,
+            match: MatchDescriptorChain,
             event: AnyTraceable
 
         init(_ input: Input) {

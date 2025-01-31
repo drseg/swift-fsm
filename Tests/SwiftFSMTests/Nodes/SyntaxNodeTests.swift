@@ -36,8 +36,8 @@ class SyntaxNodeTests: XCTestCase {
         WhenNode(events: [e1, e2], rest: [thenNode])
     }
     
-    var m1: MatchDescriptor {
-        MatchDescriptor(any: [[P.a.erased()]],
+    var m1: MatchDescriptorChain {
+        MatchDescriptorChain(any: [[P.a.erased()]],
               all: [Q.a.erased()],
               condition: { false },
               file: "null",
@@ -199,8 +199,8 @@ class SyntaxNodeTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty, file: file, line: line)
         XCTAssertEqual(result.count, 2, file: file, line: line)
         
-        assertEqual(result[0], DefaultIO(MatchDescriptor(), e1, s1, []), file: file, line: line)
-        assertEqual(result[1], DefaultIO(MatchDescriptor(), e2, s1, []), file: file, line: line)
+        assertEqual(result[0], DefaultIO(MatchDescriptorChain(), e1, s1, []), file: file, line: line)
+        assertEqual(result[1], DefaultIO(MatchDescriptorChain(), e2, s1, []), file: file, line: line)
         
         assertActions(result.map(\.actions).flattened,
                       expectedOutput: "1212",
@@ -267,7 +267,7 @@ class SyntaxNodeTests: XCTestCase {
     
     func assertDefaultIONodeChains(
         node: any DefaultIONode,
-        expectedMatch: MatchDescriptor = MatchDescriptor(any: P.a, all: Q.a),
+        expectedMatch: MatchDescriptorChain = MatchDescriptorChain(any: P.a, all: Q.a),
         expectedEvent: AnyTraceable = "E1",
         expectedState: AnyTraceable = "S1",
         expectedOutput: String = "chain",
@@ -279,7 +279,7 @@ class SyntaxNodeTests: XCTestCase {
 
         let nodeChains: [any Node<DefaultIO>] = {
             let nodes: [any DefaultIONode] =
-            [MatchingNode(descriptor: MatchDescriptor(any: P.a, all: Q.a)),
+            [MatchingNode(descriptor: MatchDescriptorChain(any: P.a, all: Q.a)),
              WhenNode(events: [e1]),
              ThenNode(state: s1),
              ActionsNode(actions: actions.map(AnyAction.init))]
@@ -343,7 +343,7 @@ class SyntaxNodeTests: XCTestCase {
 class DefineConsumer: SyntaxNodeTests {
     func defineNode(
         _ g: AnyTraceable,
-        _ m: MatchDescriptor,
+        _ m: MatchDescriptorChain,
         _ w: AnyTraceable,
         _ t: AnyTraceable,
         entry: [AnyAction]? = nil,
@@ -409,12 +409,12 @@ extension MatchingNode: DefaultIONode {
 }
 
 struct MSES {
-    let match: MatchDescriptor,
+    let match: MatchDescriptorChain,
         state: AnyTraceable,
         event: AnyTraceable,
         nextState: AnyTraceable
     
-    init(_ match: MatchDescriptor, _ state: AnyTraceable, _ event: AnyTraceable, _ nextState: AnyTraceable) {
+    init(_ match: MatchDescriptorChain, _ state: AnyTraceable, _ event: AnyTraceable, _ nextState: AnyTraceable) {
         self.match = match
         self.state = state
         self.event = event
