@@ -15,7 +15,7 @@ final class WhenNodeTests: SyntaxNodeTests {
     }
     
     func testEmptyWhenBlockNodeHasNoOutput() {
-        assertCount(WhenBlockNode(events: [e1]).resolved().output, expected: 0)
+        assertCount(WhenBlockNode(events: [e1]).resolve().output, expected: 0)
     }
     
     @MainActor

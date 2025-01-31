@@ -75,7 +75,7 @@ extension FSMProtocol {
 
         let arn = makeActionsResolvingNode(rest: block().map(\.node))
         let svn = SemanticValidationNode(rest: [arn])
-        let result = makeMatchResolvingNode(rest: [svn]).resolved()
+        let result = makeMatchResolvingNode(rest: [svn]).resolve()
 
         try checkForErrors(result)
         makeTable(result.output)

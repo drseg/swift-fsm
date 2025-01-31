@@ -154,7 +154,7 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testSingleMatchAsArray() {
-        let array = try? MatchDescriptor(any: P.a).resolved().get() .asArray
+        let array = try? MatchDescriptor(any: P.a).resolve().get() .asArray
         XCTAssertEqual(array, [MatchDescriptor(any: P.a)])
     }
     
@@ -162,7 +162,7 @@ final class ErrorTests: SyntaxNodeTests {
         let array = try? MatchDescriptor(any: P.a)
             .prepend(MatchDescriptor(any: R.a))
             .prepend(MatchDescriptor())
-            .resolved()
+            .resolve()
             .get()
             .asArray
         
@@ -214,7 +214,7 @@ final class ErrorTests: SyntaxNodeTests {
     func testMatchDescriptionWithNext() {
         let match = try? MatchDescriptor(any: [[Q.a, Q.b]], file: "/2", line: 2)
             .prepend(MatchDescriptor(any: [[P.a, P.b]], all: R.a, S.a, file: "/1", line: 1))
-            .resolved()
+            .resolve()
             .get()
 
         XCTAssertEqual(String {

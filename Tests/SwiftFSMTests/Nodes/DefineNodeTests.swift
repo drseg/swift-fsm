@@ -35,7 +35,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         let g = GivenNode(states: [s1], rest: [m])
         let d = DefineNode(onEntry: [], onExit: [], rest: [g])
         
-        let result = d.resolved()
+        let result = d.resolve()
         
         XCTAssertEqual(0, result.output.count)
         XCTAssertEqual(1, result.errors.count)
@@ -123,7 +123,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         let w = WhenNode(events: [e1], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w], overrideGroupID: testGroupID, isOverride: true)
         let g = GivenNode(states: [s1], rest: [m])
-        let output = DefineNode(onEntry: [], onExit: [], rest: [g]).resolved().output
+        let output = DefineNode(onEntry: [], onExit: [], rest: [g]).resolve().output
         
         XCTAssert(output.allSatisfy { $0.overrideGroupID == testGroupID && $0.isOverride == true })
     }

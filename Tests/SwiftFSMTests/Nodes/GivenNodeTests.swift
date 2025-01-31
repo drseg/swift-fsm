@@ -77,7 +77,7 @@ final class GivenNodeTests: SyntaxNodeTests {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w], overrideGroupID: testGroupID, isOverride: true)
-        let output = GivenNode(states: [s1], rest: [m]).resolved().output
+        let output = GivenNode(states: [s1], rest: [m]).resolve().output
         
         XCTAssert(output.allSatisfy { $0.overrideGroupID == testGroupID && $0.isOverride == true })
     }

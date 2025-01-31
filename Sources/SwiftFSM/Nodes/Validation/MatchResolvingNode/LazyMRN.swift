@@ -21,7 +21,7 @@ final class LazyMatchResolvingNode: MRNBase, MatchResolvingNode {
                 }
             }
         } catch {
-            errors = EagerMatchResolvingNode(rest: self.rest).resolved().errors
+            errors = EagerMatchResolvingNode(rest: self.rest).resolve().errors
             return []
         }
     }

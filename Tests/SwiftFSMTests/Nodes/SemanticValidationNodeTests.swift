@@ -38,7 +38,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
     }
     
     func testEmptyNode() {
-        let finalised = SVN(rest: []).resolved()
+        let finalised = SVN(rest: []).resolve()
         
         assertCount(finalised.output, expected: 0)
         assertCount(finalised.errors, expected: 0)
@@ -46,13 +46,13 @@ final class SemanticValidationNodeTests: DefineConsumer {
     
     func testDuplicate() {
         let a = actionsResolvingNode(s1, MatchDescriptor(), e1, s2)
-        let finalised = SVN(rest: [a, a]).resolved()
+        let finalised = SVN(rest: [a, a]).resolve()
         
         guard assertCount(finalised.errors, expected: 1),
               assertCount(finalised.output, expected: 0) else { return }
         
         let duplicates = firstDuplicates(in: finalised)
-        let expected = a.resolved().output[0]
+        let expected = a.resolve().output[0]
         let duplicate = duplicates[SVN.DuplicatesKey(expected)]
         
         assertEqual(expected, duplicate?.first)
@@ -63,15 +63,15 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let a1 = actionsResolvingNode(s1, MatchDescriptor(), e1, s2)
         let a2 = actionsResolvingNode(s1, MatchDescriptor(), e1, s3)
 
-        let finalised = SVN(rest: [a1, a2]).resolved()
+        let finalised = SVN(rest: [a1, a2]).resolve()
         
         guard assertCount(finalised.errors, expected: 1),
               assertCount(finalised.output, expected: 0) else { return }
 
         let clashes = firstClashes(in: finalised)
             
-        let firstExpected = a1.resolved().output[0]
-        let secondExpected = a2.resolved().output[0]
+        let firstExpected = a1.resolve().output[0]
+        let secondExpected = a2.resolve().output[0]
         
         let firstClash = clashes[SVN.ClashesKey(firstExpected)]
         let secondClash = clashes[SVN.ClashesKey(secondExpected)]
@@ -84,13 +84,13 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let a1 = actionsResolvingNode(s1, MatchDescriptor(), e1, s2)
         let a2 = actionsResolvingNode(s1, MatchDescriptor(), e2, s3)
         
-        let finalised = SVN(rest: [a1, a2]).resolved()
+        let finalised = SVN(rest: [a1, a2]).resolve()
 
         guard assertCount(finalised.errors, expected: 0),
               assertCount(finalised.output, expected: 2) else { return }
         
-        let firstExpected = a1.resolved().output[0]
-        let secondExpected = a2.resolved().output[0]
+        let firstExpected = a1.resolve().output[0]
+        let secondExpected = a2.resolve().output[0]
         
         assertEqual(firstExpected, finalised.output[0])
         assertActions(finalised.output[0].actions, expectedOutput: "12")
@@ -104,7 +104,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let d1 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: id, isOverride: true)
         let a = ARN(rest: [d1])
         
-        let finalised = SVN(rest: [a]).resolved()
+        let finalised = SVN(rest: [a]).resolve()
         assertCount(finalised.errors, expected: 1)
         assertCount(finalised.output, expected: 0)
         
@@ -124,7 +124,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let d2 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: id2, isOverride: false)
         let a = ARN(rest: [d1, d2])
         
-        let finalised = SVN(rest: [a]).resolved()
+        let finalised = SVN(rest: [a]).resolve()
         assertCount(finalised.errors, expected: 1)
         assertCount(finalised.output, expected: 0)
         
@@ -144,7 +144,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let d2 = defineNode(s1, MatchDescriptor(), e1, s2, overrideGroupID: UUID(), isOverride: true)
         let a = ARN(rest: [d1, d2])
         
-        let finalised = SVN(rest: [a]).resolved()
+        let finalised = SVN(rest: [a]).resolve()
         assertCount(finalised.errors, expected: 0)
         assertCount(finalised.output, expected: 1)
         
@@ -157,7 +157,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let d3 = defineNode(s2, MatchDescriptor(), e1, s3, overrideGroupID: UUID(), isOverride: false)
         let a = ARN(rest: [d1, d2, d3])
         
-        let finalised = SVN(rest: [a]).resolved()
+        let finalised = SVN(rest: [a]).resolve()
         assertCount(finalised.errors, expected: 0)
         assertCount(finalised.output, expected: 2)
         
@@ -171,7 +171,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
 
         let a = ARN(rest: [d1, d2, d3])
         
-        let finalised = SVN(rest: [a]).resolved()
+        let finalised = SVN(rest: [a]).resolve()
         assertCount(finalised.errors, expected: 0)
         assertCount(finalised.output, expected: 1)
                 

@@ -73,43 +73,43 @@ class AdditionTests: MatchTests {
         let m1 = MatchDescriptor(file: "1", line: 1)
         let m2 = MatchDescriptor(file: "2", line: 2)
         
-        XCTAssertEqual(m1.adding(m2).file, "1")
-        XCTAssertEqual(m2.adding(m1).file, "2")
+        XCTAssertEqual(m1.combineWith(m2).file, "1")
+        XCTAssertEqual(m2.combineWith(m1).file, "2")
     
-        XCTAssertEqual(m1.adding(m2).line, 1)
-        XCTAssertEqual(m2.adding(m1).line, 2)
+        XCTAssertEqual(m1.combineWith(m2).line, 1)
+        XCTAssertEqual(m2.combineWith(m1).line, 2)
     }
     
     func testAddingEmptyMatches() {
-        XCTAssertEqual(MatchDescriptor().adding(MatchDescriptor()), MatchDescriptor())
+        XCTAssertEqual(MatchDescriptor().combineWith(MatchDescriptor()), MatchDescriptor())
     }
     
     func testAddingAnyToEmpty() {
-        XCTAssertEqual(MatchDescriptor().adding(MatchDescriptor(any: p1, p2)),
+        XCTAssertEqual(MatchDescriptor().combineWith(MatchDescriptor(any: p1, p2)),
                        MatchDescriptor(any: p1, p2))
     }
     
     func testAddingAllToEmpty() {
-        XCTAssertEqual(MatchDescriptor().adding(MatchDescriptor(all: p1)), MatchDescriptor(all: p1))
+        XCTAssertEqual(MatchDescriptor().combineWith(MatchDescriptor(all: p1)), MatchDescriptor(all: p1))
     }
     
     func testAddingAnyAndAllToEmpty() {
         let addend = MatchDescriptor(any: p1, p2, all: q1, q2)
-        XCTAssertEqual(MatchDescriptor().adding(addend), addend)
+        XCTAssertEqual(MatchDescriptor().combineWith(addend), addend)
     }
     
     func testAddingAnytoAny() {
         let m1 = MatchDescriptor(any: p1, p2)
         let m2 = MatchDescriptor(any: q1, q2)
         
-        XCTAssertEqual(m1.adding(m2), MatchDescriptor(any: [[p1, p2], [q1, q2]]))
+        XCTAssertEqual(m1.combineWith(m2), MatchDescriptor(any: [[p1, p2], [q1, q2]]))
     }
     
     func testAddingAlltoAny() {
         let m1 = MatchDescriptor(any: q1, q2)
         let m2 = MatchDescriptor(all: p1, p2)
         
-        XCTAssertEqual(m1.adding(m2), MatchDescriptor(any: q1, q2,
+        XCTAssertEqual(m1.combineWith(m2), MatchDescriptor(any: q1, q2,
                                       all: p1, p2))
     }
     
@@ -117,7 +117,7 @@ class AdditionTests: MatchTests {
         let m1 = MatchDescriptor(any: q1, q2)
         let m2 = MatchDescriptor(any: r1, r2, all: p1, p2)
         
-        XCTAssertEqual(m1.adding(m2), MatchDescriptor(any: [[q1, q2], [r1, r2]],
+        XCTAssertEqual(m1.combineWith(m2), MatchDescriptor(any: [[q1, q2], [r1, r2]],
                                       all: p1, p2))
     }
     
@@ -125,7 +125,7 @@ class AdditionTests: MatchTests {
         let m1 = MatchDescriptor(any: p1, p2, all: q1, q2)
         let m2 = MatchDescriptor(any: r1, r2, all: s1, s2)
         
-        XCTAssertEqual(m1.adding(m2), MatchDescriptor(any: [[p1, p2], [r1, r2]],
+        XCTAssertEqual(m1.combineWith(m2), MatchDescriptor(any: [[p1, p2], [r1, r2]],
                                       all: q1, q2, s1, s2))
     }
     
@@ -135,19 +135,19 @@ class AdditionTests: MatchTests {
         let m2 = MatchDescriptor(condition: { false })
         let m3 = MatchDescriptor()
         
-        XCTAssertEqual(true, m1.adding(m1).condition?())
-        XCTAssertEqual(nil, m3.adding(m3).condition?())
-        XCTAssertEqual(true, m1.adding(m3).condition?())
+        XCTAssertEqual(true, m1.combineWith(m1).condition?())
+        XCTAssertEqual(nil, m3.combineWith(m3).condition?())
+        XCTAssertEqual(true, m1.combineWith(m3).condition?())
         
-        XCTAssertEqual(false, m1.adding(m2).condition?())
-        XCTAssertEqual(false, m2.adding(m3).condition?())
-        XCTAssertEqual(false, m3.adding(m2).condition?())
+        XCTAssertEqual(false, m1.combineWith(m2).condition?())
+        XCTAssertEqual(false, m2.combineWith(m3).condition?())
+        XCTAssertEqual(false, m3.combineWith(m2).condition?())
     }
 }
 
 class FinalisationTests: MatchTests {
     func assertFinalise(_ m: MatchDescriptor, _ e: MatchDescriptor, line: UInt = #line) {
-        XCTAssertEqual(e, try? m.resolved().get(), line: line)
+        XCTAssertEqual(e, try? m.resolve().get(), line: line)
     }
 
     func testMatchFinalisesToItself() {
@@ -169,7 +169,7 @@ class FinalisationTests: MatchTests {
     }
     
     func testPreservesMatchChain() {
-        let result = try? MatchDescriptor().prepend(MatchDescriptor(any: p1, p2)).resolved().get()
+        let result = try? MatchDescriptor().prepend(MatchDescriptor(any: p1, p2)).resolve().get()
         XCTAssertEqual(result, MatchDescriptor(any: p1, p2))
         XCTAssertEqual(result?.next, MatchDescriptor())
     }
@@ -178,13 +178,13 @@ class FinalisationTests: MatchTests {
     func testLongChain() {
         var match = MatchDescriptor(all: p1)
         100 * { match = match.prepend(MatchDescriptor()) }
-        XCTAssertEqual(MatchDescriptor(all: p1), try? match.resolved().get())
+        XCTAssertEqual(MatchDescriptor(all: p1), try? match.resolve().get())
     }
 }
 
 class ValidationTests: MatchTests {
     func assert(match m: MatchDescriptor, is e: MatchError, line: UInt = #line) {
-        XCTAssertThrowsError(try m.resolved().get(), line: line) {
+        XCTAssertThrowsError(try m.resolve().get(), line: line) {
             XCTAssertEqual(String(describing: type(of: $0)),
                            String(describing: type(of: e)),
                            line: line)
@@ -200,7 +200,7 @@ class ValidationTests: MatchTests {
     }
     
     func testEmptyMatch() {
-        XCTAssertEqual(MatchDescriptor().resolved(), .success(MatchDescriptor()))
+        XCTAssertEqual(MatchDescriptor().resolve(), .success(MatchDescriptor()))
     }
     
     func testAny_WithMultipleTypes() {

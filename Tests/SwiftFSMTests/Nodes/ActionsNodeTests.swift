@@ -3,7 +3,7 @@ import XCTest
 
 final class ActionsNodeTests: SyntaxNodeTests {
     func testEmptyActions() {
-        let finalised = ActionsNode(actions: [], rest: []).resolved()
+        let finalised = ActionsNode(actions: [], rest: []).resolve()
         let output = finalised.output
         let errors = finalised.errors
         
@@ -17,15 +17,15 @@ final class ActionsNodeTests: SyntaxNodeTests {
     }
     
     func testEmptyActionsBlockHasNoOutput() {
-        assertCount(ActionsBlockNode(actions: [], rest: []).resolved().output, expected: 0)
+        assertCount(ActionsBlockNode(actions: [], rest: []).resolve().output, expected: 0)
     }
     
     @MainActor
     func testActionsFinalisesCorrectly() {
         let n = actionsNode
-        n.resolved().output.executeAll()
+        n.resolve().output.executeAll()
         XCTAssertEqual("12", actionsOutput)
-        XCTAssertTrue(n.resolved().errors.isEmpty)
+        XCTAssertTrue(n.resolve().errors.isEmpty)
     }
     
     func testActionsPlusChainFinalisesCorrectly() {

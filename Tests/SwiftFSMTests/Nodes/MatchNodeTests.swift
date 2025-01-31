@@ -3,7 +3,7 @@ import XCTest
 
 final class MatchNodeTests: SyntaxNodeTests {
     func testEmptyMatchNodeIsNotError() {
-        assertCount(MatchingNode(descriptor: MatchDescriptor(), rest: []).resolved().errors, expected: 0)
+        assertCount(MatchingNode(descriptor: MatchDescriptor(), rest: []).resolve().errors, expected: 0)
     }
     
     func testEmptyMatchBlockNodeIsError() {
@@ -11,7 +11,7 @@ final class MatchNodeTests: SyntaxNodeTests {
     }
     
     func testEmptyMatchBlockNodeHasNoOutput() {
-        assertCount(MatchingBlockNode(descriptor: MatchDescriptor(), rest: []).resolved().output, expected: 0)
+        assertCount(MatchingBlockNode(descriptor: MatchDescriptor(), rest: []).resolve().output, expected: 0)
     }
     
     func testMatchNodeFinalisesCorrectly() {

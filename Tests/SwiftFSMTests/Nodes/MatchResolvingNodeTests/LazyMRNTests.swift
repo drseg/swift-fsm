@@ -16,7 +16,7 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         let p1 = m1.combineAnyAndAll().first ?? []
         let p2 = m2.combineAnyAndAll().first ?? []
         
-        let result = makeSUT(rest: [d1, d2]).resolved()
+        let result = makeSUT(rest: [d1, d2]).resolve()
         
         guard
             assertCount(result.errors, expected: 0, line: line),
@@ -35,7 +35,7 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     func assertMatchClash(_ m1: MatchDescriptor, _ m2: MatchDescriptor, line: UInt = #line) {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
-        let finalised = makeSUT(rest: [d1, d2]).resolved()
+        let finalised = makeSUT(rest: [d1, d2]).resolve()
         
         guard
             assertCount(finalised.output, expected: 0, line: line),
@@ -54,7 +54,7 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     @MainActor
     func testEmptyMatchOutput() {
         let sut = makeSUT(rest: [defineNode(s1, MatchDescriptor(), e1, s2)])
-        let result = sut.resolved()
+        let result = sut.resolve()
         
         assertCount(result.errors, expected: 0)
         assertCount(result.output, expected: 1)
@@ -66,7 +66,7 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     @MainActor
     func testPredicateMatchOutput() {
         let sut = makeSUT(rest: [defineNode(s1, m1, e1, s2)])
-        let result = sut.resolved()
+        let result = sut.resolve()
         
         assertCount(result.errors, expected: 0)
         assertCount(result.output, expected: 1)

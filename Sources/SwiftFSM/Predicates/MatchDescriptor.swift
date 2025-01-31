@@ -65,15 +65,15 @@ extension MatchDescriptor {
               line: m.line)
     }
 
-    func resolved() -> ResolvedMatchDescriptor {
+    func resolve() -> ResolvedMatchDescriptor {
         guard let next else { return self.validate() }
 
         let firstResult = self.validate()
-        let restResult = next.resolved()
+        let restResult = next.resolve()
 
         return switch (firstResult, restResult) {
         case (.success, .success(let rest)):
-            adding(rest).validate().appending(file: rest.file, line: rest.line)
+            combineWith(rest).validate().appending(file: rest.file, line: rest.line)
 
         case (.failure, .failure(let e)):
             firstResult.appending(files: e.files, lines: e.lines)
@@ -122,7 +122,7 @@ extension MatchDescriptor {
         return .success(self)
     }
 
-    func adding(_ other: MatchDescriptor) -> MatchDescriptor {
+    func combineWith(_ other: MatchDescriptor) -> MatchDescriptor {
         var condition: ConditionProvider? {
             return switch (self.condition == nil, other.condition == nil) {
             case (true, true): nil
@@ -131,14 +131,16 @@ extension MatchDescriptor {
             case (false, false): { self.condition!() && other.condition!() }
             }
         }
-
-        return MatchDescriptor(any: matchingAny + other.matchingAny,
-                     all: matchingAll + other.matchingAll,
-                     condition: condition,
-                     next: next,
-                     originalSelf: self,
-                     file: file,
-                     line: line)
+        
+        return MatchDescriptor(
+            any: matchingAny + other.matchingAny,
+            all: matchingAll + other.matchingAll,
+            condition: condition,
+            next: next,
+            originalSelf: self,
+            file: file,
+            line: line
+        )
     }
 
     func allPredicateCombinations(_ predicatePool: PredicateSets) -> Set<RankedPredicates> {

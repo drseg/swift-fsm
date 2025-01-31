@@ -4,7 +4,7 @@ import XCTest
 class ActionsResolvingNodeTests: DefineConsumer {
     func testEmptyNode() {
         let node = ConditionalActionsResolvingNode()
-        let finalised = node.resolved()
+        let finalised = node.resolve()
         XCTAssertTrue(finalised.output.isEmpty)
         XCTAssertTrue(finalised.errors.isEmpty)
     }
@@ -19,7 +19,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
         line: UInt = #line
     ) {
         let node = T.init(rest: [defineNode(g, m, w, t, exit: onExit)])
-        let finalised = node.resolved()
+        let finalised = node.resolve()
         XCTAssertTrue(finalised.errors.isEmpty, line: line)
         guard assertCount(finalised.output, expected: 1, line: line) else { return }
         
@@ -65,7 +65,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     
     func testConditionalDoesNotAddEntryActionsWithoutStateChange() {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: [])
-        let result = ConditionalActionsResolvingNode(rest: [d1]).resolved()
+        let result = ConditionalActionsResolvingNode(rest: [d1]).resolve()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 1) else { return }
@@ -75,7 +75,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     
     func testUnconditionalAddsEntryActionsWithoutStateChange() {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: onExit)
-        let result = ActionsResolvingNode(rest: [d1]).resolved()
+        let result = ActionsResolvingNode(rest: [d1]).resolve()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 1) else { return }
@@ -86,7 +86,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     func testConditionalAddsEntryActionsForStateChange() {
         let d1 = defineNode(s1, m, e1, s2)
         let d2 = defineNode(s2, m, e1, s3, entry: onEntry, exit: onExit)
-        let result = ConditionalActionsResolvingNode(rest: [d1, d2]).resolved()
+        let result = ConditionalActionsResolvingNode(rest: [d1, d2]).resolve()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 2) else { return }

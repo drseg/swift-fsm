@@ -1,7 +1,7 @@
 import Foundation
 
 protocol MatchResolvingNode: Node {
-    func resolved() -> (output: [Transition], errors: [Error])
+    func resolve() -> (output: [Transition], errors: [Error])
 }
 
 class MRNBase {

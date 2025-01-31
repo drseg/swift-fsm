@@ -81,7 +81,7 @@ final class DefineNode: NeverEmptyNode {
     }
 
     private func finalise(_ m: MatchDescriptor) -> MatchDescriptor? {
-        switch m.resolved() {
+        switch m.resolve() {
         case .failure(let e): errors.append(e); return nil
         case .success(let m): return m
         }

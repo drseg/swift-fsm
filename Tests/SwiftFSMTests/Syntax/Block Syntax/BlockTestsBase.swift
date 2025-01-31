@@ -152,7 +152,7 @@ class BlockTestsBase: SyntaxTestsBase {
     }
 
     func assertGroupID(_ nodes: [any Node<DefaultIO>], line: UInt = #line) {
-        let output = nodes.map { $0.resolved().output }
+        let output = nodes.map { $0.resolve().output }
         XCTAssertEqual(3, output.count, line: line)
 
         let defineOutput = output.dropFirst().flattened

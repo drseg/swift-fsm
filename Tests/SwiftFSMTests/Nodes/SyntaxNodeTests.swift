@@ -78,7 +78,7 @@ class SyntaxNodeTests: XCTestCase {
         guard lhs.count == rhs.count else { return false }
         
         for (lhs, rhs) in zip(lhs, rhs) {
-            guard lhs.match.resolved() == rhs.match.resolved() &&
+            guard lhs.match.resolve() == rhs.match.resolve() &&
                     lhs.state == rhs.state &&
                     lhs.event == rhs.event &&
                     lhs.nextState == rhs.nextState else { return false }
@@ -99,7 +99,7 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let finalised = t.resolved()
+        let finalised = t.resolve()
         let result = finalised.0
         let errors = finalised.1
         
@@ -116,7 +116,7 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let finalised = t.resolved()
+        let finalised = t.resolve()
         let result = finalised.0
         let errors = finalised.1
         
@@ -133,7 +133,7 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let f = n.resolved()
+        let f = n.resolve()
         
         XCTAssertTrue(f.output.isEmpty, "Output not empty: \(f.0)", file: file, line: line)
         XCTAssertTrue(f.errors.isEmpty, "Errors not empty: \(f.1)", file: file, line: line)
@@ -144,7 +144,7 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        XCTAssertEqual(n.resolved().errors as? [EmptyBuilderError],
+        XCTAssertEqual(n.resolve().errors as? [EmptyBuilderError],
                        [EmptyBuilderError(caller: n.caller, file: n.file, line: n.line)],
                        file: file,
                        line: line)
@@ -159,8 +159,8 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt
     ) {
-        let result = node.resolved().0
-        let errors = node.resolved().1
+        let result = node.resolve().0
+        let errors = node.resolve().1
         
         (0..<2).forEach {
             XCTAssertEqual(state, result[$0].state, file: file, line: line)
@@ -192,7 +192,7 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func assertMatch(_ m: MatchingNode, file: StaticString = #file, line: UInt = #line) {
-        let finalised = m.resolved()
+        let finalised = m.resolve()
         let result = finalised.0
         let errors = finalised.1
         
@@ -215,7 +215,7 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let finalised = node.resolved()
+        let finalised = node.resolve()
         let result = finalised.0
         let errors = finalised.1
         
@@ -241,7 +241,7 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let finalised = node.resolved()
+        let finalised = node.resolve()
         let result = finalised.0
         let errors = finalised.1
         
@@ -302,15 +302,15 @@ class SyntaxNodeTests: XCTestCase {
             var node = node.copy()
             node.rest.append($0)
             
-            let output = node.resolved()
+            let output = node.resolve()
             let results = output.0
                         
             guard assertCount(results, expected: 1, file: file, line: line) else { return }
             
             let result = results[0]
             
-            let actualPredicates = result.descriptor.resolved()
-            let expectedPredicates = expectedMatch.resolved()
+            let actualPredicates = result.descriptor.resolve()
+            let expectedPredicates = expectedMatch.resolve()
             
             XCTAssertEqual(expectedPredicates, actualPredicates, file: file, line: line)
             XCTAssertEqual(expectedEvent, result.event, file: file, line: line)
