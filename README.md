@@ -76,7 +76,7 @@ class MyClass: SyntaxBuilder {
 > class MyClass: SyntaxBuilder {
 > ```
 
-The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable & Sendable`.
+The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable & Sendable`. The protocol itself is `@MainActor` isolated, requiring your implementation to be similarly isolated.
 
 > ```swift
 > let fsm = FSM<State, Event>(initialState: .locked)
@@ -122,7 +122,7 @@ The `FSM` instance will look up the appropriate transition for its current state
 
 #### Actions and Concurrency
 
-Currently, in order to work reasonably in a SwiftUI world, the FSM runs its critical loops on the Main Actor, and expects that the actions you pass it will do so as well. Internally, the method `handleEvent` and all actions are therefore annotated `@MainActor`.
+Currently, in order to work reasonably in a SwiftUI and Swift Concurrency world, the FSM runs its critical loops on the Main Actor, and expects that the actions you pass it will do so as well. Internally, the method `handleEvent` and all actions are therefore annotated `@MainActor`.
 
 There are two versions of `handleEvent`, the first as shown above and in all the examples, and the second named `handleEventAsync` which must be called with `await`. 
 
