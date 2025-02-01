@@ -12,7 +12,6 @@ class MatchingBlockTests: BlockTestsBase {
         n as! MatchingBlockNode
     }
 
-    @MainActor
     func assertMWTANode(
         _ b: MatchingBlockNode,
         any: [any Predicate],
@@ -25,7 +24,6 @@ class MatchingBlockTests: BlockTestsBase {
         assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
-    @MainActor
     func assertMWANode(
         _ b: MatchingBlockNode,
         any: [any Predicate],
@@ -38,7 +36,6 @@ class MatchingBlockTests: BlockTestsBase {
         assertMWAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
-    @MainActor
     func assertMTANode(
         _ b: MatchingBlockNode,
         any: [any Predicate],
@@ -51,7 +48,6 @@ class MatchingBlockTests: BlockTestsBase {
         assertMTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
-    @MainActor
     func assertMatchBlock(
         _ b: MatchingBlockNode,
         any: [any Predicate],
@@ -63,7 +59,6 @@ class MatchingBlockTests: BlockTestsBase {
         assertMatchNode(b, any: [any], all: all, sutLine: sl, xctLine: xl)
     }
 
-    @MainActor
     func testMWTABlocks() {
         func assertMWTABlock(
             _ b: Internal.MWTASentence,
@@ -90,7 +85,6 @@ class MatchingBlockTests: BlockTestsBase {
                         all: [R.a, S.a])
     }
 
-    @MainActor
     func testMWABlocks() {
         func assertMWABlock(
             _ b: Internal.MWASentence,
@@ -115,7 +109,6 @@ class MatchingBlockTests: BlockTestsBase {
                        all: [R.a, S.a])
     }
 
-    @MainActor
     func testMTABlocks() {
         func assertMTABlock(
             _ b: Internal.MTASentence,
@@ -140,7 +133,6 @@ class MatchingBlockTests: BlockTestsBase {
                        all: [R.a, S.a])
     }
 
-    @MainActor
     func testCompoundMWTABlocks() {
         func assertCompoundMWTABlock(
             _ b: Internal.MWTASentence,
@@ -163,7 +155,6 @@ class MatchingBlockTests: BlockTestsBase {
         assertCompoundMWTABlock(matching(Q.a) { matching(Q.a) { mwtaBlock } }, all: [Q.a])
     }
 
-    @MainActor
     func testCompoundMWABlocks() {
         func assertCompoundMWABlock(
             _ b: Internal.MWASentence,
@@ -186,7 +177,6 @@ class MatchingBlockTests: BlockTestsBase {
         assertCompoundMWABlock(matching(Q.a) { matching(Q.a) { mwaBlock } }, all: [Q.a])
     }
 
-    @MainActor
     func testCompoundMTABlocks() {
         func assertCompoundMTABlock(
             _ b: Internal.MTASentence,

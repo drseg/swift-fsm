@@ -2,6 +2,7 @@ import XCTest
 import SwiftFSM
 // Do not use @testable here //
 
+@MainActor
 final class PublicAPITests: XCTestCase {
     final class SUT: SyntaxBuilder {
         enum State { case locked, unlocked }
@@ -35,7 +36,6 @@ final class PublicAPITests: XCTestCase {
         }
     }
     
-    @MainActor
     func testPublicAPI() throws {
         func assertLogged(_ a: String..., line: UInt = #line) {
             XCTAssertEqual(sut.log, a, line: line)

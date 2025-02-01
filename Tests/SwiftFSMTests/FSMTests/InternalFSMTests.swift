@@ -17,7 +17,7 @@ class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
     var fsm: (any FSMProtocol<State, Event>)!
     var actionsPolicy = StateActionsPolicy.executeOnChangeOnly
 
-    override func setUp() {
+    override func setUp() async throws {
         fsm = makeSUT()
     }
     
@@ -433,55 +433,13 @@ class LazyFSMTests: FSMTests {
     }
 }
 
-class NSObjectTests1: FSMTestsBase<NSObject, Int> {
-    override var initialState: NSObject { NSObject() }
-
-    override func makeSUT() -> any FSMProtocol<NSObject, Int> {
-        makeEager()
-    }
-
-    func testThrowsNSObjectError()  {
-        assertThrowsError(NSObjectError.self) {
-            try fsm.buildTable {
-                define(NSObject()) { when(1) | then(NSObject()) }
-            }
-        }
-    }
-}
-
-class LazyNSObjectTests1: NSObjectTests1 {
-    override func makeSUT() -> any FSMProtocol<NSObject, Int> {
-        makeLazy()
-    }
-}
-
-class NSObjectTests2: FSMTestsBase<Int, NSObject> {
-    override var initialState: Int { 1 }
-
-    override func makeSUT() -> any FSMProtocol<Int, NSObject> {
-        makeEager()
-    }
-
-    func testThrowsNSObjectError() {
-        assertThrowsError(NSObjectError.self) {
-            try fsm.buildTable {
-                define(1) { when(NSObject()) | then(2) }
-            }
-        }
-    }
-}
-
-class LazyNSObjectTests2: NSObjectTests2 {
-    override func makeSUT() -> any FSMProtocol<Int, NSObject> {
-        makeLazy()
-    }
-}
-
-extension Int: @retroactive Predicate {
+extension Int: @retroactive CaseIterable {}
+extension Int: Predicate {
     public static var allCases: [Int] { [] }
 }
 
-extension Double: @retroactive Predicate {
+extension Double: @retroactive CaseIterable {}
+extension Double: Predicate {
     public static var allCases: [Double] { [] }
 }
 

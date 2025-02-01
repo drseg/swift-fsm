@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-//import SwiftFSMMacros
 @testable import SwiftFSM
 
 enum TurnstileState: String, CustomStringConvertible {
@@ -13,6 +12,7 @@ enum TurnstileEvent: String, CustomStringConvertible {
     var description: String { rawValue }
 }
 
+@MainActor
 class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     var actions = [String]()
     var actual = [String]()
@@ -151,9 +151,9 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         assertEventAction(.reset, ["alarmOff", "lock"])
     }
     
+    func fail() { XCTFail("should not have been called") }
+    
     func testChainedOverrides() throws {
-        func fail() { XCTFail("should not have been called") }
-        
         try fsm.buildTable {
             let s1 = SuperState { when(.coin) | then(.unlocked) | fail  }
             let s2 = SuperState(adopts: s1) { overriding { when(.coin) | then(.unlocked) | fail } }

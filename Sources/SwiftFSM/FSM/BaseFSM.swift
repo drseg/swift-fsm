@@ -1,5 +1,4 @@
 import Foundation
-import ReflectiveEquality
 
 /// Swift bug:
 ///
@@ -143,12 +142,6 @@ extension FSMProtocol {
 
         if result.output.isEmpty {
             throw makeError(EmptyTableError())
-        }
-
-        let firstOutput = result.output.first
-        let stateEvent = (firstOutput?.state, firstOutput?.event)
-        if deepDescription(stateEvent).contains("NSObject") {
-            throw makeError(NSObjectError())
         }
     }
 

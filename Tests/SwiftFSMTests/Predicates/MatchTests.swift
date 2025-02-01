@@ -10,6 +10,7 @@ enum U: Predicate { case a, b    }
 enum V: Predicate { case a, b    }
 enum W: Predicate { case a, b    }
 
+@MainActor
 class MatchTests: XCTestCase {
     let p1 = P.a, p2 = P.b, p3 = P.c
     let q1 = Q.a, q2 = Q.b
@@ -36,7 +37,6 @@ class BasicTests: MatchTests {
         assertFileAndLine(MatchDescriptorChain(any: [[p1.erased()]], all: [], file: f, line: l))
     }
     
-    @MainActor
     func testConditionInit() {
         XCTAssertEqual(nil, MatchDescriptorChain().condition?())
         XCTAssertEqual(true, MatchDescriptorChain(condition: { true }).condition?())
@@ -129,7 +129,6 @@ class AdditionTests: MatchTests {
                                       all: q1, q2, s1, s2))
     }
     
-    @MainActor
     func testAddingConditions() {
         let m1 = MatchDescriptorChain(condition: { true })
         let m2 = MatchDescriptorChain(condition: { false })
@@ -174,7 +173,6 @@ class FinalisationTests: MatchTests {
         XCTAssertEqual(result?.childDescriptor, MatchDescriptorChain())
     }
     
-    @MainActor
     func testLongChain() {
         var match = MatchDescriptorChain(all: p1)
         100 * { match = match.prepend(MatchDescriptorChain()) }
@@ -408,13 +406,13 @@ class MatchCombinationsTests: MatchTests {
     }
 }
 
-extension MatchDescriptorChain: @retroactive CustomStringConvertible {
+extension MatchDescriptorChain: CustomStringConvertible {
     public var description: String {
         "\(matchingAny), \(matchingAll)"
     }
 }
 
-extension MatchError: @retroactive CustomStringConvertible {
+extension MatchError: CustomStringConvertible {
     public var description: String {
         String {
             "Predicates: \(predicates)"
@@ -424,7 +422,7 @@ extension MatchError: @retroactive CustomStringConvertible {
     }
 }
 
-extension MatchError: @retroactive Equatable {
+extension MatchError: Equatable {
     public static func == (lhs: MatchError, rhs: MatchError) -> Bool {
         lhs.files.sorted() == rhs.files.sorted() &&
         lhs.lines.sorted() == rhs.lines.sorted()

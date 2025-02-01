@@ -1,14 +1,6 @@
 {
+  "originHash" : "a217560c1de9268368c95c798a750c705f880ab338a334cc8a977b0f57487677",
   "pins" : [
-    {
-      "identity" : "reflective-equality",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/drseg/reflective-equality",
-      "state" : {
-        "revision" : "06dfc83a341d05777144602116f047c2f0191763",
-        "version" : "1.0.1"
-      }
-    },
     {
       "identity" : "swift-algorithms",
       "kind" : "remoteSourceControl",
@@ -28,5 +20,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

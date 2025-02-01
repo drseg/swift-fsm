@@ -134,20 +134,6 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testNSObjectStateError() {
-        e = NSObjectError()
-        e.assertDescription(
-            String {
-                "'State' and 'Event' types cannot:"
-                ""
-                "- Inherit from NSObject"
-                "- Hold properties that inherit from NSObject'"
-                ""
-                "NSObject hashes by object id, leading to unintended FSM behaviour"
-            }
-        )
-    }
-    
     func testTableAlreadyBuiltError() {
         e = TableAlreadyBuiltError(file: "/f", line: 1)
         e.assertDescription("Duplicate call to method buildTable in file f at line 1")
@@ -419,7 +405,7 @@ final class ErrorTests: SyntaxNodeTests {
 }
 
 extension Error {
-    func assertDescription(_ expected: String, file: StaticString = #file, line: UInt = #line) {
+    func assertDescription(_ expected: String, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(expected, localizedDescription, file: file, line: line)
     }
 }

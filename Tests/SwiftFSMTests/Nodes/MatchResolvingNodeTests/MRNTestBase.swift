@@ -92,7 +92,7 @@ class MRNTestBase: StringableNodeTest {
     func assertEqual(
         _ lhs: ExpectedMRNOutput?,
         _ rhs: Transition?,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         XCTAssertEqual(lhs?.condition, rhs?.condition?(), file: file, line: line)

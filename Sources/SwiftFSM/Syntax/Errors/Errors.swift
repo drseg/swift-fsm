@@ -154,19 +154,6 @@ struct EmptyTableError: LocalizedError {
     }
 }
 
-struct NSObjectError: LocalizedError {
-    public var errorDescription: String? {
-        String {
-            "'State' and 'Event' types cannot:"
-            ""
-            "- Inherit from NSObject"
-            "- Hold properties that inherit from NSObject'"
-            ""
-            "NSObject hashes by object id, leading to unintended FSM behaviour"
-        }
-    }
-}
-
 struct TableAlreadyBuiltError: LocalizedError {
     let file: String
     let line: Int

@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 public protocol Conditional<State, Event> {
     associatedtype State: FSMHashable
     associatedtype Event: FSMHashable

@@ -11,7 +11,7 @@ This guide presumes some familiarity with FSMs and specifically the SMC syntax l
 
 Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13, iOS 16, tvOS 16 and watchOS 9 or later, alongside Swift 5.8 or later. It supports Swift Concurrency, and is tested and compiled against Swift 6 concurrency rules.
 
-It has two dependencies - Apple’s [Algorithms][7], and ([in one small corner][8]) my own [Reflective Equality][9].
+It has one dependency - Apple’s [Algorithms][7].
 
 ## Basic Syntax
 
@@ -701,14 +701,6 @@ try fsm.buildTable(initialState: .locked) {
 #### Duplicate `buildTable` Calls
 
 Additional calls to `fsm.buildTable { }` will throw a `TableAlreadyBuiltError`.
-
-#### NSObject Error
-
-Swift FSM will throw an error if your `State` and/or `Event` types (or their children) inherit from `NSObject`. 
-
-`State` and `Event` instances are hashed to produce keys for the transition `Dictionary`. These keys are then recreated and reused each time `fsm.handleEvent` is called. This is not an issue for most Swift types, as `Hashable` conformance will have to be declared explicitly. `NSObject` however already conforms to `Hashable`, and is hashed *by instance identity*, rather than by value. This would lead to a defunct transition table where all transition lookups fail, and therefore throws an error.
-
-This is an edge case and it is extremely unlikely that you will ever encounter this error. Nonetheless, the check is quite exhaustive - If you would like to know more about the mechanism involved, see [Reflective Equality][14].
 
 ### Performance
 

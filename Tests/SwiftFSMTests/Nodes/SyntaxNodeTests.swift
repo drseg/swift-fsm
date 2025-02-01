@@ -1,6 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
+@MainActor
 class SyntaxNodeTests: XCTestCase {
     let s1: AnyTraceable = "S1", s2: AnyTraceable = "S2", s3: AnyTraceable = "S3"
     let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
@@ -10,18 +11,18 @@ class SyntaxNodeTests: XCTestCase {
     var onExitOutput = ""
     
     var actions: [AnyAction] {
-        [{ self.actionsOutput += "1" },
-         { self.actionsOutput += "2" }].map(AnyAction.init)
+        [AnyAction({ self.actionsOutput += "1" }),
+         AnyAction({ self.actionsOutput += "2" })]
     }
     
     var onEntry: [AnyAction] {
-        [{ self.actionsOutput += "<" },
-         { self.actionsOutput += "<" }].map(AnyAction.init)
+        [AnyAction({ self.actionsOutput += "<" }),
+         AnyAction({ self.actionsOutput += "<" })]
     }
     
     var onExit: [AnyAction] {
-        [{ self.actionsOutput += ">" },
-         { self.actionsOutput += ">" }].map(AnyAction.init)
+        [AnyAction({ self.actionsOutput += ">" }),
+         AnyAction({ self.actionsOutput += ">" })]
     }
     
     var actionsNode: ActionsNode {
@@ -55,7 +56,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertEqual(
         _ lhs: DefaultIO?,
         _ rhs: DefaultIO?,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         XCTAssertTrue(lhs?.descriptor == rhs?.descriptor &&
@@ -66,7 +67,7 @@ class SyntaxNodeTests: XCTestCase {
                       line: line)
     }
     
-    func assertEqual(lhs: [MSES], rhs: [MSES], file: StaticString = #file, line: UInt) {
+    func assertEqual(lhs: [MSES], rhs: [MSES], file: StaticString = #filePath, line: UInt) {
         XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
                       "\(lhs.description) does not equal \(rhs.description)",
                       file: file,
@@ -96,7 +97,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertEmptyThen(
         _ t: ThenNode,
         thenState: AnyTraceable? = "S1",
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         let finalised = t.resolve()
@@ -113,7 +114,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertThenWithActions(
         expected: String,
         _ t: ThenNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         let finalised = t.resolve()
@@ -130,7 +131,7 @@ class SyntaxNodeTests: XCTestCase {
     
     func assertEmptyNodeWithoutError(
         _ n: some Node,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         let f = n.resolve()
@@ -141,7 +142,7 @@ class SyntaxNodeTests: XCTestCase {
     
     func assertEmptyNodeWithError(
         _ n: some NeverEmptyNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         XCTAssertEqual(n.resolve().errors as? [EmptyBuilderError],
@@ -150,13 +151,12 @@ class SyntaxNodeTests: XCTestCase {
                        line: line)
     }
     
-    @MainActor
     func assertWhen(
         state: AnyTraceable?,
         actionsCount: Int,
         actionsOutput: String,
         node: WhenNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt
     ) {
         let result = node.resolve().0
@@ -179,7 +179,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertCount(
         _ actual: (any Collection)?,
         expected: Int,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) -> Bool {
         guard actual?.count ?? -1 == expected else {
@@ -191,7 +191,7 @@ class SyntaxNodeTests: XCTestCase {
         return true
     }
     
-    func assertMatch(_ m: MatchingNode, file: StaticString = #file, line: UInt = #line) {
+    func assertMatch(_ m: MatchingNode, file: StaticString = #filePath, line: UInt = #line) {
         let finalised = m.resolve()
         let result = finalised.0
         let errors = finalised.1
@@ -212,7 +212,7 @@ class SyntaxNodeTests: XCTestCase {
         expected: [MSES],
         actionsOutput: String,
         node: GivenNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         let finalised = node.resolve()
@@ -238,7 +238,7 @@ class SyntaxNodeTests: XCTestCase {
         expected: [MSES],
         actionsOutput: String,
         node: DefineNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         let finalised = node.resolve()
@@ -271,18 +271,15 @@ class SyntaxNodeTests: XCTestCase {
         expectedEvent: AnyTraceable = "E1",
         expectedState: AnyTraceable = "S1",
         expectedOutput: String = "chain",
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
-
-        let actions = [{ self.actionsOutput += "chain" }]
-
         let nodeChains: [any Node<DefaultIO>] = {
             let nodes: [any DefaultIONode] =
             [MatchingNode(descriptor: MatchDescriptorChain(any: P.a, all: Q.a)),
              WhenNode(events: [e1]),
              ThenNode(state: s1),
-             ActionsNode(actions: actions.map(AnyAction.init))]
+             ActionsNode(actions: [AnyAction({ self.actionsOutput += "chain" })])]
 
             return nodes.permutations(ofCount: 4).reduce(into: []) {
                 var one = $1[0].copy(),
@@ -326,7 +323,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertActions(
         _ actions: [AnyAction]?,
         expectedOutput: String?,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         let expectation = expectation(description: "async action")
@@ -422,13 +419,13 @@ struct MSES {
     }
 }
 
-extension AnyTraceable: @retroactive ExpressibleByStringLiteral {
+extension AnyTraceable: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self.init(value, file: "null", line: -1)
     }
 }
 
-extension AnyTraceable: @retroactive CustomStringConvertible {
+extension AnyTraceable: CustomStringConvertible {
     public var description: String {
         base.description
     }

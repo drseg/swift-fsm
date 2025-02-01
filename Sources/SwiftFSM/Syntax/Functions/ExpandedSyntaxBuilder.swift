@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 public protocol ExpandedSyntaxBuilder: SyntaxBuilder { }
 
 // MARK: - Matching

@@ -2,7 +2,6 @@ import XCTest
 @testable import SwiftFSM
 
 class DefineTests: BlockTestsBase {
-    @MainActor
     func testDefine() {
         func verify(
             _ d: Define,
@@ -50,7 +49,6 @@ class DefineTests: BlockTestsBase {
         assertActions(d1.node.onExit, expectedOutput: "exit1exit1exit2")
     }
 
-    @MainActor
     func testDefineAddsMultipleSuperStateNodes() {
         let l1 = #line + 1; let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
@@ -109,7 +107,6 @@ class DefineTests: BlockTestsBase {
         assertGroupID(given.rest)
     }
 
-    @MainActor
     func testOptionalActions() {
         let l1 = #line; let d = define(1) {
             matching(P.a) | when(1, or: 2) | then(1)

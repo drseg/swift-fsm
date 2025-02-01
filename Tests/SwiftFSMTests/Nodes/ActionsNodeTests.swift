@@ -1,6 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
+@MainActor
 final class ActionsNodeTests: SyntaxNodeTests {
     func testEmptyActions() {
         let finalised = ActionsNode(actions: [], rest: []).resolve()
@@ -20,7 +21,6 @@ final class ActionsNodeTests: SyntaxNodeTests {
         assertCount(ActionsBlockNode(actions: [], rest: []).resolve().output, expected: 0)
     }
     
-    @MainActor
     func testActionsFinalisesCorrectly() {
         let n = actionsNode
         n.resolve().output.executeAll()
@@ -29,8 +29,7 @@ final class ActionsNodeTests: SyntaxNodeTests {
     }
     
     func testActionsPlusChainFinalisesCorrectly() {
-        let actions = [{ self.actionsOutput += "action" }]
-        let a = ActionsNode(actions: actions.map(AnyAction.init))
+        let a = ActionsNode(actions: [AnyAction({ self.actionsOutput += "action" })])
         assertDefaultIONodeChains(node: a, expectedOutput: "actionchain")
     }
 }

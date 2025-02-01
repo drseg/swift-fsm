@@ -48,8 +48,8 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
 
     var fsm: FSM<Int, Int>!
     var spy: FSMSpy!
-
-    override func setUp() {
+    
+    override func setUp() async throws {
         fsm = FSM(type: .eager, initialState: 1)
         spy = FSMSpy(initialState: 1)
         fsm.fsm = spy
@@ -111,7 +111,6 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertTrue(spy.log[3].contains("Define"))
     }
 
-    @MainActor
     func testHandleEvent() async throws {
         func assertHandleEvent(_ predicates: String..., function: String = "handleEvent") {
             XCTAssertTrue(spy.log[0].contains(function))

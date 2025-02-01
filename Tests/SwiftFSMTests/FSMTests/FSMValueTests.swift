@@ -1,7 +1,8 @@
 import XCTest
 @testable import SwiftFSM
 
-final class FSMValueTests: XCTestCase {
+@MainActor
+final class FSMValueTests: XCTestCase, @unchecked Sendable {
     let vAny = FSMValue<String>.any
     let v1 = FSMValue.some("1")
     let v2 = FSMValue.some("2")
@@ -27,25 +28,29 @@ final class FSMValueTests: XCTestCase {
         XCTAssertEqual(v1.unsafeWrappedValue(), "1")
     }
 
-    func testUnsafeWrappedValuePassesCallersNameToError() {
+    func testUnsafeWrappedValuePassesCallersNameToError() throws {
+        //        throw XCTSkip("Never completes")
+        
         struct Thrower: Throwing {
             let expectedFunction: String
             let expectation: XCTestExpectation
-
+            
             init(expectedFunction: String = #function, expectation: XCTestExpectation) {
                 self.expectedFunction = expectedFunction
                 self.expectation = expectation
             }
-
+            
             func `throw`(instance: String, function: String) throws -> Never {
                 XCTAssertEqual(function, expectedFunction)
                 expectation.fulfill()
                 repeat { RunLoop.current.run() } while true
             }
         }
-
+        
         FSMValue<Int>.setThrower(Thrower(expectation: expectation(description: "")))
-        Task { let _ = vAny.unsafeWrappedValue() }
+        DispatchQueue.global().async {
+            let _ = self.vAny.unsafeWrappedValue()
+        }
         waitForExpectations(timeout: 0.1)
     }
 

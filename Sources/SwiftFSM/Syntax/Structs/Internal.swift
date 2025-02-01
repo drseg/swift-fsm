@@ -1,6 +1,8 @@
 import Foundation
 
+@MainActor
 public enum Syntax {
+    @MainActor
     public enum Expanded { }
 }
 

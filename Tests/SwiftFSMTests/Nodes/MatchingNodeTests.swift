@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-final class MatchNodeTests: SyntaxNodeTests {
+final class MatchingNodeTests: SyntaxNodeTests {
     func testEmptyMatchNodeIsNotError() {
         assertCount(MatchingNode(descriptor: MatchDescriptorChain(), rest: []).resolve().errors, expected: 0)
     }
@@ -21,7 +21,7 @@ final class MatchNodeTests: SyntaxNodeTests {
     func testMatchNodeWithChainFinalisesCorrectly() {
         let m = MatchingNode(descriptor: MatchDescriptorChain(any: S.b, all: R.a))
         assertDefaultIONodeChains(node: m, expectedMatch: MatchDescriptorChain(any: [[P.a], [S.b]],
-                                                                all: Q.a, R.a))
+                                                                               all: Q.a, R.a))
     }
     
     func testMatchNodeCanSetRestAfterInit() {
