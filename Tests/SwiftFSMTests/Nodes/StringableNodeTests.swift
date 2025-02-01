@@ -248,119 +248,182 @@ class StringableNodeTest: DefineConsumer {
     ) async {
         let lhs = await toString(lhs, printFileAndLine: true)
         let rhs = await toString(rhs, printFileAndLine: true)
-        XCTAssertEqual(lhs, rhs, file: file, line: line)
+        XCTAssertEqual(lhs,
+                       rhs,
+                       file: file,
+                       line: line)
     }
-    
-    func toString(_ n: some Node, printFileAndLine: Bool = false, indent: Int = 0) async -> String {
+
+    func toString(
+        _ n: some Node,
+        printFileAndLine: Bool = false,
+        indent: Int = 0
+    ) async -> String {
+        var output = ""
+        
+        switch n {
+        case let n as ActionsNodeBase:
+            await visit(n, &output, printFileAndLine)
+        case let n as ThenNodeBase:
+            await visit(n, &output, printFileAndLine)
+        case let n as WhenNodeBase:
+            await visit(n, &output, printFileAndLine)
+        case let n as MatchingNodeBase:
+            await visit(n, &output, printFileAndLine)
+        case let n as GivenNode:
+            await visit(n, &output, printFileAndLine)
+        case let n as DefineNode:
+            await visit(n, &output, printFileAndLine)
+        case let n as ActionsResolvingNodeBase:
+            await visit(n, &output, printFileAndLine)
+        case let n as SemanticValidationNode:
+            await visit(n, &output, printFileAndLine)
+        default: break
+        }
+
+        await addRest(n, &output, printFileAndLine, indent)
+        return output
+    }
+
+    private func visit(
+        _ n: ActionsNodeBase,
+        _ output: inout String,
+        _ printFileAndLine: Bool
+    ) async {
+        await n.actions.executeAll()
+        output.append("A: \(actionsOutput.formatted)")
+
+        if let n = n as? ActionsBlockNode, printFileAndLine {
+            output.append(fileAndLine(n.file, n.line))
+        }
+        actionsOutput = ""
+    }
+
+    private func visit(
+        _ n: ThenNodeBase,
+        _ output: inout String,
+        _ printFileAndLine: Bool
+    ) async {
+        if let state = n.state {
+            if let n = n as? ThenBlockNode, printFileAndLine {
+                output.append("T" + fileAndLine(n.file, n.line) + ": \(state)")
+            } else {
+                output.append("T: \(state)")
+            }
+            if printFileAndLine {
+                output.append(fileAndLine(state.file, state.line))
+            }
+        } else {
+            output.append("T: default")
+        }
+    }
+
+    private func visit(
+        _ n: WhenNodeBase,
+        _ output: inout String,
+        _ printFileAndLine: Bool
+    ) async {
+        if printFileAndLine {
+            let description = n.events.map { $0.description + fileAndLine($0.file, $0.line) }
+
+            if let n = n as? WhenBlockNode, printFileAndLine {
+                output.append("W" + fileAndLine(n.file, n.line)
+                              + ": \(description.joined(separator: ", "))")
+
+            } else {
+                output.append("W: \(description.joined(separator: ", "))")
+            }
+        } else {
+            output.append("W: \(n.events.map(\.description).joined(separator: ", "))")
+        }
+    }
+
+    private func visit(
+        _ n: MatchingNodeBase,
+        _ output: inout String,
+        _ printFileAndLine: Bool
+    ) async  {
+        if let n = n as? MatchingBlockNode, printFileAndLine {
+            output.append("M" + fileAndLine(n.file, n.line) +
+                          ": any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)")
+        } else {
+            output.append("M: any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)")
+        }
+        if printFileAndLine {
+            output.append(fileAndLine(n.descriptor.file, n.descriptor.line))
+        }
+    }
+
+    private func visit(
+        _ n: GivenNode,
+        _ output: inout String,
+        _ printFileAndLine: Bool
+    ) async {
+        if printFileAndLine {
+            let description = n.states.map { $0.description + fileAndLine($0.file, $0.line) }
+            output.append("G: \(description.joined(separator: ", "))")
+        } else {
+            output.append("G: \(n.states.map(\.description).joined(separator: ", "))")
+        }
+    }
+
+    private func visit(
+        _ n: DefineNode,
+        _ output: inout String,
+        _ printFileAndLine: Bool
+    ) async {
+        await n.onEntry.executeAll()
+        await n.onExit.executeAll()
+        output.append("D: entry: \(onEntryOutput.formatted), exit: \(onExitOutput.formatted)")
+        if printFileAndLine {
+            output.append(fileAndLine(n.file, n.line) )
+        }
+        onEntryOutput = ""
+        onExitOutput = ""
+    }
+
+    private func visit(
+        _ n: ActionsResolvingNodeBase,
+        _ output: inout String,
+        _ printFileAndLine: Bool
+    ) async {
+        output.append("ARN:")
+    }
+
+    private func visit(
+        _ n: SemanticValidationNode,
+        _ output: inout String,
+        _ printFileAndLine: Bool
+    ) async {
+        output.append("SVN:")
+    }
+
+    private func addRest(
+        _ n: some Node,
+        _ output: inout String,
+        _ printFileAndLine: Bool,
+        _ indent: Int
+    ) async {
         func string(_ indent: Int) -> String {
             String(repeating: " ", count: indent)
         }
-        
-        func addRest() async {
-            if !n.rest.isEmpty {
-                output.append(" {\n")
-                await output.append(n.rest.asyncMap {
-                    let rhs = await toString($0,
-                                             printFileAndLine: printFileAndLine,
-                                             indent: indent + 2)
-                    return string(indent + 2) + rhs
-                }.joined(separator: "\n"))
-                output.append("\n" + string(indent) + "}")
-            }
-        }
-        
-        func fileAndLine(_ file: String, _ line: Int) -> String {
-            " (\(file) \(line))"
-        }
-        
-        var output = ""
-        
-        if let n = n as? ActionsNodeBase {
-            await n.actions.executeAll()
-            output.append("A: \(actionsOutput.formatted)")
-            
-            if let n = n as? ActionsBlockNode, printFileAndLine {
-                output.append(fileAndLine(n.file, n.line))
-            }
-            actionsOutput = ""
-        }
-        
-        if let n = n as? ThenNodeBase {
-            if let state = n.state {
-                if let n = n as? ThenBlockNode, printFileAndLine {
-                    output.append("T" + fileAndLine(n.file, n.line) + ": \(state)")
-                } else {
-                    output.append("T: \(state)")
-                }
-                if printFileAndLine {
-                    output.append(fileAndLine(state.file, state.line))
-                }
-            } else {
-                output.append("T: default")
-            }
-        }
-        
-        if let n = n as? WhenNodeBase {
-            if printFileAndLine {
-                let description = n.events.map { $0.description + fileAndLine($0.file, $0.line) }
-                
-                if let n = n as? WhenBlockNode, printFileAndLine {
-                    output.append("W" + fileAndLine(n.file, n.line)
-                                  + ": \(description.joined(separator: ", "))")
 
-                } else {
-                    output.append("W: \(description.joined(separator: ", "))")
-                }
-            } else {
-                output.append("W: \(n.events.map(\.description).joined(separator: ", "))")
-            }
+        if !n.rest.isEmpty {
+            output.append(" {\n")
+            await output.append(n.rest.asyncMap {
+                let rhs = await toString($0,
+                                         printFileAndLine: printFileAndLine,
+                                         indent: indent + 2)
+                return string(indent + 2) + rhs
+            }.joined(separator: "\n"))
+            output.append("\n" + string(indent) + "}")
         }
-        
-        if let n = n as? MatchingNodeBase {
-            if let n = n as? MatchingBlockNode, printFileAndLine {
-                output.append("M" + fileAndLine(n.file, n.line)
-                              + ": any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)")
-            } else {
-                output.append("M: any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)")
-            }
-            if printFileAndLine {
-                output.append(fileAndLine(n.descriptor.file, n.descriptor.line))
-            }
-        }
-        
-        if let n = n as? GivenNode {
-            if printFileAndLine {
-                let description = n.states.map { $0.description + fileAndLine($0.file, $0.line) }
-                output.append("G: \(description.joined(separator: ", "))")
-            } else {
-                output.append("G: \(n.states.map(\.description).joined(separator: ", "))")
-            }
-        }
-        
-        if let n = n as? DefineNode {
-            await n.onEntry.executeAll()
-            await n.onExit.executeAll()
-            output.append("D: entry: \(onEntryOutput.formatted), exit: \(onExitOutput.formatted)")
-            if printFileAndLine {
-                output.append(fileAndLine(n.file, n.line) )
-            }
-            onEntryOutput = ""
-            onExitOutput = ""
-        }
-        
-        if n is ActionsResolvingNodeBase {
-            output.append("ARN:")
-        }
-        
-        if n is SemanticValidationNode {
-            output.append("SVN:")
-        }
-        
-        await addRest()
-        return output
+    }
+
+    private func fileAndLine(_ file: String, _ line: Int) -> String {
+        " (\(file) \(line))"
     }
 }
-
 @MainActor
 extension Sequence {
     func asyncMap<T: Sendable>(
