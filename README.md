@@ -9,7 +9,7 @@ This guide presumes some familiarity with FSMs and specifically the SMC syntax l
 
 ## Requirements
 
-Swift FSM is a Swift Package, importable through the Swift Package Manager, and requires macOS 13, iOS 16, tvOS 16 and watchOS 9 or later, alongside Swift 5.8 or later. It supports Swift Concurrency, and is tested and compiled against Swift 6 concurrency rules.
+Swift FSM is a Swift Package for all Apple platforms, available through the Swift Package Manager, and requires Swift 6 or later. It is tested against strict concurrency rules and should be fully compliant.
 
 It has one dependency - Apple’s [Algorithms][7].
 
