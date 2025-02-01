@@ -15,9 +15,7 @@ final class LazyMatchResolvingNode: MRNBase, MatchResolvingNode {
                 if anyAndAll.isEmpty {
                     try appendTransition(predicates: [])
                 } else {
-                    try anyAndAll.forEach {
-                        try appendTransition(predicates: $0)
-                    }
+                    try anyAndAll.forEach(appendTransition)
                 }
             }
         } catch {

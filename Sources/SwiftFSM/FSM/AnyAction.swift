@@ -28,27 +28,31 @@ public struct AnyAction: @unchecked Sendable {
 
     @MainActor
     func callAsFunction<Event: FSMHashable>(_ event: Event = NullEvent.null) throws {
-        if let base = base as? FSMSyncAction {
+        switch base {
+        case let base as FSMSyncAction:
             base()
-        } else if let base = base as? FSMSyncActionWithEvent<Event> {
+        case let base as FSMSyncActionWithEvent<Event>:
             base(event)
-        } else if base is FSMAsyncAction || base is FSMAsyncActionWithEvent<Event> {
+        case is FSMAsyncAction, is FSMAsyncActionWithEvent<Event>:
             throw "'handleEvent' can only call synchronous actions. Use 'handleEventAsync' instead"
-        } else {
+        default:
             throw "Action that takes an Event argument called without an Event"
         }
     }
 
     @MainActor
     func callAsFunction<Event: FSMHashable>(_ event: Event = NullEvent.null) async {
-        if let base = base as? FSMSyncAction {
+        switch base {
+        case let base as FSMSyncAction:
             base()
-        } else if let base = base as? FSMSyncActionWithEvent<Event> {
+        case let base as FSMSyncActionWithEvent<Event>:
             base(event)
-        } else if let base = base as? FSMAsyncAction {
+        case let base as FSMAsyncAction:
             await base()
-        } else if let base = base as? FSMAsyncActionWithEvent<Event> {
+        case let base as FSMAsyncActionWithEvent<Event>:
             await base(event)
+        default:
+            break
         }
     }
 }
