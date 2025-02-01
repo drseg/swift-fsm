@@ -1,4 +1,4 @@
-**Warning: this branch will be supported for all 1.x.x releases, however no further guarantees can be given, as the [master][1] branch makes significant use of primary associated types introduced in macOS 13**
+# ‼️ This branch is no longer actively maintained, as the [master][1] branch makes significant use of primary associated types introduced in macOS 13 ‼️
 
 # Swift FSM
 [![codecov][image-1]][2] ![Testspace tests][image-2] ![GitHub Workflow Status][image-3] ![GitHub][image-4]
