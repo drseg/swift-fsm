@@ -34,6 +34,7 @@ enum TransitionStatus<Event: FSMHashable> {
     case executed(Transition), notFound(Event, [any Predicate]), notExecuted(Transition)
 }
 
+@MainActor
 protocol FSMProtocol<State, Event>: AnyObject {
     associatedtype State: FSMHashable
     associatedtype Event: FSMHashable
@@ -52,13 +53,12 @@ protocol FSMProtocol<State, Event>: AnyObject {
     ) throws
 }
 
+@MainActor
 extension FSMProtocol {
-    @MainActor
     func handleEvent(_ event: Event, predicates: any Predicate...) throws {
         try handleEvent(event, predicates: predicates)
     }
 
-    @MainActor
     func handleEventAsync(_ event: Event, predicates: any Predicate...) async {
         await handleEventAsync(event, predicates: predicates)
     }
@@ -80,7 +80,7 @@ extension FSMProtocol {
         makeTable(result.output)
     }
 
-    @discardableResult @MainActor
+    @discardableResult
     func _handleEvent(
         _ event: Event,
         predicates: [any Predicate]
@@ -98,7 +98,7 @@ extension FSMProtocol {
         return .executed(transition)
     }
 
-    @discardableResult @MainActor
+    @discardableResult
     func _handleEventAsync(
         _ event: Event,
         predicates: [any Predicate]
@@ -116,14 +116,12 @@ extension FSMProtocol {
         return .executed(transition)
     }
 
-    @MainActor
     func transition(_ event: Event, _ predicates: [any Predicate]) -> Transition? {
         table[TableKey(state: state,
                        predicates: Set(predicates.erased()),
                        event: event)]
     }
 
-    @MainActor
     func shouldExecute(_ t: Transition) -> Bool {
         t.condition?() ?? true
     }
@@ -158,6 +156,7 @@ extension FSMProtocol {
     }
 }
 
+@MainActor
 class BaseFSM<State: FSMHashable, Event: FSMHashable> {
     let stateActionsPolicy: StateActionsPolicy
 

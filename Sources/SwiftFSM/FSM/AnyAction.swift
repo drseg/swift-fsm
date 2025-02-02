@@ -5,6 +5,7 @@ public typealias FSMAsyncAction = @MainActor () async -> Void
 public typealias FSMSyncActionWithEvent<Event: FSMHashable> = @MainActor (Event) -> Void
 public typealias FSMAsyncActionWithEvent<Event: FSMHashable> = @MainActor (Event) async -> Void
 
+@MainActor
 public struct AnyAction: @unchecked Sendable {
     public enum NullEvent: FSMHashable { case null }
 
@@ -26,7 +27,6 @@ public struct AnyAction: @unchecked Sendable {
         base = action
     }
 
-    @MainActor
     func callAsFunction<Event: FSMHashable>(_ event: Event = NullEvent.null) throws {
         switch base {
         case let base as FSMSyncAction:
@@ -40,7 +40,6 @@ public struct AnyAction: @unchecked Sendable {
         }
     }
 
-    @MainActor
     func callAsFunction<Event: FSMHashable>(_ event: Event = NullEvent.null) async {
         switch base {
         case let base as FSMSyncAction:

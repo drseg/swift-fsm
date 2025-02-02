@@ -1,6 +1,7 @@
 import Foundation
 
 public extension Syntax {
+    @MainActor
     struct Then<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,
