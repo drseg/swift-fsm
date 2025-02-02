@@ -1384,7 +1384,7 @@ For example:
 try fsm.buildTable {
     define(.locked) {
         then(.locked) | unlock
-// ⛔️ Cannot convert value of type 'Syntax.Then<TurnstileState>' to expected argument type 'Internal.MatchingWhenThen'
+// ⛔️ Cannot convert value of type 'Internal.Then<TurnstileState>' to expected argument type 'Internal.MatchingWhenThen'
 // ⛔️ No exact matches in call to static method 'buildExpression'
     }
 }
@@ -1396,7 +1396,7 @@ The error unfortunately spits out some internal implementation details that cann
 
 It also produces a secondary error - as it cannot work out what the output of `then(.locked) | unlock` is, it declares that there is no overload available for `buildExpression`. Fix the underlying `|` error and this error will also disappear.
 
-> **Referencing operator function '|' on 'SIMD' requires that 'Syntax.When\<TurnstileEvent\>' conform to 'SIMD’**
+> **Referencing operator function '|' on 'SIMD' requires that 'Internal.When\<TurnstileEvent\>' conform to 'SIMD’**
 
 A personal favourite, from this:
 
@@ -1404,7 +1404,7 @@ A personal favourite, from this:
 try fsm.buildTable {
     define(.locked) {
         when(.coin) | matching(P.a) | then(.locked) | unlock
-// ⛔️ Referencing operator function '|' on 'SIMD' requires that 'Syntax.When<TurnstileEvent>' conform to 'SIMD’
+// ⛔️ Referencing operator function '|' on 'SIMD' requires that 'Internal.When<TurnstileEvent>' conform to 'SIMD’
     }
 }
 ```
