@@ -11,7 +11,7 @@ enum V: Predicate { case a, b    }
 enum W: Predicate { case a, b    }
 
 @MainActor
-class MatchTests: XCTestCase {
+class MatchDescriptorChainTests: XCTestCase {
     let p1 = P.a, p2 = P.b, p3 = P.c
     let q1 = Q.a, q2 = Q.b
     let r1 = R.a, r2 = R.b
@@ -20,7 +20,7 @@ class MatchTests: XCTestCase {
     let u1 = U.a, u2 = U.b
 }
 
-class BasicTests: MatchTests {
+class BasicTests: MatchDescriptorChainTests {
     func testFileAndLineInit() {
         let f = "f", l = 1
         
@@ -68,7 +68,7 @@ class BasicTests: MatchTests {
     }
 }
 
-class AdditionTests: MatchTests {
+class AdditionTests: MatchDescriptorChainTests {
     func testAdditionTakesFileAndLineFromLHS() {
         let m1 = MatchDescriptorChain(file: "1", line: 1)
         let m2 = MatchDescriptorChain(file: "2", line: 2)
@@ -144,7 +144,7 @@ class AdditionTests: MatchTests {
     }
 }
 
-class FinalisationTests: MatchTests {
+class FinalisationTests: MatchDescriptorChainTests {
     func assertFinalise(_ m: MatchDescriptorChain, _ e: MatchDescriptorChain, line: UInt = #line) {
         XCTAssertEqual(e, try? m.resolve().get(), line: line)
     }
@@ -180,7 +180,7 @@ class FinalisationTests: MatchTests {
     }
 }
 
-class ValidationTests: MatchTests {
+class ValidationTests: MatchDescriptorChainTests {
     func assert(match m: MatchDescriptorChain, is e: MatchError, line: UInt = #line) {
         XCTAssertThrowsError(try m.resolve().get(), line: line) {
             XCTAssertEqual(String(describing: type(of: $0)),
@@ -277,7 +277,7 @@ class ValidationTests: MatchTests {
     }
 }
 
-class MatchCombinationsTests: MatchTests {
+class MatchCombinationsTests: MatchDescriptorChainTests {
     let predicatePool = [[Q.a, R.a, S.a],
                          [Q.b, R.a, S.a],
                          [Q.a, R.b, S.a],

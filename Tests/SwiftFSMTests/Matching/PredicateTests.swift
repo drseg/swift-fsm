@@ -1,9 +1,3 @@
-//
-//  AnyPredicateTests.swift
-//
-//  Created by Daniel Segall on 21/02/2023.
-//
-
 import XCTest
 @testable import SwiftFSM
 
