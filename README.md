@@ -5,13 +5,13 @@
 
 Inspired by [Uncle Bob's SMC][2] syntax, Swift FSM is a pure Swift DSL for declaring and operating a Finite State Machine (FSM).
 
-This guide presumes some familiarity with FSMs and specifically the SMC syntax linked above. Swift FSM makes liberal use of [`@resultBuilder`][3] blocks,  [operator overloads][4],  [`callAsFunction()`][5], and [trailing closures][6], all in combination with one another - familiarity with these concepts will also be helpful.
+This guide presumes some familiarity with FSMs and specifically the SMC syntax linked above. Familiarity with [Swift Concurrency][3] is essential, as you will have to navigate issues such as `Sendable` conformance and `Actor` isolation. Swift FSM makes liberal use of [`@resultBuilder`][4] blocks,  [operator overloads][5],  [`callAsFunction()`][6], and [trailing closures][7], all in combination with one another - familiarity with these concepts will also be helpful. 
 
 ## Requirements
 
-Swift FSM is a Swift Package for all Apple platforms, available through the Swift Package Manager, and requires Swift 6 or later. It is tested against strict concurrency rules and should be fully compliant. As a result, **Swift FSM only works with projects that themselves are compiled in Swift 6 Language Mode** (see [Swift 6 Language Mode][7]).
+Swift FSM is a Swift Package for all Apple platforms, available through the Swift Package Manager, and requires Swift 6 or later. It is tested against strict concurrency rules and should be fully compliant. As a result, **Swift FSM only works with projects that themselves are compiled in Swift 6 Language Mode** (see [Swift 6 Language Mode][8]).
 
-It has one dependency - Apple’s [Algorithms][8].
+It has one dependency - Apple’s [Algorithms][9].
 
 ## Basic Syntax
 
@@ -129,7 +129,7 @@ As we are inside a `define` block, we take the `.locked` state as a given. We ca
 > when(.coin) | then(.unlocked) | { unlock() //; otherFunction(); etc. }
 > ```
 
-(see [Arrays of Actions][9] for other syntax variants)
+(see [Arrays of Actions][10] for other syntax variants)
 
 The `|` (pipe) operator binds transitions together. It feeds the output of the left hand side into the input of the right hand side, as you might expect in a terminal.
 
@@ -156,7 +156,7 @@ The four function signatures for actions that are accepted are as follows:
 
 These are handled interchangeably without any additional syntax. The tradeoff is that you must choose the appropriate `handleEvent` function to call when using the FSM. The synchronous `handleEvent` function must be called with `try`, because it will throw if it is asked to call an async action. Though the asynchronous `handleEventAsync` function must be called with `await`, it does not throw any errors as it is a valid context from which to call both synchronous and asynchronous actions.
 
-Note also that there are action signatures that take an event as an argument. This can be useful in situations where you wish to pass an associated value along with an event enum that can then be received by your callback function (see [Using Events to Pass Values][10] for more details on how to implement this) .
+Note also that there are action signatures that take an event as an argument. This can be useful in situations where you wish to pass an associated value along with an event enum that can then be received by your callback function (see [Using Events to Pass Values][11] for more details on how to implement this) .
 
 ##### Arrays of Actions
 
@@ -524,7 +524,7 @@ This setting replicates SMC entry/exit action behaviour. The default is `.execut
 
 ### Syntax Order
 
-All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][11] below for exceptions to this rule.
+All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][12] below for exceptions to this rule.
 
 ### Syntactic Sugar
 
@@ -638,7 +638,7 @@ define(.locked) {
 
 If the `if/else` block were evaluated by the FSM at transition time, this would be a useful addition. However what we are doing inside these blocks is *compiling* our state transition table. The use of `if` and `else` in this manner is more akin to the conditional compilation statements `#if/#else` - based on a value defined at compile time, only one transition or the other will be added to the table.
 
-If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][12] for alternative ways to evaluate conditional statements at transition time rather than compile time.
+If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][13] for alternative ways to evaluate conditional statements at transition time rather than compile time.
 
 ### Runtime Errors
 
@@ -855,7 +855,7 @@ Transitions in Swift FSM are are therefore `Predicate` agnostic by default, matc
 
 ### Multiple Predicates
 
-There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][13] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
+There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][14] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
 
 ```swift
 enum Enforcement: Predicate { case weak, strong }
@@ -923,7 +923,7 @@ In Swift FSM, `matching(and:)` means that we expect both predicates to be presen
 
 Swift FSM expects exactly one instance of each `Predicate` type present in the table to be passed to each call to `handleEvent`, as in the example above, where `turnstile.handleEvent(.coin, predicates: A.x, B.x, C.x)` contains a single instance of types `A`, `B` and `C`. Accordingly, `A.x AND A.y` should never occur - only one can be present. Therefore, predicates passed to `matching(and:)` must all be of a different type.  This cannot be checked at compile time, and therefore throws at runtime if violated.
 
-In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][14] for more information on this limitation).
+In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][15] for more information on this limitation).
 
 **Warning** - nested `matching` statements are combined by AND-ing them together, which makes it possible inadvertently to create a conflict.
 
@@ -1248,7 +1248,7 @@ define(.locked) {
 
 ### Condition Statements
 
-Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][15] for a description of `matching` overhead).
+Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][16] for a description of `matching` overhead).
 
 If you need to make a specific transition conditional at runtime, then the `condition` statement may suffice. Some FSM implementations call this a `guard` statement, however the name `condition` was chosen here as `guard` is a reserved word in Swift.
 
@@ -1335,7 +1335,7 @@ matching(A.a, or: A.b) { // ✅
 
 #### Implicit Clash Error
 
-See [Implicit Clashes][16]
+See [Implicit Clashes][17]
 
 ### Predicate Performance
 
@@ -1454,7 +1454,7 @@ try turnstile.buildTable {
 }
 ```
 
-This is the original example from [Entry and Exit Actions][17], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
+This is the original example from [Entry and Exit Actions][18], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
 
 > **Cannot find '🦤' in scope**
 
@@ -1480,8 +1480,7 @@ Using Swift 5 Language Mode will result in compilation errors that cannot be cor
 define(.locked) {
     when(.coin) | then(.unlocked) | unlock // ❌ 
                                     ^^^^^^
-}
-                                    
+}                               
 // Converting non-sendable function value to '@MainActor @Sendable () -> Void' may introduce data races
 ```
 
@@ -1496,21 +1495,22 @@ These errors will disappear in Swift 6 Language Mode.
 
 [1]:	https://codecov.io/gh/drseg/swift-fsm
 [2]:	https://github.com/unclebob/CC_SMC
-[3]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder
-[4]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators/
-[5]:	https://github.com/apple/swift-evolution/blob/main/proposals/0253-callable.md
-[6]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/closures/#Trailing-Closures
-[7]:	#swift-6-language-mode
-[8]:	https://github.com/apple/swift-algorithms
-[9]:	#arrays-of-actions
-[10]:	#using-events-to-pass-values
-[11]:	#expanded-syntax
+[3]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/
+[4]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder
+[5]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators/
+[6]:	https://github.com/apple/swift-evolution/blob/main/proposals/0253-callable.md
+[7]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/closures/#Trailing-Closures
+[8]:	#swift-6-language-mode
+[9]:	https://github.com/apple/swift-algorithms
+[10]:	#arrays-of-actions
+[11]:	#using-events-to-pass-values
 [12]:	#expanded-syntax
-[13]:	#predicate-performance
-[14]:	#implicit-clashes
-[15]:	#predicate-performance
-[16]:	#implicit-clashes
-[17]:	#entry-and-exit-actions
+[13]:	#expanded-syntax
+[14]:	#predicate-performance
+[15]:	#implicit-clashes
+[16]:	#predicate-performance
+[17]:	#implicit-clashes
+[18]:	#entry-and-exit-actions
 
 [image-1]:	https://codecov.io/gh/drseg/swift-fsm/branch/master/graph/badge.svg?token=4UV1D0M80T
 [image-2]:	https://img.shields.io/testspace/tests/drseg/drseg:swift-fsm/master
