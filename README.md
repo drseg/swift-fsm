@@ -48,6 +48,7 @@ Swift FSM (with additional code for context):
 ```swift
 import SwiftFSM
 
+@MainActor
 class MyClass: SyntaxBuilder {
     enum State { case locked, unlocked }
     enum Event { case coin, pass }
@@ -82,7 +83,7 @@ The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` n
 > let fsm = FSM<State, Event>(initialState: .locked)
 > ```
 
-`FSM` is generic  over `State` and `Event`.  As with `SyntaxBuilder`, `State` and `Event` must be `Hashable & Sendable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
+`FSM` is generic  over `State` and `Event`, and is `@MainActor` isolated. As with `SyntaxBuilder`, `State` and `Event` must be `Hashable & Sendable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
 
 > ```swift
 > try fsm.buildTable {
@@ -122,7 +123,7 @@ The `FSM` instance will look up the appropriate transition for its current state
 
 #### Actions and Concurrency
 
-Currently, in order to work reasonably in a SwiftUI and Swift Concurrency world, the FSM runs its critical loops on the Main Actor, and expects that the actions you pass it will do so as well. Internally, the method `handleEvent` and all actions are therefore annotated `@MainActor`.
+In order to work reasonably in a SwiftUI and Swift Concurrency world, the FSM is `@MainActor` isolated, and requires that the actions you pass it will be so as well.
 
 There are two versions of `handleEvent`, the first as shown above and in all the examples, and the second named `handleEventAsync` which must be called with `await`. 
 
