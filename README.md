@@ -1482,7 +1482,7 @@ define(.locked) {
                                     ^^^^^^
 }
                                     
-//	Converting non-sendable function value to '@MainActor @Sendable () -> Void' may introduce data races
+// Converting non-sendable function value to '@MainActor @Sendable () -> Void' may introduce data races
 ```
 
 These errors will disappear in Swift 6 Language Mode.
