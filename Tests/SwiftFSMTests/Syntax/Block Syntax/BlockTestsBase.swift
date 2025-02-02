@@ -6,7 +6,7 @@ class BlockTestsBase: SyntaxTestsBase {
     typealias MWABuilder = Internal.MWABuilder
     typealias MTABuilder = Internal.MTABuilder
     typealias MABuilder = Internal.MABuilder
-    typealias Actions = Syntax.Actions<Event>
+    typealias Actions = Internal.Actions<Event>
 
     let baseFile = #file
 

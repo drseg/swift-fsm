@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Syntax {
+public extension Internal {
     struct Actions<Event: FSMHashable> {
         let actions: [AnyAction]
         let file: String

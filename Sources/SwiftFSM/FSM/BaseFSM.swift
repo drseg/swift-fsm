@@ -9,7 +9,7 @@ import Foundation
 
 @resultBuilder
 public struct TableBuilder<State: FSMHashable, Event: FSMHashable>: ResultBuilder {
-    public typealias T = Syntax.Define<State, Event>
+    public typealias T = Internal.Define<State, Event>
 }
 
 struct TableKey: @unchecked Sendable, Hashable {
@@ -48,7 +48,7 @@ protocol FSMProtocol<State, Event>: AnyObject {
     func buildTable(
         file: String,
         line: Int,
-        @TableBuilder<State, Event> _ block: () -> [Syntax.Define<State, Event>]
+        @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
     ) throws
 }
 
@@ -66,7 +66,7 @@ extension FSMProtocol {
     func buildTable(
         file: String = #file,
         line: Int = #line,
-        @TableBuilder<State, Event> _ block: () -> [Syntax.Define<State, Event>]
+        @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
     ) throws {
         guard table.isEmpty else {
             throw makeError(TableAlreadyBuiltError(file: file, line: line))

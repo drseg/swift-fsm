@@ -1,146 +1,21 @@
 import Foundation
 
-@MainActor
-public enum Syntax {
-    @MainActor
-    public enum Expanded { }
-}
-
 public enum Internal {
     public struct MatchingWhen<State: FSMHashable, Event: FSMHashable> {
-        public static func | (
-            lhs: Self,
-            rhs: Syntax.Then<State, Event>
-        ) -> MatchingWhenThen<Event> {
-            .init(node: rhs.node.appending(lhs.node))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMSyncAction
-        ) -> MatchingWhenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMAsyncAction
-        ) -> MatchingWhenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMSyncActionWithEvent<Event>
-        ) -> MatchingWhenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMAsyncActionWithEvent<Event>
-        ) -> MatchingWhenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: [AnyAction]
-        ) -> MatchingWhenActions<Event> {
-            .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: Syntax.Then<State, Event>
-        ) -> MatchingWhenThenActions<Event> {
-            .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
-        }
-
         let node: WhenNode
     }
 
     public struct MatchingThen<Event: FSMHashable> {
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMSyncAction
-        ) -> MatchingThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMAsyncAction
-        ) -> MatchingThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMSyncActionWithEvent<Event>
-        ) -> MatchingThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMAsyncActionWithEvent<Event>
-        ) -> MatchingThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: [AnyAction]
-        ) -> MatchingThenActions<Event> {
-            .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
-        }
-
         let node: ThenNode
     }
 
+    public struct MatchingWhenThen<Event: FSMHashable> {
+        let node: ThenNode
+    }
+    
     public final class MatchingActions<Event: FSMHashable>: MA { }
     public final class MatchingWhenActions<Event: FSMHashable>: MWA { }
     public final class MatchingThenActions<Event: FSMHashable>: MTA { }
-
-    public struct MatchingWhenThen<Event: FSMHashable> {
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMSyncAction
-        ) -> MatchingWhenThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMAsyncAction
-        ) -> MatchingWhenThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMSyncActionWithEvent<Event>
-        ) -> MatchingWhenThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMAsyncActionWithEvent<Event>
-        ) -> MatchingWhenThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: [AnyAction]
-        ) -> MatchingWhenThenActions<Event> {
-            .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
-        }
-
-        let node: ThenNode
-    }
 
     public final class MatchingWhenThenActions<Event>: MWTA { }
 

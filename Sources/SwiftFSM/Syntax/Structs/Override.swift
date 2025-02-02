@@ -1,4 +1,4 @@
-public extension Syntax {
+public extension Internal {
     struct Override {
         public func callAsFunction(
             @Internal.MWTABuilder _ block: () -> [MWTA]

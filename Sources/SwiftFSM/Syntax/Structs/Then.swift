@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Syntax {
+public extension Internal {
     struct Then<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,

@@ -23,7 +23,7 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
     public func buildTable(
         file: String = #file,
         line: Int = #line,
-        @TableBuilder<State, Event> _ block: () -> [Syntax.Define<State, Event>]
+        @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
     ) throws {
         try fsm.buildTable(file: file, line: line, block)
     }

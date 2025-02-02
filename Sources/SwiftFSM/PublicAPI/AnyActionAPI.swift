@@ -26,7 +26,6 @@ public extension AnyAction {
 
 // MARK: - init with a single FSMAction element, avoiding AnyAction.init
 public extension Array<AnyAction> {
-
     init(_ action: @escaping FSMSyncAction) {
         self.init(arrayLiteral: AnyAction(action))
     }

@@ -30,7 +30,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         func buildTable(
             file: String = #file,
             line: Int = #line,
-            _ block: () -> [Syntax.Define<Int, Int>]
+            _ block: () -> [Internal.Define<Int, Int>]
         ) throws {
             log(args: [file, line, block()])
         }

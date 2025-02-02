@@ -1,11 +1,10 @@
 import Foundation
 
-@MainActor
 public protocol ExpandedSyntaxBuilder: SyntaxBuilder { }
 
 // MARK: - Matching
 public extension ExpandedSyntaxBuilder {
-    typealias Matching = Syntax.Expanded.Matching
+    typealias Matching = Internal.Matching
 
     func matching<P: Predicate>(
         _ predicate: P,
@@ -145,7 +144,7 @@ public extension ExpandedSyntaxBuilder {
 
 // MARK: - Condition
 public extension ExpandedSyntaxBuilder {
-    typealias Condition = Syntax.Expanded.Condition
+    typealias Condition = Internal.Condition
 
     func condition(
         _ condition: @escaping ConditionProvider,

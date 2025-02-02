@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Syntax {
+public extension Internal {
     struct Define<State: FSMHashable, Event: FSMHashable> {
         let node: DefineNode
 
