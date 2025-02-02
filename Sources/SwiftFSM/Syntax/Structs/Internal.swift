@@ -7,7 +7,6 @@ public enum Syntax {
 }
 
 public enum Internal {
-    @MainActor
     public struct MatchingWhen<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,
@@ -61,7 +60,6 @@ public enum Internal {
         let node: WhenNode
     }
 
-    @MainActor
     public struct MatchingThen<Event: FSMHashable> {
         public static func | (
             lhs: Self,
@@ -105,7 +103,6 @@ public enum Internal {
     public final class MatchingWhenActions<Event: FSMHashable>: MWA { }
     public final class MatchingThenActions<Event: FSMHashable>: MTA { }
 
-    @MainActor
     public struct MatchingWhenThen<Event: FSMHashable> {
         public static func | (
             lhs: Self,

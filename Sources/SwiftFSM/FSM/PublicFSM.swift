@@ -4,7 +4,6 @@ public enum StateActionsPolicy {
     case executeAlways, executeOnChangeOnly
 }
 
-@MainActor
 public class FSM<State: FSMHashable, Event: FSMHashable> {
     public enum PredicateHandling { case eager, lazy }
 
@@ -29,18 +28,22 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
         try fsm.buildTable(file: file, line: line, block)
     }
 
+    @MainActor
     public func handleEvent(_ event: Event) throws {
         try fsm.handleEvent(event)
     }
 
+    @MainActor
     public func handleEventAsync(_ event: Event) async {
         await fsm.handleEventAsync(event)
     }
 
+    @MainActor
     public func handleEvent(_ event: Event, predicates: any Predicate...) throws {
         try fsm.handleEvent(event, predicates: predicates)
     }
 
+    @MainActor
     public func handleEventAsync(_ event: Event, predicates: any Predicate...) async {
         await fsm.handleEventAsync(event, predicates: predicates)
     }

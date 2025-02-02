@@ -11,7 +11,6 @@ struct LogData: Equatable {
     }
 }
 
-@MainActor
 protocol LoggableFSM {
     var loggedEvents: [LogData] { get set }
     var loggedTransitions: [Transition] { get set }
@@ -115,7 +114,6 @@ class LoggerTests: XCTestCase {
     }
 }
 
-@MainActor
 class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
