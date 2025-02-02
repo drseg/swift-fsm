@@ -54,7 +54,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTASentence {
+    ) -> Internal.MWTABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -64,7 +64,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTASentence {
+    ) -> Internal.MWTABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -74,7 +74,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTASentence {
+    ) -> Internal.MWTABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -84,7 +84,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTASentence {
+    ) -> Internal.MWTABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -94,7 +94,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTASentence {
+    ) -> Internal.MWTABlock {
         Internal.Actions<Event>(actions, file: file, line: line)
             .callAsFunction(block)
     }
@@ -104,7 +104,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWASentence {
+    ) -> Internal.MWABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -114,7 +114,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWASentence {
+    ) -> Internal.MWABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -124,7 +124,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWASentence {
+    ) -> Internal.MWABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -134,7 +134,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWASentence {
+    ) -> Internal.MWABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -144,7 +144,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWASentence {
+    ) -> Internal.MWABlock {
         Internal.Actions<Event>(actions, file: file, line: line)
             .callAsFunction(block)
     }
@@ -154,7 +154,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MTASentence {
+    ) -> Internal.MTABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -164,7 +164,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MTASentence {
+    ) -> Internal.MTABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -174,7 +174,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MTASentence {
+    ) -> Internal.MTABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -184,7 +184,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MTASentence {
+    ) -> Internal.MTABlock {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
     }
@@ -194,7 +194,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MTASentence {
+    ) -> Internal.MTABlock {
         Internal.Actions<Event>(actions, file: file, line: line)
             .callAsFunction(block)
     }
@@ -215,7 +215,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWTASentence {
+    ) -> Internal.MWTABlock {
         Internal.Then<State, Event>(state, file: file, line: line)
             .callAsFunction(block)
     }
@@ -225,7 +225,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [Internal.MA]
-    ) -> Internal.MTASentence {
+    ) -> Internal.MTABlock {
         Internal.Then<State, Event>(state, file: file, line: line)
             .callAsFunction(block)
     }
@@ -256,7 +256,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MWTASentence {
+    ) -> Internal.MWTABlock {
         Internal.When<State, Event>([event] + otherEvents, file: file, line: line)
             .callAsFunction(block)
     }
@@ -266,7 +266,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MWTASentence {
+    ) -> Internal.MWTABlock {
         Internal.When<State, Event>([event], file: file, line: line)
             .callAsFunction(block)
     }
@@ -277,7 +277,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [Internal.MA]
-    ) -> Internal.MWASentence {
+    ) -> Internal.MWABlock {
         Internal.When<State, Event>([event] + otherEvents, file: file, line: line)
             .callAsFunction(block)
     }
@@ -287,7 +287,7 @@ public extension SyntaxBuilder {
         file: String = #file,
         line: Int = #line,
         @Internal.MABuilder _ block: () -> [Internal.MA]
-    ) -> Internal.MWASentence {
+    ) -> Internal.MWABlock {
         Internal.When<State, Event>([event], file: file, line: line)
             .callAsFunction(block)
     }

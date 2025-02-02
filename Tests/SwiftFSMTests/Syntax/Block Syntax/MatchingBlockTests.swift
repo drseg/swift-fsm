@@ -61,7 +61,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testMWTABlocks() {
         func assertMWTABlock(
-            _ b: Internal.MWTASentence,
+            _ b: Internal.MWTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine sl: Int = #line,
@@ -87,7 +87,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testMWABlocks() {
         func assertMWABlock(
-            _ b: Internal.MWASentence,
+            _ b: Internal.MWABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
@@ -111,7 +111,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testMTABlocks() {
         func assertMTABlock(
-            _ b: Internal.MTASentence,
+            _ b: Internal.MTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
@@ -135,7 +135,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testCompoundMWTABlocks() {
         func assertCompoundMWTABlock(
-            _ b: Internal.MWTASentence,
+            _ b: Internal.MWTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
@@ -157,7 +157,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testCompoundMWABlocks() {
         func assertCompoundMWABlock(
-            _ b: Internal.MWASentence,
+            _ b: Internal.MWABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
@@ -179,7 +179,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testCompoundMTABlocks() {
         func assertCompoundMTABlock(
-            _ b: Internal.MTASentence,
+            _ b: Internal.MTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,

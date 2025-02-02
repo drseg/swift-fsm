@@ -6,8 +6,9 @@ final class SentenceComponentTests: SyntaxTestsBase {
         assertMWNode(mw.node, sutLine: sl, xctLine: xl)
     }
     
-    func assertMWNode(_ whenNode: WhenNode, sutLine sl: Int, xctLine xl: UInt = #line) {
-        let matchNode = whenNode.rest.first as! MatchingNode
+    func assertMWNode<N: Node>(_ n: N, sutLine sl: Int, xctLine xl: UInt = #line) {
+        let whenNode = n as! WhenNode
+        let matchNode = n.rest.first as! MatchingNode
         
         XCTAssertEqual(1, whenNode.rest.count, line: xl)
         XCTAssertEqual(0, matchNode.rest.count, line: xl)
@@ -48,7 +49,7 @@ final class SentenceComponentTests: SyntaxTestsBase {
             let when = then.rest.first as! WhenNode
             
             XCTAssertEqual(1, then.rest.count, line: xl)
-            assertThenNode(then, state: 1, sutFile: #file, sutLine: sl, xctLine: xl)
+            assertThenNode(then as! ThenNodeBase, state: 1, sutFile: #file, sutLine: sl, xctLine: xl)
             assertMWNode(when, sutLine: sl)
         }
         
@@ -88,7 +89,7 @@ final class SentenceComponentTests: SyntaxTestsBase {
             XCTAssertEqual(1, then.rest.count, line: xl)
             XCTAssertEqual(0, when.rest.count, line: xl)
 
-            assertThenNode(then, state: 1, sutFile: #file, sutLine: sl, xctLine: xl)
+            assertThenNode(then as! ThenNodeBase, state: 1, sutFile: #file, sutLine: sl, xctLine: xl)
             assertWhenNode(when, sutLine: sl, xctLine: xl)
         }
 

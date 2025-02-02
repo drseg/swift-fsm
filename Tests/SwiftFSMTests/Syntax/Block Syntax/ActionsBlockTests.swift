@@ -68,7 +68,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testMWTABlocks() {
         func assertMWTA(
-            _ b: Internal.MWTASentence,
+            _ b: Internal.MWTABlock,
             expectedNodeOutput eo: String = Self.defaultOutput,
             expectedRestOutput er: String = Self.defaultOutput,
             sutLine sl: Int = #line,
@@ -95,7 +95,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testMWABlocks() {
         func assertMWA(
-            _ b: Internal.MWASentence,
+            _ b: Internal.MWABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             nodeLine sl: Int = #line,
@@ -134,7 +134,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testMTABlocks() {
         func assertMTA(
-            _ b: Internal.MTASentence,
+            _ b: Internal.MTABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             nodeLine nl: Int = #line,
@@ -176,7 +176,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testCompoundMWTABlocks() {
         func assertMWTA(
-            _ b: Internal.MWTASentence,
+            _ b: Internal.MWTABlock,
             expectedNodeOutput eo: String = BlockTestsBase.defaultOutput,
             expectedRestOutput er: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,
@@ -210,7 +210,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testCompoundMWABlocks() {
         func assertMWA(
-            _ b: Internal.MWASentence,
+            _ b: Internal.MWABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,
@@ -244,7 +244,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testCompoundMTABlocks() {
         func assertMTA(
-            _ b: Internal.MTASentence,
+            _ b: Internal.MTABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,

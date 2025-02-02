@@ -1,18 +1,6 @@
 import Foundation
 
 public enum Internal {
-    public struct MatchingWhen<State: FSMHashable, Event: FSMHashable> {
-        let node: WhenNode
-    }
-
-    public struct MatchingThen<Event: FSMHashable> {
-        let node: ThenNode
-    }
-
-    public struct MatchingWhenThen<Event: FSMHashable> {
-        let node: ThenNode
-    }
-    
     public class Sentence {
         let node: any Node<DefaultIO>
 
@@ -20,6 +8,10 @@ public enum Internal {
             self.node = node
         }
     }
+    
+    public final class MatchingWhen<State: FSMHashable, Event: FSMHashable>: Sentence { }
+    public final class MatchingThen<Event: FSMHashable>: Sentence { }
+    public final class MatchingWhenThen<Event: FSMHashable>: Sentence { }
     
     public class MWTA: Sentence { }
     public class MWA: Sentence { }
@@ -29,7 +21,6 @@ public enum Internal {
     public final class MatchingActions<Event: FSMHashable>: MA { }
     public final class MatchingWhenActions<Event: FSMHashable>: MWA { }
     public final class MatchingThenActions<Event: FSMHashable>: MTA { }
-
     public final class MatchingWhenThenActions<Event>: MWTA { }
 
     protocol BlockSentence {
@@ -38,9 +29,9 @@ public enum Internal {
         init(node: any Node<DefaultIO>)
     }
     
-    public final class MWTASentence: MWTA, BlockSentence { }
-    public final class MWASentence: MWA, BlockSentence { }
-    public final class MTASentence: MTA, BlockSentence { }
+    public final class MWTABlock: MWTA, BlockSentence { }
+    public final class MWABlock: MWA, BlockSentence { }
+    public final class MTABlock: MTA, BlockSentence { }
 
     @resultBuilder
     public struct MWTABuilder: ResultBuilder {
