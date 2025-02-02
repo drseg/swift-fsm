@@ -46,9 +46,8 @@ FSM: Turnstile
 Swift FSM:
 
 ```swift
-let fsm = FSM<State, Event>(initialState: .locked)
-
-try fsm.buildTable {
+let turnstile = FSM<State, Event>(initialState: .locked)
+try turnstile.buildTable {
     define(.locked) {
         when(.coin) | then(.unlocked) | unlock
         when(.pass) | then(.locked)   | alarm
@@ -72,10 +71,10 @@ class MyClass: SyntaxBuilder {
     enum State { case locked, unlocked }
     enum Event { case coin, pass }
 
-    let fsm = FSM<State, Event>(initialState: .locked)
+    let turnstile = FSM<State, Event>(initialState: .locked)
 
     func myMethod() throws {
-        try fsm.buildTable {
+        try turnstile.buildTable {
             define(.locked) {
                 when(.coin) | then(.unlocked) | unlock
                 when(.pass) | then(.locked)   | alarm
@@ -87,7 +86,7 @@ class MyClass: SyntaxBuilder {
             }
         }
 
-        try fsm.handleEvent(.coin)
+        try turnstile.handleEvent(.coin)
     }
 }
 ```
@@ -99,16 +98,16 @@ class MyClass: SyntaxBuilder {
 The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable & Sendable`. The protocol itself is `@MainActor` isolated, requiring your implementation to be similarly isolated.
 
 > ```swift
-> let fsm = FSM<State, Event>(initialState: .locked)
+> let turnstile = FSM<State, Event>(initialState: .locked)
 > ```
 
 `FSM` is generic  over `State` and `Event`, and is `@MainActor` isolated. As with `SyntaxBuilder`, `State` and `Event` must be `Hashable & Sendable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
 
 > ```swift
-> try fsm.buildTable {
+> try turnstile.buildTable {
 > ```
 
-`fsm.buildTable` is a throwing function - though the type system will prevent various illogical statements, there are some issues that can only be detected at runtime.
+`turnstile.buildTable` is a throwing function - though the type system will prevent various illogical statements, there are some issues that can only be detected at runtime.
 
 > ```swift
 > define(.locked) {
@@ -130,12 +129,12 @@ As we are inside a `define` block, we take the `.locked` state as a given. We ca
 > when(.coin) | then(.unlocked) | { unlock() //; otherFunction(); etc. }
 > ```
 
-(see [Arrays of Actions][10] for other syntax variants)
+(see [Arrays of Actions][8] for other syntax variants)
 
 The `|` (pipe) operator binds transitions together. It feeds the output of the left hand side into the input of the right hand side, as you might expect in a terminal.
 
 > ```swift
-> try fsm.handleEvent(.coin)
+> try turnstile.handleEvent(.coin)
 > ```
 
 The `FSM` instance will look up the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, the `FSM` will call the `unlock` function and transition to the `unlocked` state.  If no transition is found, it will do nothing, and if compiled for debugging, will print a warning message.
@@ -157,7 +156,7 @@ The four function signatures for actions that are accepted are as follows:
 
 These are handled interchangeably without any additional syntax. The tradeoff is that you must choose the appropriate `handleEvent` function to call when using the FSM. The synchronous `handleEvent` function must be called with `try`, because it will throw if it is asked to call an async action. Though the asynchronous `handleEventAsync` function must be called with `await`, it does not throw any errors as it is a valid context from which to call both synchronous and asynchronous actions.
 
-Note also that there are action signatures that take an event as an argument. This can be useful in situations where you wish to pass an associated value along with an event enum that can then be received by your callback function (see [Using Events to Pass Values][11] for more details on how to implement this) .
+Note also that there are action signatures that take an event as an argument. This can be useful in situations where you wish to pass an associated value along with an event enum that can then be received by your callback function (see [Using Events to Pass Values][9] for more details on how to implement this) .
 
 ##### Arrays of Actions
 
@@ -204,7 +203,7 @@ FSM: Turnstile
 Swift FSM:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     define(.locked) {
         when(.coin)  | then(.unlocked) | unlock
         when(.pass)  | then(.alarming) | alarmOn
@@ -257,7 +256,7 @@ FSM: Turnstile
 Swift FSM:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     let resetable = SuperState {
         when(.reset) | then(.locked)  | alarmOff & lock
     }
@@ -407,7 +406,7 @@ define(.locked, adopts: s4) {
     overriding { when(.coin) | then(.unlocked) | a5 } // ✅ overrides all others
 }
 
-fsm.handleEvent(.coin) // 'a5' is called
+turnstile.handleEvent(.coin) // 'a5' is called
 ```
 
 ### Entry and Exit Actions
@@ -438,7 +437,7 @@ FSM: Turnstile
 Swift FSM:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     let resetable = SuperState {
         when(.reset) | then(.locked)
     }
@@ -525,7 +524,7 @@ This setting replicates SMC entry/exit action behaviour. The default is `.execut
 
 ### Syntax Order
 
-All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][12] below for exceptions to this rule.
+All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][10] below for exceptions to this rule.
 
 ### Syntactic Sugar
 
@@ -560,14 +559,14 @@ enum Event: EventWithValues {
 }
 
 func main() throws {
-    try fsm.buildTable(initialState: .locked) {
+    try turnstile.buildTable(initialState: .locked) {
         define(.locked) {
             when(.coin(.any)) | then(.verifyingPayment) | verifyPayment
             // here we use .any to match any value
         }
     }
 
-    try fsm.handleEvent(.coin(50))
+    try turnstile.handleEvent(.coin(50))
     // here we pass a specific value that will be matched by .any
 }
 
@@ -586,7 +585,7 @@ func verifyPayment(_ event: Event) {
  `when(.coin(.any))` works polymorphically. We wish to write a single transition row that will match against any value inside `.coin(someValue)` and pass that value on to the `verifyPayment` function. Without the combination of `EventWithValues` and `FSMValue<T>`, the table would have to be written as follows:
 
 ```swift
-try fsm.buildTable(initialState: .locked) {
+try turnstile.buildTable(initialState: .locked) {
     define(.locked) {
         when(.coin(1)) | then(.verifyingPayment) | verifyPayment
         when(.coin(2)) | then(.verifyingPayment) | verifyPayment
@@ -639,7 +638,7 @@ define(.locked) {
 
 If the `if/else` block were evaluated by the FSM at transition time, this would be a useful addition. However what we are doing inside these blocks is *compiling* our state transition table. The use of `if` and `else` in this manner is more akin to the conditional compilation statements `#if/#else` - based on a value defined at compile time, only one transition or the other will be added to the table.
 
-If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][13] for alternative ways to evaluate conditional statements at transition time rather than compile time.
+If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][11] for alternative ways to evaluate conditional statements at transition time rather than compile time.
 
 ### Runtime Errors
 
@@ -652,8 +651,8 @@ As these cannot be hidden, please note that there are unlikely to be any circums
 All blocks must contain at least one transition, otherwise an error will be thrown:
 
 ```swift
-try fsm.buildTable { } //💥 error: empty table
-try fsm.buildTable {
+try turnstile.buildTable { } //💥 error: empty table
+try turnstile.buildTable {
     define(.locked) { } // 💥 error: empty block
 }
 ```
@@ -663,7 +662,7 @@ try fsm.buildTable {
 Transitions are duplicates if they share the same start state, event, and next state:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     define(.locked) {
         when(.coin) | then(.unlocked) | unlock
         when(.coin) | then(.unlocked) | lock
@@ -678,7 +677,7 @@ try fsm.buildTable {
 A logical clash occurs when transitions share the same start state and event, but their next states differ:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     define(.locked) {
         when(.coin) | then(.unlocked) | unlock
         when(.coin) | then(.locked)   | lock
@@ -695,7 +694,7 @@ Though the two transitions are distinct from one another, logically they cannot 
 Because `.any` matches all cases, the following would throw an error:
 
 ```swift
-try fsm.buildTable(initialState: .locked) {
+try turnstile.buildTable(initialState: .locked) {
     define(.locked) {
         when(.coin(.any)) | then(.verifyingPayment) | verifyPayment
         when(.coin(50)    | then(.unlocked)         | pass
@@ -708,7 +707,7 @@ try fsm.buildTable(initialState: .locked) {
 The `.any` case already includes `.some(50)` and this specific case is therefore referenced ambiguously. It would however be possible to write the following:
 
 ```swift
-try fsm.buildTable(initialState: .locked) {
+try turnstile.buildTable(initialState: .locked) {
     define(.locked) {
         when(.coin(20) | then(.verifyingPayment) | verifyPayment
         when(.coin(50) | then(.unlocked)         | pass
@@ -720,7 +719,7 @@ try fsm.buildTable(initialState: .locked) {
 
 #### Duplicate `buildTable` Calls
 
-Additional calls to `fsm.buildTable { }` will throw a `TableAlreadyBuiltError`.
+Additional calls to `turnstile.buildTable { }` will throw a `TableAlreadyBuiltError`.
 
 ### Performance
 
@@ -737,7 +736,7 @@ Let’s imagine an extension to our turnstile rules: under some circumstances, w
 We could implement a time of day check somewhere else in the system, perhaps inside the implementation of the `alarmOn` function to decide what the appropriate behaviour should be:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     ...
     define(.locked) {
         when(.pass) | then(.alarming) | handleAlarm
@@ -766,7 +765,7 @@ Furthermore, we must transition to the `.alarming` state, regardless of the `Enf
 An alternative might be to introduce extra events to differentiate between the new policies:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     ...
     define(.locked) {
         when(.passWithEnforcement)    | then(.alarming) | defconOne
@@ -793,7 +792,7 @@ class MyClass: ExpandedSyntaxBuilder {
     let fsm = FSM<State, Event>(initialState: .locked)
 
     func myMethod() throws {
-        try fsm.buildTable {
+        try turnstile.buildTable {
             ...
             define(.locked) {
                 matching(Enforcement.weak)   | when(.pass) | then(.locked)   | smile
@@ -804,7 +803,7 @@ class MyClass: ExpandedSyntaxBuilder {
             ...
        }
         
-       fsm.handleEvent(.pass, predicates: Enforcement.weak)
+       turnstile.handleEvent(.pass, predicates: Enforcement.weak)
     }
 }
 ```
@@ -839,7 +838,7 @@ In this system, only those statements that depend upon the `Enforcement` policy 
 when(.coin) | then(.unlocked)
 ```
 
-In the above, no `Predicate` is specified, and its full meaning must therefore be inferred from context. The scope for contextual inference is the sum of the builder blocks for all `SuperState` and `define` calls inside `fsm.buildTable { }`.  
+In the above, no `Predicate` is specified, and its full meaning must therefore be inferred from context. The scope for contextual inference is the sum of the builder blocks for all `SuperState` and `define` calls inside `turnstile.buildTable { }`.  
 
 In our example, the type `Enforcement` appears in a `matching` statement elsewhere in the table, and Swift FSM will therefore infer the absent `matching` statement as follows:
 
@@ -856,13 +855,13 @@ Transitions in Swift FSM are are therefore `Predicate` agnostic by default, matc
 
 ### Multiple Predicates
 
-There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][15] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
+There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][12] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
 
 ```swift
 enum Enforcement: Predicate { case weak, strong }
 enum Reward: Predicate { case positive, negative }
 
-try fsm.buildTable {
+try turnstile.buildTable {
     ...
     define(.locked) {
         matching(Enforcement.weak)   | when(.pass) | then(.locked)   | lock
@@ -880,7 +879,7 @@ try fsm.buildTable {
     ...
 }
 
-fsm.handleEvent(.pass, predicates: Enforcement.weak, Reward.positive)
+turnstile.handleEvent(.pass, predicates: Enforcement.weak, Reward.positive)
 ```
 
 The same inference rules also apply:
@@ -917,14 +916,14 @@ matching(A.x, or: A.y, A.z, and: B.x, C.x)... // if (A.x OR A.y OR A.z) AND B.x 
 matching(A.x, or: B.x)...  // ⛔️ does not compile: OR types must be the same
 matching(A.x, and: A.y)... // 💥 error: cannot match A.x AND A.y simultaneously
 
-fsm.handleEvent(.coin, predicates: A.x, B.x, C.x)
+turnstile.handleEvent(.coin, predicates: A.x, B.x, C.x)
 ```
 
 In Swift FSM, `matching(and:)` means that we expect both predicates to be present at the same time, whereas `mathing(or:)` means that we expect any and only one of them to be present.
 
-Swift FSM expects exactly one instance of each `Predicate` type present in the table to be passed to each call to `handleEvent`, as in the example above, where `fsm.handleEvent(.coin, predicates: A.x, B.x, C.x)` contains a single instance of types `A`, `B` and `C`. Accordingly, `A.x AND A.y` should never occur - only one can be present. Therefore, predicates passed to `matching(and:)` must all be of a different type.  This cannot be checked at compile time, and therefore throws at runtime if violated.
+Swift FSM expects exactly one instance of each `Predicate` type present in the table to be passed to each call to `handleEvent`, as in the example above, where `turnstile.handleEvent(.coin, predicates: A.x, B.x, C.x)` contains a single instance of types `A`, `B` and `C`. Accordingly, `A.x AND A.y` should never occur - only one can be present. Therefore, predicates passed to `matching(and:)` must all be of a different type.  This cannot be checked at compile time, and therefore throws at runtime if violated.
 
-In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][16] for more information on this limitation).
+In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][13] for more information on this limitation).
 
 **Warning** - nested `matching` statements are combined by AND-ing them together, which makes it possible inadvertently to create a conflict.
 
@@ -1075,7 +1074,7 @@ when(.pass) {
 The full example would now be:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     define(.locked) {
         when(.pass) {
             matching(Enforcement.weak)   | then(.locked)
@@ -1090,7 +1089,7 @@ try fsm.buildTable {
 `then` and `matching` support context blocks in a similar way:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     define(.locked) {
         then(.unlocked) {
             when(.pass) {
@@ -1114,7 +1113,7 @@ try fsm.buildTable {
 ```
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     define(.locked) {
         matching(Enforcement.weak) {
             when(.coin) | then(.unlocked) | somethingWeak
@@ -1132,7 +1131,7 @@ try fsm.buildTable {
 The keyword `actions` is also available for function call context blocks:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     define(.locked) {
         actions(someCommonFunction) {
             when(.coin) | then(.unlocked)
@@ -1249,7 +1248,7 @@ define(.locked) {
 
 ### Condition Statements
 
-Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][17] for a description of `matching` overhead).
+Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][14] for a description of `matching` overhead).
 
 If you need to make a specific transition conditional at runtime, then the `condition` statement may suffice. Some FSM implementations call this a `guard` statement, however the name `condition` was chosen here as `guard` is a reserved word in Swift.
 
@@ -1299,9 +1298,9 @@ There is no way to distinguish different `condition` statements, as the `() -> B
 
 ### Runtime Errors
 
-In order to preserve performance, `fsm.handleEvent(event:predicates:)` performs minimal error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance. It is the caller’s responsibility to ensure that the predicates passed to `handleEvent` and the predicates used in the transition table are of the same type and number.
+In order to preserve performance, `turnstile.handleEvent(event:predicates:)` performs minimal error handling. Therefore, passing in `Predicate` instances that do not appear anywhere in the transition table will not error. Nonetheless, the FSM will be unable to perform any transitions, as it will not contain any statements that match the given, unexpected `Predicate` instance. It is the caller’s responsibility to ensure that the predicates passed to `handleEvent` and the predicates used in the transition table are of the same type and number.
 
-`try fsm.buildTable { }` does perform error handling to make sure the table is syntactically and semantically valid. In particular, it ensures that all `matching` statements are valid, and that there are no duplicate transitions and no logical clashes between transitions.
+`try turnstile.buildTable { }` does perform error handling to make sure the table is syntactically and semantically valid. In particular, it ensures that all `matching` statements are valid, and that there are no duplicate transitions and no logical clashes between transitions.
 
 In addition to the runtime errors thrown by the basic syntax, the expanded syntax also throws the following errors:
 
@@ -1336,22 +1335,22 @@ matching(A.a, or: A.b) { // ✅
 
 #### Implicit Clash Error
 
-See [Implicit Clashes][18]
+See [Implicit Clashes][15]
 
 ### Predicate Performance
 
 Overview: operations per function call for a table with 100 transitions, 3 `Predicate` types, and 10 cases per `Predicate`
 
 |               | `.eager` | `.lazy` | Schedule         |
-| :------------ | :------  | :------ | :--------------- |
+| :------------ | :------- | :------ | :--------------- |
 | `handleEvent` | 1        | 1-7     | Every transition |
 | `buildTable`  | 100,000  | 100     | Once on app load |
 
 #### FSM
 
-Adding predicates has no effect on the performance of `handleEvent()`, but does affect the performance of `fsm.buildTransitions { }`. By default, the FSM preserves `handleEvent()` runtime performance by doing significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
+Adding predicates has no effect on the performance of `handleEvent()`, but does affect the performance of `fsm.buildTable { }`. By default, the FSM preserves `handleEvent()` runtime performance by doing significant work ahead of time when creating the transition table, filling in missing transitions for all implied `Predicate` combinations.
 
-The performance of `fsm.buildTransitions { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated and filtered for each transition, performance is O(m^n\*o) where m is the average number of cases per predicate, n is number of`Predicate` types and o is the number of transitions. 
+The performance of `fsm.buildTable { }` is dominated by this, assuming any predicates are used at all. Because all possible combinations of cases of all given predicates have to be calculated and filtered for each transition, performance is O(m^n\*o) where m is the average number of cases per predicate, n is number of`Predicate` types and o is the number of transitions. 
 
 Using three`Predicate` types with 10 cases each in a table with 100 transitions would therefore require 100,000 operations to compile. In most real-world use cases, this is unlikely to be a problem. If your table is particularly large (see overview above), Swift FSM provides a more performance-balanced alternative for such cases in the form of the `LazyFSM` class.
 
@@ -1384,7 +1383,7 @@ This is a common compile time error in `@resultBuilder` blocks. It will occur if
 For example:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
      actions(thankyou) { } 
 // ⛔️ No exact matches in call to static method 'buildExpression'
 }
@@ -1401,7 +1400,7 @@ This is common in situations where an unsupported argument is passed to a pipe o
 For example:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     define(.locked) {
         then(.locked) | unlock
 // ⛔️ Cannot convert value of type 'Internal.Then<TurnstileState>' to expected argument type 'Internal.MatchingWhenThen'
@@ -1421,7 +1420,7 @@ It also produces a secondary error - as it cannot work out what the output of `t
 A personal favourite, from this:
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     define(.locked) {
         when(.coin) | matching(P.a) | then(.locked) | unlock
 // ⛔️ Referencing operator function '|' on 'SIMD' requires that 'Internal.When<TurnstileEvent>' conform to 'SIMD’
@@ -1436,7 +1435,7 @@ The compiler cannot help identify which pipe in the chain is causing the problem
 ### Spurious Issues
 
 ```swift
-try fsm.buildTable {
+try turnstile.buildTable {
     let resetable = SuperState {
         when(.reset) | then(.locked)
     }
@@ -1455,7 +1454,7 @@ try fsm.buildTable {
 }
 ```
 
-This is the original example from [Entry and Exit Actions][19], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
+This is the original example from [Entry and Exit Actions][16], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
 
 > **Cannot find '🦤' in scope**
 
@@ -1484,18 +1483,15 @@ Ignore these errors, and if there is no other error shown, you may have to hunt 
 [5]:	https://github.com/apple/swift-evolution/blob/main/proposals/0253-callable.md
 [6]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/closures/#Trailing-Closures
 [7]:	https://github.com/apple/swift-algorithms
-[8]:	#nsobject-error
-[9]:	https://github.com/drseg/reflective-equality
-[10]:	#arrays-of-actions
-[11]:	#using-events-to-pass-values
-[12]:	#expanded-syntax
-[13]:	#expanded-syntax
-[14]:	https://github.com/drseg/reflective-equality
-[15]:	#predicate-performance
-[16]:	#implicit-clashes
-[17]:	#predicate-performance
-[18]:	#implicit-clashes
-[19]:	#entry-and-exit-actions
+[8]:	#arrays-of-actions
+[9]:	#using-events-to-pass-values
+[10]:	#expanded-syntax
+[11]:	#expanded-syntax
+[12]:	#predicate-performance
+[13]:	#implicit-clashes
+[14]:	#predicate-performance
+[15]:	#implicit-clashes
+[16]:	#entry-and-exit-actions
 
 [image-1]:	https://codecov.io/gh/drseg/swift-fsm/branch/master/graph/badge.svg?token=4UV1D0M80T
 [image-2]:	https://img.shields.io/testspace/tests/drseg/drseg:swift-fsm/master
