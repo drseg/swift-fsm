@@ -13,12 +13,31 @@ public enum Internal {
         let node: ThenNode
     }
     
+    public class Sentence {
+        let node: any Node<DefaultIO>
+
+        init(node: any Node<DefaultIO>) {
+            self.node = node
+        }
+    }
+    
+    public class MWTA: Sentence { }
+    public class MWA: Sentence { }
+    public class MTA: Sentence { }
+    public class MA: Sentence { }
+    
     public final class MatchingActions<Event: FSMHashable>: MA { }
     public final class MatchingWhenActions<Event: FSMHashable>: MWA { }
     public final class MatchingThenActions<Event: FSMHashable>: MTA { }
 
     public final class MatchingWhenThenActions<Event>: MWTA { }
 
+    protocol BlockSentence {
+        var node: any Node<DefaultIO> { get }
+        
+        init(node: any Node<DefaultIO>)
+    }
+    
     public final class MWTASentence: MWTA, BlockSentence { }
     public final class MWASentence: MWA, BlockSentence { }
     public final class MTASentence: MTA, BlockSentence { }
@@ -44,15 +63,11 @@ public enum Internal {
     }
 }
 
-protocol BlockSentence {
-    var node: any Node<DefaultIO> { get }
-
-    init(node: any Node<DefaultIO>)
-}
-
-extension BlockSentence {
-    init<N: Node>(_ n: N, _ block: () -> [Sentence])
-    where N.Input == DefaultIO, N.Input == N.Output {
+extension Internal.BlockSentence {
+    init<N: Node<DefaultIO>>(
+        _ n: N,
+        _ block: () -> [Internal.Sentence]
+    ) where N.Input == N.Output {
         var n = n
         n.rest = block().nodes
         self.init(node: n)
@@ -62,7 +77,7 @@ extension BlockSentence {
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        _ block: () -> [Sentence]
+        _ block: () -> [Internal.Sentence]
     ) {
         self.init(
             node: ActionsBlockNode(
@@ -73,32 +88,5 @@ extension BlockSentence {
                 line: line
             )
         )
-    }
-}
-
-public class Sentence {
-    let node: any Node<DefaultIO>
-
-    init(node: any Node<DefaultIO>) {
-        self.node = node
-    }
-}
-
-public class MWTA: Sentence { }
-public class MWA: Sentence { }
-public class MTA: Sentence { }
-public class MA: Sentence { }
-
-extension Node {
-    func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {
-        var this = self
-        this.rest = [other]
-        return this
-    }
-}
-
-extension Array {
-    var nodes: [any Node<DefaultIO>] {
-        compactMap { ($0 as? Sentence)?.node }
     }
 }

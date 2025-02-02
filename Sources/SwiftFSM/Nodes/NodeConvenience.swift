@@ -62,6 +62,20 @@ func makeDefaultIO(
     [DefaultIO(match, event, state, actions, overrideGroupID, isOverride)]
 }
 
+extension Node {
+    func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {
+        var this = self
+        this.rest = [other]
+        return this
+    }
+}
+
+extension Array {
+    var nodes: [any Node<DefaultIO>] {
+        compactMap { ($0 as? Internal.Sentence)?.node }
+    }
+}
+
 extension String: @retroactive LocalizedError {
     public var errorDescription: String? { self }
 }

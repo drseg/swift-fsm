@@ -4,7 +4,7 @@ import XCTest
 class ActionsBlockTests: BlockTestsBase {
     let eventOutput = ActionsBlockTests.defaultOutputWithEvent
 
-    func abnComponents(of s: Sentence) -> (ActionsBlockNode, ActionsBlockNode) {
+    func abnComponents(of s: Internal.Sentence) -> (ActionsBlockNode, ActionsBlockNode) {
         let a1 = abn(s.node)
         let a2 = abn(a1.rest.first!)
         return (a1, a2)

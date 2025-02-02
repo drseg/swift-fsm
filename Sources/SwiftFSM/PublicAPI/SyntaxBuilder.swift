@@ -35,7 +35,7 @@ public extension SyntaxBuilder {
         onExit: [AnyAction] = [],
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [MWTA]
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
     ) -> Internal.Define<State, Event> {
         .init(state: state,
               adopts: superStates,
@@ -53,7 +53,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMSyncAction,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [MWTA]
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
     ) -> Internal.MWTASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -63,7 +63,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMAsyncAction,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [MWTA]
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
     ) -> Internal.MWTASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -73,7 +73,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMSyncActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [MWTA]
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
     ) -> Internal.MWTASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -83,7 +83,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMAsyncActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [MWTA]
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
     ) -> Internal.MWTASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -93,7 +93,7 @@ public extension SyntaxBuilder {
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [MWTA]
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
     ) -> Internal.MWTASentence {
         Internal.Actions<Event>(actions, file: file, line: line)
             .callAsFunction(block)
@@ -103,7 +103,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMSyncAction,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [MWA]
+        @Internal.MWABuilder _ block: () -> [Internal.MWA]
     ) -> Internal.MWASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -113,7 +113,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMAsyncAction,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [MWA]
+        @Internal.MWABuilder _ block: () -> [Internal.MWA]
     ) -> Internal.MWASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -123,7 +123,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMSyncActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [MWA]
+        @Internal.MWABuilder _ block: () -> [Internal.MWA]
     ) -> Internal.MWASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -133,7 +133,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMAsyncActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [MWA]
+        @Internal.MWABuilder _ block: () -> [Internal.MWA]
     ) -> Internal.MWASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -143,7 +143,7 @@ public extension SyntaxBuilder {
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [MWA]
+        @Internal.MWABuilder _ block: () -> [Internal.MWA]
     ) -> Internal.MWASentence {
         Internal.Actions<Event>(actions, file: file, line: line)
             .callAsFunction(block)
@@ -153,7 +153,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMSyncAction,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [MTA]
+        @Internal.MTABuilder _ block: () -> [Internal.MTA]
     ) -> Internal.MTASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -163,7 +163,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMAsyncAction,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [MTA]
+        @Internal.MTABuilder _ block: () -> [Internal.MTA]
     ) -> Internal.MTASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -173,7 +173,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMSyncActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [MTA]
+        @Internal.MTABuilder _ block: () -> [Internal.MTA]
     ) -> Internal.MTASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -183,7 +183,7 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMAsyncActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [MTA]
+        @Internal.MTABuilder _ block: () -> [Internal.MTA]
     ) -> Internal.MTASentence {
         Internal.Actions<Event>(Array(action), file: file, line: line)
             .callAsFunction(block)
@@ -193,7 +193,7 @@ public extension SyntaxBuilder {
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [MTA]
+        @Internal.MTABuilder _ block: () -> [Internal.MTA]
     ) -> Internal.MTASentence {
         Internal.Actions<Event>(actions, file: file, line: line)
             .callAsFunction(block)
@@ -214,7 +214,7 @@ public extension SyntaxBuilder {
         _ state: State? = nil,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [MWA]
+        @Internal.MWABuilder _ block: () -> [Internal.MWA]
     ) -> Internal.MWTASentence {
         Internal.Then<State, Event>(state, file: file, line: line)
             .callAsFunction(block)
@@ -224,7 +224,7 @@ public extension SyntaxBuilder {
         _ state: State? = nil,
         file: String = #file,
         line: Int = #line,
-        @Internal.MABuilder _ block: () -> [MA]
+        @Internal.MABuilder _ block: () -> [Internal.MA]
     ) -> Internal.MTASentence {
         Internal.Then<State, Event>(state, file: file, line: line)
             .callAsFunction(block)
@@ -255,7 +255,7 @@ public extension SyntaxBuilder {
         or otherEvents: Event...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [MTA]
+        @Internal.MTABuilder _ block: () -> [Internal.MTA]
     ) -> Internal.MWTASentence {
         Internal.When<State, Event>([event] + otherEvents, file: file, line: line)
             .callAsFunction(block)
@@ -265,7 +265,7 @@ public extension SyntaxBuilder {
         _ event: Event,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [MTA]
+        @Internal.MTABuilder _ block: () -> [Internal.MTA]
     ) -> Internal.MWTASentence {
         Internal.When<State, Event>([event], file: file, line: line)
             .callAsFunction(block)
@@ -276,7 +276,7 @@ public extension SyntaxBuilder {
         or otherEvents: Event...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MABuilder _ block: () -> [MA]
+        @Internal.MABuilder _ block: () -> [Internal.MA]
     ) -> Internal.MWASentence {
         Internal.When<State, Event>([event] + otherEvents, file: file, line: line)
             .callAsFunction(block)
@@ -286,7 +286,7 @@ public extension SyntaxBuilder {
         _ event: Event,
         file: String = #file,
         line: Int = #line,
-        @Internal.MABuilder _ block: () -> [MA]
+        @Internal.MABuilder _ block: () -> [Internal.MA]
     ) -> Internal.MWASentence {
         Internal.When<State, Event>([event], file: file, line: line)
             .callAsFunction(block)
@@ -296,8 +296,8 @@ public extension SyntaxBuilder {
 // MARK: - Overriding
 public extension SyntaxBuilder {
     func overriding(
-        @Internal.MWTABuilder _ block: () -> [MWTA]
-    ) -> [MWTA] {
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
+    ) -> [Internal.MWTA] {
         Internal.Override().callAsFunction(block)
     }
 }
@@ -321,7 +321,7 @@ public extension SuperState {
         adopts superStates: SuperState...,
         onEntry: [AnyAction] = [],
         onExit: [AnyAction] = [],
-        @Internal.MWTABuilder _ block: () -> [MWTA]
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
     ) {
         self.init(
             nodes: block().nodes.withOverrideGroupID(),

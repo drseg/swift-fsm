@@ -8,7 +8,7 @@ public extension Internal {
     }
 }
 
-extension [MWTA] {
+extension [Internal.MWTA] {
     func asOverrides() -> Self {
         (map(\.node) as? [OverridableNode])?.forEach {
             $0.isOverride = true

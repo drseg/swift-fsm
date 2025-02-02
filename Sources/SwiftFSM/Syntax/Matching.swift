@@ -108,19 +108,19 @@ extension Internal.Conditional {
     }
     
     public func callAsFunction(
-        @Internal.MWTABuilder _ block: () -> [MWTA]
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
     ) -> Internal.MWTASentence {
         .init(blockNode, block)
     }
     
     public func callAsFunction(
-        @Internal.MWABuilder _ block: () -> [MWA]
+        @Internal.MWABuilder _ block: () -> [Internal.MWA]
     ) -> Internal.MWASentence {
         .init(blockNode, block)
     }
     
     public func callAsFunction(
-        @Internal.MTABuilder _ block: () -> [MTA]
+        @Internal.MTABuilder _ block: () -> [Internal.MTA]
     ) -> Internal.MTASentence {
         .init(blockNode, block)
     }

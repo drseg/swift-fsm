@@ -15,7 +15,7 @@ class ThenBlockTests: BlockTestsBase {
     }
 }
 
-private extension BlockSentence {
+private extension Internal.BlockSentence {
     var thenBlockNode: ThenBlockNode {
         node as! ThenBlockNode
     }
