@@ -43,6 +43,25 @@ FSM: Turnstile
 }
 ```
 
+Swift FSM:
+
+```swift
+let fsm = FSM<State, Event>(initialState: .locked)
+
+try fsm.buildTable {
+    define(.locked) {
+        when(.coin) | then(.unlocked) | unlock
+        when(.pass) | then(.locked)   | alarm
+    }
+
+    define(.unlocked) {
+        when(.coin) | then(.unlocked) | thankyou
+        when(.pass) | then(.locked)   | lock
+    }
+}
+
+```
+
 Swift FSM (with additional code for context):
 
 ```swift
