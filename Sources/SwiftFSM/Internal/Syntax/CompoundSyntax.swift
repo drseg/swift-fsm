@@ -1,7 +1,7 @@
 import Foundation
 
 public enum Internal {
-    public class Sentence {
+    public class CompoundSyntax {
         let node: any Node<DefaultIO>
 
         init(node: any Node<DefaultIO>) {
@@ -9,29 +9,29 @@ public enum Internal {
         }
     }
     
-    public final class MatchingWhen<State: FSMHashable, Event: FSMHashable>: Sentence { }
-    public final class MatchingThen<Event: FSMHashable>: Sentence { }
-    public final class MatchingWhenThen<Event: FSMHashable>: Sentence { }
+    public final class MatchingWhen<State: FSMHashable, Event: FSMHashable>: CompoundSyntax { }
+    public final class MatchingThen<Event: FSMHashable>: CompoundSyntax { }
+    public final class MatchingWhenThen<Event: FSMHashable>: CompoundSyntax { }
     
-    public class MWTA: Sentence { }
-    public class MWA: Sentence { }
-    public class MTA: Sentence { }
-    public class MA: Sentence { }
+    public class MA: CompoundSyntax { }
+    public class MWA: CompoundSyntax { }
+    public class MTA: CompoundSyntax { }
+    public class MWTA: CompoundSyntax { }
     
     public final class MatchingActions<Event: FSMHashable>: MA { }
     public final class MatchingWhenActions<Event: FSMHashable>: MWA { }
     public final class MatchingThenActions<Event: FSMHashable>: MTA { }
     public final class MatchingWhenThenActions<Event>: MWTA { }
 
-    protocol BlockSentence {
+    protocol CompoundBlockSyntax {
         var node: any Node<DefaultIO> { get }
         
         init(node: any Node<DefaultIO>)
     }
     
-    public final class MWTABlock: MWTA, BlockSentence { }
-    public final class MWABlock: MWA, BlockSentence { }
-    public final class MTABlock: MTA, BlockSentence { }
+    public final class MWTABlock: MWTA, CompoundBlockSyntax { }
+    public final class MWABlock: MWA, CompoundBlockSyntax { }
+    public final class MTABlock: MTA, CompoundBlockSyntax { }
 
     @resultBuilder
     public struct MWTABuilder: ResultBuilder {
@@ -54,10 +54,10 @@ public enum Internal {
     }
 }
 
-extension Internal.BlockSentence {
+extension Internal.CompoundBlockSyntax {
     init<N: Node<DefaultIO>>(
         _ n: N,
-        _ block: () -> [Internal.Sentence]
+        _ block: () -> [Internal.CompoundSyntax]
     ) where N.Input == N.Output {
         var n = n
         n.rest = block().nodes
@@ -68,7 +68,7 @@ extension Internal.BlockSentence {
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        _ block: () -> [Internal.Sentence]
+        _ block: () -> [Internal.CompoundSyntax]
     ) {
         self.init(
             node: ActionsBlockNode(
