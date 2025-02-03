@@ -268,7 +268,7 @@ class LazyFSMTests: FSMTests {
         await assertHandleEvent(1.1, predicates: P.b, state: 2, output: "pass")
     }
 
-    class EarlyReturnSpy: LazyFSM<State, Event> {
+    class EarlyReturnSpy: LazyFSM<State, Event>, @unchecked Sendable {
         override func logTransitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
             XCTFail("should never be called in this test")
         }

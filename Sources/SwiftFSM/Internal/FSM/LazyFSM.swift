@@ -13,7 +13,7 @@ import Algorithms
 ///
 /// but the compiler currently won't allow it (even though it is officially supported).
 
-class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FSMProtocol {
+class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FSMProtocol, @unchecked Sendable {
     func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         LazyMatchResolvingNode(rest: rest)
     }

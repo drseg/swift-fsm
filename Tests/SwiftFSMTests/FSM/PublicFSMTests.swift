@@ -9,7 +9,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
 
     typealias BaseType = BaseFSM<Int, Int> & FSMProtocol
 
-    class FSMSpy: BaseType {
+    class FSMSpy: BaseType, @unchecked Sendable {
         typealias Event = Int
         typealias State = Int
 

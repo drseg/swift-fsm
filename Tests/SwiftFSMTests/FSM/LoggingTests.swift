@@ -118,7 +118,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
     
-    class FSMSpy: EagerFSM<Int, Int>, LoggableFSM {
+    class FSMSpy: EagerFSM<Int, Int>, LoggableFSM, @unchecked Sendable {
         var loggedEvents: [LogData] = []
         var loggedTransitions: [Transition] = []
         
@@ -135,7 +135,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         }
     }
     
-    class LazyFSMSpy: LazyFSM<Int, Int>, LoggableFSM {
+    class LazyFSMSpy: LazyFSM<Int, Int>, LoggableFSM, @unchecked Sendable {
         var loggedEvents: [LogData] = []
         var loggedTransitions: [Transition] = []
         

@@ -34,7 +34,7 @@ enum TransitionStatus<Event: FSMHashable> {
     case executed(Transition), notFound(Event, [any Predicate]), notExecuted(Transition)
 }
 
-protocol FSMProtocol<State, Event>: AnyObject {
+protocol FSMProtocol<State, Event>: AnyObject, Sendable {
     associatedtype State: FSMHashable
     associatedtype Event: FSMHashable
 
