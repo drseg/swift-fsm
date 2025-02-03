@@ -1470,15 +1470,15 @@ Ignore these errors, and if there is no other error shown, you may have to hunt 
 
 ### Swift 6 Language Mode
 
-This project is dominated by the need to capture functions from the client’s code, and execute them within Swift FSM. With the concurrency rules introduced through the latter part of Swift 5 evolution, and finalised with Swift 6, this has increasingly restricted the ways in which this can be done. The rules themselves have unfortunately not been consistent, with Swift 5.10 disallowing `Sendable` behaviours that are in fact allowed in Swift 6.0. 
+This project is dominated by the need to capture functions from the client’s code, and execute them within Swift FSM. The concurrency rules introduced through the latter part of Swift 5 evolution, and finalised with Swift 6, have increasingly restricted the ways in which this can be done. 
 
-Because of this, Swift FSM now not only requires Swift tools version 6.0 or above, but also **requires its clients to use Swift 6 Language Mode**. 
+The rules themselves have unfortunately not been consistent, with Swift 5.10 disallowing `Sendable` behaviours that are in fact allowed in Swift 6.0. Because of this, Swift FSM now not only requires Swift tools version 6.0 or above, but also **requires its clients to use Swift 6 Language Mode**. 
 
-Using Swift 5 Language Mode will result in compilation errors that cannot be corrected when trying to pass a client function to Swift FSM as an action:
+Using Swift 5 Language Mode will result in compilation errors when trying to pass a client function to Swift FSM as an action:
 
 ```swift
 define(.locked) {
-    when(.coin) | then(.unlocked) | unlock // ❌ 
+    when(.coin) | then(.unlocked) | unlock // ⛔️ 
                                     ^^^^^^
 }                               
 // Converting non-sendable function value to '@MainActor @Sendable () -> Void' may introduce data races
