@@ -12,7 +12,7 @@ protocol FSMTestsProtocol<State, Event> {
 }
 
 class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
-    XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol, @unchecked Sendable {
+    XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
     var fsm: (any FSMProtocol<State, Event>)!
     var actionsPolicy = StateActionsPolicy.executeOnChangeOnly
 

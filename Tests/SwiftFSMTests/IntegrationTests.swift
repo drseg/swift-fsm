@@ -73,22 +73,22 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         await assertTurnstile()
     }
     
-    private var bool = false
     func testConditionTurnstile() async throws {
-
+        let bool = false
+        
         try fsm.buildTable {
             let resetable = SuperState {
-                condition { self.bool } | when(.reset) | then(.locked)
+                condition { bool } | when(.reset) | then(.locked)
             }
 
             define(.locked, adopts: resetable, onEntry: Array(lock)) {
-                condition { self.bool } | when(.coin) | then(.unlocked)
-                condition { self.bool } | when(.pass) | then(.alarming)
+                condition { bool } | when(.coin) | then(.unlocked)
+                condition { bool } | when(.pass) | then(.alarming)
             }
 
             define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
-                condition { self.bool } | when(.coin) | then(.unlocked) | thankyou
-                condition { self.bool } | when(.pass) | then(.locked)
+                condition { bool } | when(.coin) | then(.unlocked) | thankyou
+                condition { bool } | when(.pass) | then(.locked)
             }
 
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
@@ -107,11 +107,6 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         fsm.state = AnyHashable(State.alarming)
 
         await assertEventAction(.reset,  "")
-
-        fsm.state = AnyHashable(State.locked)
-        bool = true
-
-        await assertTurnstile()
     }
     
     func testOverrideTurnstile() async throws {

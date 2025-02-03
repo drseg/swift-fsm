@@ -45,7 +45,7 @@ class BlockTestsBase: SyntaxTestsBase {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
         sutFile sf: String? = nil,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) async {
@@ -80,7 +80,7 @@ class BlockTestsBase: SyntaxTestsBase {
         _ result: [AnyNode],
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
         sutFile sf: String? = nil,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) async {
@@ -113,7 +113,7 @@ class BlockTestsBase: SyntaxTestsBase {
         _ result: [AnyNode],
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
         sutFile sf: String? = nil,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) async {
@@ -145,7 +145,7 @@ class BlockTestsBase: SyntaxTestsBase {
     func assertMAResult(
         _ result: [AnyNode],
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) async {

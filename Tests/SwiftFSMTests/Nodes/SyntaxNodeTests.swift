@@ -55,7 +55,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertEqual(
         _ lhs: DefaultIO?,
         _ rhs: DefaultIO?,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         XCTAssertTrue(lhs?.descriptor == rhs?.descriptor &&
@@ -66,7 +66,7 @@ class SyntaxNodeTests: XCTestCase {
                       line: line)
     }
     
-    func assertEqual(lhs: [MSES], rhs: [MSES], file: StaticString = #file, line: UInt) {
+    func assertEqual(lhs: [MSES], rhs: [MSES], file: StaticString = #filePath, line: UInt) {
         XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
                       "\(lhs.description) does not equal \(rhs.description)",
                       file: file,
@@ -96,7 +96,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertEmptyThen(
         _ t: ThenNode,
         thenState: AnyTraceable? = "S1",
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         let finalised = t.resolve()
@@ -113,7 +113,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertThenWithActions(
         expected: String,
         _ t: ThenNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) async {
         let finalised = t.resolve()
@@ -132,7 +132,7 @@ class SyntaxNodeTests: XCTestCase {
     
     func assertEmptyNodeWithoutError(
         _ n: some Node,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         let f = n.resolve()
@@ -143,7 +143,7 @@ class SyntaxNodeTests: XCTestCase {
     
     func assertEmptyNodeWithError(
         _ n: some NeverEmptyNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         XCTAssertEqual(n.resolve().errors as? [EmptyBuilderError],
@@ -157,7 +157,7 @@ class SyntaxNodeTests: XCTestCase {
         actionsCount: Int,
         actionsOutput: String,
         node: WhenNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt
     ) async {
         let result = node.resolve().0
@@ -180,7 +180,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertCount(
         _ actual: (any Collection)?,
         expected: Int,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) -> Bool {
         guard actual?.count ?? -1 == expected else {
@@ -192,7 +192,7 @@ class SyntaxNodeTests: XCTestCase {
         return true
     }
     
-    func assertMatch(_ m: MatchingNode, file: StaticString = #file, line: UInt = #line) async {
+    func assertMatch(_ m: MatchingNode, file: StaticString = #filePath, line: UInt = #line) async {
         let finalised = m.resolve()
         let result = finalised.0
         let errors = finalised.1
@@ -215,7 +215,7 @@ class SyntaxNodeTests: XCTestCase {
         expected: [MSES],
         actionsOutput: String,
         node: GivenNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) async {
         let finalised = node.resolve()
@@ -236,7 +236,7 @@ class SyntaxNodeTests: XCTestCase {
         expected: [MSES],
         actionsOutput: String,
         node: DefineNode,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) async {
         let finalised = node.resolve()
@@ -264,7 +264,7 @@ class SyntaxNodeTests: XCTestCase {
         expectedEvent: AnyTraceable = "E1",
         expectedState: AnyTraceable = "S1",
         expectedOutput: String = "chain",
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) async {
         let nodeChains: [any Node<DefaultIO>] = {
@@ -316,7 +316,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertActions(
         _ actions: [AnyAction]?,
         expectedOutput: String?,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) async {
         await actions?.executeAll()

@@ -39,7 +39,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         any: any Predicate...,
         all: any Predicate...,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) async {
@@ -57,7 +57,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ c: Condition,
         expected: Bool,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) async {
@@ -79,7 +79,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         condition: Bool? = nil,
         caller: String = "matching",
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) async {
@@ -106,7 +106,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ w: When,
         events: [Int] = [1, 2],
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) {
@@ -118,7 +118,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ t: Then,
         state: Int? = 1,
         sutFile sf: String? = nil,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int? = #line,
         xctLine xl: UInt = #line
     ) {
@@ -130,7 +130,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ node: WhenNodeBase,
         events: [Int] = [1, 2],
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) {
@@ -155,7 +155,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ n: ThenNodeBase,
         state: State?,
         sutFile sf: String? = nil,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int?,
         xctLine xl: UInt = #line
     ) {
@@ -179,7 +179,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         expectedOutput eo: String,
         state: State?,
         sutFile sf: String? = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int?,
         xctLine xl: UInt
     ) async {
@@ -194,7 +194,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         expectedOutput eo: String,
         state: State?,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt
     ) async {
@@ -207,7 +207,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ node: any NeverEmptyNode,
         caller: String,
         sutFile sf: String? = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt
     ) {
@@ -221,7 +221,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event e: Event = SyntaxTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) async {
@@ -255,7 +255,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) async {
@@ -277,7 +277,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) async {
@@ -308,7 +308,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = SyntaxTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
         xctLine xl: UInt = #line
     ) async {
@@ -339,7 +339,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) async {
@@ -358,7 +358,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) async {
@@ -385,7 +385,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #file,
+        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
         xctLine xl: UInt = #line
     ) async {
@@ -408,7 +408,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     func assertActions(
         _ actions: [FSMSyncAction],
         expectedOutput eo: String,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         xctLine xl: UInt = #line
     ) async {
         await assertActions(actions.map(AnyAction.init),
@@ -421,7 +421,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ actions: [AnyAction],
         event e: Event = SyntaxTestsBase.defaultEvent,
         expectedOutput eo: String,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         xctLine xl: UInt = #line
     ) async {
         await actions.executeAll(e)

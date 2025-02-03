@@ -74,7 +74,7 @@ class MRNTestBase: StringableNodeTest {
     func assertResult(
         _ result: MRNResult,
         expected: ExpectedMRNOutput,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) async {
         assertCount(result.errors, expected: 0, file: file, line: line)
@@ -90,7 +90,7 @@ class MRNTestBase: StringableNodeTest {
     func assertEqual(
         _ lhs: ExpectedMRNOutput?,
         _ rhs: Transition?,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) async {
         let condition = await rhs?.condition?()
