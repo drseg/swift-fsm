@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class WhenBlockTests: BlockTestsBase {
+class WhenBlockTests: BlockTestsBase, @unchecked Sendable {
     func assert(
         _ b: Internal.MWTABlock,
         events: [Int] = [1, 2],

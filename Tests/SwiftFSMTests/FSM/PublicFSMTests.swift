@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
+final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendable {
     typealias State = Int
     typealias Event = Int
 
@@ -98,8 +98,8 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(eager.fsm.stateActionsPolicy, .executeAlways)
     }
 
-    func testBuildTable() throws {
-        let line = #line; try fsm.buildTable {
+    func testBuildTable() async throws {
+        let line = #line; try await fsm.buildTable {
             define(1) {
                 when(1) | then(1)
             }

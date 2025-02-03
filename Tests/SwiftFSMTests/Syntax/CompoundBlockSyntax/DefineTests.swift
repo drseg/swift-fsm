@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class DefineTests: BlockTestsBase {
+class DefineTests: BlockTestsBase, @unchecked Sendable {
     func testDefine() async {
         func verify(
             _ d: Define,

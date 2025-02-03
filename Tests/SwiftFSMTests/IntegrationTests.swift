@@ -12,7 +12,7 @@ enum TurnstileEvent: String, CustomStringConvertible {
     var description: String { rawValue }
 }
 
-class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
+class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent>, @unchecked Sendable {
     var actions = [String]()
     var actual = [String]()
     
@@ -29,7 +29,7 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     }
 }
 
-class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
+class FSMIntegrationTests_Turnstile: FSMIntegrationTests, @unchecked Sendable {
     func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) async {
         await assertEventAction(e, a.isEmpty ? [] : [a], line: line)
     }
@@ -163,13 +163,13 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     }
 }
 
-final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
+final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile, @unchecked Sendable {
     override func makeSUT() -> any FSMProtocol<State, Event> {
         makeLazy()
     }
 }
 
-class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
+class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests, @unchecked Sendable {
     enum Enforcement: Predicate { case strong, weak }
     enum Reward: Predicate { case punishing, rewarding }
     
@@ -292,13 +292,13 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     }
 }
 
-class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
+class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile, @unchecked Sendable {
     override func makeSUT() -> any FSMProtocol<State, Event> {
         makeLazy()
     }
 }
 
-class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
+class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests, @unchecked Sendable {
     func testMultiplePredicateBlocks() async throws {
         try fsm.buildTable {
             define(.locked) {
@@ -350,13 +350,13 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
 }
 
 
-class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
+class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks, @unchecked Sendable {
     override func makeSUT() -> any FSMProtocol<State, Event> {
         makeLazy()
     }
 }
 
-class FSMIntegrationTests_Errors: FSMIntegrationTests {
+class FSMIntegrationTests_Errors: FSMIntegrationTests, @unchecked Sendable {
     func assertEmptyError(_ e: EmptyBuilderError?,
                      expectedCaller: String,
                      expectedLine: Int,
@@ -557,7 +557,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
     }
 }
 
-class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
+class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors, @unchecked Sendable {
     override func makeSUT() -> any FSMProtocol<State, Event> {
         makeLazy()
     }
@@ -575,7 +575,7 @@ enum ComplexEvent: EventWithValues {
     }
 }
 
-class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent> {
+class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent>, @unchecked Sendable {
     override func makeSUT() -> any FSMProtocol<State, Event> {
         makeEager()
     }
@@ -645,7 +645,7 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
     }
 }
 
-final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
+final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests, @unchecked Sendable {
     override func makeSUT() -> any FSMProtocol<State, Event> {
         makeLazy()
     }

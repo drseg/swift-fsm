@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class ThenBlockTests: BlockTestsBase {
+class ThenBlockTests: BlockTestsBase, @unchecked Sendable {
     func testThenBlockWithMTA() async {
         let node = (then(1) { mwaBlock }).thenBlockNode; let line = #line
         assertThenNode(node, state: 1, sutFile: #file, sutLine: line)

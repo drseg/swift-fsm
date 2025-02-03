@@ -3,14 +3,14 @@ import SwiftFSM
 // Do not use @testable here //
 
 final class PublicAPITests: XCTestCase {
-    final class SUT: SyntaxBuilder {
+    final class SUT: SyntaxBuilder, @unchecked Sendable {
         enum State { case locked, unlocked }
         enum Event { case coin, pass }
         
         let fsm = FSM<State, Event>(initialState: .locked)
         
-        init() throws {
-            try fsm.buildTable {
+        init() async throws {
+            try await fsm.buildTable {
                 define(.locked) {
                     when(.coin) | then(.unlocked) | unlock
                     when(.pass) | then(.locked)   | alarm
@@ -40,7 +40,7 @@ final class PublicAPITests: XCTestCase {
             XCTAssertEqual(sut.log, a, line: line)
         }
         
-        let sut = try SUT()
+        let sut = try await SUT()
         XCTAssert(sut.log.isEmpty)
         
         await sut.fsm.handleEvent(.coin)

@@ -2,7 +2,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
+class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendable {
     static let defaultOutput = "pass"
     static let defaultOutputWithEvent = "\(SyntaxTestsBase.defaultOutput), event: \(SyntaxTestsBase.defaultEvent)"
     static let defaultEvent = 111

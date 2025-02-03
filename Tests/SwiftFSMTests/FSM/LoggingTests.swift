@@ -114,7 +114,7 @@ class LoggerTests: XCTestCase {
     }
 }
 
-class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
+class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendable {
     typealias State = Int
     typealias Event = Int
     

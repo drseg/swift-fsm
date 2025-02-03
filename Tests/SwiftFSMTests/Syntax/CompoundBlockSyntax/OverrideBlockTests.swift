@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class OverrideBlockTests: BlockTestsBase {
+class OverrideBlockTests: BlockTestsBase, @unchecked Sendable {
     func testOverride() {
         let o = overriding { mwtaBlock }
         XCTAssert((o.nodes.first as! OverridableNode).isOverride)

@@ -12,7 +12,7 @@ protocol FSMTestsProtocol<State, Event> {
 }
 
 class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
-    XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
+    XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol, @unchecked Sendable {
     var fsm: (any FSMProtocol<State, Event>)!
     var actionsPolicy = StateActionsPolicy.executeOnChangeOnly
 
@@ -52,7 +52,7 @@ class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
     }
 }
 
-class FSMTests: FSMTestsBase<Int, Double> {
+class FSMTests: FSMTestsBase<Int, Double>, @unchecked Sendable {
     override var initialState: Int { 1 }
 
     override func makeSUT() -> any FSMProtocol<State, Event> {
@@ -251,7 +251,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
     }
 }
 
-class LazyFSMTests: FSMTests {
+class LazyFSMTests: FSMTests, @unchecked Sendable {
     override func makeSUT() -> any FSMProtocol<State, Event> {
         makeLazy()
     }

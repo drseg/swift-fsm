@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-final class CompoundSyntaxTests: SyntaxTestsBase {
+final class CompoundSyntaxTests: SyntaxTestsBase, @unchecked Sendable {
     func assertMW(
         _ mw: MatchingWhen<State, Event>,
         sutLine sl: Int,

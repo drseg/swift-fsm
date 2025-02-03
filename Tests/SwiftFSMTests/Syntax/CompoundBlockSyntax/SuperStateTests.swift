@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class SuperStateTests: BlockTestsBase {
+class SuperStateTests: BlockTestsBase, @unchecked Sendable {
     func testSuperStateAddsSuperStateNodes() async {
         let s1 = SuperState { mwtaBlock }
         let nodes = SuperState(adopts: s1, s1).nodes

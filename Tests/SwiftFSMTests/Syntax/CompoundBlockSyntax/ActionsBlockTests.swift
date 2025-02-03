@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class ActionsBlockTests: BlockTestsBase {
+class ActionsBlockTests: BlockTestsBase, @unchecked Sendable {
     let eventOutput = ActionsBlockTests.defaultOutputWithEvent
 
     func abnComponents(of s: Internal.CompoundSyntax) -> (ActionsBlockNode, ActionsBlockNode) {
