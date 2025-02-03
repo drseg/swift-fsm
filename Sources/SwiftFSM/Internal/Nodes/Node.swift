@@ -5,12 +5,11 @@ protocol Node<Output> {
     associatedtype Output: Sendable
 
     typealias Result = (output: [Output], errors: [Error])
-
-    func resolve() -> Result
-    func validate() -> [Error]
-
-    func combinedWithRest(_ rest: [Input]) -> [Output]
+    
     var rest: [any Node<Input>] { get set }
+
+    func combinedWith(_ rest: [Input]) -> [Output]
+    func validate() -> [Error]
 }
 
 extension Node {
@@ -24,7 +23,7 @@ extension Node {
             errors.append(contentsOf: finalised.1)
         }
 
-        return (combinedWithRest(output), validate() + errors)
+        return (combinedWith(output), validate() + errors)
     }
 
     func validate() -> [Error] { [] }

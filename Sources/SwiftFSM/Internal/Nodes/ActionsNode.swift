@@ -32,7 +32,7 @@ class ActionsNodeBase: OverridableNode {
 }
 
 class ActionsNode: ActionsNodeBase, Node {
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest) ??? makeDefaultIO(actions: actions)
     }
 }
@@ -63,7 +63,7 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
         )
     }
     
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest)
     }
 }

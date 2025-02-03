@@ -28,7 +28,7 @@ class MatchingNodeBase: OverridableNode {
 }
 
 class MatchingNode: MatchingNodeBase, Node {
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest) ??? makeDefaultIO(match: descriptor)
     }
 }
@@ -57,7 +57,7 @@ class MatchingBlockNode: MatchingNodeBase, NeverEmptyNode {
                    isOverride: isOverride)
     }
 
-    func combinedWithRest(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
         makeOutput(rest)
     }
 }

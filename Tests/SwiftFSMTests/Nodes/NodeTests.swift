@@ -8,7 +8,7 @@ class NodeTests: XCTestCase {
 
         func validate() -> [Error] { ["E"] }
 
-        func combinedWithRest(_ rest: [String]) -> [String] {
+        func combinedWith(_ rest: [String]) -> [String] {
             rest.reduce(into: []) {
                 $0.append(first + $1)
             } ??? [first]
@@ -36,6 +36,30 @@ class NodeTests: XCTestCase {
         assertEqual(actual: n3.resolve(),
                     expected: (["GivenWhenThen1", "GivenWhenThen2"],
                                ["E", "E", "E", "E"]))
+    }
+    
+    // FIXME: Currently, there is a temporal coupling between Node.combinedWith() and Node.validate() - validate() cannot find all errors until combinedWith() has already been called. This test protects this arrangement until a better solution can be implemented
+    func testResolveCallsCombinedWithBeforeValidate() {
+        class NodeSpy: Node {
+            var rest: [any Node<String>] = []
+            
+            var log = [String]()
+            
+            func validate() -> [Error] {
+                log.append(#function)
+                return []
+            }
+            
+            func combinedWith(_ rest: [String]) -> [String] {
+                log.append(#function)
+                return []
+            }
+        }
+        
+        let n = NodeSpy()
+        let _ = n.resolve()
+        
+        XCTAssertEqual(n.log, ["combinedWith(_:)", "validate()"])
     }
 }
 
