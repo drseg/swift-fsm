@@ -2,13 +2,13 @@ import XCTest
 @testable import SwiftFSM
 
 class SuperStateTests: BlockTestsBase {
-    func testSuperStateAddsSuperStateNodes() {
+    func testSuperStateAddsSuperStateNodes() async {
         let s1 = SuperState { mwtaBlock }
         let nodes = SuperState(adopts: s1, s1).nodes
 
         XCTAssertEqual(4, nodes.count)
-        assertMWTAResult(Array(nodes.prefix(2)), sutLine: mwtaLine)
-        assertMWTAResult(Array(nodes.suffix(2)), sutLine: mwtaLine)
+        await assertMWTAResult(Array(nodes.prefix(2)), sutLine: mwtaLine)
+        await assertMWTAResult(Array(nodes.suffix(2)), sutLine: mwtaLine)
     }
 
     func testSuperStateSetsGroupIDForOwnNodesOnly() {
@@ -24,7 +24,7 @@ class SuperStateTests: BlockTestsBase {
         assertGroupID(s2.nodes)
     }
 
-    func testSuperStateCombinesSuperStateNodesParentFirst() {
+    func testSuperStateCombinesSuperStateNodesParentFirst() async {
         let l1 = #line + 1; let s1 = SuperState {
             matching(P.a) | when(1, or: 2) | then(1) | pass
                             when(1, or: 2) | then(1) | pass
@@ -37,29 +37,29 @@ class SuperStateTests: BlockTestsBase {
 
         let nodes = s2.nodes
         XCTAssertEqual(4, nodes.count)
-        assertMWTAResult(Array(nodes.prefix(2)), sutFile: #file, sutLine: l1)
-        assertMWTAResult(Array(nodes.suffix(2)), sutFile: #file, sutLine: l2)
+        await assertMWTAResult(Array(nodes.prefix(2)), sutFile: #file, sutLine: l1)
+        await assertMWTAResult(Array(nodes.suffix(2)), sutFile: #file, sutLine: l2)
     }
 
-    func testSuperStateAddsEntryExitActions() {
+    func testSuperStateAddsEntryExitActions() async {
         let s1 = SuperState(onEntry: entry1, onExit: exit1) { mwtaBlock }
         let s2 = SuperState(adopts: s1)
 
-        assertActions(s2.onEntry, expectedOutput: "entry1")
-        assertActions(s2.onExit, expectedOutput: "exit1")
+        await assertActions(s2.onEntry, expectedOutput: "entry1")
+        await assertActions(s2.onExit, expectedOutput: "exit1")
     }
 
-    func testSuperStateCombinesEntryExitActions() {
+    func testSuperStateCombinesEntryExitActions() async {
         let s1 = SuperState(onEntry: entry1, onExit: exit1) { mwtaBlock }
         let s2 = SuperState(adopts: s1, onEntry: entry2, onExit: exit2) { mwtaBlock }
 
-        assertActions(s2.onEntry, expectedOutput: "entry1entry2")
-        assertActions(s2.onExit, expectedOutput: "exit1exit2")
+        await assertActions(s2.onEntry, expectedOutput: "entry1entry2")
+        await assertActions(s2.onExit, expectedOutput: "exit1exit2")
     }
 
-    func testSuperStateBlock() {
+    func testSuperStateBlock() async {
         let s = SuperState { mwtaBlock }
-        assertMWTAResult(s.nodes, sutLine: mwtaLine)
+        await assertMWTAResult(s.nodes, sutLine: mwtaLine)
     }
 }
 

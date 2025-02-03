@@ -1,7 +1,6 @@
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 class SyntaxNodeTests: XCTestCase {
     let s1: AnyTraceable = "S1", s2: AnyTraceable = "S2", s3: AnyTraceable = "S3"
     let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
@@ -56,7 +55,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertEqual(
         _ lhs: DefaultIO?,
         _ rhs: DefaultIO?,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
     ) {
         XCTAssertTrue(lhs?.descriptor == rhs?.descriptor &&
@@ -67,7 +66,7 @@ class SyntaxNodeTests: XCTestCase {
                       line: line)
     }
     
-    func assertEqual(lhs: [MSES], rhs: [MSES], file: StaticString = #filePath, line: UInt) {
+    func assertEqual(lhs: [MSES], rhs: [MSES], file: StaticString = #file, line: UInt) {
         XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
                       "\(lhs.description) does not equal \(rhs.description)",
                       file: file,
@@ -97,7 +96,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertEmptyThen(
         _ t: ThenNode,
         thenState: AnyTraceable? = "S1",
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
     ) {
         let finalised = t.resolve()
@@ -114,24 +113,26 @@ class SyntaxNodeTests: XCTestCase {
     func assertThenWithActions(
         expected: String,
         _ t: ThenNode,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
-    ) {
+    ) async {
         let finalised = t.resolve()
         let result = finalised.0
         let errors = finalised.1
         
         XCTAssertTrue(errors.isEmpty, file: file, line: line)
         XCTAssertEqual(result[0].state, s1, file: file, line: line)
-        assertActions(result.map(\.actions).flattened,
-                      expectedOutput: expected,
-                      file: file,
-                      line: line)
+        await assertActions(
+            result.map(\.actions).flattened,
+            expectedOutput: expected,
+            file: file,
+            line: line
+        )
     }
     
     func assertEmptyNodeWithoutError(
         _ n: some Node,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
     ) {
         let f = n.resolve()
@@ -142,7 +143,7 @@ class SyntaxNodeTests: XCTestCase {
     
     func assertEmptyNodeWithError(
         _ n: some NeverEmptyNode,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
     ) {
         XCTAssertEqual(n.resolve().errors as? [EmptyBuilderError],
@@ -156,16 +157,16 @@ class SyntaxNodeTests: XCTestCase {
         actionsCount: Int,
         actionsOutput: String,
         node: WhenNode,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt
-    ) {
+    ) async {
         let result = node.resolve().0
         let errors = node.resolve().1
         
-        (0..<2).forEach {
-            XCTAssertEqual(state, result[$0].state, file: file, line: line)
-            XCTAssertEqual(actionsCount, result[$0].actions.count, file: file, line: line)
-            result.executeAll()
+        for i in 0..<2 {
+            XCTAssertEqual(state, result[i].state, file: file, line: line)
+            XCTAssertEqual(actionsCount, result[i].actions.count, file: file, line: line)
+            await result.executeAll()
         }
         
         XCTAssertEqual(e1, result[0].event, file: file, line: line)
@@ -179,7 +180,7 @@ class SyntaxNodeTests: XCTestCase {
     func assertCount(
         _ actual: (any Collection)?,
         expected: Int,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
     ) -> Bool {
         guard actual?.count ?? -1 == expected else {
@@ -191,7 +192,7 @@ class SyntaxNodeTests: XCTestCase {
         return true
     }
     
-    func assertMatch(_ m: MatchingNode, file: StaticString = #filePath, line: UInt = #line) {
+    func assertMatch(_ m: MatchingNode, file: StaticString = #file, line: UInt = #line) async {
         let finalised = m.resolve()
         let result = finalised.0
         let errors = finalised.1
@@ -202,19 +203,21 @@ class SyntaxNodeTests: XCTestCase {
         assertEqual(result[0], DefaultIO(MatchDescriptorChain(), e1, s1, []), file: file, line: line)
         assertEqual(result[1], DefaultIO(MatchDescriptorChain(), e2, s1, []), file: file, line: line)
         
-        assertActions(result.map(\.actions).flattened,
-                      expectedOutput: "1212",
-                      file: file,
-                      line: line)
+        await assertActions(
+            result.map(\.actions).flattened,
+            expectedOutput: "1212",
+            file: file,
+            line: line
+        )
     }
     
     func assertGivenNode(
         expected: [MSES],
         actionsOutput: String,
         node: GivenNode,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
-    ) {
+    ) async {
         let finalised = node.resolve()
         let result = finalised.0
         let errors = finalised.1
@@ -224,23 +227,18 @@ class SyntaxNodeTests: XCTestCase {
                     file: file,
                     line: line)
         
-        let expectation = expectation(description: "async action")
-        Task {
-            await result.map(\.actions).flattened.executeAll()
-            XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
-            XCTAssertTrue(errors.isEmpty, file: file, line: line)
-            expectation.fulfill()
-        }
-        waitForExpectations(timeout: 0.1)
+        await result.map(\.actions).flattened.executeAll()
+        XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
+        XCTAssertTrue(errors.isEmpty, file: file, line: line)
     }
     
     func assertDefineNode(
         expected: [MSES],
         actionsOutput: String,
         node: DefineNode,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
-    ) {
+    ) async {
         let finalised = node.resolve()
         let result = finalised.0
         let errors = finalised.1
@@ -249,20 +247,15 @@ class SyntaxNodeTests: XCTestCase {
                     rhs: result.map { MSES($0.match, $0.state, $0.event, $0.nextState) },
                     file: file,
                     line: line)
-
-        let expectation = expectation(description: "async action")
-        Task {
-            for node in result {
-                await node.onEntry.executeAll()
-                await node.actions.executeAll()
-                await node.onExit.executeAll()
-            }
-
-            XCTAssertTrue(errors.isEmpty, file: file, line: line)
-            XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
-            expectation.fulfill()
+        
+        for node in result {
+            await node.onEntry.executeAll()
+            await node.actions.executeAll()
+            await node.onExit.executeAll()
         }
-        waitForExpectations(timeout: 0.1)
+        
+        XCTAssertTrue(errors.isEmpty, file: file, line: line)
+        XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
     }
     
     func assertDefaultIONodeChains(
@@ -271,9 +264,9 @@ class SyntaxNodeTests: XCTestCase {
         expectedEvent: AnyTraceable = "E1",
         expectedState: AnyTraceable = "S1",
         expectedOutput: String = "chain",
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
-    ) {
+    ) async {
         let nodeChains: [any Node<DefaultIO>] = {
             let nodes: [any DefaultIONode] =
             [MatchingNode(descriptor: MatchDescriptorChain(any: P.a, all: Q.a)),
@@ -295,9 +288,9 @@ class SyntaxNodeTests: XCTestCase {
             }
         }()
         
-        nodeChains.forEach {
+        for n in nodeChains {
             var node = node.copy()
-            node.rest.append($0)
+            node.rest.append(n)
             
             let output = node.resolve()
             let results = output.0
@@ -316,24 +309,19 @@ class SyntaxNodeTests: XCTestCase {
             XCTAssertEqual(testGroupID, result.overrideGroupID, file: file, line: line)
             XCTAssertEqual(true, result.isOverride, file: file, line: line)
             
-            assertActions(result.actions, expectedOutput: expectedOutput, file: file, line: line)
+            await assertActions(result.actions, expectedOutput: expectedOutput, file: file, line: line)
         }
     }
     
     func assertActions(
         _ actions: [AnyAction]?,
         expectedOutput: String?,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
-    ) {
-        let expectation = expectation(description: "async action")
-        Task {
-            await actions?.executeAll()
-            XCTAssertEqual(actionsOutput, expectedOutput, file: file, line: line)
-            actionsOutput = ""
-            expectation.fulfill()
-        }
-        waitForExpectations(timeout: 0.1)
+    ) async {
+        await actions?.executeAll()
+        XCTAssertEqual(actionsOutput, expectedOutput, file: file, line: line)
+        actionsOutput = ""
     }
 }
 
@@ -362,10 +350,11 @@ class DefineConsumer: SyntaxNodeTests {
     }
 }
 
-@MainActor
 extension Collection {
-    func executeAll() where Element == DefaultIO {
-        map(\.actions).flattened.forEach { try! $0() }
+    func executeAll() async where Element == DefaultIO {
+        for action in map(\.actions).flattened {
+            await action()
+        }
     }
 
     func executeAll<Event: FSMHashable>(_ event: Event = "TILT") async where Element == AnyAction {

@@ -2,7 +2,6 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 protocol FSMTestsProtocol<State, Event> {
     associatedtype State: FSMHashable
     associatedtype Event: FSMHashable
@@ -13,7 +12,7 @@ protocol FSMTestsProtocol<State, Event> {
 }
 
 class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
-    XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
+    XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol, @unchecked Sendable {
     var fsm: (any FSMProtocol<State, Event>)!
     var actionsPolicy = StateActionsPolicy.executeOnChangeOnly
 
@@ -101,18 +100,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         output: String,
         line: UInt = #line
     ) async {
-        await fsm.handleEventAsync(event, predicates: predicates)
-        assertEventHandled(state: state, output: output, line: line)
-    }
-
-    func assertHandleEvent(
-        _ event: Event,
-        predicates: any Predicate...,
-        state: State,
-        output: String,
-        line: UInt = #line
-    ) {
-        try! fsm.handleEvent(event, predicates: predicates)
+        await fsm.handleEvent(event, predicates: predicates)
         assertEventHandled(state: state, output: output, line: line)
     }
 
@@ -144,19 +132,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
         passWithEvent(event)
     }
 
-    func testHandleEventWithoutPredicate() throws {
-        try fsm.buildTable {
-            define(1) {
-                when(1.1) | then(2) | pass
-                when(1.3) | then(2) | passWithEvent
-            }
-        }
-
-        assertHandleEvent(1.1, state: 2, output: "pass")
-        assertHandleEvent(1.2, state: 1, output: "")
-        assertHandleEvent(1.3, state: 2, output: "pass, event: 1.3")
-    }
-
     func testHandleEventWithoutPredicate_Async() async throws {
         try fsm.buildTable {
             define(1) {
@@ -168,18 +143,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, state: 2, output: "pass")
         await assertHandleEvent(1.2, state: 1, output: "")
         await assertHandleEvent(1.3, state: 2, output: "pass, event: 1.3")
-    }
-
-    func testHandleEventWithSinglePredicate() throws {
-        try fsm.buildTable {
-            define(1) {
-                matching(P.a) | when(1.1) | then(2) | pass
-                matching(P.b) | when(1.1) | then(3) | pass
-            }
-        }
-
-        assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
-        assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
     }
 
     func testHandleEventWithSinglePredicate_Async() async throws {
@@ -194,18 +157,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
     }
 
-    func testHandleEventWithMultiplePredicates() throws {
-        try fsm.buildTable {
-            define(1) {
-                matching(P.a, or: P.b)  | when(1.1) | then(2) | pass
-                matching(Q.a, and: R.a) | when(1.1) | then(3) | pass
-            }
-        }
-
-        assertHandleEvent(1.1, predicates: P.a, Q.b, R.a, state: 2, output: "pass")
-        assertHandleEvent(1.1, predicates: P.a, Q.a, R.a, state: 3, output: "pass")
-    }
-
     func testHandleEventWithMultiplePredicates_Async() async throws {
         try fsm.buildTable {
             define(1) {
@@ -216,18 +167,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
 
         await assertHandleEvent(1.1, predicates: P.a, Q.b, R.a, state: 2, output: "pass")
         await assertHandleEvent(1.1, predicates: P.a, Q.a, R.a, state: 3, output: "pass")
-    }
-
-    func testHandleEventWithImplicitPredicates() throws {
-        try fsm.buildTable {
-            define(1) {
-                matching(P.a) | when(1.1) | then(2) | pass
-                                when(1.1) | then(3) | pass
-            }
-        }
-
-        assertHandleEvent(1.1, predicates: P.a, state: 2, output: "pass")
-        assertHandleEvent(1.1, predicates: P.c, state: 3, output: "pass")
     }
 
     func testHandleEventWithImplicitPredicatesAsync() async throws {
@@ -242,18 +181,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, predicates: P.c, state: 3, output: "pass")
     }
 
-    func testHandleEventPredicateVarargOverloadsSync() throws {
-        try fsm.buildTable {
-            define(1) {
-                matching(P.a) | when(1.1) | then(2) | pass
-                matching(Q.b) | when(1.2) | then(2) | pass
-            }
-        }
-
-        try! fsm.handleEvent(1.1, predicates: P.a, Q.b)
-        assertEventHandled(state: 2, output: "pass")
-    }
-
     func testHandleEventPredicateVarargOverloadsAsync() async throws {
         try fsm.buildTable {
             define(1) {
@@ -262,10 +189,10 @@ class FSMTests: FSMTestsBase<Int, Double> {
             }
         }
 
-        await fsm.handleEventAsync(1.1, predicates: P.a, Q.b)
+        await fsm.handleEvent(1.1, predicates: P.a, Q.b)
         assertEventHandled(state: 2, output: "pass")
 
-        await fsm.handleEventAsync(1.1)
+        await fsm.handleEvent(1.1)
         assertEventHandled(state: 1, output: "")
     }
 
@@ -273,24 +200,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
     func onEntryAsync() async { onEntry() }
     func onExit()  { actionsOutput += "exit" }
     func onExitAsync() async  { onExit() }
-
-    func testHandleEventWithConditionalEntryExitActions() throws {
-        try fsm.buildTable {
-            define(1, onEntry: Array(onEntry), onExit: Array(onExit)) {
-                when(1.0) | then(1)
-                when(1.1) | then(2)
-            }
-            
-            define(2, onEntry: Array(onEntry), onExit: Array(onExit)) {
-                when(1.1) | then(1)
-            }
-        }
-        
-        assertHandleEvent(1.0, state: 1, output: "")
-        assertHandleEvent(1.1, state: 2, output: "exitentry")
-        fsm.state = 2
-        assertHandleEvent(1.1, state: 1, output: "exitentry")
-    }
 
     func testHandleEventWithConditionalEntryExitActions_Async() async throws {
         try fsm.buildTable {
@@ -308,26 +217,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, state: 2, output: "exitentry")
         fsm.state = 2
         await assertHandleEvent(1.1, state: 1, output: "exitentry")
-    }
-
-    func testHandleEventWithUnconditionalEntryExitActions() throws {
-        actionsPolicy = .executeAlways
-        fsm = makeSUT()
-        try fsm.buildTable {
-            define(1, onEntry: Array(onEntry), onExit: Array(onExit)) {
-                when(1.0) | then(1)
-                when(1.1) | then(2)
-            }
-            
-            define(2, onEntry: Array(onEntry), onExit: Array(onExit)) {
-                when(1.1) | then(1)
-            }
-        }
-
-        assertHandleEvent(1.0, state: 1, output: "exitentry")
-        assertHandleEvent(1.1, state: 2, output: "exitentry")
-        fsm.state = 2
-        assertHandleEvent(1.1, state: 1, output: "exitentry")
     }
 
     func testHandleEventWithUnconditionalEntryExitActions_Async() async throws {
@@ -350,17 +239,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, state: 1, output: "exitentry")
     }
 
-    func testHandleEventWithCondition() throws {
-        try fsm.buildTable {
-            define(1) { condition { false } | when(1.1) | then(2) | pass }
-            define(2) { condition { true  } | when(1.1) | then(3) | pass }
-        }
-
-        assertHandleEvent(1.1, state: 1, output: "")
-        fsm.state = 2
-        assertHandleEvent(1.1, state: 3, output: "pass")
-    }
-
     func testHandleEventWithCondition() async throws {
         try fsm.buildTable {
             define(1) { condition { false } | when(1.1) | then(2) | pass }
@@ -376,18 +254,6 @@ class FSMTests: FSMTestsBase<Int, Double> {
 class LazyFSMTests: FSMTests {
     override func makeSUT() -> any FSMProtocol<State, Event> {
         makeLazy()
-    }
-
-    func testHandleEventEarlyReturn() throws {
-        try fsm.buildTable {
-            define(1) {
-                matching(P.a) | when(1.1) | then(1) | pass
-                                when(1.1) | then(2) | pass
-            }
-        }
-
-        assertHandleEvent(1.1, predicates: P.a, state: 1, output: "pass")
-        assertHandleEvent(1.1, predicates: P.b, state: 2, output: "pass")
     }
 
     func testHandleEventEarlyReturnAsync() async throws {
@@ -406,18 +272,6 @@ class LazyFSMTests: FSMTests {
         override func logTransitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
             XCTFail("should never be called in this test")
         }
-    }
-
-    func testHandleEventEarlyReturnWithCondition() throws {
-        fsm = EarlyReturnSpy(initialState: 1)
-
-        try fsm.buildTable {
-            define(1) {
-                condition { false } | when(1.1) | then(2) | pass
-            }
-        }
-
-        assertHandleEvent(1.1, predicates: P.a, state: 1, output: "")
     }
 
     func testHandleEventEarlyReturnWithConditionAsync() async throws {

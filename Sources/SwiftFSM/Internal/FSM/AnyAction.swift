@@ -1,9 +1,9 @@
 import Foundation
 
-public typealias FSMSyncAction = @MainActor () -> Void
-public typealias FSMAsyncAction = @MainActor () async -> Void
-public typealias FSMSyncActionWithEvent<Event: FSMHashable> = @MainActor (Event) -> Void
-public typealias FSMAsyncActionWithEvent<Event: FSMHashable> = @MainActor (Event) async -> Void
+public typealias FSMSyncAction = @isolated(any) () -> Void
+public typealias FSMAsyncAction = @isolated(any) () async -> Void
+public typealias FSMSyncActionWithEvent<Event: FSMHashable> = @isolated(any) (Event) -> Void
+public typealias FSMAsyncActionWithEvent<Event: FSMHashable> = @isolated(any) (Event) async -> Void
 
 public struct AnyAction: @unchecked Sendable {
     public enum NullEvent: FSMHashable { case null }
@@ -26,27 +26,12 @@ public struct AnyAction: @unchecked Sendable {
         base = action
     }
 
-    @MainActor
-    func callAsFunction<Event: FSMHashable>(_ event: Event = NullEvent.null) throws {
-        switch base {
-        case let base as FSMSyncAction:
-            base()
-        case let base as FSMSyncActionWithEvent<Event>:
-            base(event)
-        case is FSMAsyncAction, is FSMAsyncActionWithEvent<Event>:
-            throw "'handleEvent' can only call synchronous actions. Use 'handleEventAsync' instead"
-        default:
-            throw "Action that takes an Event argument called without an Event"
-        }
-    }
-
-    @MainActor
     func callAsFunction<Event: FSMHashable>(_ event: Event = NullEvent.null) async {
         switch base {
         case let base as FSMSyncAction:
-            base()
+            await base()
         case let base as FSMSyncActionWithEvent<Event>:
-            base(event)
+            await base(event)
         case let base as FSMAsyncAction:
             await base()
         case let base as FSMAsyncActionWithEvent<Event>:

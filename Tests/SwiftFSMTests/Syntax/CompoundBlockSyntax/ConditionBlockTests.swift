@@ -18,9 +18,9 @@ class ConditionBlockTests: BlockTestsBase {
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt
-    ) {
-        assertMatchBlock(b, expected: expected, sutLine: nl, xctLine: xl)
-        assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
+    ) async {
+        await assertMatchBlock(b, expected: expected, sutLine: nl, xctLine: xl)
+        await assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
     func assertMWANode(
@@ -29,9 +29,9 @@ class ConditionBlockTests: BlockTestsBase {
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt
-    ) {
-        assertMatchBlock(b, expected: expected, sutLine: nl, xctLine: xl)
-        assertMWAResult(b.rest, sutLine: rl, xctLine: xl)
+    ) async {
+        await assertMatchBlock(b, expected: expected, sutLine: nl, xctLine: xl)
+        await assertMWAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
     func assertMTANode(
@@ -40,9 +40,9 @@ class ConditionBlockTests: BlockTestsBase {
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt
-    ) {
-        assertMatchBlock(b, expected: expected, sutLine: nl, xctLine: xl)
-        assertMTAResult(b.rest, sutLine: rl, xctLine: xl)
+    ) async {
+        await assertMatchBlock(b, expected: expected, sutLine: nl, xctLine: xl)
+        await assertMTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
     func assertMatchBlock(
@@ -50,19 +50,19 @@ class ConditionBlockTests: BlockTestsBase {
         expected: Bool,
         sutLine sl: Int,
         xctLine xl: UInt = #line
-    ) {
+    ) async {
         assertNeverEmptyNode(b, caller: "condition", sutLine: sl, xctLine: xl)
-        assertMatchNode(b, condition: expected, caller: "condition", sutLine: sl, xctLine: xl)
+        await assertMatchNode(b, condition: expected, caller: "condition", sutLine: sl, xctLine: xl)
     }
 
-    func testMWTABlocks() {
+    func testMWTABlocks() async {
         func assertMWTABlock(
             _ b: Internal.MWTABlock,
             condition: Bool,
             nodeLine sl: Int,
             xctLine xl: UInt = #line
-        ) {
-            assertMWTANode(
+        ) async {
+            await assertMWTANode(
                 mbn(b.node),
                 expected: condition,
                 nodeLine: sl,
@@ -72,35 +72,35 @@ class ConditionBlockTests: BlockTestsBase {
         }
 
         let l1 = #line; let c1 = condition({ false }) { mwtaBlock }
-        assertMWTABlock(c1, condition: false, nodeLine: l1)
+        await assertMWTABlock(c1, condition: false, nodeLine: l1)
     }
 
-    func testMWABlocks() {
+    func testMWABlocks() async {
         func assertMWABlock(
             _ b: Internal.MWABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
-        ) {
-            assertMWANode(mbn(b.node),
-                          expected: condition,
-                          nodeLine: nl,
-                          restLine: mwaLine,
-                          xctLine: xl)
+        ) async {
+            await assertMWANode(mbn(b.node),
+                                expected: condition,
+                                nodeLine: nl,
+                                restLine: mwaLine,
+                                xctLine: xl)
         }
-
+        
         let l1 = #line; let c1 = condition({ false }) { mwaBlock }
-        assertMWABlock(c1, condition: false, nodeLine: l1)
+        await assertMWABlock(c1, condition: false, nodeLine: l1)
     }
 
-    func testMTABlocks() {
+    func testMTABlocks() async {
         func assertMTABlock(
             _ b: Internal.MTABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
-        ) {
-            assertMTANode(mbn(b.node),
+        ) async {
+            await assertMTANode(mbn(b.node),
                           expected: condition,
                           nodeLine: nl,
                           restLine: mtaLine,
@@ -108,20 +108,20 @@ class ConditionBlockTests: BlockTestsBase {
         }
 
         let l1 = #line; let c1 = condition({ false }) { mtaBlock }
-        assertMTABlock(c1, condition: false, nodeLine: l1)
+        await assertMTABlock(c1, condition: false, nodeLine: l1)
     }
 
-    func testCompoundMWTABlocks() {
+    func testCompoundMWTABlocks() async {
         func assertCompoundMWTABlock(
             _ b: Internal.MWTABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
-        ) {
+        ) async {
             let c = mbnComponents(of: b)
 
-            assertMatchBlock(c.0, expected: condition, sutLine: nl, xctLine: xl)
-            assertMWTANode(c.1,
+            await assertMatchBlock(c.0, expected: condition, sutLine: nl, xctLine: xl)
+            await assertMWTANode(c.1,
                            expected: condition,
                            nodeLine: nl,
                            restLine: mwtaLine,
@@ -129,48 +129,48 @@ class ConditionBlockTests: BlockTestsBase {
         }
 
         let l1 = #line; let c1 = condition({ false }) { condition({ false }) { mwtaBlock } }
-        assertCompoundMWTABlock(c1, condition: false, nodeLine: l1)
+        await assertCompoundMWTABlock(c1, condition: false, nodeLine: l1)
     }
-
-    func testCompoundMWABlocks() {
+    
+    func testCompoundMWABlocks() async {
         func assertCompoundMWABlock(
             _ b: Internal.MWABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
-        ) {
+        ) async {
             let c = mbnComponents(of: b)
-
-            assertMatchBlock(c.0, expected: condition, sutLine: nl, xctLine: xl)
-            assertMWANode(c.1,
-                          expected: condition,
-                          nodeLine: nl,
-                          restLine: mwaLine,
-                          xctLine: xl)
+            
+            await assertMatchBlock(c.0, expected: condition, sutLine: nl, xctLine: xl)
+            await assertMWANode(c.1,
+                                expected: condition,
+                                nodeLine: nl,
+                                restLine: mwaLine,
+                                xctLine: xl)
         }
-
+        
         let l1 = #line; let c1 = condition({ false }) { condition({ false }) { mwaBlock } }
-        assertCompoundMWABlock(c1, condition: false, nodeLine: l1)
+        await assertCompoundMWABlock(c1, condition: false, nodeLine: l1)
     }
 
-    func testCompoundMTABlocks() {
+    func testCompoundMTABlocks() async {
         func assertCompoundMTABlock(
             _ b: Internal.MTABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
-        ) {
+        ) async {
             let c = mbnComponents(of: b)
-
-            assertMatchBlock(c.0, expected: condition, sutLine: nl, xctLine: xl)
-            assertMTANode(c.1,
-                          expected: condition,
-                          nodeLine: nl,
-                          restLine: mtaLine,
-                          xctLine: xl)
+            
+            await assertMatchBlock(c.0, expected: condition, sutLine: nl, xctLine: xl)
+            await assertMTANode(c.1,
+                                expected: condition,
+                                nodeLine: nl,
+                                restLine: mtaLine,
+                                xctLine: xl)
         }
-
+        
         let l1 = #line; let c1 = condition({ false }) { condition({ false }) { mtaBlock } }
-        assertCompoundMTABlock(c1, condition: false, nodeLine: l1)
+        await assertCompoundMTABlock(c1, condition: false, nodeLine: l1)
     }
 }

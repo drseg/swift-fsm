@@ -19,7 +19,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             log += [caller] + args.map(String.init(describing:))
         }
 
-        func handleEventAsync(_ event: Int, predicates: [any Predicate]) async {
+        func handleEvent(_ event: Int, predicates: [any Predicate]) async {
             log(args: predicates)
         }
 
@@ -122,22 +122,13 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             spy.reset()
         }
 
-        try fsm.handleEvent(1)
-        assertHandleEvent()
+        await fsm.handleEvent(1)
+        assertHandleEvent(function: "handleEvent")
 
-        try fsm.handleEvent(1, predicates: P.a)
-        assertHandleEvent("a")
+        await fsm.handleEvent(1, predicates: P.a)
+        assertHandleEvent("a", function: "handleEvent")
 
-        try fsm.handleEvent(1, predicates: P.a, P.b)
-        assertHandleEvent("a", "b")
-
-        await fsm.handleEventAsync(1)
-        assertHandleEvent(function: "handleEventAsync")
-
-        await fsm.handleEventAsync(1, predicates: P.a)
-        assertHandleEvent("a", function: "handleEventAsync")
-
-        await fsm.handleEventAsync(1, predicates: P.a, P.b)
-        assertHandleEvent("a", "b", function: "handleEventAsync")
+        await fsm.handleEvent(1, predicates: P.a, P.b)
+        assertHandleEvent("a", "b", function: "handleEvent")
     }
 }

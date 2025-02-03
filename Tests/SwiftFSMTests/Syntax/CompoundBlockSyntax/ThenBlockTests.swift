@@ -2,16 +2,16 @@ import XCTest
 @testable import SwiftFSM
 
 class ThenBlockTests: BlockTestsBase {
-    func testThenBlockWithMTA() {
+    func testThenBlockWithMTA() async {
         let node = (then(1) { mwaBlock }).thenBlockNode; let line = #line
         assertThenNode(node, state: 1, sutFile: #file, sutLine: line)
-        assertMWAResult(node.rest, sutLine: mwaLine)
+        await assertMWAResult(node.rest, sutLine: mwaLine)
     }
 
-    func testThenBlockWithMA() {
+    func testThenBlockWithMA() async {
         let node = (then(1) { maBlock }).thenBlockNode; let line = #line
         assertThenNode(node, state: 1, sutFile: #file, sutLine: line)
-        assertMAResult(node.rest, sutLine: maLine)
+        await assertMAResult(node.rest, sutLine: maLine)
     }
 }
 

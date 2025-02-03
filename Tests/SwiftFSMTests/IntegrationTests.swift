@@ -12,7 +12,6 @@ enum TurnstileEvent: String, CustomStringConvertible {
     var description: String { rawValue }
 }
 
-@MainActor
 class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     var actions = [String]()
     var actual = [String]()
@@ -31,28 +30,28 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
 }
 
 class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
-    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
-        assertEventAction(e, a.isEmpty ? [] : [a], line: line)
+    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) async {
+        await assertEventAction(e, a.isEmpty ? [] : [a], line: line)
     }
     
-    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
+    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) async {
         actual += a
-        try! fsm.handleEvent(e)
+        await fsm.handleEvent(e)
         XCTAssertEqual(actions, actual, line: line)
     }
     
-    func assertTurnstile() {
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.pass,  "lock")
-        assertEventAction(.pass,  "alarmOn")
-        assertEventAction(.reset, ["alarmOff", "lock"])
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.coin,  "thankyou")
-        assertEventAction(.coin,  "thankyou")
-        assertEventAction(.reset, "lock")
+    func assertTurnstile() async {
+        await assertEventAction(.coin,  "unlock")
+        await assertEventAction(.pass,  "lock")
+        await assertEventAction(.pass,  "alarmOn")
+        await assertEventAction(.reset, ["alarmOff", "lock"])
+        await assertEventAction(.coin,  "unlock")
+        await assertEventAction(.coin,  "thankyou")
+        await assertEventAction(.coin,  "thankyou")
+        await assertEventAction(.reset, "lock")
     }
     
-    func testTurnstile() throws {
+    func testTurnstile() async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -71,51 +70,51 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        assertTurnstile()
+        await assertTurnstile()
     }
     
-    func testConditionTurnstile() throws {
-        var bool = false
+    private var bool = false
+    func testConditionTurnstile() async throws {
 
         try fsm.buildTable {
             let resetable = SuperState {
-                condition { bool } | when(.reset) | then(.locked)
+                condition { self.bool } | when(.reset) | then(.locked)
             }
 
             define(.locked, adopts: resetable, onEntry: Array(lock)) {
-                condition { bool } | when(.coin) | then(.unlocked)
-                condition { bool } | when(.pass) | then(.alarming)
+                condition { self.bool } | when(.coin) | then(.unlocked)
+                condition { self.bool } | when(.pass) | then(.alarming)
             }
 
             define(.unlocked, adopts: resetable, onEntry: Array(unlock)) {
-                condition { bool } | when(.coin) | then(.unlocked) | thankyou
-                condition { bool } | when(.pass) | then(.locked)
+                condition { self.bool } | when(.coin) | then(.unlocked) | thankyou
+                condition { self.bool } | when(.pass) | then(.locked)
             }
 
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
 
-        assertEventAction(.coin,  "")
-        assertEventAction(.pass,  "")
-        assertEventAction(.reset,  "")
+        await assertEventAction(.coin,  "")
+        await assertEventAction(.pass,  "")
+        await assertEventAction(.reset,  "")
 
         fsm.state = AnyHashable(State.unlocked)
 
-        assertEventAction(.coin,  "")
-        assertEventAction(.pass,  "")
-        assertEventAction(.reset,  "")
+        await assertEventAction(.coin,  "")
+        await assertEventAction(.pass,  "")
+        await assertEventAction(.reset,  "")
 
         fsm.state = AnyHashable(State.alarming)
 
-        assertEventAction(.reset,  "")
+        await assertEventAction(.reset,  "")
 
         fsm.state = AnyHashable(State.locked)
         bool = true
 
-        assertTurnstile()
+        await assertTurnstile()
     }
     
-    func testOverrideTurnstile() throws {
+    func testOverrideTurnstile() async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -142,18 +141,18 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        assertEventAction(.reset, "thankyou")
+        await assertEventAction(.reset, "thankyou")
         
         fsm.state = AnyHashable(State.unlocked)
-        assertEventAction(.reset, ["lock", "lock"])
+        await assertEventAction(.reset, ["lock", "lock"])
         
         fsm.state = AnyHashable(State.alarming)
-        assertEventAction(.reset, ["alarmOff", "lock"])
+        await assertEventAction(.reset, ["alarmOff", "lock"])
     }
     
     func fail() { XCTFail("should not have been called") }
     
-    func testChainedOverrides() throws {
+    func testChainedOverrides() async throws {
         try fsm.buildTable {
             let s1 = SuperState { when(.coin) | then(.unlocked) | fail  }
             let s2 = SuperState(adopts: s1) { overriding { when(.coin) | then(.unlocked) | fail } }
@@ -165,7 +164,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             }
         }
 
-        assertEventAction(.coin, "unlock")
+        await assertEventAction(.coin, "unlock")
     }
 }
 
@@ -181,30 +180,30 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     
     func idiot() { actions.append("idiot") }
     
-    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) {
-        assertEventAction(e, [a], line: line)
+    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) async {
+        await assertEventAction(e, [a], line: line)
     }
     
-    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) {
+    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) async {
         if !(a.first?.isEmpty ?? false) {
             actual += a
         }
-        try! fsm.handleEvent(e, predicates: [Enforcement.weak, Reward.punishing])
+        await fsm.handleEvent(e, predicates: [Enforcement.weak, Reward.punishing])
         XCTAssertEqual(actions, actual, line: line)
     }
     
-    func assertTable() {
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.pass,  "lock")
-        assertEventAction(.pass,  "")
-        assertEventAction(.reset, "")
-        assertEventAction(.coin,  "unlock")
-        assertEventAction(.coin,  "idiot")
-        assertEventAction(.coin,  "idiot")
-        assertEventAction(.reset, "lock")
+    func assertTable() async {
+        await assertEventAction(.coin,  "unlock")
+        await assertEventAction(.pass,  "lock")
+        await assertEventAction(.pass,  "")
+        await assertEventAction(.reset, "")
+        await assertEventAction(.coin,  "unlock")
+        await assertEventAction(.coin,  "idiot")
+        await assertEventAction(.coin,  "idiot")
+        await assertEventAction(.reset, "lock")
     }
     
-    func testPredicateTurnstile() throws {
+    func testPredicateTurnstile() async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -227,10 +226,10 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        assertTable()
+        await assertTable()
     }
     
-    func testDeduplicatedPredicateTurnstile() throws {
+    func testDeduplicatedPredicateTurnstile() async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -259,10 +258,10 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        assertTable()
+        await assertTable()
     }
     
-    func testActionsBlockTurnstile() throws {
+    func testActionsBlockTurnstile() async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -294,7 +293,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        assertTable()
+        await assertTable()
     }
 }
 
@@ -305,7 +304,7 @@ class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateT
 }
 
 class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
-    func testMultiplePredicateBlocks() throws {
+    func testMultiplePredicateBlocks() async throws {
         try fsm.buildTable {
             define(.locked) {
                 matching(P.a, or: P.b) {
@@ -324,22 +323,22 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
             }
         }
         
-        try! fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a, V.a)
+        await fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual(["thankyou"], actions)
         
-        try! fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a, V.a)
+        await fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual(["thankyou", "thankyou"], actions)
         
         actions = []
-        try! fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a, V.a)
+        await fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a, V.a)
         XCTAssertEqual([], actions)
         
         actions = []
-        try! fsm.handleEvent(.coin, predicates: P.a, Q.b, R.b, S.b, T.b, U.b, V.b)
+        await fsm.handleEvent(.coin, predicates: P.a, Q.b, R.b, S.b, T.b, U.b, V.b)
         XCTAssertEqual(["unlock"], actions)
     }
     
-    func testMultiplActionsBlocks() throws {
+    func testMultiplActionsBlocks() async throws {
         try fsm.buildTable {
             define(.locked) {
                 actions(thankyou) {
@@ -350,7 +349,7 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
             }
         }
         
-        try! fsm.handleEvent(.coin, predicates: P.a)
+        await fsm.handleEvent(.coin, predicates: P.a)
         XCTAssertEqual(["thankyou", "lock", "unlock"], actions)
     }
 }
@@ -598,7 +597,7 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
         fish: ComplexEvent,
         dog: ComplexEvent,
         any: ComplexEvent
-    ) {
+    ) async {
         func assertValue(_ expectedValue: ComplexEvent) {
             XCTAssertEqual(expectedValue.stringValue, event.stringValue)
             event = .null
@@ -615,28 +614,28 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
             }
         }
 
-        try! fsm.handleEvent(cat)
+        await fsm.handleEvent(cat)
         assertValue(cat)
 
-        try! fsm.handleEvent(fish)
+        await fsm.handleEvent(fish)
         assertValue(fish)
 
-        try! fsm.handleEvent(dog)
+        await fsm.handleEvent(dog)
         XCTAssertEqual(event, .null)
 
         fsm.state = AnyHashable(State.unlocked)
-        try! fsm.handleEvent(cat)
+        await fsm.handleEvent(cat)
         assertValue(cat)
 
-        try! fsm.handleEvent(fish)
+        await fsm.handleEvent(fish)
         assertValue(fish)
     }
 
-    func testEventPassingUsingValueEnum() {
-        assertEventPassing(cat: .didSetOtherValue(.some("cat")),
-                           fish: .didSetOtherValue(.some("fish")),
-                           dog: .didSetOtherValue(.some("dog")),
-                           any: .didSetOtherValue(.any))
+    func testEventPassingUsingValueEnum() async {
+        await assertEventPassing(cat: .didSetOtherValue(.some("cat")),
+                                 fish: .didSetOtherValue(.some("fish")),
+                                 dog: .didSetOtherValue(.some("dog")),
+                                 any: .didSetOtherValue(.any))
     }
 
     func testDuplicatesDetectedAsExpectedUsingStruct() {

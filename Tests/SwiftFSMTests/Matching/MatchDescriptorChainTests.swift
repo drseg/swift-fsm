@@ -10,7 +10,6 @@ enum U: Predicate { case a, b    }
 enum V: Predicate { case a, b    }
 enum W: Predicate { case a, b    }
 
-@MainActor
 class MatchDescriptorChainTests: XCTestCase {
     let p1 = P.a, p2 = P.b, p3 = P.c
     let q1 = Q.a, q2 = Q.b
@@ -37,10 +36,13 @@ class BasicTests: MatchDescriptorChainTests {
         assertFileAndLine(MatchDescriptorChain(any: [[p1.erased()]], all: [], file: f, line: l))
     }
     
-    func testConditionInit() {
-        XCTAssertEqual(nil, MatchDescriptorChain().condition?())
-        XCTAssertEqual(true, MatchDescriptorChain(condition: { true }).condition?())
-        XCTAssertEqual(false, MatchDescriptorChain(condition: { false }).condition?())
+    func testConditionInit() async {
+        let c1 = await MatchDescriptorChain().condition?()
+        XCTAssertEqual(nil, c1)
+        let c2 = await MatchDescriptorChain(condition: { true }).condition?()
+        XCTAssertEqual(true, c2)
+        let c3 = await MatchDescriptorChain(condition: { false }).condition?()
+        XCTAssertEqual(false, c3)
     }
     
     func testEquatable() {
@@ -129,18 +131,24 @@ class AdditionTests: MatchDescriptorChainTests {
                                       all: q1, q2, s1, s2))
     }
     
-    func testAddingConditions() {
+    func testAddingConditions() async {
         let m1 = MatchDescriptorChain(condition: { true })
         let m2 = MatchDescriptorChain(condition: { false })
         let m3 = MatchDescriptorChain()
         
-        XCTAssertEqual(true, m1.combineWith(m1).condition?())
-        XCTAssertEqual(nil, m3.combineWith(m3).condition?())
-        XCTAssertEqual(true, m1.combineWith(m3).condition?())
+        let c1 = await m1.combineWith(m1).condition?()
+        XCTAssertEqual(true, c1)
+        let c2 = await m3.combineWith(m3).condition?()
+        XCTAssertEqual(nil, c2)
+        let c3 = await m1.combineWith(m3).condition?()
+        XCTAssertEqual(true, c3)
         
-        XCTAssertEqual(false, m1.combineWith(m2).condition?())
-        XCTAssertEqual(false, m2.combineWith(m3).condition?())
-        XCTAssertEqual(false, m3.combineWith(m2).condition?())
+        let c4 = await m1.combineWith(m2).condition?()
+        XCTAssertEqual(false, c4)
+        let c5 = await m2.combineWith(m3).condition?()
+        XCTAssertEqual(false, c5)
+        let c6 = await m3.combineWith(m2).condition?()
+        XCTAssertEqual(false, c6)
     }
 }
 
@@ -175,7 +183,7 @@ class FinalisationTests: MatchDescriptorChainTests {
     
     func testLongChain() {
         var match = MatchDescriptorChain(all: p1)
-        100 * { match = match.prepend(MatchDescriptorChain()) }
+        (0..<100).forEach { _ in match = match.prepend(MatchDescriptorChain()) }
         XCTAssertEqual(MatchDescriptorChain(all: p1), try? match.resolve().get())
     }
 }
@@ -433,11 +441,4 @@ extension Collection where Element == [any Predicate] {
     var erasedSets: PredicateSets {
         Set(map { Set($0.erased()) })
     }
-}
-
-infix operator *
-
-@MainActor
-func * (lhs: Int, rhs: FSMSyncAction) {
-    for _ in 1...lhs { rhs() }
 }

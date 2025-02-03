@@ -17,14 +17,14 @@ class ActionsResolvingNodeTests: DefineConsumer {
         t: AnyTraceable,
         output: String,
         line: UInt = #line
-    ) {
+    ) async {
         let node = T.init(rest: [defineNode(g, m, w, t, exit: onExit)])
         let finalised = node.resolve()
         XCTAssertTrue(finalised.errors.isEmpty, line: line)
         guard assertCount(finalised.output, expected: 1, line: line) else { return }
         
         let result = finalised.output[0]
-        assertResult(result, g, m, w, t, output, line)
+        await assertResult(result, g, m, w, t, output, line)
     }
     
     func assertResult(
@@ -35,7 +35,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
         _ t: AnyTraceable,
         _ output: String,
         _ line: UInt = #line
-    ) {
+    ) async {
         XCTAssertEqual(result.state, g, line: line)
         XCTAssertEqual(result.descriptor, m, line: line)
         XCTAssertEqual(result.event, w, line: line)
@@ -43,47 +43,47 @@ class ActionsResolvingNodeTests: DefineConsumer {
         XCTAssertEqual(result.overrideGroupID, testGroupID, line: line)
         XCTAssertEqual(result.isOverride, false, line: line)
         
-        assertActions(result.actions, expectedOutput: output, line: line)
+        await assertActions(result.actions, expectedOutput: output, line: line)
     }
     
     let m = MatchDescriptorChain()
     
-    func testConditionalDoesNotAddExitActionsWithoutStateChange() {
-        assertNode(type: ConditionalActionsResolvingNode.self,
+    func testConditionalDoesNotAddExitActionsWithoutStateChange() async {
+        await assertNode(type: ConditionalActionsResolvingNode.self,
                    g: s1, m: m, w: e1, t: s1, output: "12")
     }
     
-    func testUnconditionalAddsExitActionsWithoutStateChange() {
-        assertNode(type: ActionsResolvingNode.self,
+    func testUnconditionalAddsExitActionsWithoutStateChange() async {
+        await assertNode(type: ActionsResolvingNode.self,
                    g: s1, m: m, w: e1, t: s1, output: "12>>")
     }
     
-    func testConditionalAddsExitActionsWithStateChange() {
-        assertNode(type: ConditionalActionsResolvingNode.self,
+    func testConditionalAddsExitActionsWithStateChange() async {
+        await assertNode(type: ConditionalActionsResolvingNode.self,
                    g: s1, m: m, w: e1, t: s2, output: "12>>")
     }
     
-    func testConditionalDoesNotAddEntryActionsWithoutStateChange() {
+    func testConditionalDoesNotAddEntryActionsWithoutStateChange() async {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: [])
         let result = ConditionalActionsResolvingNode(rest: [d1]).resolve()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 1) else { return }
         
-        assertResult(result.output[0], s1, m, e1, s1, "12")
+        await assertResult(result.output[0], s1, m, e1, s1, "12")
     }
     
-    func testUnconditionalAddsEntryActionsWithoutStateChange() {
+    func testUnconditionalAddsEntryActionsWithoutStateChange() async {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: onExit)
         let result = ActionsResolvingNode(rest: [d1]).resolve()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 1) else { return }
         
-        assertResult(result.output[0], s1, m, e1, s1, "12>><<")
+        await assertResult(result.output[0], s1, m, e1, s1, "12>><<")
     }
     
-    func testConditionalAddsEntryActionsForStateChange() {
+    func testConditionalAddsEntryActionsForStateChange() async {
         let d1 = defineNode(s1, m, e1, s2)
         let d2 = defineNode(s2, m, e1, s3, entry: onEntry, exit: onExit)
         let result = ConditionalActionsResolvingNode(rest: [d1, d2]).resolve()
@@ -91,7 +91,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 2) else { return }
         
-        assertResult(result.output[0], s1, m, e1, s2, "12<<")
-        assertResult(result.output[1], s2, m, e1, s3, "12>>")
+        await assertResult(result.output[0], s1, m, e1, s2, "12<<")
+        await assertResult(result.output[1], s2, m, e1, s3, "12>>")
     }
 }

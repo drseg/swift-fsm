@@ -38,7 +38,7 @@ class NodeTests: XCTestCase {
                                ["E", "E", "E", "E"]))
     }
     
-    // FIXME: Currently, there is a temporal coupling between Node.combinedWith() and Node.validate() - validate() cannot find all errors until combinedWith() has already been called. This test protects this arrangement until a better solution can be implemented
+    // FIXME: Currently, there is a temporal coupling between Node.combinedWith() and Node.validate() - validate() cannot find all errors until combinedWith() has already been called. This test clarifies this arrangement until a better solution can be implemented.
     func testResolveCallsCombinedWithBeforeValidate() {
         class NodeSpy: Node {
             var rest: [any Node<String>] = []

@@ -80,7 +80,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
         assertEqual(secondExpected, secondClash?.last)
     }
     
-    func testNoError() {
+    func testNoError() async {
         let a1 = actionsResolvingNode(s1, MatchDescriptorChain(), e1, s2)
         let a2 = actionsResolvingNode(s1, MatchDescriptorChain(), e2, s3)
         
@@ -93,10 +93,10 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let secondExpected = a2.resolve().output[0]
         
         assertEqual(firstExpected, finalised.output[0])
-        assertActions(finalised.output[0].actions, expectedOutput: "12")
+        await assertActions(finalised.output[0].actions, expectedOutput: "12")
         
         assertEqual(secondExpected, finalised.output[1])
-        assertActions(finalised.output[1].actions, expectedOutput: "12")
+        await assertActions(finalised.output[1].actions, expectedOutput: "12")
     }
     
     func testErrorIfNothingToOverride() {

@@ -14,19 +14,19 @@ final class MatchingNodeTests: SyntaxNodeTests {
         assertCount(MatchingBlockNode(descriptor: MatchDescriptorChain(), rest: []).resolve().output, expected: 0)
     }
     
-    func testMatchNodeFinalisesCorrectly() {
-        assertMatch(MatchingNode(descriptor: MatchDescriptorChain(), rest: [whenNode]))
+    func testMatchNodeFinalisesCorrectly() async {
+        await assertMatch(MatchingNode(descriptor: MatchDescriptorChain(), rest: [whenNode]))
     }
     
-    func testMatchNodeWithChainFinalisesCorrectly() {
+    func testMatchNodeWithChainFinalisesCorrectly() async {
         let m = MatchingNode(descriptor: MatchDescriptorChain(any: S.b, all: R.a))
-        assertDefaultIONodeChains(node: m, expectedMatch: MatchDescriptorChain(any: [[P.a], [S.b]],
-                                                                               all: Q.a, R.a))
+        await assertDefaultIONodeChains(node: m, expectedMatch: MatchDescriptorChain(any: [[P.a], [S.b]],
+                                                                                     all: Q.a, R.a))
     }
     
-    func testMatchNodeCanSetRestAfterInit() {
+    func testMatchNodeCanSetRestAfterInit() async {
         let m = MatchingNode(descriptor: MatchDescriptorChain())
         m.rest.append(whenNode)
-        assertMatch(m)
+        await assertMatch(m)
     }
 }

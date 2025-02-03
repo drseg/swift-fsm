@@ -42,8 +42,7 @@ protocol FSMProtocol<State, Event>: AnyObject {
     var table: [TableKey: Transition] { get set }
     var state: AnyHashable { get set }
 
-    @MainActor func handleEvent(_ event: Event, predicates: [any Predicate]) throws
-    @MainActor func handleEventAsync(_ event: Event, predicates: [any Predicate]) async
+    func handleEvent(_ event: Event, predicates: [any Predicate]) async
     func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode
     func buildTable(
         file: String,
@@ -53,14 +52,8 @@ protocol FSMProtocol<State, Event>: AnyObject {
 }
 
 extension FSMProtocol {
-    @MainActor
-    func handleEvent(_ event: Event, predicates: any Predicate...) throws {
-        try handleEvent(event, predicates: predicates)
-    }
-
-    @MainActor
-    func handleEventAsync(_ event: Event, predicates: any Predicate...) async {
-        await handleEventAsync(event, predicates: predicates)
+    func handleEvent(_ event: Event, predicates: any Predicate...) async {
+        await handleEvent(event, predicates: predicates)
     }
 
     func buildTable(
@@ -80,26 +73,8 @@ extension FSMProtocol {
         makeTable(result.output)
     }
 
-    @discardableResult @MainActor
+    @discardableResult
     func _handleEvent(
-        _ event: Event,
-        predicates: [any Predicate]
-    ) throws -> TransitionStatus<Event> {
-        guard let transition = transition(event, predicates) else {
-            return .notFound(event, predicates)
-        }
-
-        guard shouldExecute(transition) else {
-            return .notExecuted(transition)
-        }
-
-        state = transition.nextState
-        try transition.executeActions(event: event)
-        return .executed(transition)
-    }
-
-    @discardableResult @MainActor
-    func _handleEventAsync(
         _ event: Event,
         predicates: [any Predicate]
     ) async -> TransitionStatus<Event> {
@@ -107,7 +82,7 @@ extension FSMProtocol {
             return .notFound(event, predicates)
         }
 
-        guard shouldExecute(transition) else {
+        guard await shouldExecute(transition) else {
             return .notExecuted(transition)
         }
 
@@ -116,16 +91,14 @@ extension FSMProtocol {
         return .executed(transition)
     }
 
-    @MainActor
     func transition(_ event: Event, _ predicates: [any Predicate]) -> Transition? {
         table[TableKey(state: state,
                        predicates: Set(predicates.erased()),
                        event: event)]
     }
 
-    @MainActor
-    func shouldExecute(_ t: Transition) -> Bool {
-        t.condition?() ?? true
+    func shouldExecute(_ t: Transition) async -> Bool {
+        await t.condition?() ?? true
     }
 
     func makeActionsResolvingNode(rest: [DefineNode]) -> ActionsResolvingNodeBase {
@@ -183,12 +156,7 @@ class BaseFSM<State: FSMHashable, Event: FSMHashable> {
     }
 }
 
-@MainActor
 private extension Transition {
-    func executeActions<E: FSMHashable>(event: E) throws {
-        try actions.forEach { try $0(event) }
-    }
-
     func executeActions<E: FSMHashable>(event: E) async {
         for action in actions {
             await action(event)

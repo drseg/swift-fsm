@@ -50,10 +50,11 @@ extension Array {
 
 extension Collection where Element == AnyPredicate {
     var combinationsOfAllCases: PredicateSets {
-        Set(uniqueTypes()
-            .map(\.allCases)
-            .combinations()
-            .map(Set.init)
+        Set(
+            uniqueTypes()
+                .map(\.allCases)
+                .combinations()
+                .map(Set.init)
         )
     }
 

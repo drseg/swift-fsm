@@ -18,24 +18,10 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FS
         LazyMatchResolvingNode(rest: rest)
     }
 
-    @MainActor
-    func handleEvent(_ event: Event, predicates: [any Predicate]) throws {
+    func handleEvent(_ event: Event, predicates: [any Predicate]) async {
         for combinations in makeCombinationsSequences(predicates) {
             for predicates in combinations {
-                if logTransitionStatus(try _handleEvent(event, predicates: predicates)) {
-                    return
-                }
-            }
-        }
-
-        logTransitionNotFound(event, predicates)
-    }
-
-    @MainActor
-    func handleEventAsync(_ event: Event, predicates: [any Predicate]) async {
-        for combinations in makeCombinationsSequences(predicates) {
-            for predicates in combinations {
-                if logTransitionStatus(await _handleEventAsync(event, predicates: predicates)) {
+                if logTransitionStatus(await _handleEvent(event, predicates: predicates)) {
                     return
                 }
             }

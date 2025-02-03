@@ -405,7 +405,7 @@ final class ErrorTests: SyntaxNodeTests {
 }
 
 extension Error {
-    func assertDescription(_ expected: String, file: StaticString = #filePath, line: UInt = #line) {
+    func assertDescription(_ expected: String, file: StaticString = #file, line: UInt = #line) {
         XCTAssertEqual(expected, localizedDescription, file: file, line: line)
     }
 }

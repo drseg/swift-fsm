@@ -19,9 +19,9 @@ class MatchingBlockTests: BlockTestsBase {
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt
-    ) {
-        assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
-        assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
+    ) async {
+        await assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
+        await assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
     func assertMWANode(
@@ -31,9 +31,9 @@ class MatchingBlockTests: BlockTestsBase {
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt
-    ) {
-        assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
-        assertMWAResult(b.rest, sutLine: rl, xctLine: xl)
+    ) async {
+        await assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
+        await assertMWAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
     func assertMTANode(
@@ -43,9 +43,9 @@ class MatchingBlockTests: BlockTestsBase {
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt
-    ) {
-        assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
-        assertMTAResult(b.rest, sutLine: rl, xctLine: xl)
+    ) async {
+        await assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
+        await assertMTAResult(b.rest, sutLine: rl, xctLine: xl)
     }
 
     func assertMatchBlock(
@@ -54,20 +54,20 @@ class MatchingBlockTests: BlockTestsBase {
         all: [any Predicate],
         sutLine sl: Int,
         xctLine xl: UInt = #line
-    ) {
+    ) async {
         assertNeverEmptyNode(b, caller: "matching", sutLine: sl, xctLine: xl)
-        assertMatchNode(b, any: [any], all: all, sutLine: sl, xctLine: xl)
+        await assertMatchNode(b, any: [any], all: all, sutLine: sl, xctLine: xl)
     }
 
-    func testMWTABlocks() {
+    func testMWTABlocks() async {
         func assertMWTABlock(
             _ b: Internal.MWTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine sl: Int = #line,
             xctLine xl: UInt = #line
-        ) {
-            assertMWTANode(
+        ) async  {
+            await assertMWTANode(
                 mbn(b.node),
                 any: any,
                 all: all,
@@ -76,126 +76,129 @@ class MatchingBlockTests: BlockTestsBase {
                 xctLine: xl
             )
         }
-
-        assertMWTABlock(matching(Q.a) { mwtaBlock }, all: [Q.a])
-        assertMWTABlock(matching(Q.a, and: R.a) { mwtaBlock }, all: [Q.a, R.a])
-        assertMWTABlock(matching(Q.a, or: Q.b) { mwtaBlock }, any: [Q.a, Q.b])
-        assertMWTABlock(matching(Q.a, or: Q.b, and: R.a, S.a) { mwtaBlock }, 
-                        any: [Q.a, Q.b],
-                        all: [R.a, S.a])
+        
+        await assertMWTABlock(matching(Q.a) { mwtaBlock }, all: [Q.a])
+        await assertMWTABlock(matching(Q.a, and: R.a) { mwtaBlock }, all: [Q.a, R.a])
+        await assertMWTABlock(matching(Q.a, or: Q.b) { mwtaBlock }, any: [Q.a, Q.b])
+        await assertMWTABlock(matching(Q.a, or: Q.b, and: R.a, S.a) { mwtaBlock },
+                              any: [Q.a, Q.b],
+                              all: [R.a, S.a])
     }
 
-    func testMWABlocks() {
+    func testMWABlocks() async {
         func assertMWABlock(
             _ b: Internal.MWABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
             xctLine xl: UInt = #line
-        ) {
-            assertMWANode(mbn(b.node),
-                          any: any,
-                          all: all,
-                          nodeLine: nl,
-                          restLine: mwaLine,
-                          xctLine: xl)
+        ) async {
+            await assertMWANode(mbn(b.node),
+                                any: any,
+                                all: all,
+                                nodeLine: nl,
+                                restLine: mwaLine,
+                                xctLine: xl)
         }
-
-        assertMWABlock(matching(Q.a) { mwaBlock }, all: [Q.a])
-        assertMWABlock(matching(Q.a, and: R.a) { mwaBlock }, all: [Q.a, R.a])
-        assertMWABlock(matching(Q.a, or: Q.b) { mwaBlock }, any: [Q.a, Q.b])
-        assertMWABlock(matching(Q.a, or: Q.b, and: R.a, S.a)  { mwaBlock }, 
-                       any: [Q.a, Q.b],
-                       all: [R.a, S.a])
+        
+        await assertMWABlock(matching(Q.a) { mwaBlock }, all: [Q.a])
+        await assertMWABlock(matching(Q.a, and: R.a) { mwaBlock }, all: [Q.a, R.a])
+        await assertMWABlock(matching(Q.a, or: Q.b) { mwaBlock }, any: [Q.a, Q.b])
+        await assertMWABlock(matching(Q.a, or: Q.b, and: R.a, S.a)  { mwaBlock },
+                             any: [Q.a, Q.b],
+                             all: [R.a, S.a])
     }
-
-    func testMTABlocks() {
+    
+    func testMTABlocks() async {
         func assertMTABlock(
             _ b: Internal.MTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
             xctLine xl: UInt = #line
-        ) {
-            assertMTANode(mbn(b.node),
-                          any: any,
-                          all: all,
-                          nodeLine: nl,
-                          restLine: mtaLine,
-                          xctLine: xl)
+        ) async {
+            await assertMTANode(mbn(b.node),
+                                any: any,
+                                all: all,
+                                nodeLine: nl,
+                                restLine: mtaLine,
+                                xctLine: xl)
         }
-
-        assertMTABlock(matching(Q.a) { mtaBlock }, all: [Q.a])
-        assertMTABlock(matching(Q.a, and: R.a) { mtaBlock }, all: [Q.a, R.a])
-        assertMTABlock(matching(Q.a, or: Q.b) { mtaBlock }, any: [Q.a, Q.b])
-        assertMTABlock(matching(Q.a, or: Q.b, and: R.a, S.a) { mtaBlock },
-                       any: [Q.a, Q.b],
-                       all: [R.a, S.a])
+        
+        await assertMTABlock(matching(Q.a, or: Q.b, and: R.a, S.a) { mtaBlock },
+                             any: [Q.a, Q.b],
+                             all: [R.a, S.a])
     }
-
-    func testCompoundMWTABlocks() {
+    
+    func testCompoundMWTABlocks() async {
         func assertCompoundMWTABlock(
             _ b: Internal.MWTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
             xctLine xl: UInt = #line
-        ) {
+        ) async {
             let c = mbnComponents(of: b)
-
-            assertMatchBlock(c.0, any: any, all: all, sutLine: nl, xctLine: xl)
-            assertMWTANode(c.1,
-                           any: any,
-                           all: all,
-                           nodeLine: nl,
-                           restLine: mwtaLine,
-                           xctLine: xl)
+            
+            await assertMatchBlock(c.0, any: any, all: all, sutLine: nl, xctLine: xl)
+            await assertMWTANode(
+                c.1,
+                any: any,
+                all: all,
+                nodeLine: nl,
+                restLine: mwtaLine,
+                xctLine: xl
+            )
         }
 
-        assertCompoundMWTABlock(matching(Q.a) { matching(Q.a) { mwtaBlock } }, all: [Q.a])
+        await assertCompoundMWTABlock(matching(Q.a) { matching(Q.a) { mwtaBlock } }, all: [Q.a])
     }
 
-    func testCompoundMWABlocks() {
+    func testCompoundMWABlocks() async {
         func assertCompoundMWABlock(
             _ b: Internal.MWABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
             xctLine xl: UInt = #line
-        ) {
+        ) async {
             let c = mbnComponents(of: b)
-
-            assertMatchBlock(c.0, any: any, all: all, sutLine: nl, xctLine: xl)
-            assertMWANode(c.1,
-                          any: any,
-                          all: all,
-                          nodeLine: nl,
-                          restLine: mwaLine,
-                          xctLine: xl)
+            
+            await assertMatchBlock(c.0, any: any, all: all, sutLine: nl, xctLine: xl)
+            await assertMWANode(
+                c.1,
+                any: any,
+                all: all,
+                nodeLine: nl,
+                restLine: mwaLine,
+                xctLine: xl
+            )
         }
 
-        assertCompoundMWABlock(matching(Q.a) { matching(Q.a) { mwaBlock } }, all: [Q.a])
+        await assertCompoundMWABlock(matching(Q.a) { matching(Q.a) { mwaBlock } }, all: [Q.a])
     }
 
-    func testCompoundMTABlocks() {
+    func testCompoundMTABlocks() async {
         func assertCompoundMTABlock(
             _ b: Internal.MTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
             xctLine xl: UInt = #line
-        ) {
+        ) async {
             let c = mbnComponents(of: b)
-
-            assertMatchBlock(c.0, any: any, all: all, sutLine: nl, xctLine: xl)
-            assertMTANode(c.1,
-                          any: any,
-                          all: all,
-                          nodeLine: nl,
-                          restLine: mtaLine,
-                          xctLine: xl)
+            
+            await assertMatchBlock(c.0, any: any, all: all, sutLine: nl, xctLine: xl)
+            await assertMTANode(
+                c.1,
+                any: any,
+                all: all,
+                nodeLine: nl,
+                restLine: mtaLine,
+                xctLine: xl
+            )
         }
 
-        assertCompoundMTABlock(matching(Q.a) { matching(Q.a) { mtaBlock } }, all: [Q.a])
+        await assertCompoundMTABlock(matching(Q.a) { matching(Q.a) { mtaBlock } }, all: [Q.a])
     }
 }

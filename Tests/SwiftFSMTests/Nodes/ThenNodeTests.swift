@@ -22,25 +22,25 @@ final class ThenNodeTests: SyntaxNodeTests {
         assertCount(ThenBlockNode(state: s1, rest: []).resolve().output, expected: 0)
     }
     
-    func testThenNodeFinalisesCorrectly() {
-        assertThenWithActions(expected: "12", ThenNode(state: s1, rest: [actionsNode]))
+    func testThenNodeFinalisesCorrectly() async {
+        await assertThenWithActions(expected: "12", ThenNode(state: s1, rest: [actionsNode]))
     }
     
-    func testThenNodePlusChainFinalisesCorrectly() {
+    func testThenNodePlusChainFinalisesCorrectly() async {
         let t = ThenNode(state: s2)
-        assertDefaultIONodeChains(node: t, expectedState: s2)
+        await assertDefaultIONodeChains(node: t, expectedState: s2)
     }
     
-    func testThenNodeCanSetRestAfterInit() {
+    func testThenNodeCanSetRestAfterInit() async {
         let t = ThenNode(state: s1)
         t.rest.append(actionsNode)
-        assertThenWithActions(expected: "12", t)
+        await assertThenWithActions(expected: "12", t)
     }
     
-    func testThenNodeFinalisesWithMultipleActionsNodes() {
-        assertThenWithActions(expected: "1212",
-                              ThenNode(state: s1, rest: [actionsNode,
-                                                         actionsNode])
+    func testThenNodeFinalisesWithMultipleActionsNodes() async {
+        await assertThenWithActions(expected: "1212",
+                                    ThenNode(state: s1, rest: [actionsNode,
+                                                               actionsNode])
         )
     }
 }

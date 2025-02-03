@@ -161,14 +161,10 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     }
     
     func handleEvent(_ event: Int, _ predicates: any Predicate...) async {
-        try! fsm.handleEvent(event, predicates: predicates)
+        await fsm.handleEvent(event, predicates: predicates)
         fsm.state = 1
-        await fsm.handleEventAsync(event, predicates: predicates)
-        fsm.state = 1
-        
-        try! lazyFSM.handleEvent(event, predicates: predicates)
-        lazyFSM.state = 1
-        await lazyFSM.handleEventAsync(event, predicates: predicates)
+
+        await lazyFSM.handleEvent(event, predicates: predicates)
         lazyFSM.state = 1
     }
     
@@ -190,13 +186,13 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         await handleEvent(2)
 
         let t = Transition(nil, 1, [], 2, 3, [])
-        assertEqual([t, t], \.loggedTransitions)
+        assertEqual([t], \.loggedTransitions)
     }
 
     func testTransitionNotFoundIsLogged() async {
         enum P: Predicate { case a }
         await handleEvent(1, P.a)
-        assertEqual([LogData(1, [P.a]), LogData(1, [P.a])], \.loggedEvents)
+        assertEqual([LogData(1, [P.a])], \.loggedEvents)
     }
     
     func testTransitionNotExecutedIsLogged() async {
@@ -208,7 +204,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         await handleEvent(2)
 
         let t = Transition(nil, 1, [], 2, 3, [])
-        assertEqual([t, t], \.loggedTransitions)
+        assertEqual([t], \.loggedTransitions)
     }
 }
 

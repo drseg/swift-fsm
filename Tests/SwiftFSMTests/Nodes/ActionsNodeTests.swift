@@ -1,7 +1,6 @@
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 final class ActionsNodeTests: SyntaxNodeTests {
     func testEmptyActions() {
         let finalised = ActionsNode(actions: [], rest: []).resolve()
@@ -21,15 +20,15 @@ final class ActionsNodeTests: SyntaxNodeTests {
         assertCount(ActionsBlockNode(actions: [], rest: []).resolve().output, expected: 0)
     }
     
-    func testActionsFinalisesCorrectly() {
+    func testActionsFinalisesCorrectly() async {
         let n = actionsNode
-        n.resolve().output.executeAll()
+        await n.resolve().output.executeAll()
         XCTAssertEqual("12", actionsOutput)
         XCTAssertTrue(n.resolve().errors.isEmpty)
     }
     
-    func testActionsPlusChainFinalisesCorrectly() {
+    func testActionsPlusChainFinalisesCorrectly() async {
         let a = ActionsNode(actions: [AnyAction({ self.actionsOutput += "action" })])
-        assertDefaultIONodeChains(node: a, expectedOutput: "actionchain")
+        await assertDefaultIONodeChains(node: a, expectedOutput: "actionchain")
     }
 }

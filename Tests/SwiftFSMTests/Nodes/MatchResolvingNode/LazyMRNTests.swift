@@ -8,7 +8,11 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         .init(rest: [SVN(rest: [ARN(rest: rest)])])
     }
     
-    func assertNotMatchClash(_ m1: MatchDescriptorChain, _ m2: MatchDescriptorChain, line: UInt = #line) {
+    func assertNotMatchClash(
+        _ m1: MatchDescriptorChain,
+        _ m2: MatchDescriptorChain,
+        line: UInt = #line
+    ) async {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
         
@@ -22,13 +26,17 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
             assertCount(result.output, expected: 2, line: line)
         else { return }
         
-        assertEqual(makeOutput(c: nil, g: s1, m: m1, p: p1, w: e1, t: s2),
-                    result.output.first,
-                    line: line)
+        await assertEqual(
+            makeOutput(c: nil, g: s1, m: m1, p: p1, w: e1, t: s2),
+            result.output.first,
+            line: line
+        )
         
-        assertEqual(makeOutput(c: nil, g: s1, m: m2, p: p2, w: e1, t: s3),
-                    result.output.last,
-                    line: line)
+        await assertEqual(
+            makeOutput(c: nil, g: s1, m: m2, p: p2, w: e1, t: s3),
+            result.output.last,
+            line: line
+        )
     }
     
     func assertMatchClash(_ m1: MatchDescriptorChain, _ m2: MatchDescriptorChain, line: UInt = #line) {
@@ -50,37 +58,45 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         await assertEqualFileAndLine(rest, sut.rest.first!)
     }
     
-    func testEmptyMatchOutput() {
+    func testEmptyMatchOutput() async {
         let sut = makeSUT(rest: [defineNode(s1, MatchDescriptorChain(), e1, s2)])
         let result = sut.resolve()
         
         assertCount(result.errors, expected: 0)
         assertCount(result.output, expected: 1)
         
-        assertEqual(makeOutput(c: nil, g: s1, m: MatchDescriptorChain(), p: [], w: e1, t: s2),
-                    result.output.first)
+        await assertEqual(
+            makeOutput(
+                c: nil, g: s1, m: MatchDescriptorChain(), p: [], w: e1, t: s2
+            ),
+            result.output.first
+        )
     }
 
-    func testPredicateMatchOutput() {
+    func testPredicateMatchOutput() async {
         let sut = makeSUT(rest: [defineNode(s1, m1, e1, s2)])
         let result = sut.resolve()
         
         assertCount(result.errors, expected: 0)
         assertCount(result.output, expected: 1)
         
-        assertEqual(makeOutput(g: s1, m: m1, p: [P.a, Q.a], w: e1, t: s2),
-                    result.output.first)
+        await assertEqual(
+            makeOutput(
+                g: s1, m: m1, p: [P.a, Q.a], w: e1, t: s2
+            ),
+            result.output.first
+        )
     }
     
-    func testImplicitMatchClashes() {
-        assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a))
-        assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a, Q.a))
-        assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: Q.a, S.a))
-        
-        assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b))
-        assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b, Q.b))
-        assertNotMatchClash(MatchDescriptorChain(all: P.a, Q.a), MatchDescriptorChain(all: P.b, Q.b))
-                
+    func testImplicitMatchClashes() async {
+        await assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a))
+        await assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a, Q.a))
+        await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: Q.a, S.a))
+
+        await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b))
+        await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b, Q.b))
+        await assertNotMatchClash(MatchDescriptorChain(all: P.a, Q.a), MatchDescriptorChain(all: P.b, Q.b))
+      
         assertMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: Q.a))
         assertMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(any: Q.a))
         assertMatchClash(MatchDescriptorChain(all: P.a, R.a), MatchDescriptorChain(all: Q.a, S.a))

@@ -71,16 +71,15 @@ class MRNTestBase: StringableNodeTest {
               actionsOutput: a)
     }
     
-    @MainActor
     func assertResult(
         _ result: MRNResult,
         expected: ExpectedMRNOutput,
         file: StaticString = #file,
         line: UInt = #line
-    ) {
+    ) async {
         assertCount(result.errors, expected: 0, file: file, line: line)
         
-        assertEqual(expected, result.output.first {
+        await assertEqual(expected, result.output.first {
             $0.state == expected.state &&
             $0.predicates == expected.predicates &&
             $0.event == expected.event &&
@@ -88,19 +87,24 @@ class MRNTestBase: StringableNodeTest {
         }, file: file, line: line)
     }
     
-    @MainActor
     func assertEqual(
         _ lhs: ExpectedMRNOutput?,
         _ rhs: Transition?,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
-    ) {
-        XCTAssertEqual(lhs?.condition, rhs?.condition?(), file: file, line: line)
+    ) async {
+        let condition = await rhs?.condition?()
+        XCTAssertEqual(lhs?.condition, condition, file: file, line: line)
         XCTAssertEqual(lhs?.state, rhs?.state, file: file, line: line)
         XCTAssertEqual(lhs?.predicates, rhs?.predicates, file: file, line: line)
         XCTAssertEqual(lhs?.event, rhs?.event, file: file, line: line)
         XCTAssertEqual(lhs?.nextState, rhs?.nextState, file: file, line: line)
         
-        assertActions(rhs?.actions, expectedOutput: lhs?.actionsOutput, file: file, line: line)
+        await assertActions(
+            rhs?.actions,
+            expectedOutput: lhs?.actionsOutput,
+            file: file,
+            line: line
+        )
     }
 }

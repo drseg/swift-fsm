@@ -1,7 +1,6 @@
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 class AnyActionTestsBase: XCTestCase {
     var output = ""
 
@@ -23,20 +22,6 @@ class AnyActionTestsBase: XCTestCase {
 }
 
 final class AnyActionTests: AnyActionTestsBase {
-    func testCanCallActionWithNoArgs() throws {
-        let action = AnyAction(pass)
-        try action()
-
-        XCTAssertEqual(output, "pass")
-    }
-
-    func testActionWithNoArgsIgnoresEvent() throws {
-        let action = AnyAction(pass)
-        try action("fail")
-
-        XCTAssertEqual(output, "pass")
-    }
-
     func testCanCallAsyncActionWithNoArgs() async {
         let action = AnyAction(passAsync)
         await action()
@@ -58,37 +43,10 @@ final class AnyActionTests: AnyActionTestsBase {
         XCTAssertEqual(output, "pass")
     }
 
-    func testCanCallActionWithEventArg() throws {
-        let action = AnyAction(passWithEvent)
-        try action("pass")
-
-        XCTAssertEqual(output, "pass")
-    }
-
-    func testCannotCallActionWithEventArgWithoutEvent() {
-        let action = AnyAction(passWithEvent)
-        XCTAssertThrowsError(try action())
-    }
-
     func testCanCallAsyncActionWithEventArg() async {
         let action = AnyAction(passWithEventAsync)
         await action("pass")
 
         XCTAssertEqual(output, "pass")
-    }
-
-    func testCanCallSyncActionWithEventArgWithAsync() async {
-        let action = AnyAction(passWithEvent)
-        await action("pass")
-
-        XCTAssertEqual(output, "pass")
-    }
-
-    func testCallingSyncFunctionWithAsyncBlockThrows() {
-        let a1 = AnyAction(passAsync)
-        let a2 = AnyAction(passWithEventAsync)
-
-        XCTAssertThrowsError(try a1())
-        XCTAssertThrowsError(try a2("pass"))
     }
 }

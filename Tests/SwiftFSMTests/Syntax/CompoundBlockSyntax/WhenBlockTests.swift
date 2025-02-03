@@ -8,10 +8,10 @@ class WhenBlockTests: BlockTestsBase {
         nodeLine nl: Int = #line,
         restLine rl: Int,
         xctLine xl: UInt = #line
-    ) {
+    ) async {
         let node = b.node as! WhenBlockNode
         assertWhenNode(node, events: events, sutLine: nl, xctLine: xl)
-        assertMTAResult(node.rest, sutLine: rl, xctLine: xl)
+        await assertMTAResult(node.rest, sutLine: rl, xctLine: xl)
     }
 
     func assert(
@@ -21,24 +21,24 @@ class WhenBlockTests: BlockTestsBase {
         nodeLine nl: Int = #line,
         restLine rl: Int,
         xctLine xl: UInt = #line
-    ) {
+    ) async {
         let wbn = b.node as! WhenBlockNode
         assertWhenNode(wbn, events: events, sutLine: nl, xctLine: xl)
 
         let actionsNode = wbn.rest.first as! ActionsNode
-        assertActions(actionsNode.actions, expectedOutput: eo, xctLine: xl)
+        await assertActions(actionsNode.actions, expectedOutput: eo, xctLine: xl)
 
         let matchNode = actionsNode.rest.first as! MatchingNode
-        assertMatchNode(matchNode, all: [P.a], sutFile: baseFile, sutLine: rl, xctLine: xl)
+        await assertMatchNode(matchNode, all: [P.a], sutFile: baseFile, sutLine: rl, xctLine: xl)
     }
 
-    func testWhenBlockWithMTA() {
-        assert(when(1, or: 2) { mtaBlock }, restLine: mtaLine)
-        assert(when(1) { mtaBlock }, events: [1], restLine: mtaLine)
+    func testWhenBlockWithMTA() async {
+        await assert(when(1, or: 2) { mtaBlock }, restLine: mtaLine)
+        await assert(when(1) { mtaBlock }, events: [1], restLine: mtaLine)
     }
 
-    func testWhenBlockWithMA() {
-        assert(when(1, or: 2) { maBlock }, restLine: maLine)
-        assert(when(1) { maBlock }, events: [1], restLine: maLine)
+    func testWhenBlockWithMA() async {
+        await assert(when(1, or: 2) { maBlock }, restLine: maLine)
+        await assert(when(1) { maBlock }, events: [1], restLine: maLine)
     }
 }

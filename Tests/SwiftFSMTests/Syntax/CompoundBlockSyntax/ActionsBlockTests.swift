@@ -22,9 +22,9 @@ class ActionsBlockTests: BlockTestsBase {
         nodeLine nl: Int,
         restLine rl: Int,
         xctLine xl: UInt
-    ) {
-        assertActionsBlock(b, expectedOutput: eo, sutLine: nl, xctLine: xl)
-        assertMWTAResult(b.rest, expectedOutput: er, sutLine: rl, xctLine: xl)
+    ) async {
+        await assertActionsBlock(b, expectedOutput: eo, sutLine: nl, xctLine: xl)
+        await assertMWTAResult(b.rest, expectedOutput: er, sutLine: rl, xctLine: xl)
     }
 
     func assertMWANode(
@@ -36,9 +36,9 @@ class ActionsBlockTests: BlockTestsBase {
         restFile rf: String? = nil,
         restLine rl: Int,
         xctLine xl: UInt
-    ) {
-        assertActionsBlock(b, expectedOutput: eno, sutLine: nl, xctLine: xl)
-        assertMWAResult(b.rest, expectedOutput: ero, sutFile: rf, sutLine: rl, xctLine: xl)
+    ) async {
+        await assertActionsBlock(b, expectedOutput: eno, sutLine: nl, xctLine: xl)
+        await assertMWAResult(b.rest, expectedOutput: ero, sutFile: rf, sutLine: rl, xctLine: xl)
     }
 
     func assertMTANode(
@@ -50,9 +50,9 @@ class ActionsBlockTests: BlockTestsBase {
         restFile rf: String? = nil,
         restLine rl: Int,
         xctLine xl: UInt
-    ) {
-        assertActionsBlock(b, expectedOutput: eno, sutLine: nl, xctLine: xl)
-        assertMTAResult(b.rest, expectedOutput: ero, sutFile: rf, sutLine: rl, xctLine: xl)
+    ) async {
+        await assertActionsBlock(b, expectedOutput: eno, sutLine: nl, xctLine: xl)
+        await assertMTAResult(b.rest, expectedOutput: ero, sutFile: rf, sutLine: rl, xctLine: xl)
     }
 
     func assertActionsBlock(
@@ -61,12 +61,12 @@ class ActionsBlockTests: BlockTestsBase {
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
         sutLine sl: Int,
         xctLine xl: UInt = #line
-    ) {
+    ) async {
         assertNeverEmptyNode(b, caller: "actions", sutLine: sl, xctLine: xl)
-        assertActions(b.actions, event: event, expectedOutput: eo, xctLine: xl)
+        await assertActions(b.actions, event: event, expectedOutput: eo, xctLine: xl)
     }
-
-    func testMWTABlocks() {
+    
+    func testMWTABlocks() async {
         func assertMWTA(
             _ b: Internal.MWTABlock,
             expectedNodeOutput eo: String = Self.defaultOutput,
@@ -74,26 +74,28 @@ class ActionsBlockTests: BlockTestsBase {
             sutLine sl: Int = #line,
             restLine rl: Int = mwtaLine,
             xctLine xl: UInt = #line
-        ) {
-            assertMWTANode(abn(b.node),
-                           expectedNodeOutput: eo,
-                           expectedRestOutput: er,
-                           nodeLine: sl,
-                           restLine: rl,
-                           xctLine: xl)
+        ) async {
+            await assertMWTANode(
+                abn(b.node),
+                expectedNodeOutput: eo,
+                expectedRestOutput: er,
+                nodeLine: sl,
+                restLine: rl,
+                xctLine: xl
+            )
         }
 
-        assertMWTA(actions(pass) { mwtaBlock })
-        assertMWTA(actions(passAsync) { mwtaBlock })
-        assertMWTA(actions(passWithEvent) { mwtaBlock },
-                   expectedNodeOutput: eventOutput)
-        assertMWTA(actions(passWithEventAsync) { mwtaBlock },
-                   expectedNodeOutput: eventOutput)
-        assertMWTA(actions(pass & pass) { mwtaBlock},
-                   expectedNodeOutput: Self.defaultOutput + Self.defaultOutput)
+        await assertMWTA(actions(pass) { mwtaBlock })
+        await assertMWTA(actions(passAsync) { mwtaBlock })
+        await assertMWTA(actions(passWithEvent) { mwtaBlock },
+                         expectedNodeOutput: eventOutput)
+        await assertMWTA(actions(passWithEventAsync) { mwtaBlock },
+                         expectedNodeOutput: eventOutput)
+        await assertMWTA(actions(pass & pass) { mwtaBlock},
+                         expectedNodeOutput: Self.defaultOutput + Self.defaultOutput)
     }
-
-    func testMWABlocks() {
+    
+    func testMWABlocks() async {
         func assertMWA(
             _ b: Internal.MWABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
@@ -102,37 +104,39 @@ class ActionsBlockTests: BlockTestsBase {
             restFile rf: String? = nil,
             restLine rl: Int = #line,
             xctLine xl: UInt = #line
-        ) {
-            assertMWANode(abn(b.node),
-                          expectedNodeOutput: eno,
-                          expectedRestOutput: ero,
-                          nodeLine: sl,
-                          restFile: rf,
-                          restLine: rl,
-                          xctLine: xl)
+        ) async {
+            await assertMWANode(
+                abn(b.node),
+                expectedNodeOutput: eno,
+                expectedRestOutput: ero,
+                nodeLine: sl,
+                restFile: rf,
+                restLine: rl,
+                xctLine: xl
+            )
         }
-
-        assertMWA(actions(pass) { mwaBlock }, restLine: mwaLine)
-        assertMWA(actions(pass) { matching(P.a) | when(1, or: 2) },
-                  expectedRestOutput: "", restFile: #file)
-
-        assertMWA(actions(passAsync) { mwaBlock }, restLine: mwaLine)
-        assertMWA(actions(passAsync) { matching(P.a) | when(1, or: 2) },
-                  expectedRestOutput: "", restFile: #file)
-
-        assertMWA(actions(passWithEvent) { mwaBlock }, 
-                  expectedNodeOutput: eventOutput,
-                  restLine: mwaLine)
-        assertMWA(actions(passWithEventAsync) { mwaBlock }, 
-                  expectedNodeOutput: eventOutput,
-                  restLine: mwaLine)
-
-        assertMWA(actions(pass & pass) { mwaBlock },
-                  expectedNodeOutput: Self.defaultOutput + Self.defaultOutput,
-                  restLine: mwaLine)
+        
+        await assertMWA(actions(pass) { mwaBlock }, restLine: mwaLine)
+        await assertMWA(actions(pass) { matching(P.a) | when(1, or: 2) },
+                        expectedRestOutput: "", restFile: #file)
+        
+        await assertMWA(actions(passAsync) { mwaBlock }, restLine: mwaLine)
+        await assertMWA(actions(passAsync) { matching(P.a) | when(1, or: 2) },
+                        expectedRestOutput: "", restFile: #file)
+        
+        await assertMWA(actions(passWithEvent) { mwaBlock },
+                        expectedNodeOutput: eventOutput,
+                        restLine: mwaLine)
+        await assertMWA(actions(passWithEventAsync) { mwaBlock },
+                        expectedNodeOutput: eventOutput,
+                        restLine: mwaLine)
+        
+        await assertMWA(actions(pass & pass) { mwaBlock },
+                        expectedNodeOutput: Self.defaultOutput + Self.defaultOutput,
+                        restLine: mwaLine)
     }
-
-    func testMTABlocks() {
+    
+    func testMTABlocks() async {
         func assertMTA(
             _ b: Internal.MTABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
@@ -141,40 +145,42 @@ class ActionsBlockTests: BlockTestsBase {
             restFile rf: String? = nil,
             restLine rl: Int = #line,
             xctLine xl: UInt = #line
-        ) {
-            assertMTANode(abn(b.node),
-                          expectedNodeOutput: eno,
-                          expectedRestOutput: ero,
-                          nodeLine: nl,
-                          restFile: rf,
-                          restLine: rl,
-                          xctLine: xl)
+        ) async {
+            await assertMTANode(
+                abn(b.node),
+                expectedNodeOutput: eno,
+                expectedRestOutput: ero,
+                nodeLine: nl,
+                restFile: rf,
+                restLine: rl,
+                xctLine: xl
+            )
         }
-
-        assertMTA(actions(pass) { mtaBlock }, restLine: mtaLine)
-        assertMTA(actions(pass) { matching(P.a) | then(1) },
-                  expectedRestOutput: "", 
-                  restFile: #file)
-
-        assertMTA(actions(passAsync) { mtaBlock }, restLine: mtaLine)
-        assertMTA(actions(passAsync) { matching(P.a) | then(1) },
-                  expectedRestOutput: "", 
-                  restFile: #file)
-
-        assertMTA(actions(passWithEvent) { mtaBlock },
-                  expectedNodeOutput: eventOutput,
-                  restLine: mtaLine)
-
-        assertMTA(actions(passWithEventAsync) { mtaBlock },
-                  expectedNodeOutput: eventOutput,
-                  restLine: mtaLine)
-
-        assertMTA(actions(pass & pass) { mtaBlock },
-                  expectedNodeOutput: Self.defaultOutput + Self.defaultOutput,
-                  restLine: mtaLine)
+        
+        await assertMTA(actions(pass) { mtaBlock }, restLine: mtaLine)
+        await assertMTA(actions(pass) { matching(P.a) | then(1) },
+                        expectedRestOutput: "",
+                        restFile: #file)
+        
+        await assertMTA(actions(passAsync) { mtaBlock }, restLine: mtaLine)
+        await assertMTA(actions(passAsync) { matching(P.a) | then(1) },
+                        expectedRestOutput: "",
+                        restFile: #file)
+        
+        await assertMTA(actions(passWithEvent) { mtaBlock },
+                        expectedNodeOutput: eventOutput,
+                        restLine: mtaLine)
+        
+        await assertMTA(actions(passWithEventAsync) { mtaBlock },
+                        expectedNodeOutput: eventOutput,
+                        restLine: mtaLine)
+        
+        await assertMTA(actions(pass & pass) { mtaBlock },
+                        expectedNodeOutput: Self.defaultOutput + Self.defaultOutput,
+                        restLine: mtaLine)
     }
 
-    func testCompoundMWTABlocks() {
+    func testCompoundMWTABlocks() async {
         func assertMWTA(
             _ b: Internal.MWTABlock,
             expectedNodeOutput eo: String = BlockTestsBase.defaultOutput,
@@ -182,33 +188,35 @@ class ActionsBlockTests: BlockTestsBase {
             sutLine sl: Int = #line,
             restLine rl: Int = mwtaLine,
             xctLine xl: UInt = #line
-        ) {
+        ) async {
             let c = abnComponents(of: b)
-
-            assertActionsBlock(c.0, expectedOutput: eo, sutLine: sl, xctLine: xl)
-            assertMWTANode(c.1,
-                           expectedNodeOutput: eo,
-                           expectedRestOutput: er,
-                           nodeLine: sl,
-                           restLine: rl,
-                           xctLine: xl)
+            
+            await assertActionsBlock(c.0, expectedOutput: eo, sutLine: sl, xctLine: xl)
+            await assertMWTANode(
+                c.1,
+                expectedNodeOutput: eo,
+                expectedRestOutput: er,
+                nodeLine: sl,
+                restLine: rl,
+                xctLine: xl
+            )
         }
-
-        assertMWTA(actions(pass) { actions(pass) { mwtaBlock } })
-        assertMWTA(actions(passAsync) { actions(passAsync) { mwtaBlock } })
-        assertMWTA(actions(pass) { actions(passAsync) { mwtaBlock } })
-
-        assertMWTA(actions(passWithEvent) { actions(passWithEvent) { mwtaBlock }},
-                   expectedNodeOutput: eventOutput)
-
-        assertMWTA(actions(passWithEventAsync) { actions(passWithEventAsync) { mwtaBlock }},
-                   expectedNodeOutput: eventOutput)
-
-        assertMWTA(actions(passWithEvent) { actions(passWithEventAsync) { mwtaBlock }},
-                   expectedNodeOutput: eventOutput)
+        
+        await assertMWTA(actions(pass) { actions(pass) { mwtaBlock } })
+        await assertMWTA(actions(passAsync) { actions(passAsync) { mwtaBlock } })
+        await assertMWTA(actions(pass) { actions(passAsync) { mwtaBlock } })
+        
+        await assertMWTA(actions(passWithEvent) { actions(passWithEvent) { mwtaBlock }},
+                         expectedNodeOutput: eventOutput)
+        
+        await assertMWTA(actions(passWithEventAsync) { actions(passWithEventAsync) { mwtaBlock }},
+                         expectedNodeOutput: eventOutput)
+        
+        await assertMWTA(actions(passWithEvent) { actions(passWithEventAsync) { mwtaBlock }},
+                         expectedNodeOutput: eventOutput)
     }
 
-    func testCompoundMWABlocks() {
+    func testCompoundMWABlocks() async {
         func assertMWA(
             _ b: Internal.MWABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
@@ -216,33 +224,35 @@ class ActionsBlockTests: BlockTestsBase {
             sutLine sl: Int = #line,
             restLine rl: Int = mwaLine,
             xctLine xl: UInt = #line
-        ) {
+        ) async {
             let c = abnComponents(of: b)
-
-            assertActionsBlock(c.0, expectedOutput: eno, sutLine: sl, xctLine: xl)
-            assertMWANode(c.1,
-                          expectedNodeOutput: eno,
-                          expectedRestOutput: ero,
-                          nodeLine: sl,
-                          restLine: rl,
-                          xctLine: xl)
+            
+            await assertActionsBlock(c.0, expectedOutput: eno, sutLine: sl, xctLine: xl)
+            await assertMWANode(
+                c.1,
+                expectedNodeOutput: eno,
+                expectedRestOutput: ero,
+                nodeLine: sl,
+                restLine: rl,
+                xctLine: xl
+            )
         }
-
-        assertMWA(actions(pass) { actions(pass) { mwaBlock } })
-        assertMWA(actions(passAsync) { actions(passAsync) { mwaBlock } })
-        assertMWA(actions(pass) { actions(passAsync) { mwaBlock } })
-
-        assertMWA(actions(passWithEvent) { actions(passWithEvent) { mwaBlock }},
-                  expectedNodeOutput: eventOutput)
-
-        assertMWA(actions(passWithEventAsync) { actions(passWithEventAsync) { mwaBlock }},
-                  expectedNodeOutput: eventOutput)
-
-        assertMWA(actions(passWithEvent) { actions(passWithEventAsync) { mwaBlock }},
-                  expectedNodeOutput: eventOutput)
+        
+        await assertMWA(actions(pass) { actions(pass) { mwaBlock } })
+        await assertMWA(actions(passAsync) { actions(passAsync) { mwaBlock } })
+        await assertMWA(actions(pass) { actions(passAsync) { mwaBlock } })
+        
+        await assertMWA(actions(passWithEvent) { actions(passWithEvent) { mwaBlock }},
+                        expectedNodeOutput: eventOutput)
+        
+        await assertMWA(actions(passWithEventAsync) { actions(passWithEventAsync) { mwaBlock }},
+                        expectedNodeOutput: eventOutput)
+        
+        await assertMWA(actions(passWithEvent) { actions(passWithEventAsync) { mwaBlock }},
+                        expectedNodeOutput: eventOutput)
     }
-
-    func testCompoundMTABlocks() {
+    
+    func testCompoundMTABlocks() async {
         func assertMTA(
             _ b: Internal.MTABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
@@ -250,26 +260,28 @@ class ActionsBlockTests: BlockTestsBase {
             sutLine sl: Int = #line,
             restLine rl: Int = mtaLine,
             xctLine xl: UInt = #line
-        ) {
+        ) async {
             let c = abnComponents(of: b)
-
-            assertActionsBlock(c.0, expectedOutput: eno, sutLine: sl, xctLine: xl)
-            assertMTANode(c.1,
-                          expectedNodeOutput: eno,
-                          expectedRestOutput: ero,
-                          nodeLine: sl,
-                          restLine: rl,
-                          xctLine: xl)
+            
+            await assertActionsBlock(c.0, expectedOutput: eno, sutLine: sl, xctLine: xl)
+            await assertMTANode(
+                c.1,
+                expectedNodeOutput: eno,
+                expectedRestOutput: ero,
+                nodeLine: sl,
+                restLine: rl,
+                xctLine: xl
+            )
         }
-
-        assertMTA(actions(pass) { actions(pass) { mtaBlock } })
-        assertMTA(actions(passAsync) { actions(passAsync) { mtaBlock } })
-        assertMTA(actions(pass) { actions(passAsync) { mtaBlock } })
-        assertMTA(actions(passWithEvent) { actions(passWithEvent) { mtaBlock }},
-                  expectedNodeOutput: eventOutput)
-        assertMTA(actions(passWithEventAsync) { actions(passWithEventAsync) { mtaBlock }},
-                  expectedNodeOutput: eventOutput)
-        assertMTA(actions(passWithEvent) { actions(passWithEventAsync) { mtaBlock }},
-                  expectedNodeOutput: eventOutput)
+        
+        await assertMTA(actions(pass) { actions(pass) { mtaBlock } })
+        await assertMTA(actions(passAsync) { actions(passAsync) { mtaBlock } })
+        await assertMTA(actions(pass) { actions(passAsync) { mtaBlock } })
+        await assertMTA(actions(passWithEvent) { actions(passWithEvent) { mtaBlock }},
+                        expectedNodeOutput: eventOutput)
+        await assertMTA(actions(passWithEventAsync) { actions(passWithEventAsync) { mtaBlock }},
+                        expectedNodeOutput: eventOutput)
+        await assertMTA(actions(passWithEvent) { actions(passWithEventAsync) { mtaBlock }},
+                        expectedNodeOutput: eventOutput)
     }
 }

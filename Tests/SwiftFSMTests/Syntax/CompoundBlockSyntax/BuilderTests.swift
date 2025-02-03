@@ -2,7 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 class BuilderTests: BlockTestsBase {
-    func testMWTA() {
+    func testMWTA() async {
         let line = #line; @MWTABuilder var mwta: [Internal.MWTA] {
             matching(P.a) | when(1, or: 2) | then(1) | pass
                             when(1, or: 2) | then(1) | pass
@@ -15,28 +15,36 @@ class BuilderTests: BlockTestsBase {
             matching(P.a) | when(1, or: 2) | then(1) | pass & pass
                             when(1, or: 2) | then(1) | pass & pass
         }
-
-        assertMWTA(mwta[0].node, sutLine: line + 1)
-        assertWTA(mwta[1].node, sutLine: line + 2)
-
-        assertMWTA(mwta[2].node, sutLine: line + 3)
-        assertWTA(mwta[3].node, sutLine: line + 4)
-
-        assertMWTA(mwta[4].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 5)
-        assertWTA(mwta[5].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 6)
-
-        assertMWTA(mwta[6].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 7)
-        assertWTA(mwta[7].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 8)
-
-        assertMWTA(mwta[8].node,
-                   expectedOutput: Self.defaultOutput + Self.defaultOutput,
-                   sutLine: line + 9)
-        assertWTA(mwta[9].node,
+        
+        await assertMWTA(mwta[0].node, sutLine: line + 1)
+        await assertWTA(mwta[1].node, sutLine: line + 2)
+        
+        await assertMWTA(mwta[2].node, sutLine: line + 3)
+        await assertWTA(mwta[3].node, sutLine: line + 4)
+        
+        await assertMWTA(mwta[4].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 5)
+        await assertWTA(
+            mwta[5].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 6
+        )
+        
+        await assertMWTA(mwta[6].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 7)
+        await assertWTA(
+            mwta[7].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 8
+        )
+        
+        await assertMWTA(mwta[8].node,
+                         expectedOutput: Self.defaultOutput + Self.defaultOutput,
+                         sutLine: line + 9)
+        await assertWTA(mwta[9].node,
                   expectedOutput: Self.defaultOutput + Self.defaultOutput,
                   sutLine: line + 10)
     }
 
-    func testMWA() {
+    func testMWA() async {
         let line = #line; @MWABuilder var mwa: [Internal.MWA] {
             matching(P.a) | when(1, or: 2) | pass
                             when(1, or: 2) | pass
@@ -50,27 +58,27 @@ class BuilderTests: BlockTestsBase {
                             when(1, or: 2) | pass & pass
         }
 
-        assertMWA(mwa[0].node, sutLine: line + 1)
-        assertWA(mwa[1].node, sutLine: line + 2)
+        await assertMWA(mwa[0].node, sutLine: line + 1)
+        await assertWA(mwa[1].node, sutLine: line + 2)
 
-        assertMWA(mwa[2].node, sutLine: line + 3)
-        assertWA(mwa[3].node, sutLine: line + 4)
+        await assertMWA(mwa[2].node, sutLine: line + 3)
+        await assertWA(mwa[3].node, sutLine: line + 4)
 
-        assertMWA(mwa[4].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 5)
-        assertWA(mwa[5].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 6)
+        await assertMWA(mwa[4].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 5)
+        await assertWA(mwa[5].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 6)
 
-        assertMWA(mwa[6].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 7)
-        assertWA(mwa[7].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 8)
+        await assertMWA(mwa[6].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 7)
+        await assertWA(mwa[7].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 8)
 
-        assertMWA(mwa[8].node,
+        await assertMWA(mwa[8].node,
                   expectedOutput: Self.defaultOutput + Self.defaultOutput,
                   sutLine: line + 9)
-        assertWA(mwa[9].node,
+        await assertWA(mwa[9].node,
                  expectedOutput: Self.defaultOutput + Self.defaultOutput,
                  sutLine: line + 10)
     }
 
-    func testMTA() {
+    func testMTA() async {
         let line = #line; @MTABuilder var mta: [Internal.MTA] {
             matching(P.a) | then(1) | pass
                             then(1) | pass
@@ -84,27 +92,27 @@ class BuilderTests: BlockTestsBase {
                             then(1) | pass & pass
         }
 
-        assertMTA(mta[0].node, sutLine: line + 1)
-        assertTA(mta[1].node, sutLine: line + 2)
+        await assertMTA(mta[0].node, sutLine: line + 1)
+        await assertTA(mta[1].node, sutLine: line + 2)
 
-        assertMTA(mta[2].node, sutLine: line + 3)
-        assertTA(mta[3].node, sutLine: line + 4)
+        await assertMTA(mta[2].node, sutLine: line + 3)
+        await assertTA(mta[3].node, sutLine: line + 4)
 
-        assertMTA(mta[4].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 5)
-        assertTA(mta[5].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 6)
+        await assertMTA(mta[4].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 5)
+        await assertTA(mta[5].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 6)
 
-        assertMTA(mta[6].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 7)
-        assertTA(mta[7].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 8)
+        await assertMTA(mta[6].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 7)
+        await assertTA(mta[7].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 8)
 
-        assertMTA(mta[8].node,
+        await assertMTA(mta[8].node,
                   expectedOutput: Self.defaultOutput + Self.defaultOutput,
                   sutLine: line + 9)
-        assertTA(mta[9].node,
+        await assertTA(mta[9].node,
                  expectedOutput: Self.defaultOutput + Self.defaultOutput,
                  sutLine: line + 10)
     }
 
-    func testMA() {
+    func testMA() async {
         let line = #line; @MABuilder var ma: [Internal.MA] {
             matching(P.a) | pass
             matching(P.a) | passAsync
@@ -113,11 +121,11 @@ class BuilderTests: BlockTestsBase {
             matching(P.a) | pass & pass
         }
 
-        assertMA(ma[0].node, sutLine: line + 1)
-        assertMA(ma[1].node, sutLine: line + 2)
-        assertMA(ma[2].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 3)
-        assertMA(ma[3].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 4)
-        assertMA(ma[4].node,
+        await assertMA(ma[0].node, sutLine: line + 1)
+        await assertMA(ma[1].node, sutLine: line + 2)
+        await assertMA(ma[2].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 3)
+        await assertMA(ma[3].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 4)
+        await assertMA(ma[4].node,
                  expectedOutput: Self.defaultOutput + Self.defaultOutput,
                  sutLine: line + 5)
     }

@@ -1,9 +1,8 @@
 import Foundation
 
-public typealias ConditionProvider = @MainActor @Sendable () -> Bool
+public typealias ConditionProvider = @isolated(any) @Sendable () -> Bool
 
 public extension Internal {
-    @MainActor
     protocol Conditional<State, Event> {
         associatedtype State: FSMHashable
         associatedtype Event: FSMHashable

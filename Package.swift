@@ -7,10 +7,10 @@ import CompilerPluginSupport
 let package = Package(
     name: "swift-fsm",
     platforms: [
-        .macOS(.v13),
-        .iOS(.v16),
-        .tvOS(.v16),
-        .watchOS(.v9)
+        .macOS(.v15),
+        .iOS(.v18),
+        .tvOS(.v18),
+        .watchOS(.v11)
     ],
     products: [
         .library(
@@ -20,7 +20,6 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
-//        .package(url: "https://github.com/realm/SwiftLint", from: "0.50.0")
     ],
     targets: [
         .target(
@@ -32,7 +31,6 @@ let package = Package(
                 .define("DEVELOPMENT", .when(configuration: .debug)),
                 .enableExperimentalFeature("StrictConcurrency=complete")
             ]
-//            plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
         ),
 
         .testTarget(

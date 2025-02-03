@@ -13,30 +13,30 @@ final class GivenNodeTests: SyntaxNodeTests {
     func testGivenNodeWithEmptyRest() {
         assertEmptyNodeWithoutError(GivenNode(states: [s1, s2], rest: []))
     }
-
-    func testGivenNodeFinalisesFillingInEmptyNextStates() {
+    
+    func testGivenNodeFinalisesFillingInEmptyNextStates() async {
         let expected = [MSES(m1, s1, e1, s1),
                         MSES(m1, s1, e2, s1),
                         MSES(m1, s2, e1, s2),
                         MSES(m1, s2, e2, s2)]
         
-        assertGivenNode(expected: expected,
-                        actionsOutput: "12121212",
-                        node: givenNode(thenState: nil, actionsNode: actionsNode))
+        await assertGivenNode(expected: expected,
+                              actionsOutput: "12121212",
+                              node: givenNode(thenState: nil, actionsNode: actionsNode))
     }
     
-    func testGivenNodeFinalisesWithNextStates() {
+    func testGivenNodeFinalisesWithNextStates() async {
         let expected = [MSES(m1, s1, e1, s3),
                         MSES(m1, s1, e2, s3),
                         MSES(m1, s2, e1, s3),
                         MSES (m1, s2, e2, s3)]
         
-        assertGivenNode(expected: expected,
-                        actionsOutput: "12121212",
-                        node: givenNode(thenState: s3, actionsNode: actionsNode))
+        await assertGivenNode(expected: expected,
+                              actionsOutput: "12121212",
+                              node: givenNode(thenState: s3, actionsNode: actionsNode))
     }
     
-    func testGivenNodeCanSetRestAfterInitialisation() {
+    func testGivenNodeCanSetRestAfterInitialisation() async {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w])
@@ -48,12 +48,12 @@ final class GivenNodeTests: SyntaxNodeTests {
                         MSES(m1, s2, e1, s3),
                         MSES(m1, s2, e2, s3)]
         
-        assertGivenNode(expected: expected,
-                        actionsOutput: "12121212",
-                        node: g)
+        await assertGivenNode(expected: expected,
+                              actionsOutput: "12121212",
+                              node: g)
     }
     
-    func testGivenNodeWithMultipleWhenNodes() {
+    func testGivenNodeWithMultipleWhenNodes() async {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w, w])
@@ -68,9 +68,9 @@ final class GivenNodeTests: SyntaxNodeTests {
                         MSES(m1, s2, e1, s3),
                         MSES(m1, s2, e2, s3)]
         
-        assertGivenNode(expected: expected,
-                        actionsOutput: "1212121212121212",
-                        node: g)
+        await assertGivenNode(expected: expected,
+                              actionsOutput: "1212121212121212",
+                              node: g)
     }
     
     func testGivenNodePassesGroupIDAndIsOverrideParams() {

@@ -6,7 +6,7 @@ class StringableNodeTestTests: StringableNodeTest {
         _ expected: String,
         _ actual: any Node,
         fileAndLine: Bool = false,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
     ) async {
         let actual = await toString(actual, printFileAndLine: fileAndLine)
@@ -232,7 +232,7 @@ class StringableNodeTest: DefineConsumer {
     func assertEqual(
         _ lhs: any Node,
         _ rhs: any Node,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
     ) async {
         let lhs = await toString(lhs)
@@ -243,7 +243,7 @@ class StringableNodeTest: DefineConsumer {
     func assertEqualFileAndLine(
         _ lhs: any Node,
         _ rhs: any Node,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line
     ) async {
         let lhs = await toString(lhs, printFileAndLine: true)
@@ -424,10 +424,10 @@ class StringableNodeTest: DefineConsumer {
         " (\(file) \(line))"
     }
 }
-@MainActor
+
 extension Sequence {
     func asyncMap<T: Sendable>(
-        _ transform: @MainActor (Element) async throws -> T
+        _ transform: (Element) async throws -> T
     ) async rethrows -> [T] {
         var values = [T]()
 

@@ -48,27 +48,31 @@ class BlockTestsBase: SyntaxTestsBase {
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
-    ) {
+    ) async {
         let sf = sf == nil ? #file : sf!
-
+        
         for i in stride(from: 0, to: result.count, by: 2) {
-            assertMWTA(result[i],
-                       event: event,
-                       expectedOutput: eo,
-                       sutFile: sf,
-                       xctFile: xf,
-                       sutLine: sl + i,
-                       xctLine: xl)
+            await assertMWTA(
+                result[i],
+                event: event,
+                expectedOutput: eo,
+                sutFile: sf,
+                xctFile: xf,
+                sutLine: sl + i,
+                xctLine: xl
+            )
         }
-
+        
         for i in stride(from: 1, to: result.count, by: 2) {
-            assertWTA(result[i],
-                       event: event,
-                       expectedOutput: eo,
-                       sutFile: sf,
-                       xctFile: xf,
-                       sutLine: sl + i,
-                       xctLine: xl)
+            await assertWTA(
+                result[i],
+                event: event,
+                expectedOutput: eo,
+                sutFile: sf,
+                xctFile: xf,
+                sutLine: sl + i,
+                xctLine: xl
+            )
         }
     }
 
@@ -79,25 +83,29 @@ class BlockTestsBase: SyntaxTestsBase {
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
-    ) {
+    ) async {
         let sf = sf == nil ? #file : sf!
-
+        
         for i in stride(from: 0, to: result.count, by: 2) {
-            assertMWA(result[i],
-                      expectedOutput: eo,
-                      sutFile: sf,
-                      xctFile: xf,
-                      sutLine: sl + i,
-                      xctLine: xl)
+            await assertMWA(
+                result[i],
+                expectedOutput: eo,
+                sutFile: sf,
+                xctFile: xf,
+                sutLine: sl + i,
+                xctLine: xl
+            )
         }
-
+        
         for i in stride(from: 1, to: result.count, by: 2) {
-            assertWA(result[i],
-                      expectedOutput: eo,
-                      sutFile: sf,
-                      xctFile: xf,
-                      sutLine: sl + i,
-                      xctLine: xl)
+            await assertWA(
+                result[i],
+                expectedOutput: eo,
+                sutFile: sf,
+                xctFile: xf,
+                sutLine: sl + i,
+                xctLine: xl
+            )
         }
     }
 
@@ -108,42 +116,48 @@ class BlockTestsBase: SyntaxTestsBase {
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
-    ) {
+    ) async {
         let sf = sf == nil ? #file : sf!
-
+        
         for i in stride(from: 0, to: result.count, by: 2) {
-            assertMTA(result[i],
-                      expectedOutput: eo,
-                      sutFile: sf,
-                      xctFile: xf,
-                      sutLine: sl + i,
-                      xctLine: xl)
+            await assertMTA(
+                result[i],
+                expectedOutput: eo,
+                sutFile: sf,
+                xctFile: xf,
+                sutLine: sl + i,
+                xctLine: xl
+            )
         }
-
+        
         for i in stride(from: 1, to: result.count, by: 2) {
-            assertTA(result[i],
-                     expectedOutput: eo,
-                     sutFile: sf,
-                     xctFile: xf,
-                     sutLine: sl + i,
-                     xctLine: xl)
+            await assertTA(
+                result[i],
+                expectedOutput: eo,
+                sutFile: sf,
+                xctFile: xf,
+                sutLine: sl + i,
+                xctLine: xl
+            )
         }
     }
-
+    
     func assertMAResult(
         _ result: [AnyNode],
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
         xctFile xf: StaticString = #file,
         sutLine sl: Int,
         xctLine xl: UInt = #line
-    ) {
+    ) async {
         for i in 0..<result.count {
-            assertMA(result[i],
-                     expectedOutput: eo,
-                     sutFile: baseFile,
-                     xctFile: xf,
-                     sutLine: sl + i,
-                     xctLine: xl)
+            await assertMA(
+                result[i],
+                expectedOutput: eo,
+                sutFile: baseFile,
+                xctFile: xf,
+                sutLine: sl + i,
+                xctLine: xl
+            )
         }
     }
 

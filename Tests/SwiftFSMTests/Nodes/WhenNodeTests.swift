@@ -18,38 +18,42 @@ final class WhenNodeTests: SyntaxNodeTests {
         assertCount(WhenBlockNode(events: [e1]).resolve().output, expected: 0)
     }
     
-    func testWhenNodeWithEmptyRest() {
-        assertWhen(state: nil,
-                   actionsCount: 0,
-                   actionsOutput: "",
-                   node: WhenNode(events: [e1, e2], rest: []),
-                   line: #line)
+    func testWhenNodeWithEmptyRest() async {
+        await assertWhen(
+            state: nil,
+            actionsCount: 0,
+            actionsOutput: "",
+            node: WhenNode(events: [e1, e2], rest: []),
+            line: #line
+        )
     }
     
     func assertWhenNodeWithActions(
         expected: String = "1212",
         _ w: WhenNode,
         line: UInt = #line
-    ) {
-        assertWhen(state: s1,
-                   actionsCount: 2,
-                   actionsOutput: expected,
-                   node: w,
-                   line: line)
+    ) async {
+        await assertWhen(
+            state: s1,
+            actionsCount: 2,
+            actionsOutput: expected,
+            node: w,
+            line: line
+        )
     }
     
-    func testWhenNodeFinalisesCorrectly() {
-        assertWhenNodeWithActions(WhenNode(events: [e1, e2], rest: [thenNode]))
+    func testWhenNodeFinalisesCorrectly() async {
+        await assertWhenNodeWithActions(WhenNode(events: [e1, e2], rest: [thenNode]))
     }
     
-    func testWhenNodeWithChainFinalisesCorrectly() {
+    func testWhenNodeWithChainFinalisesCorrectly() async {
         let w = WhenNode(events: [e3])
-        assertDefaultIONodeChains(node: w, expectedEvent: e3)
+        await assertDefaultIONodeChains(node: w, expectedEvent: e3)
     }
     
-    func testWhenNodeCanSetRestAfterInit() {
+    func testWhenNodeCanSetRestAfterInit() async {
         let w = WhenNode(events: [e1, e2])
         w.rest.append(thenNode)
-        assertWhenNodeWithActions(w)
+        await assertWhenNodeWithActions(w)
     }
 }

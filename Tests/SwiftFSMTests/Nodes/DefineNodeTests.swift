@@ -42,7 +42,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         XCTAssertTrue(result.errors.first is MatchError)
     }
     
-    func testDefineNodeWithNoActions() {
+    func testDefineNodeWithNoActions() async {
         let d = DefineNode(onEntry: [],
                            onExit: [],
                            rest: [givenNode(thenState: s3,
@@ -53,12 +53,12 @@ final class DefineNodeTests: SyntaxNodeTests {
                         MSES(m1, s2, e1, s3),
                         MSES(m1, s2, e2, s3)]
         
-        assertDefineNode(expected: expected,
+        await assertDefineNode(expected: expected,
                          actionsOutput: "",
                          node: d)
     }
     
-    func testDefineNodeCanSetRestAfterInit() {
+    func testDefineNodeCanSetRestAfterInit() async {
         let t = ThenNode(state: s3, rest: [])
         let w = WhenNode(events: [e1, e2], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w])
@@ -73,12 +73,14 @@ final class DefineNodeTests: SyntaxNodeTests {
                         MSES(m1, s2, e1, s3),
                         MSES(m1, s2, e2, s3)]
         
-        assertDefineNode(expected: expected,
-                         actionsOutput: "",
-                         node: d)
+        await assertDefineNode(
+            expected: expected,
+            actionsOutput: "",
+            node: d
+        )
     }
     
-    func testDefineNodeWithMultipleGivensWithEntryActionsAndExitActions() {
+    func testDefineNodeWithMultipleGivensWithEntryActionsAndExitActions() async {
         let d = DefineNode(onEntry: onEntry,
                            onExit: onExit,
                            rest: [givenNode(thenState: s3,
@@ -95,14 +97,14 @@ final class DefineNodeTests: SyntaxNodeTests {
                         MSES(m1, s2, e1, s3),
                         MSES(m1, s2, e2, s3)]
         
-        assertDefineNode(
+        await assertDefineNode(
             expected: expected,
             actionsOutput: "<<12>><<12>><<12>><<12>><<12>><<12>><<12>><<12>>",
             node: d
         )
     }
     
-    func testDefineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() {
+    func testDefineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() async {
         let d = DefineNode(onEntry: onEntry,
                            onExit: onExit,
                            rest: [givenNode(thenState: nil,
@@ -113,7 +115,7 @@ final class DefineNodeTests: SyntaxNodeTests {
                         MSES(m1, s2, e1, s2),
                         MSES(m1, s2, e2, s2)]
         
-        assertDefineNode(expected: expected,
+        await assertDefineNode(expected: expected,
                          actionsOutput: "",
                          node: d)
     }

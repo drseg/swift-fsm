@@ -11,7 +11,6 @@ private protocol AlwaysEqual { }; extension AlwaysEqual {
     static func == (lhs: Self, rhs: Self) -> Bool { true }
 }
 
-@MainActor
 final class PredicateTests: XCTestCase {
     enum NeverEqualPredicate: Predicate, NeverEqual   { case a }
     enum AlwaysEqualPredicate: Predicate, AlwaysEqual { case a }
@@ -63,6 +62,7 @@ final class PredicateTests: XCTestCase {
         XCTAssertNil(b[p2])
     }
 
+    @MainActor
     func testErasedWrapperUsesWrappedHasher() {
         struct Spy: Predicate, NeverEqual, @unchecked Sendable {
             let fulfill: () -> ()

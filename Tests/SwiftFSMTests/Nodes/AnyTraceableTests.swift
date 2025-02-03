@@ -13,11 +13,10 @@ final class AnyTraceableTests: SyntaxNodeTests {
         XCTAssertNotEqual(t1, t3)
     }
     
-    @MainActor
-    func testTraceableHashing() {
+    func testTraceableHashing() async {
         var randomCat: AnyTraceable { randomisedTrace("cat") }
         
-        1000 * {
+        for _ in 0...1000 {
             let dict = [randomCat: randomCat]
             XCTAssertEqual(dict[randomCat], randomCat)
         }

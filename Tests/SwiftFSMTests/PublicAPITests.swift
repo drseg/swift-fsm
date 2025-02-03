@@ -2,7 +2,6 @@ import XCTest
 import SwiftFSM
 // Do not use @testable here //
 
-@MainActor
 final class PublicAPITests: XCTestCase {
     final class SUT: SyntaxBuilder {
         enum State { case locked, unlocked }
@@ -36,7 +35,7 @@ final class PublicAPITests: XCTestCase {
         }
     }
     
-    func testPublicAPI() throws {
+    func testPublicAPI() async throws {
         func assertLogged(_ a: String..., line: UInt = #line) {
             XCTAssertEqual(sut.log, a, line: line)
         }
@@ -44,19 +43,19 @@ final class PublicAPITests: XCTestCase {
         let sut = try SUT()
         XCTAssert(sut.log.isEmpty)
         
-        try sut.fsm.handleEvent(.coin)
+        await sut.fsm.handleEvent(.coin)
         assertLogged("unlock()")
         
-        try sut.fsm.handleEvent(.coin)
+        await sut.fsm.handleEvent(.coin)
         assertLogged("unlock()", "thankyou()")
         
-        try sut.fsm.handleEvent(.coin)
+        await sut.fsm.handleEvent(.coin)
         assertLogged("unlock()", "thankyou()", "thankyou()")
         
-        try sut.fsm.handleEvent(.pass)
+        await sut.fsm.handleEvent(.pass)
         assertLogged("unlock()", "thankyou()", "thankyou()", "lock()")
         
-        try sut.fsm.handleEvent(.pass)
+        await sut.fsm.handleEvent(.pass)
         assertLogged("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
     }
 }
