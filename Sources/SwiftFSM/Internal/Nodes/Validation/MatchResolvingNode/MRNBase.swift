@@ -12,7 +12,7 @@ class MRNBase {
         self.rest = rest
     }
 
-    func validate() -> [Error] {
+    func findErrors() -> [Error] {
         errors
     }
 }

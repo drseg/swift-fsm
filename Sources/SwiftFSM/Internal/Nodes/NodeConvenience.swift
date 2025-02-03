@@ -7,7 +7,7 @@ protocol NeverEmptyNode: Node {
 }
 
 extension NeverEmptyNode {
-    func validate() -> [Error] {
+    func findErrors() -> [Error] {
         makeError(if: rest.isEmpty)
     }
 

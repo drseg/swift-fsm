@@ -9,22 +9,22 @@ protocol Node<Output> {
     var rest: [any Node<Input>] { get set }
 
     func combinedWith(_ rest: [Input]) -> [Output]
-    func validate() -> [Error]
+    func findErrors() -> [Error]
 }
 
 extension Node {
     func resolve() -> Result {
-        var output = [Input]()
-        var errors = [Error]()
+        var allOutput = [Input]()
+        var allErrors = [Error]()
 
         rest.forEach {
-            let finalised = $0.resolve()
-            output.append(contentsOf: finalised.0)
-            errors.append(contentsOf: finalised.1)
+            let resolved = $0.resolve()
+            allOutput.append(contentsOf: resolved.output)
+            allErrors.append(contentsOf: resolved.errors)
         }
 
-        return (combinedWith(output), validate() + errors)
+        return (combinedWith(allOutput), findErrors() + allErrors)
     }
 
-    func validate() -> [Error] { [] }
+    func findErrors() -> [Error] { [] }
 }

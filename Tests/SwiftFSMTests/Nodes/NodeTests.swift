@@ -6,7 +6,7 @@ class NodeTests: XCTestCase {
         let first: String
         var rest: [any Node<String>]
 
-        func validate() -> [Error] { ["E"] }
+        func findErrors() -> [Error] { ["E"] }
 
         func combinedWith(_ rest: [String]) -> [String] {
             rest.reduce(into: []) {
@@ -45,21 +45,20 @@ class NodeTests: XCTestCase {
             
             var log = [String]()
             
-            func validate() -> [Error] {
-                log.append(#function)
+            func findErrors() -> [Error] {
+                log.append("second call")
                 return []
             }
             
             func combinedWith(_ rest: [String]) -> [String] {
-                log.append(#function)
+                log.append("first call")
                 return []
             }
         }
         
         let n = NodeSpy()
         let _ = n.resolve()
-        
-        XCTAssertEqual(n.log, ["combinedWith(_:)", "validate()"])
+        XCTAssertEqual(n.log, ["first call", "second call"])
     }
 }
 

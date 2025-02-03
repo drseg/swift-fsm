@@ -165,7 +165,7 @@ class SemanticValidationNode: Node {
         return reverseOutput.reversed()
     }
 
-    func validate() -> [Error] {
+    func findErrors() -> [Error] {
         errors
     }
 }

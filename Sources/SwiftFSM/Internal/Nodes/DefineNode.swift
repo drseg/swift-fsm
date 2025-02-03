@@ -87,7 +87,7 @@ final class DefineNode: NeverEmptyNode {
         }
     }
 
-    func validate() -> [Error] {
+    func findErrors() -> [Error] {
         makeError(if: rest.isEmpty) + errors
     }
 }

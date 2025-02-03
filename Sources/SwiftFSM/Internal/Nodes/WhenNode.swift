@@ -45,7 +45,7 @@ class WhenNode: WhenNodeBase, NeverEmptyNode {
         }
     }
 
-    func validate() -> [Error] {
+    func findErrors() -> [Error] {
         makeError(if: events.isEmpty)
     }
 }
@@ -57,7 +57,7 @@ class WhenBlockNode: WhenNodeBase, NeverEmptyNode {
         }
     }
 
-    func validate() -> [Error] {
+    func findErrors() -> [Error] {
         makeError(if: events.isEmpty || rest.isEmpty)
     }
 }
