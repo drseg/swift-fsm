@@ -41,13 +41,15 @@ protocol FSMProtocol<State, Event>: AnyObject {
     var stateActionsPolicy: StateActionsPolicy { get }
     var table: [TableKey: Transition] { get set }
     var state: AnyHashable { get set }
+    
+    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode
 
     func handleEvent(
         _ event: Event,
         predicates: [any Predicate],
         isolation: isolated (any Actor)?
     ) async
-    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode
+    
     func buildTable(
         file: String,
         line: Int,
@@ -71,6 +73,32 @@ extension FSMProtocol {
         isolation: isolated (any Actor)? = #isolation,
         @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
     ) throws {
+        try buildTable(file: file, line: line, isolation: isolation, block)
+    }
+}
+
+class BaseFSM<State: FSMHashable, Event: FSMHashable> {
+    let stateActionsPolicy: StateActionsPolicy
+
+    var table: [TableKey: Transition] = [:]
+    var state: AnyHashable
+    let logger = Logger<Event>()
+    
+    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
+        fatalError("subclasses must implement")
+    }
+
+    init(initialState: State, actionsPolicy: StateActionsPolicy = .executeOnChangeOnly) {
+        self.state = initialState
+        self.stateActionsPolicy = actionsPolicy
+    }
+    
+    func buildTable(
+        file: String = #file,
+        line: Int = #line,
+        isolation: isolated (any Actor)? = #isolation,
+        @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
+    ) throws {
         guard table.isEmpty else {
             throw makeError(TableAlreadyBuiltError(file: file, line: line))
         }
@@ -87,7 +115,7 @@ extension FSMProtocol {
     func _handleEvent(
         _ event: Event,
         predicates: [any Predicate],
-        isolation: isolated (any Actor)? = #isolation
+        isolation: isolated (any Actor)?
     ) async -> TransitionStatus<Event> {
         guard let transition = transition(event, predicates) else {
             return .notFound(event, predicates)
@@ -143,20 +171,7 @@ extension FSMProtocol {
     func makeError(_ errors: [Error]) -> SwiftFSMError {
         SwiftFSMError(errors: errors)
     }
-}
-
-class BaseFSM<State: FSMHashable, Event: FSMHashable> {
-    let stateActionsPolicy: StateActionsPolicy
-
-    var table: [TableKey: Transition] = [:]
-    var state: AnyHashable
-    let logger = Logger<Event>()
-
-    init(initialState: State, actionsPolicy: StateActionsPolicy = .executeOnChangeOnly) {
-        self.state = initialState
-        self.stateActionsPolicy = actionsPolicy
-    }
-
+    
     func logTransitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
         logger.transitionNotFound(event, predicates)
     }

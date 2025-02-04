@@ -1,7 +1,7 @@
 import Foundation
 
 class EagerFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FSMProtocol {
-    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
+    override func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         EagerMatchResolvingNode(rest: rest)
     }
     
