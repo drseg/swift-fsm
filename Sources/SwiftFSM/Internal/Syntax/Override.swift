@@ -1,7 +1,7 @@
 public extension Internal {
     struct Override {
         public func callAsFunction(
-            @Internal.MWTABuilder _ block: () -> [MWTA]
+            @Internal.MWTABuilder _ block: @Sendable () -> [MWTA]
         ) -> [MWTA] {
             return block().asOverrides()
         }
