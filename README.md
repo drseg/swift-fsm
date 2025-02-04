@@ -144,11 +144,43 @@ The `FSM` instance will look up the appropriate transition for its current state
 
 Swift FSM does not make assumptions about, or demands on its client’s concurrency handling. The public methods on the `FSM` class are polymorphically isolated to the caller’s `Actor` (if there is one), or no `Actor` at all, by including the argument `isolation: isolated (any Actor)? = #isolation` in their signatures. As isolation is inferred at the call site, all concurrency decisions are left to the client.
 
-The upside is that Swift FSM will work transparently in any concurrency, or non-concurrency environment. The downside is that it is possible to call each of the `FSM` class’ public methods from a different actor, as actor polymorphism currently works at an individual function level, rather than at a class level - it is therefore the client’s responsibility to call these methods in a concurrency-appropriate way.
+The upside is that Swift FSM will work transparently in any concurrency, or non-concurrency environment. The downside is that it is _technically_ possible (though impractical) to call each of the `FSM` class’ public methods from a different actor, as actor polymorphism currently works at an individual function level, rather than at a class level - it is therefore the client’s responsibility to call these methods in a concurrency-appropriate way.
 
 ##### Working on the Main Actor
 
-Though the `FSM` class will work transparently on the main actor, until Swift provides a way of unifying polymorphic actor behaviour across an entire class, Swift FSM also provides a convenience wrapper `MainActorFSM<State, Event>`, which is annotated `@MainActor` to guarantee synchronous execution on the main actor at the compiler level.
+Though the `FSM` class will work transparently on the main actor if its methods are called from a main actor context, until Swift provides a way of unifying polymorphic actor behaviour across an entire class, Swift FSM also provides a convenience wrapper `MainActorFSM<State, Event>`, which is annotated `@MainActor` to allow the compiler to prevent access from any other context. 
+
+In most situations however, there will be no difference between the concurrency behaviour of either `FSM` or `MainActorFSM` in a main actor context - `MainActorFSM` simply guards against an unlikely but possible technicality.
+
+```swift
+@MainActor class MyMainActorClass {
+    let fsm = FSM<Int, Int>(initialState: 1)
+    let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1)
+
+    func myMethod() async {
+        await fsm.handleEvent(1) // runs on the Main Actor in this context
+        await mainActorFSM.handleEvent(1) // always runs on the Main Actor
+    }
+}
+
+class MyNonIsolatedClass {
+    let fsm = FSM<Int, Int>(initialState: 1) // ✅
+    let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1) // ⛔️ Main actor-isolated default value in a nonisolated context
+    
+    func myMethod() async {
+        await fsm.handleEvent(1) // runs without actor isolation in this context
+    }
+}
+
+actor MyCustomActor {
+    let fsm = FSM<Int, Int>(initialState: 1) // ✅
+    let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1) // ⛔️ Main actor-isolated default value in a actor-isolated context
+    
+    func myMethod() async {
+        await fsm.handleEvent(1) // runs on MyCustomActor in this context
+    }
+}
+```
 
 ##### Event Handling
 
