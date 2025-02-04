@@ -142,9 +142,15 @@ The `FSM` instance will look up the appropriate transition for its current state
 
 #### Actions and Concurrency
 
-Swift FSM does not make assumptions about, or demands on its client’s concurrency handling. The public methods on the `FSM` class are polymorphically isolated to the caller’s `Actor` (if there is one), or no `Actor` at all. All concurrency decisions are therefore left entirely to the client. 
+Swift FSM does not make assumptions about, or demands on its client’s concurrency handling. The public methods on the `FSM` class are polymorphically isolated to the caller’s `Actor` (if there is one), or no `Actor` at all, by including the argument `isolation: isolated (any Actor)? = #isolation` in their signatures. As isolation is inferred at the call site, all concurrency decisions are left to the client.
 
-The upside is that Swift FSM will work transparently in any concurrency, or non-concurrency environment. The downside is that it is possible to call each of the `FSM` class’ public methods from a different actor - it is therefore the client’s responsibility to call these in a concurrency-appropriate way.
+The upside is that Swift FSM will work transparently in any concurrency, or non-concurrency environment. The downside is that it is possible to call each of the `FSM` class’ public methods from a different actor, as actor polymorphism currently works at an individual function level, rather than at a class level - it is therefore the client’s responsibility to call these methods in a concurrency-appropriate way.
+
+##### Working on the Main Actor
+
+Though the `FSM` class will work transparently on the main actor, until Swift provides a way of unifying polymorphic actor behaviour across an entire class, Swift FSM also provides a convenience wrapper `MainActorFSM<State, Event>`, which is annotated `@MainActor` to guarantee synchronous execution on the main actor at the compiler level.
+
+##### Event Handling
 
 `handleEvent` is an `async` function, accepting both synchronous and asynchronous code, and must be called with `await`.
 
@@ -1474,6 +1480,14 @@ This project is dominated by the need to capture functions from the client’s c
 The rules themselves have not been consistent, with Swift 5.10 disallowing `Sendable` behaviours that are in fact allowed in Swift 6.0. Because of this, Swift FSM is only guaranteed to work as intended when using Swift 6 Language Mode.
 
 Using Swift 5 Language Mode will work in many situations, however cannot be guaranteed across the board.
+
+### Exposed Internals
+
+In order to build up the syntax, each of the methods declared in `SyntaxBuilder` and `ExpandedSyntaxBuilder` needs to return an intermediate object used by the FSM to chain together each entry in the transition table.
+
+These intermediate objects therefore have to have their declarations marked `public`, even though they are purely internal implementation details. Their implementations are marked `internal` and should not be accessible or modifiable, and their status as entirely internal concerns is also indicated by their containing namespace `SwiftFSM.Internal`.
+
+Nonetheless, you may see reference to some of these objects in compilation errors and autocomplete suggestions.
 
 
 
