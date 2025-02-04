@@ -18,28 +18,14 @@ public extension Internal {
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMSyncAction
+            rhs: @escaping FSMAction
         ) -> Internal.MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMAsyncAction
-        ) -> Internal.MatchingWhenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMSyncActionWithEvent<Event>
-        ) -> Internal.MatchingWhenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMAsyncActionWithEvent<Event>
+            rhs: @escaping FSMActionWithEvent<Event>
         ) -> Internal.MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }

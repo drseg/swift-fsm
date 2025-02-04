@@ -1,24 +1,13 @@
 import Foundation
 
 public extension AnyAction {
-    static func & (lhs: Self, rhs: @escaping FSMSyncAction) -> [Self] {
-        [lhs, .init(rhs)]
-    }
-
-    static func & (lhs: Self, rhs: @escaping FSMAsyncAction) -> [Self] {
+    static func & (lhs: Self, rhs: @escaping FSMAction) -> [Self] {
         [lhs, .init(rhs)]
     }
 
     static func & <Event: FSMHashable>(
         lhs: Self,
-        rhs: @escaping FSMSyncActionWithEvent<Event>
-    ) -> [Self] {
-        [lhs, .init(rhs)]
-    }
-
-    static func & <Event: FSMHashable>(
-        lhs: Self,
-        rhs: @escaping FSMAsyncActionWithEvent<Event>
+        rhs: @escaping FSMActionWithEvent<Event>
     ) -> [Self] {
         [lhs, .init(rhs)]
     }
@@ -26,41 +15,22 @@ public extension AnyAction {
 
 // MARK: - init with a single FSMAction element, avoiding AnyAction.init
 public extension Array<AnyAction> {
-    init(_ action: @escaping FSMSyncAction) {
+    init(_ action: @escaping FSMAction) {
         self.init(arrayLiteral: AnyAction(action))
     }
-
-    init(_ action: @escaping FSMAsyncAction) {
-        self.init(arrayLiteral: AnyAction(action))
-    }
-
-    init<Event: FSMHashable>(_ action: @escaping FSMSyncActionWithEvent<Event>) {
-        self.init(arrayLiteral: AnyAction(action))
-    }
-
-    init<Event: FSMHashable>(_ action: @escaping FSMAsyncActionWithEvent<Event>) {
+    
+    init<Event: FSMHashable>(_ action: @escaping FSMActionWithEvent<Event>) {
         self.init(arrayLiteral: AnyAction(action))
     }
 
     // MARK: combining with single FSMAction elements
-    static func & (lhs: Self, rhs: @escaping FSMSyncAction) -> Self {
-        lhs + [.init(rhs)]
-    }
-
-    static func & (lhs: Self, rhs: @escaping FSMAsyncAction) -> Self {
+    static func & (lhs: Self, rhs: @escaping FSMAction) -> Self {
         lhs + [.init(rhs)]
     }
 
     static func & <Event: FSMHashable> (
         lhs: Self,
-        rhs: @escaping FSMSyncActionWithEvent<Event>
-    ) -> Self {
-        lhs + [.init(rhs)]
-    }
-
-    static func & <Event: FSMHashable> (
-        lhs: Self,
-        rhs: @escaping FSMAsyncActionWithEvent<Event>
+        rhs: @escaping FSMActionWithEvent<Event>
     ) -> Self {
         lhs + [.init(rhs)]
     }
@@ -68,99 +38,29 @@ public extension Array<AnyAction> {
 
 // MARK: - convenience operators, avoiding AnyAction.init
 public func & (
-    lhs: @escaping FSMSyncAction,
-    rhs: @escaping FSMSyncAction
+    lhs: @escaping FSMAction,
+    rhs: @escaping FSMAction
 ) -> [AnyAction] {
     [.init(lhs), .init(rhs)]
 }
 
 public func & <Event: FSMHashable> (
-    lhs: @escaping FSMSyncAction,
-    rhs: @escaping FSMSyncActionWithEvent<Event>
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & <Event: FSMHashable> (
-    lhs: @escaping FSMSyncAction,
-    rhs: @escaping FSMAsyncActionWithEvent<Event>
+    lhs: @escaping FSMAction,
+    rhs: @escaping FSMActionWithEvent<Event>
 ) -> [AnyAction] {
     [.init(lhs), .init(rhs)]
 }
 
 public func & <Event: FSMHashable>(
-    lhs: @escaping FSMSyncActionWithEvent<Event>,
-    rhs: @escaping FSMSyncAction
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & <Event: FSMHashable>(
-    lhs: @escaping FSMSyncActionWithEvent<Event>,
-    rhs: @escaping FSMAsyncAction
+    lhs: @escaping FSMActionWithEvent<Event>,
+    rhs: @escaping FSMAction
 ) -> [AnyAction] {
     [.init(lhs), .init(rhs)]
 }
 
 public func & <LHSEvent: FSMHashable, RHSEvent: FSMHashable> (
-    lhs: @escaping FSMSyncActionWithEvent<LHSEvent>,
-    rhs: @escaping FSMSyncActionWithEvent<RHSEvent>
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & <LHSEvent: FSMHashable, RHSEvent: FSMHashable> (
-    lhs: @escaping FSMSyncActionWithEvent<LHSEvent>,
-    rhs: @escaping FSMAsyncActionWithEvent<RHSEvent>
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & (
-    lhs: @escaping FSMAsyncAction,
-    rhs: @escaping FSMAsyncAction
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & <Event: FSMHashable> (
-    lhs: @escaping FSMAsyncAction,
-    rhs: @escaping FSMSyncActionWithEvent<Event>
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & <Event: FSMHashable> (
-    lhs: @escaping FSMAsyncAction,
-    rhs: @escaping FSMAsyncActionWithEvent<Event>
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & <Event: FSMHashable>(
-    lhs: @escaping FSMAsyncActionWithEvent<Event>,
-    rhs: @escaping FSMSyncAction
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & <Event: FSMHashable>(
-    lhs: @escaping FSMAsyncActionWithEvent<Event>,
-    rhs: @escaping FSMAsyncAction
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & <LHSEvent: FSMHashable, RHSEvent: FSMHashable> (
-    lhs: @escaping FSMAsyncActionWithEvent<LHSEvent>,
-    rhs: @escaping FSMSyncActionWithEvent<RHSEvent>
-) -> [AnyAction] {
-    [.init(lhs), .init(rhs)]
-}
-
-public func & <LHSEvent: FSMHashable, RHSEvent: FSMHashable> (
-    lhs: @escaping FSMAsyncActionWithEvent<LHSEvent>,
-    rhs: @escaping FSMAsyncActionWithEvent<RHSEvent>
+    lhs: @escaping FSMActionWithEvent<LHSEvent>,
+    rhs: @escaping FSMActionWithEvent<RHSEvent>
 ) -> [AnyAction] {
     [.init(lhs), .init(rhs)]
 }
@@ -168,22 +68,12 @@ public func & <LHSEvent: FSMHashable, RHSEvent: FSMHashable> (
 // MARK: - Array convenience operators
 postfix operator *
 
-public postfix func * (_ value: @escaping FSMSyncAction) -> [AnyAction] {
-    Array(value)
-}
-
-public postfix func * (_ value: @escaping FSMAsyncAction) -> [AnyAction] {
+public postfix func * (_ value: @escaping FSMAction) -> [AnyAction] {
     Array(value)
 }
 
 public postfix func * <Event: FSMHashable>(
-    _ value: @escaping FSMSyncActionWithEvent<Event>
-) -> [AnyAction] {
-    Array(value)
-}
-
-public postfix func * <Event: FSMHashable>(
-    _ value: @escaping FSMAsyncActionWithEvent<Event>
+    _ value: @escaping FSMActionWithEvent<Event>
 ) -> [AnyAction] {
     Array(value)
 }

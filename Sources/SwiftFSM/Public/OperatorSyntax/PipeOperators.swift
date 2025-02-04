@@ -10,28 +10,14 @@ public extension Internal.MatchingWhen {
 
     static func | (
         lhs: Internal.MatchingWhen<State, Event>,
-        rhs: @escaping FSMSyncAction
+        rhs: @escaping FSMAction
     ) -> Internal.MatchingWhenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Internal.MatchingWhen<State, Event>,
-        rhs: @escaping FSMAsyncAction
-    ) -> Internal.MatchingWhenActions<Event> {
-        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-    }
-
-    static func | (
-        lhs: Internal.MatchingWhen<State, Event>,
-        rhs: @escaping FSMSyncActionWithEvent<Event>
-    ) -> Internal.MatchingWhenActions<Event> {
-        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-    }
-
-    static func | (
-        lhs: Internal.MatchingWhen<State, Event>,
-        rhs: @escaping FSMAsyncActionWithEvent<Event>
+        rhs: @escaping FSMActionWithEvent<Event>
     ) -> Internal.MatchingWhenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
@@ -54,28 +40,14 @@ public extension Internal.MatchingWhen {
 public extension Internal.MatchingThen {
     static func | (
         lhs: Internal.MatchingThen<Event>,
-        rhs: @escaping FSMSyncAction
+        rhs: @escaping FSMAction
     ) -> Internal.MatchingThenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Internal.MatchingThen<Event>,
-        rhs: @escaping FSMAsyncAction
-    ) -> Internal.MatchingThenActions<Event> {
-        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-    }
-
-    static func | (
-        lhs: Internal.MatchingThen<Event>,
-        rhs: @escaping FSMSyncActionWithEvent<Event>
-    ) -> Internal.MatchingThenActions<Event> {
-        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-    }
-
-    static func | (
-        lhs: Internal.MatchingThen<Event>,
-        rhs: @escaping FSMAsyncActionWithEvent<Event>
+        rhs: @escaping FSMActionWithEvent<Event>
     ) -> Internal.MatchingThenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
@@ -91,28 +63,14 @@ public extension Internal.MatchingThen {
 public extension Internal.MatchingWhenThen {
     static func | (
         lhs: Internal.MatchingWhenThen<Event>,
-        rhs: @escaping FSMSyncAction
+        rhs: @escaping FSMAction
     ) -> Internal.MatchingWhenThenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Internal.MatchingWhenThen<Event>,
-        rhs: @escaping FSMAsyncAction
-    ) -> Internal.MatchingWhenThenActions<Event> {
-        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-    }
-
-    static func | (
-        lhs: Internal.MatchingWhenThen<Event>,
-        rhs: @escaping FSMSyncActionWithEvent<Event>
-    ) -> Internal.MatchingWhenThenActions<Event> {
-        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-    }
-
-    static func | (
-        lhs: Internal.MatchingWhenThen<Event>,
-        rhs: @escaping FSMAsyncActionWithEvent<Event>
+        rhs: @escaping FSMActionWithEvent<Event>
     ) -> Internal.MatchingWhenThenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
@@ -156,28 +114,14 @@ public extension Internal.Conditional {
 
     static func | (
         lhs: Self,
-        rhs: @escaping FSMSyncAction
+        rhs: @escaping FSMAction
     ) -> Internal.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Self,
-        rhs: @escaping FSMAsyncAction
-    ) -> Internal.MatchingActions<Event> {
-        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-    }
-
-    static func | (
-        lhs: Self,
-        rhs: @escaping FSMSyncActionWithEvent<Event>
-    ) -> Internal.MatchingActions<Event> {
-        .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-    }
-
-    static func | (
-        lhs: Self,
-        rhs: @escaping FSMAsyncActionWithEvent<Event>
+        rhs: @escaping FSMActionWithEvent<Event>
     ) -> Internal.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }

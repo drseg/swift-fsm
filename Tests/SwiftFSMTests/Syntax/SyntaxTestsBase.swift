@@ -406,7 +406,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendable {
     }
     
     func assertActions(
-        _ actions: [FSMSyncAction],
+        _ actions: [FSMAction],
         expectedOutput eo: String,
         file: StaticString = #filePath,
         xctLine xl: UInt = #line

@@ -4,28 +4,14 @@ public extension Internal {
     struct Then<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMSyncAction
+            rhs: @escaping FSMAction
         ) -> Internal.MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMAsyncAction
-        ) -> Internal.MatchingThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMSyncActionWithEvent<Event>
-        ) -> Internal.MatchingThenActions<Event> {
-            .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
-        }
-
-        public static func | (
-            lhs: Self,
-            rhs: @escaping FSMAsyncActionWithEvent<Event>
+            rhs: @escaping FSMActionWithEvent<Event>
         ) -> Internal.MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }

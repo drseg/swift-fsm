@@ -49,7 +49,7 @@ public extension SyntaxBuilder {
 // MARK: - Actions
 public extension SyntaxBuilder {
     func actions(
-        _ action: @escaping FSMSyncAction,
+        _ action: @escaping FSMAction,
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: @Sendable () -> [Internal.MWTA]
@@ -59,27 +59,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMAsyncAction,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWTABuilder _ block: @Sendable () -> [Internal.MWTA]
-    ) -> Internal.MWTABlock {
-        Internal.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
-    }
-
-    func actions(
-        _ action: @escaping FSMSyncActionWithEvent<Event>,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWTABuilder _ block: @Sendable () -> [Internal.MWTA]
-    ) -> Internal.MWTABlock {
-        Internal.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
-    }
-
-    func actions(
-        _ action: @escaping FSMAsyncActionWithEvent<Event>,
+        _ action: @escaping FSMActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
         @Internal.MWTABuilder _ block: @Sendable () -> [Internal.MWTA]
@@ -99,7 +79,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMSyncAction,
+        _ action: @escaping FSMAction,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: @Sendable () -> [Internal.MWA]
@@ -109,27 +89,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMAsyncAction,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWABuilder _ block: @Sendable () -> [Internal.MWA]
-    ) -> Internal.MWABlock {
-        Internal.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
-    }
-
-    func actions(
-        _ action: @escaping FSMSyncActionWithEvent<Event>,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MWABuilder _ block: @Sendable () -> [Internal.MWA]
-    ) -> Internal.MWABlock {
-        Internal.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
-    }
-
-    func actions(
-        _ action: @escaping FSMAsyncActionWithEvent<Event>,
+        _ action: @escaping FSMActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
         @Internal.MWABuilder _ block: @Sendable () -> [Internal.MWA]
@@ -149,7 +109,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMSyncAction,
+        _ action: @escaping FSMAction,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: @Sendable () -> [Internal.MTA]
@@ -159,27 +119,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMAsyncAction,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MTABuilder _ block: @Sendable () -> [Internal.MTA]
-    ) -> Internal.MTABlock {
-        Internal.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
-    }
-
-    func actions(
-        _ action: @escaping FSMSyncActionWithEvent<Event>,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MTABuilder _ block: @Sendable () -> [Internal.MTA]
-    ) -> Internal.MTABlock {
-        Internal.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
-    }
-
-    func actions(
-        _ action: @escaping FSMAsyncActionWithEvent<Event>,
+        _ action: @escaping FSMActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
         @Internal.MTABuilder _ block: @Sendable () -> [Internal.MTA]
