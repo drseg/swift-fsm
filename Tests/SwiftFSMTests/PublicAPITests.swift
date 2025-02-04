@@ -28,25 +28,21 @@ final class PublicAPITests: XCTestCase {
         func thankyou() async { logAction() }
         func lock() async { logAction() }
         
-        private var log = [String]()
+        var log = [String]()
         
         func logAction(_ f: String = #function) {
             log.append(f)
-        }
-        
-        func getLog() -> [String] {
-            log
         }
     }
     
     func testPublicAPI() async throws {
         func assertLogged(_ a: String..., line: UInt = #line) async {
-            let log = await sut.getLog()
+            let log = await sut.log
             XCTAssertEqual(log, a, line: line)
         }
         
         let sut = try await SUT()
-        let log = await sut.getLog()
+        let log = await sut.log
         XCTAssert(log.isEmpty)
         
         await sut.fsm.handleEvent(.coin)

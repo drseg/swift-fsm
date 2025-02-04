@@ -4,12 +4,13 @@ public enum StateActionsPolicy {
     case executeAlways, executeOnChangeOnly
 }
 
-public actor FSM<State: FSMHashable, Event: FSMHashable> {
+@MainActor
+public class FSM<State: FSMHashable, Event: FSMHashable> {
     public enum PredicateHandling { case eager, lazy }
 
     var fsm: any FSMProtocol<State, Event>
 
-    public init(
+    nonisolated public init(
         type: PredicateHandling = .eager,
         initialState initial: State,
         actionsPolicy policy: StateActionsPolicy = .executeOnChangeOnly
