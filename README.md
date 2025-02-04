@@ -153,19 +153,19 @@ Though the `FSM` class will work transparently on the main actor if its methods 
 In most situations however, there will be no difference between the concurrency behaviour of either `FSM` or `MainActorFSM` in a main actor context - `MainActorFSM` simply guards against an unlikely but possible technicality.
 
 ```swift
-@MainActor class MyMainActorClass {
-    let fsm = FSM<Int, Int>(initialState: 1)
-    let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1)
-
-    func myMethod() async {
-        await fsm.handleEvent(1) // runs on the Main Actor in this context
-        await mainActorFSM.handleEvent(1) // always runs on the Main Actor
-    }
-}
-
 class MyNonIsolatedClass {
-    let fsm = FSM<Int, Int>(initialState: 1) // ✅
-    let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1) // ⛔️ Main actor-isolated default value in a nonisolated context
+    let fsm: FSM<Int, Int>
+    let mainActorFSM: MainActorFSM<Int, Int>
+ 
+    /* init() {
+        fsm = FSM<Int, Int>(initialState: 1) // ✅
+        mainActorFSM = MainActorFSM<Int, Int>(initialState: 1) // ⛔️ Call to main actor-isolated initializer 'init(type:initialState:actionsPolicy:)' in a synchronous nonisolated context
+    } */
+    
+    init() async {
+        fsm = FSM<Int, Int>(initialState: 1) // ✅ runs without isolation in this context
+        mainActorFSM = await MainActorFSM<Int, Int>(initialState: 1) // ✅ runs on the Main Actor
+    }
     
     func myMethod() async {
         await fsm.handleEvent(1) // runs without actor isolation in this context
@@ -173,8 +173,18 @@ class MyNonIsolatedClass {
 }
 
 actor MyCustomActor {
-    let fsm = FSM<Int, Int>(initialState: 1) // ✅
-    let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1) // ⛔️ Main actor-isolated default value in a actor-isolated context
+    let fsm: FSM<Int, Int>
+    let mainActorFSM: MainActorFSM<Int, Int>
+    
+    /* init() {
+        fsm = FSM<Int, Int>(initialState: 1) // ✅
+        mainActorFSM = MainActorFSM<Int, Int>(initialState: 1) // ⛔️ Call to main actor-isolated initializer 'init(type:initialState:actionsPolicy:)' in a synchronous nonisolated context
+    } */
+    
+    init() async {
+        fsm = FSM<Int, Int>(initialState: 1) // ✅ runs on MyCustomActor
+        mainActorFSM = await MainActorFSM<Int, Int>(initialState: 1) // ✅ runs on the Main Actor
+    }
     
     func myMethod() async {
         await fsm.handleEvent(1) // runs on MyCustomActor in this context
