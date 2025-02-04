@@ -647,7 +647,7 @@ Though the `FSM` class will work transparently on the main actor if its methods 
 
 In most situations however, there will be no difference between the concurrency behaviour of either `FSM` or `MainActorFSM` in a main actor context - `MainActorFSM` simply guards against an unlikely but possible technicality.
 
-```
+```swift
 @MainActor
 class MyMainActorClass {
     func myMethod() {
