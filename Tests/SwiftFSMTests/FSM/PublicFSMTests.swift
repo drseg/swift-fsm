@@ -7,6 +7,7 @@ protocol FSMSpyProtocol<State, Event>: AnyObject {
     
     var log: [String] { get set }
 }
+
 extension FSMSpyProtocol {
     func log(_ caller: String = #function, args: [Any]) {
         log += [caller] + args.map(String.init(describing:))
@@ -221,11 +222,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         let eagerSpy = EagerFSMSpy(initialState: 1)
         sut.fsm = eagerSpy
         
-        try sut.buildTable {
-            define(1) {
-                when(1) | then(1)
-            }
-        }
+        try sut.buildTable { }
         await sut.handleEvent(1)
         await sut.handleEvent(1, predicates: P.a)
         
@@ -240,11 +237,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         let lazySpy = LazyFSMSpy(initialState: 1)
         sut.fsm = lazySpy
         
-        try sut.buildTable {
-            define(1) {
-                when(1) | then(1)
-            }
-        }
+        try sut.buildTable { }
         await sut.handleEvent(1)
         await sut.handleEvent(1, predicates: P.a)
         
@@ -266,14 +259,14 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             isolation: isolated (any Actor)? = #isolation,
             @TableBuilder<State, Event> _ block: @isolated(any) () -> [Internal.Define<State, Event>]
         ) throws {
-            log(args: [])
+            log(args: [isolation!])
         }
 
         public override func handleEvent(
             _ event: Event,
             isolation: isolated (any Actor)? = #isolation
         ) async {
-            log(args: [])
+            log(args: [isolation!])
         }
         
         internal override func handleEvent(
@@ -281,7 +274,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             predicates: [any Predicate],
             isolation: isolated (any Actor)? = #isolation
         ) async {
-            log(args: [predicates])
+            log(args: [predicates, isolation!])
         }
     }
     
@@ -291,17 +284,13 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         let spy = FSMForwardingSpy(initialState: 1)
         sut.fsm = spy
         
-        try sut.buildTable {
-            define(1) {
-                when(1) | then(1)
-            }
-        }
+        try sut.buildTable { }
         await sut.handleEvent(1)
         await sut.handleEvent(1, predicates: P.b)
         
         spy.assertLog(
-            contains: "buildTable", "handleEvent", "handleEvent", "b",
-            at: 0, 1, 2, 3
+            contains: "buildTable", "MainActor", "handleEvent", "MainActor", "handleEvent", "P.b", "MainActor",
+            at: 0, 1, 2, 3, 4, 5, 6
         )
     }
 }
