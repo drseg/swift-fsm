@@ -1,9 +1,10 @@
 import XCTest
 @testable import SwiftFSM
 
-protocol FSMSpyProtocol<State, Event>: FSMProtocol, AnyObject {
-    associatedtype State
-    associatedtype Event
+protocol FSMSpyProtocol<State, Event>: AnyObject {
+    associatedtype State: FSMHashable
+    associatedtype Event: FSMHashable
+    
     var log: [String] { get set }
 }
 extension FSMSpyProtocol {
@@ -45,7 +46,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
 
     enum P: Predicate { case a, b }
 
-    class FSMSpy: BaseFSM<Int, Int>, FSMSpyProtocol {
+    class FSMSpy: BaseFSM<Int, Int>, FSMSpyProtocol, FSMProtocol {
         typealias State = Int
         typealias Event = Int
 
@@ -75,14 +76,14 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     override func setUp() async throws {
         sut = FSM(type: .eager, initialState: 1)
         spy = FSMSpy(initialState: 1)
-        sut.setFSM(spy)
+        sut.fsm = spy
     }
 
     func testCanInitPublicEagerFSM() async {
         let sut = FSM<Int, Int>(type: .eager,
                                 initialState: 1,
                                 actionsPolicy: .executeAlways)
-        let fsm = sut.getFSM()
+        let fsm = sut.fsm
         XCTAssertTrue(fsm is EagerFSM<Int, Int>)
         XCTAssertEqual(fsm.state, 1)
         XCTAssertEqual(fsm.stateActionsPolicy, .executeAlways)
@@ -92,7 +93,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         let sut = FSM<Int, Int>(type: .lazy,
                                 initialState: 1,
                                 actionsPolicy: .executeAlways)
-        let fsm = sut.getFSM()
+        let fsm = sut.fsm
         XCTAssertTrue(fsm is LazyFSM<Int, Int>)
         XCTAssertEqual(fsm.state, 1)
         XCTAssertEqual(fsm.stateActionsPolicy, .executeAlways)
@@ -100,7 +101,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
 
     func testIsEagerByDefault() async {
         let sut = FSM<Int, Int>(initialState: 1)
-        let fsm = sut.getFSM()
+        let fsm = sut.fsm
         XCTAssertTrue(fsm is EagerFSM<Int, Int>)
     }
 
@@ -108,8 +109,8 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         let lazy = FSM<Int, Int>(type: .lazy, initialState: 1)
         let eager = FSM<Int, Int>(type: .eager, initialState: 1)
 
-        let lazyFSM = lazy.getFSM()
-        let eagerFSM = eager.getFSM()
+        let lazyFSM = lazy.fsm
+        let eagerFSM = eager.fsm
 
         XCTAssertEqual(lazyFSM.stateActionsPolicy, .executeOnChangeOnly)
         XCTAssertEqual(eagerFSM.stateActionsPolicy, .executeOnChangeOnly)
@@ -123,8 +124,8 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             type: .eager, initialState: 1, actionsPolicy: .executeAlways
         )
         
-        let lazyFSM = lazy.getFSM()
-        let eagerFSM = eager.getFSM()
+        let lazyFSM = lazy.fsm
+        let eagerFSM = eager.fsm
 
         XCTAssertEqual(lazyFSM.stateActionsPolicy, .executeAlways)
         XCTAssertEqual(eagerFSM.stateActionsPolicy, .executeAlways)
@@ -252,15 +253,55 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             at: 1, 3, 5
         )
     }
-}
+    
+    class FSMForwardingSpy: FSM<Int, Int>, FSMSpyProtocol {
+        var log = [String]()
+        
+        typealias State = Int
+        typealias Event = Int
 
-extension FSM: @unchecked Sendable { }
+        public override func buildTable(
+            file: String = #file,
+            line: Int = #line,
+            isolation: isolated (any Actor)? = #isolation,
+            @TableBuilder<State, Event> _ block: @isolated(any) () -> [Internal.Define<State, Event>]
+        ) throws {
+            log(args: [])
+        }
 
-extension FSM {
-    func getFSM() -> any FSMProtocol<State, Event> {
-        self.fsm
+        public override func handleEvent(
+            _ event: Event,
+            isolation: isolated (any Actor)? = #isolation
+        ) async {
+            log(args: [])
+        }
+        
+        internal override func handleEvent(
+            _ event: Event,
+            predicates: [any Predicate],
+            isolation: isolated (any Actor)? = #isolation
+        ) async {
+            log(args: [predicates])
+        }
     }
-    func setFSM(_ fsm: any FSMProtocol<State, Event>) {
-        self.fsm = fsm
+    
+    @MainActor
+    func testMainActorFSMMethodForwarding() async throws {
+        let sut = MainActorFSM<Int, Int>(initialState: 1)
+        let spy = FSMForwardingSpy(initialState: 1)
+        sut.fsm = spy
+        
+        try sut.buildTable {
+            define(1) {
+                when(1) | then(1)
+            }
+        }
+        await sut.handleEvent(1)
+        await sut.handleEvent(1, predicates: P.b)
+        
+        spy.assertLog(
+            contains: "buildTable", "handleEvent", "handleEvent", "b",
+            at: 0, 1, 2, 3
+        )
     }
 }
