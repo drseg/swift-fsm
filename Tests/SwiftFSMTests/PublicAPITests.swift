@@ -3,14 +3,15 @@ import SwiftFSM
 // Do not use @testable here //
 
 final class PublicAPITests: XCTestCase {
-    actor SUT: SyntaxBuilder {
+    @MainActor
+    class SUT: SyntaxBuilder {
         enum State { case locked, unlocked }
         enum Event { case coin, pass }
         
         let fsm = FSM<State, Event>(initialState: .locked)
         
-        init() async throws {
-            try await fsm.buildTable {
+        init() throws {
+            try fsm.buildTable {
                 define(.locked) {
                     when(.coin) | then(.unlocked) | unlock
                     when(.pass) | then(.locked)   | alarm

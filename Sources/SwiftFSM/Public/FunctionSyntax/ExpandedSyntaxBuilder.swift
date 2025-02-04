@@ -121,17 +121,6 @@ public extension ExpandedSyntaxBuilder {
     func matching<P: Predicate>(
         _ predicate: P,
         or: P...,
-        file: String = #file,
-        line: Int = #line,
-        @Internal.MTABuilder _ block: @Sendable () -> [Internal.MTA]
-    ) -> Internal.MTABlock {
-        Matching<State, Event>(predicate, or: or, and: [], file: file, line: line)
-            .callAsFunction(block)
-    }
-
-    func matching<P: Predicate>(
-        _ predicate: P,
-        or: P...,
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,

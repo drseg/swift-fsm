@@ -10,7 +10,7 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
 
     var fsm: any FSMProtocol<State, Event>
 
-    nonisolated public init(
+    public init(
         type: PredicateHandling = .eager,
         initialState initial: State,
         actionsPolicy policy: StateActionsPolicy = .executeOnChangeOnly

@@ -1,7 +1,8 @@
 import XCTest
 @testable import SwiftFSM
 
-final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendable {
+@MainActor
+final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
 
@@ -20,10 +21,6 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendab
         }
 
         func handleEvent(_ event: Int, predicates: [any Predicate]) async {
-            log(args: predicates)
-        }
-
-        func handleEvent(_ event: Int, predicates: [any Predicate]) {
             log(args: predicates)
         }
 
@@ -52,14 +49,14 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendab
     override func setUp() async throws {
         fsm = FSM(type: .eager, initialState: 1)
         spy = FSMSpy(initialState: 1)
-        await fsm.setFSM(spy)
+        fsm.setFSM(spy)
     }
 
     func testCanInitPublicEagerFSM() async {
         let sut = FSM<Int, Int>(type: .eager,
                                 initialState: 1,
                                 actionsPolicy: .executeAlways)
-        let fsm = await sut.getFSM()
+        let fsm = sut.getFSM()
         XCTAssertTrue(fsm is EagerFSM<Int, Int>)
         XCTAssertEqual(fsm.state, 1)
         XCTAssertEqual(fsm.stateActionsPolicy, .executeAlways)
@@ -69,7 +66,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendab
         let sut = FSM<Int, Int>(type: .lazy,
                                 initialState: 1,
                                 actionsPolicy: .executeAlways)
-        let fsm = await sut.getFSM()
+        let fsm = sut.getFSM()
         XCTAssertTrue(fsm is LazyFSM<Int, Int>)
         XCTAssertEqual(fsm.state, 1)
         XCTAssertEqual(fsm.stateActionsPolicy, .executeAlways)
@@ -77,7 +74,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendab
 
     func testIsEagerByDefault() async {
         let sut = FSM<Int, Int>(initialState: 1)
-        let fsm = await sut.getFSM()
+        let fsm = sut.getFSM()
         XCTAssertTrue(fsm is EagerFSM<Int, Int>)
     }
 
@@ -85,8 +82,8 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendab
         let lazy = FSM<Int, Int>(type: .lazy, initialState: 1)
         let eager = FSM<Int, Int>(type: .eager, initialState: 1)
 
-        let lazyFSM = await lazy.getFSM()
-        let eagerFSM = await eager.getFSM()
+        let lazyFSM = lazy.getFSM()
+        let eagerFSM = eager.getFSM()
 
         XCTAssertEqual(lazyFSM.stateActionsPolicy, .executeOnChangeOnly)
         XCTAssertEqual(eagerFSM.stateActionsPolicy, .executeOnChangeOnly)
@@ -100,15 +97,15 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendab
             type: .eager, initialState: 1, actionsPolicy: .executeAlways
         )
         
-        let lazyFSM = await lazy.getFSM()
-        let eagerFSM = await eager.getFSM()
+        let lazyFSM = lazy.getFSM()
+        let eagerFSM = eager.getFSM()
 
         XCTAssertEqual(lazyFSM.stateActionsPolicy, .executeAlways)
         XCTAssertEqual(eagerFSM.stateActionsPolicy, .executeAlways)
     }
 
     func testBuildTable() async throws {
-        let line = #line; try await fsm.buildTable {
+        let line = #line; try fsm.buildTable {
             define(1) {
                 when(1) | then(1)
             }
