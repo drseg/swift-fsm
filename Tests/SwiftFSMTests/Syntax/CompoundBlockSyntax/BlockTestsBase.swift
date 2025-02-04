@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class BlockTestsBase: SyntaxTestsBase, @unchecked Sendable {
+class BlockTestsBase: SyntaxTestsBase {
     typealias MWTABuilder = Internal.MWTABuilder
     typealias MWABuilder = Internal.MWABuilder
     typealias MTABuilder = Internal.MTABuilder

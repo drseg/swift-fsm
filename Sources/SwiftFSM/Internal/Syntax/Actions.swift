@@ -17,19 +17,19 @@ public extension Internal {
         }
 
         public func callAsFunction(
-            @Internal.MWTABuilder _ block: @Sendable () -> [MWTA]
+            @Internal.MWTABuilder _ block: @isolated(any) () -> [MWTA]
         ) -> Internal.MWTABlock {
             .init(actions, file: file, line: line, block)
         }
 
         public func callAsFunction(
-            @Internal.MWABuilder _ block: @Sendable () -> [MWA]
+            @Internal.MWABuilder _ block: @isolated(any) () -> [MWA]
         ) -> Internal.MWABlock {
             .init(actions, file: file, line: line, block)
         }
 
         public func callAsFunction(
-            @Internal.MTABuilder _ block: @Sendable () -> [MTA]
+            @Internal.MTABuilder _ block: @isolated(any) () -> [MTA]
         ) -> Internal.MTABlock {
             .init(actions, file: file, line: line, block)
         }

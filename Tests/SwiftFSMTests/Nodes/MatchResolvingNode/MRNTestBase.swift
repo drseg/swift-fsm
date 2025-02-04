@@ -93,7 +93,7 @@ class MRNTestBase: StringableNodeTest {
         file: StaticString = #filePath,
         line: UInt = #line
     ) async {
-        let condition = await rhs?.condition?()
+        let condition = rhs?.condition?()
         XCTAssertEqual(lhs?.condition, condition, file: file, line: line)
         XCTAssertEqual(lhs?.state, rhs?.state, file: file, line: line)
         XCTAssertEqual(lhs?.predicates, rhs?.predicates, file: file, line: line)

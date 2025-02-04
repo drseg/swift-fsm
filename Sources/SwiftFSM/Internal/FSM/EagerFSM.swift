@@ -1,13 +1,17 @@
 import Foundation
 
-class EagerFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FSMProtocol, @unchecked Sendable {
+class EagerFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FSMProtocol {
     func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         EagerMatchResolvingNode(rest: rest)
     }
     
-    func handleEvent(_ event: Event, predicates: [any Predicate]) async {
+    func handleEvent(
+        _ event: Event,
+        predicates: [any Predicate],
+        isolation: isolated (any Actor)? = #isolation
+    ) async {
         handleResult(
-            await _handleEvent(event, predicates: predicates),
+            await _handleEvent(event, predicates: predicates, isolation: isolation),
             for: event,
             with: predicates
         )

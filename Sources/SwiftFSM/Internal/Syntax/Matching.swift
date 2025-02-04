@@ -1,6 +1,6 @@
 import Foundation
 
-public typealias ConditionProvider = @isolated(any) @Sendable () -> Bool
+public typealias ConditionProvider = @Sendable () -> Bool
 
 public extension Internal {
     protocol Conditional<State, Event> {
@@ -107,19 +107,19 @@ extension Internal.Conditional {
     }
     
     public func callAsFunction(
-        @Internal.MWTABuilder _ block: @Sendable () -> [Internal.MWTA]
+        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
     ) -> Internal.MWTABlock {
         .init(blockNode, block)
     }
     
     public func callAsFunction(
-        @Internal.MWABuilder _ block: @Sendable () -> [Internal.MWA]
+        @Internal.MWABuilder _ block: () -> [Internal.MWA]
     ) -> Internal.MWABlock {
         .init(blockNode, block)
     }
     
     public func callAsFunction(
-        @Internal.MTABuilder _ block: @Sendable () -> [Internal.MTA]
+        @Internal.MTABuilder _ block: () -> [Internal.MTA]
     ) -> Internal.MTABlock {
         .init(blockNode, block)
     }

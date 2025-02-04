@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class ConditionBlockTests: BlockTestsBase, @unchecked Sendable {
+class ConditionBlockTests: BlockTestsBase {
     func mbnComponents(of s: Internal.CompoundSyntax) -> (MatchingBlockNode, MatchingBlockNode) {
         let a1 = mbn(s.node)
         let a2 = mbn(a1.rest.first!)

@@ -103,7 +103,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     func testMatchCondition() async {
         let d = defineNode(s1, MatchDescriptorChain(condition: { false }), e1, s2)
         let result = matchResolvingNode(rest: [d]).resolve()
-        let condition = await result.output.first?.condition?()
+        let condition = result.output.first?.condition?()
         
         XCTAssertEqual(false, condition)
     }
@@ -173,7 +173,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         guard assertCount(result.errors, expected: 0) else { return }
         guard assertCount(result.output, expected: 1) else { return }
         
-        let condition = await result.output.first?.condition?()
+        let condition = result.output.first?.condition?()
         XCTAssertEqual(false, condition)
     }
 }

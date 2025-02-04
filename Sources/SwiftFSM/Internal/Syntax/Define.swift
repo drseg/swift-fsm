@@ -11,7 +11,7 @@ public extension Internal {
             onExit: [AnyAction],
             file: String = #file,
             line: Int = #line,
-            @Internal.MWTABuilder _ block: @Sendable () -> [MWTA]
+            @Internal.MWTABuilder _ block: () -> [MWTA]
         ) {
             let elements = block()
             

@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-class BuilderTests: BlockTestsBase, @unchecked Sendable {
+class BuilderTests: BlockTestsBase {
     func testMWTA() async {
         let line = #line; @MWTABuilder var mwta: [Internal.MWTA] {
             matching(P.a) | when(1, or: 2) | then(1) | pass

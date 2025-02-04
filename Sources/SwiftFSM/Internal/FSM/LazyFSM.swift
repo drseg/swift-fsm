@@ -13,17 +13,24 @@ import Algorithms
 ///
 /// but the compiler currently won't allow it (even though it is officially supported).
 
-class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FSMProtocol, @unchecked Sendable {
+class LazyFSM<State: FSMHashable, Event: FSMHashable>: BaseFSM<State, Event>, FSMProtocol {
     func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
         LazyMatchResolvingNode(rest: rest)
     }
 
-    func handleEvent(_ event: Event, predicates: [any Predicate]) async {
+    func handleEvent(
+        _ event: Event,
+        predicates: [any Predicate],
+        isolation: isolated (any Actor)? = #isolation
+    ) async {
         for combinations in makeCombinationsSequences(predicates) {
             for predicates in combinations {
-                if logTransitionStatus(await _handleEvent(event, predicates: predicates)) {
-                    return
-                }
+                if logTransitionStatus(
+                    await _handleEvent(
+                        event, predicates: predicates,
+                        isolation: isolation
+                    )
+                ) { return }
             }
         }
 

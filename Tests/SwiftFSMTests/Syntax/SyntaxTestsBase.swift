@@ -2,7 +2,7 @@ import Foundation
 import XCTest
 @testable import SwiftFSM
 
-class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendable {
+class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     static let defaultOutput = "pass"
     static let defaultOutputWithEvent = "\(SyntaxTestsBase.defaultOutput), event: \(SyntaxTestsBase.defaultEvent)"
     static let defaultEvent = 111
@@ -62,7 +62,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendable {
         xctLine xl: UInt = #line
     ) async {
         XCTAssertTrue(c.node.rest.isEmpty, file: xf, line: xl)
-        let condition = await c.node.descriptor.condition?()
+        let condition = c.node.descriptor.condition?()
         XCTAssertEqual(expected, condition, file: xf, line: xl)
         await assertMatchNode(c.node,
                               condition: expected,
@@ -84,7 +84,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder, @unchecked Sendable {
         xctLine xl: UInt = #line
     ) async {
         let any = any.map { $0.erased() }.filter { !$0.isEmpty }
-        let condition = await node.descriptor.condition?()
+        let condition = node.descriptor.condition?()
         
         XCTAssertEqual(any, node.descriptor.matchingAny, file: xf, line: xl)
         XCTAssertEqual(all.erased(), node.descriptor.matchingAll, file: xf, line: xl)

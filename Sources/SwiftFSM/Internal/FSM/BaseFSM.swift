@@ -34,7 +34,7 @@ enum TransitionStatus<Event: FSMHashable> {
     case executed(Transition), notFound(Event, [any Predicate]), notExecuted(Transition)
 }
 
-protocol FSMProtocol<State, Event>: AnyObject, Sendable {
+protocol FSMProtocol<State, Event>: AnyObject {
     associatedtype State: FSMHashable
     associatedtype Event: FSMHashable
 
@@ -42,7 +42,11 @@ protocol FSMProtocol<State, Event>: AnyObject, Sendable {
     var table: [TableKey: Transition] { get set }
     var state: AnyHashable { get set }
 
-    func handleEvent(_ event: Event, predicates: [any Predicate]) async
+    func handleEvent(
+        _ event: Event,
+        predicates: [any Predicate],
+        isolation: isolated (any Actor)?
+    ) async
     func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode
     func buildTable(
         file: String,
@@ -52,8 +56,12 @@ protocol FSMProtocol<State, Event>: AnyObject, Sendable {
 }
 
 extension FSMProtocol {
-    func handleEvent(_ event: Event, predicates: any Predicate...) async {
-        await handleEvent(event, predicates: predicates)
+    func handleEvent(
+        _ event: Event,
+        predicates: any Predicate...,
+        isolation: isolated (any Actor)? = #isolation
+    ) async {
+        await handleEvent(event, predicates: predicates, isolation: isolation)
     }
 
     func buildTable(
@@ -76,13 +84,14 @@ extension FSMProtocol {
     @discardableResult
     func _handleEvent(
         _ event: Event,
-        predicates: [any Predicate]
+        predicates: [any Predicate],
+        isolation: isolated (any Actor)? = #isolation
     ) async -> TransitionStatus<Event> {
         guard let transition = transition(event, predicates) else {
             return .notFound(event, predicates)
         }
 
-        guard await shouldExecute(transition) else {
+        guard await shouldExecute(transition, isolation: isolation) else {
             return .notExecuted(transition)
         }
 
@@ -97,8 +106,11 @@ extension FSMProtocol {
                        event: event)]
     }
 
-    func shouldExecute(_ t: Transition) async -> Bool {
-        await t.condition?() ?? true
+    func shouldExecute(
+        _ t: Transition,
+        isolation: isolated (any Actor)?
+    ) async -> Bool {
+        t.condition?() ?? true
     }
 
     func makeActionsResolvingNode(rest: [DefineNode]) -> ActionsResolvingNodeBase {

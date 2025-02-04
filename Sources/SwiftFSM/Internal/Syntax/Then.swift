@@ -45,13 +45,13 @@ public extension Internal {
         }
 
         public func callAsFunction(
-            @Internal.MWABuilder _ block: @Sendable () -> [MWA]
+            @Internal.MWABuilder _ block: () -> [MWA]
         ) -> Internal.MWTABlock {
             .init(blockNode, block)
         }
 
         public func callAsFunction(
-            @Internal.MABuilder _ block: @Sendable () -> [MA]
+            @Internal.MABuilder _ block: () -> [MA]
         ) -> Internal.MTABlock {
             .init(blockNode, block)
         }

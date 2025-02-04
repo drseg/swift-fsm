@@ -12,7 +12,7 @@ protocol FSMTestsProtocol<State, Event> {
 }
 
 class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
-    XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol, @unchecked Sendable {
+    XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
     var fsm: (any FSMProtocol<State, Event>)!
     var actionsPolicy = StateActionsPolicy.executeOnChangeOnly
 
@@ -52,7 +52,7 @@ class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
     }
 }
 
-class FSMTests: FSMTestsBase<Int, Double>, @unchecked Sendable {
+class FSMTests: FSMTestsBase<Int, Double> {
     override var initialState: Int { 1 }
 
     override func makeSUT() -> any FSMProtocol<State, Event> {
@@ -100,7 +100,7 @@ class FSMTests: FSMTestsBase<Int, Double>, @unchecked Sendable {
         output: String,
         line: UInt = #line
     ) async {
-        await fsm.handleEvent(event, predicates: predicates)
+        await fsm.handleEvent(event, predicates: predicates, isolation: nil)
         assertEventHandled(state: state, output: output, line: line)
     }
 
@@ -251,7 +251,7 @@ class FSMTests: FSMTestsBase<Int, Double>, @unchecked Sendable {
     }
 }
 
-class LazyFSMTests: FSMTests, @unchecked Sendable {
+class LazyFSMTests: FSMTests {
     override func makeSUT() -> any FSMProtocol<State, Event> {
         makeLazy()
     }
@@ -268,7 +268,7 @@ class LazyFSMTests: FSMTests, @unchecked Sendable {
         await assertHandleEvent(1.1, predicates: P.b, state: 2, output: "pass")
     }
 
-    class EarlyReturnSpy: LazyFSM<State, Event>, @unchecked Sendable {
+    class EarlyReturnSpy: LazyFSM<State, Event> {
         override func logTransitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
             XCTFail("should never be called in this test")
         }

@@ -37,11 +37,11 @@ class BasicTests: MatchDescriptorChainTests {
     }
     
     func testConditionInit() async {
-        let c1 = await MatchDescriptorChain().condition?()
+        let c1 = MatchDescriptorChain().condition?()
         XCTAssertEqual(nil, c1)
-        let c2 = await MatchDescriptorChain(condition: { true }).condition?()
+        let c2 = MatchDescriptorChain(condition: { true }).condition?()
         XCTAssertEqual(true, c2)
-        let c3 = await MatchDescriptorChain(condition: { false }).condition?()
+        let c3 = MatchDescriptorChain(condition: { false }).condition?()
         XCTAssertEqual(false, c3)
     }
     
@@ -136,18 +136,18 @@ class AdditionTests: MatchDescriptorChainTests {
         let m2 = MatchDescriptorChain(condition: { false })
         let m3 = MatchDescriptorChain()
         
-        let c1 = await m1.combineWith(m1).condition?()
+        let c1 = m1.combineWith(m1).condition?()
         XCTAssertEqual(true, c1)
-        let c2 = await m3.combineWith(m3).condition?()
+        let c2 = m3.combineWith(m3).condition?()
         XCTAssertEqual(nil, c2)
-        let c3 = await m1.combineWith(m3).condition?()
+        let c3 = m1.combineWith(m3).condition?()
         XCTAssertEqual(true, c3)
         
-        let c4 = await m1.combineWith(m2).condition?()
+        let c4 = m1.combineWith(m2).condition?()
         XCTAssertEqual(false, c4)
-        let c5 = await m2.combineWith(m3).condition?()
+        let c5 = m2.combineWith(m3).condition?()
         XCTAssertEqual(false, c5)
-        let c6 = await m3.combineWith(m2).condition?()
+        let c6 = m3.combineWith(m2).condition?()
         XCTAssertEqual(false, c6)
     }
 }

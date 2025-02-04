@@ -1,7 +1,6 @@
 import XCTest
 @testable import SwiftFSM
 
-@MainActor
 final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
@@ -10,7 +9,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
 
     typealias BaseType = BaseFSM<Int, Int> & FSMProtocol
 
-    class FSMSpy: BaseType, @unchecked Sendable {
+    class FSMSpy: BaseType {
         typealias Event = Int
         typealias State = Int
 
@@ -20,7 +19,11 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             log += [caller] + args.map(String.init(describing:))
         }
 
-        func handleEvent(_ event: Int, predicates: [any Predicate]) async {
+        func handleEvent(
+            _ event: Int,
+            predicates: [any Predicate],
+            isolation: isolated (any Actor)?
+        ) async {
             log(args: predicates)
         }
 
@@ -127,7 +130,6 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
 
             spy.reset()
         }
-
         await fsm.handleEvent(1)
         assertHandleEvent(function: "handleEvent")
 
