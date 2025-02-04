@@ -3,7 +3,7 @@ import SwiftFSM
 // Do not use @testable here //
 
 final class PublicAPITests: XCTestCase {
-    final class SUT: SyntaxBuilder, @unchecked Sendable {
+    actor SUT: SyntaxBuilder {
         enum State { case locked, unlocked }
         enum Event { case coin, pass }
         
@@ -23,39 +23,45 @@ final class PublicAPITests: XCTestCase {
             }
         }
         
-        func unlock() { logAction() }
-        func alarm() { logAction() }
-        func thankyou() { logAction() }
-        func lock() { logAction() }
+        func unlock() async { logAction() }
+        func alarm() async { logAction() }
+        func thankyou() async { logAction() }
+        func lock() async { logAction() }
         
-        var log = [String]()
+        private var log = [String]()
         
         func logAction(_ f: String = #function) {
             log.append(f)
         }
+        
+        func getLog() -> [String] {
+            log
+        }
     }
     
     func testPublicAPI() async throws {
-        func assertLogged(_ a: String..., line: UInt = #line) {
-            XCTAssertEqual(sut.log, a, line: line)
+        func assertLogged(_ a: String..., line: UInt = #line) async {
+            let log = await sut.getLog()
+            XCTAssertEqual(log, a, line: line)
         }
         
         let sut = try await SUT()
-        XCTAssert(sut.log.isEmpty)
+        let log = await sut.getLog()
+        XCTAssert(log.isEmpty)
         
         await sut.fsm.handleEvent(.coin)
-        assertLogged("unlock()")
+        await assertLogged("unlock()")
         
         await sut.fsm.handleEvent(.coin)
-        assertLogged("unlock()", "thankyou()")
+        await assertLogged("unlock()", "thankyou()")
         
         await sut.fsm.handleEvent(.coin)
-        assertLogged("unlock()", "thankyou()", "thankyou()")
+        await assertLogged("unlock()", "thankyou()", "thankyou()")
         
         await sut.fsm.handleEvent(.pass)
-        assertLogged("unlock()", "thankyou()", "thankyou()", "lock()")
+        await assertLogged("unlock()", "thankyou()", "thankyou()", "lock()")
         
         await sut.fsm.handleEvent(.pass)
-        assertLogged("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
+        await assertLogged("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
     }
 }

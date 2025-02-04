@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-final class FSMValueTests: XCTestCase, @unchecked Sendable {
+final class FSMValueTests: XCTestCase {
     let vAny = FSMValue<String>.any
     let v1 = FSMValue.some("1")
     let v2 = FSMValue.some("2")

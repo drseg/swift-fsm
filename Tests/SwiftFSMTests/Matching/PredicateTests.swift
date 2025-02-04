@@ -64,8 +64,8 @@ final class PredicateTests: XCTestCase {
 
     @MainActor
     func testErasedWrapperUsesWrappedHasher() {
-        struct Spy: Predicate, NeverEqual, @unchecked Sendable {
-            let fulfill: () -> ()
+        struct Spy: Predicate, NeverEqual {
+            let fulfill: @Sendable () -> ()
             static var allCases: [Spy] { [] }
             func hash(into hasher: inout Hasher) { fulfill() }
         }
