@@ -5,13 +5,15 @@
 
 Inspired by [Uncle Bob's SMC][2] syntax, Swift FSM is a pure Swift DSL for declaring and operating a Finite State Machine (FSM).
 
-This guide presumes some familiarity with FSMs and specifically the SMC syntax linked above. Familiarity with [Swift Concurrency][3] is essential, as you will have to navigate issues such as `Sendable` conformance and `Actor` isolation. Swift FSM makes liberal use of [`@resultBuilder`][4] blocks,  [operator overloads][5],  [`callAsFunction()`][6], and [trailing closures][7], all in combination with one another - familiarity with these concepts will also be helpful. 
+This guide presumes some familiarity with FSMs and specifically the SMC syntax linked above. Swift FSM makes liberal use of [`@resultBuilder`][3] blocks,  [operator overloads][4],  [`callAsFunction()`][5], and [trailing closures][6], all in combination with one another - familiarity with these concepts will also be helpful. 
 
 ## Requirements
 
-Swift FSM is a Swift Package for all Apple platforms, available through the Swift Package Manager, and requires Swift 6 or later. It is tested against strict concurrency rules and should be fully compliant. As a result, **Swift FSM only works with projects that themselves are compiled in Swift 6 Language Mode** (see [Swift 6 Language Mode][8]).
+Swift FSM is a Swift Package for all Apple platforms, available through the Swift Package Manager, and requires Swift 6 or later. Owing to its use of polymorphic actor isolation, it is limited to macOS 15, iOS 18, tvOS 18, and watchOS 11 or later.
 
-It has one dependency - Apple’s [Algorithms][9].
+It is tested against strict concurrency rules and should be fully compliant, and should work with projects still using Swift 5 language mode, however there will likely be spurious warnings, and possibly some compilation errors in some environments (see [Swift 6 Language Mode][7]).
+
+It has one dependency - Apple’s [Algorithms][8].
 
 ## Basic Syntax
 
@@ -66,14 +68,13 @@ Swift FSM (with additional code for context):
 ```swift
 import SwiftFSM
 
-@MainActor
 class MyClass: SyntaxBuilder {
     enum State { case locked, unlocked }
     enum Event { case coin, pass }
 
     let turnstile = FSM<State, Event>(initialState: .locked)
 
-    func myMethod() throws {
+    func myMethod() async throws {
         try turnstile.buildTable {
             define(.locked) {
                 when(.coin) | then(.unlocked) | unlock
@@ -86,7 +87,7 @@ class MyClass: SyntaxBuilder {
             }
         }
 
-        try turnstile.handleEvent(.coin)
+        await turnstile.handleEvent(.coin)
     }
 }
 ```
@@ -95,13 +96,13 @@ class MyClass: SyntaxBuilder {
 > class MyClass: SyntaxBuilder {
 > ```
 
-The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable & Sendable`. The protocol itself is `@MainActor` isolated, requiring your implementation to be similarly isolated.
+The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` necessary to build the transition table. It has two associated types, `State` and `Event`, which must be `Hashable & Sendable`.
 
 > ```swift
 > let turnstile = FSM<State, Event>(initialState: .locked)
 > ```
 
-`FSM` is generic  over `State` and `Event`, and is `@MainActor` isolated. As with `SyntaxBuilder`, `State` and `Event` must be `Hashable & Sendable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
+`FSM` is generic  over `State` and `Event`. `State` and `Event` must be `Hashable & Sendable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
 
 > ```swift
 > try turnstile.buildTable {
@@ -129,34 +130,32 @@ As we are inside a `define` block, we take the `.locked` state as a given. We ca
 > when(.coin) | then(.unlocked) | { unlock() //; otherFunction(); etc. }
 > ```
 
-(see [Arrays of Actions][10] for other syntax variants)
+(see [Arrays of Actions][9] for other syntax variants)
 
 The `|` (pipe) operator binds transitions together. It feeds the output of the left hand side into the input of the right hand side, as you might expect in a terminal.
 
 > ```swift
-> try turnstile.handleEvent(.coin)
+> await turnstile.handleEvent(.coin)
 > ```
 
 The `FSM` instance will look up the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, the `FSM` will call the `unlock` function and transition to the `unlocked` state.  If no transition is found, it will do nothing, and if compiled for debugging, will print a warning message.
 
 #### Actions and Concurrency
 
-In order to work reasonably in a SwiftUI and Swift Concurrency world, the FSM is `@MainActor` isolated, and requires that the actions you pass it will be so as well.
+Swift FSM does not make assumptions about, or demands on its client’s concurrency handling. The public methods on the `FSM` class are polymorphically isolated to the caller’s `Actor` (if there is one), or no `Actor` at all. All concurrency decisions are therefore left entirely to the client. 
 
-There are two versions of `handleEvent`, the first as shown above and in all the examples, and the second named `handleEventAsync` which must be called with `await`. 
+The upside is that Swift FSM will work transparently in any concurrency, or non-concurrency environment. The downside is that it is possible to call each of the `FSM` class’ public methods from a different actor - it is therefore the client’s responsibility to call these in a concurrency-appropriate way.
 
-The four function signatures for actions that are accepted are as follows:
+`handleEvent` is an `async` function, accepting both synchronous and asynchronous code, and must be called with `await`.
+
+The two function signatures for actions that are accepted are as follows:
 
 ```swift
-@MainActor () -> Void
-@MainActor () async -> Void
-@MainActor (Event) -> Void
-@MainActor (Event) async -> Void
+@isolated(any) () async -> Void
+@isolated(any) (Event) async -> Void
 ```
 
-These are handled interchangeably without any additional syntax. The tradeoff is that you must choose the appropriate `handleEvent` function to call when using the FSM. The synchronous `handleEvent` function must be called with `try`, because it will throw if it is asked to call an async action. Though the asynchronous `handleEventAsync` function must be called with `await`, it does not throw any errors as it is a valid context from which to call both synchronous and asynchronous actions.
-
-Note also that there are action signatures that take an event as an argument. This can be useful in situations where you wish to pass an associated value along with an event enum that can then be received by your callback function (see [Using Events to Pass Values][11] for more details on how to implement this) .
+These are handled interchangeably without any additional syntax. Note also that there are action signatures that take an event as an argument. This can be useful in situations where you wish to pass an associated value along with an event enum that can then be received by your callback function (see [Using Events to Pass Values][10] for more details on how to implement this) .
 
 ##### Arrays of Actions
 
@@ -169,7 +168,7 @@ when(.coin) | then(.unlocked) | first & secondAsync & thirdWithEvent ...
 This is equivalent to the more verbose (but equally valid):
 
 ```swift
-when(.coin) | then(.unlocked) | { event in first(); await secondAsync(); thirdWithEvent(event) ... }
+when(.coin) | then(.unlocked) | { event in await first(); await secondAsync(); thirdWithEvent(event) ... }
 ```
 
 ### Optional Arguments
@@ -524,7 +523,7 @@ This setting replicates SMC entry/exit action behaviour. The default is `.execut
 
 ### Syntax Order
 
-All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][12] below for exceptions to this rule.
+All statements must be made in the form `define { when | then | actions }`. See [Expanded Syntax][11] below for exceptions to this rule.
 
 ### Syntactic Sugar
 
@@ -638,7 +637,7 @@ define(.locked) {
 
 If the `if/else` block were evaluated by the FSM at transition time, this would be a useful addition. However what we are doing inside these blocks is *compiling* our state transition table. The use of `if` and `else` in this manner is more akin to the conditional compilation statements `#if/#else` - based on a value defined at compile time, only one transition or the other will be added to the table.
 
-If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][13] for alternative ways to evaluate conditional statements at transition time rather than compile time.
+If you do have a use for this kind of conditional compilation, please open an issue. See [Expanded Syntax][12] for alternative ways to evaluate conditional statements at transition time rather than compile time.
 
 ### Runtime Errors
 
@@ -855,7 +854,7 @@ Transitions in Swift FSM are are therefore `Predicate` agnostic by default, matc
 
 ### Multiple Predicates
 
-There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][14] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
+There is no limit on the number of `Predicate` types that can be used in one table (see [Predicate Performance][13] for practical limitations). The following (contrived and rather silly) expansion of the original `Predicate` example remains valid:
 
 ```swift
 enum Enforcement: Predicate { case weak, strong }
@@ -923,7 +922,7 @@ In Swift FSM, `matching(and:)` means that we expect both predicates to be presen
 
 Swift FSM expects exactly one instance of each `Predicate` type present in the table to be passed to each call to `handleEvent`, as in the example above, where `turnstile.handleEvent(.coin, predicates: A.x, B.x, C.x)` contains a single instance of types `A`, `B` and `C`. Accordingly, `A.x AND A.y` should never occur - only one can be present. Therefore, predicates passed to `matching(and:)` must all be of a different type.  This cannot be checked at compile time, and therefore throws at runtime if violated.
 
-In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][15] for more information on this limitation).
+In contrast, `matching(or:)` specifies multiple possibilities for a single `Predicate`. Predicates joined by `or` must therefore all be of the same type, and attempting to pass different `Predicate` types to `matching(or:)` will not compile (see [Implicit Clashes][14] for more information on this limitation).
 
 **Warning** - nested `matching` statements are combined by AND-ing them together, which makes it possible inadvertently to create a conflict.
 
@@ -1248,7 +1247,7 @@ define(.locked) {
 
 ### Condition Statements
 
-Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][16] for a description of `matching` overhead).
+Using Predicates with `matching` syntax is a versatile solution, however in some cases it may bring more complexity than is necessary to solve a given problem (see [Predicate Performance][15] for a description of `matching` overhead).
 
 If you need to make a specific transition conditional at runtime, then the `condition` statement may suffice. Some FSM implementations call this a `guard` statement, however the name `condition` was chosen here as `guard` is a reserved word in Swift.
 
@@ -1335,7 +1334,7 @@ matching(A.a, or: A.b) { // ✅
 
 #### Implicit Clash Error
 
-See [Implicit Clashes][17]
+See [Implicit Clashes][16]
 
 ### Predicate Performance
 
@@ -1454,7 +1453,7 @@ try turnstile.buildTable {
 }
 ```
 
-This is the original example from [Entry and Exit Actions][18], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
+This is the original example from [Entry and Exit Actions][17], with one small error inserted at the end. This may or may not produce an appropriate error next to the dodo:
 
 > **Cannot find '🦤' in scope**
 
@@ -1470,21 +1469,11 @@ Ignore these errors, and if there is no other error shown, you may have to hunt 
 
 ### Swift 6 Language Mode
 
-This project is dominated by the need to capture functions from the client’s code, and execute them within Swift FSM. The concurrency rules introduced through the latter part of Swift 5 evolution, and finalised with Swift 6, have increasingly restricted the ways in which this can be done. 
+This project is dominated by the need to capture functions from the client’s code, and execute them within Swift FSM. The concurrency rules introduced through the latter part of Swift 5 evolution, and finalised with Swift 6, have increasingly restricted the ways in which this can be done.
 
-The rules themselves have unfortunately not been consistent, with Swift 5.10 disallowing `Sendable` behaviours that are in fact allowed in Swift 6.0. Because of this, Swift FSM now not only requires Swift tools version 6.0 or above, but also **requires its clients to use Swift 6 Language Mode**. 
+The rules themselves have not been consistent, with Swift 5.10 disallowing `Sendable` behaviours that are in fact allowed in Swift 6.0. Because of this, Swift FSM is only guaranteed to work as intended when using Swift 6 Language Mode.
 
-Using Swift 5 Language Mode will result in compilation errors when trying to pass a client function to Swift FSM as an action:
-
-```swift
-define(.locked) {
-    when(.coin) | then(.unlocked) | unlock // ⛔️ 
-                                    ^^^^^^
-}                               
-// Converting non-sendable function value to '@MainActor @Sendable () -> Void' may introduce data races
-```
-
-These errors will disappear in Swift 6 Language Mode.
+Using Swift 5 Language Mode will work in many situations, however cannot be guaranteed across the board.
 
 
 
@@ -1495,22 +1484,21 @@ These errors will disappear in Swift 6 Language Mode.
 
 [1]:	https://codecov.io/gh/drseg/swift-fsm
 [2]:	https://github.com/unclebob/CC_SMC
-[3]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/
-[4]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder
-[5]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators/
-[6]:	https://github.com/apple/swift-evolution/blob/main/proposals/0253-callable.md
-[7]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/closures/#Trailing-Closures
-[8]:	#swift-6-language-mode
-[9]:	https://github.com/apple/swift-algorithms
-[10]:	#arrays-of-actions
-[11]:	#using-events-to-pass-values
+[3]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder
+[4]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators/
+[5]:	https://github.com/apple/swift-evolution/blob/main/proposals/0253-callable.md
+[6]:	https://docs.swift.org/swift-book/documentation/the-swift-programming-language/closures/#Trailing-Closures
+[7]:	#swift-6-language-mode
+[8]:	https://github.com/apple/swift-algorithms
+[9]:	#arrays-of-actions
+[10]:	#using-events-to-pass-values
+[11]:	#expanded-syntax
 [12]:	#expanded-syntax
-[13]:	#expanded-syntax
-[14]:	#predicate-performance
-[15]:	#implicit-clashes
-[16]:	#predicate-performance
-[17]:	#implicit-clashes
-[18]:	#entry-and-exit-actions
+[13]:	#predicate-performance
+[14]:	#implicit-clashes
+[15]:	#predicate-performance
+[16]:	#implicit-clashes
+[17]:	#entry-and-exit-actions
 
 [image-1]:	https://codecov.io/gh/drseg/swift-fsm/branch/master/graph/badge.svg?token=4UV1D0M80T
 [image-2]:	https://img.shields.io/testspace/tests/drseg/drseg:swift-fsm/master
