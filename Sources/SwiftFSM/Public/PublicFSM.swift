@@ -27,7 +27,7 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
         isolation: isolated (any Actor)? = #isolation,
         @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
     ) throws {
-        try fsm.buildTable(file: file, line: line, block)
+        try fsm.buildTable(file: file, line: line, isolation: isolation, block)
     }
 
     public func handleEvent(

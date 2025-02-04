@@ -51,6 +51,7 @@ protocol FSMProtocol<State, Event>: AnyObject {
     func buildTable(
         file: String,
         line: Int,
+        isolation: isolated (any Actor)?,
         @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
     ) throws
 }
@@ -67,6 +68,7 @@ extension FSMProtocol {
     func buildTable(
         file: String = #file,
         line: Int = #line,
+        isolation: isolated (any Actor)? = #isolation,
         @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
     ) throws {
         guard table.isEmpty else {

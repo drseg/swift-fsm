@@ -30,7 +30,8 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         func buildTable(
             file: String = #file,
             line: Int = #line,
-            _ block: () -> [Internal.Define<Int, Int>]
+            isolation: isolated (any Actor)? = #isolation,
+            @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
         ) throws {
             log(args: [file, line, block()])
         }
