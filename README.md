@@ -26,7 +26,7 @@ The logic is as follows (from Uncle Bob, emphasis added):
 > - *Given* we are in the *Unlocked* state, *when* we get a *Coin* event, *then* we stay in the *Unlocked* state and *invoke* the *thankyou* action.
 > - *GIven* we are in the *Unlocked* state, *when* we get a *Pass* event, *then* we transition to the *Locked* state and *invoke* the *lock* action.
 
-Following Uncle Bob’s examples, we will build up our table bit by bit to demonstrate the different syntactic possibilities of Swift FSM and how they compare to SMC. In all the examples, 💥 is used to represent a runtime error, whereas ⛔️ is used to represent a compilation error.
+Following Uncle Bob’s examples, we will build up our table bit by bit to demonstrate the different syntactic possibilities of Swift FSM and how they compare to SMC. In all the examples, 💥 represents a runtime error, whereas ⛔️ represents a compilation error.
 
 SMC:
 
@@ -102,13 +102,13 @@ The `SyntaxBuilder` protocol provides the methods `define`, `when`, and `then` n
 > let turnstile = FSM<State, Event>(initialState: .locked)
 > ```
 
-`FSM` is generic  over `State` and `Event`. `State` and `Event` must be `Hashable & Sendable`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
+`FSM` is generic  over `State` and `Event`. Here we have used an `Enum`, specifying the initial state of the FSM as `.locked`.
 
 > ```swift
 > try turnstile.buildTable {
 > ```
 
-`turnstile.buildTable` is a throwing function - though the type system will prevent various illogical statements, there are some issues that can only be detected at runtime.
+`turnstile.buildTable` is a throwing function - though the type system will prevent various illogical statements, there are some semantic issues that can only be detected at runtime.
 
 > ```swift
 > define(.locked) {
@@ -122,7 +122,7 @@ The `define` statement roughly corresponds to the ‘Given’ keyword in the nat
 > when(.coin) | then(.unlocked) | unlock
 > ```
 
-The `|` (pipe) operator binds `when` statements, `then` statements and actions into a discrete transition. It feeds the output of the left hand side into the input of the right hand side, as you might expect in a terminal.
+The `|` (pipe) operator binds `when`, `then` and actions into a discrete transition. It feeds the output of the left hand side into the input of the right hand side, as you might expect in a terminal.
 
 As we are inside a `define` block, we take the `.locked` state as a given. We can now list our transitions, with each line representing a single transition. In this case, `when` we receive a `.coin` event, we will `then` transition to the `.unlocked` state and call the function `unlock`. 
 
@@ -139,19 +139,19 @@ Two types of actions are valid in Swift FSM:
 @isolated(any) (Event) async -> Void
 ```
 
-These are handled interchangeably without requiring additional syntax. Actions that take an `Event` can be useful in situations where you wish to pass an associated value along with an event enum that can then be received by your callback function (see [Using Events to Pass Values][10] for more details on how to implement this, and [Arrays of Actions][11] for ways to combine lists of actions of differing types).
+Actions that take an `Event` can be useful in situations where you wish to pass an associated value along with an event enum that can then be received by your callback function (see [Using Events to Pass Values][10] for more details on how to implement this, and [Arrays of Actions][11] for ways to combine lists of actions of differing types).
 
 > ```swift
 > await turnstile.handleEvent(.coin)
 > ```
 
-As `handleEvent` might eventually call an `async` function that you have provided as an action, `handleEvent` it self must also be `async`, It accepts both synchronous and asynchronous code, and must be called with `await`. 
+As `handleEvent` might eventually call an `async` function that you have provided as an action, `handleEvent` itself must also be `async`.
 
 The `FSM` instance will look up the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, the `FSM` will call the `unlock` function and transition to the `unlocked` state.  If no transition is found, it will do nothing, and if compiled for debugging, will print a warning message.
 
 ##### Arrays of Actions
 
-If you wish to pass an array of actions, you may wish to use the `&` operator overload provided by Swift FSM in order to enable mixing and matching of the four different action signatures:
+If you wish to pass an array of actions, you may wish to use the `&` operator overload provided by Swift FSM in order to enable mixing and matching of the two different action signatures:
 
 ```swift
 when(.coin) | then(.unlocked) | first & secondAsync & thirdWithEvent ...
@@ -449,17 +449,17 @@ try turnstile.buildTable {
 
 `onEntry` and `onExit` are the final arguments to `define` and specify an array of entry and exit actions to be performed when entering or leaving the defined state. Note that these require array syntax rather than varargs, as a work around for limitations in Swift’s matching algorithm for functions that take multiple closure arguments. 
 
-As the array is heterogeneous (it can include any of the four function types accepted by SwiftFSM as valid actions), a special postfix operator `*` is provided to convert a single one of these into an array of `AnyAction`. 
+As the array is heterogeneous (it can include either of the two function types accepted by SwiftFSM as valid actions), a special postfix operator `*` is provided to convert a single one of these into an array of `AnyAction`. 
 
 ```swift
-let _ = unlock* // preferred syntax, same as...
-let _ = Array(unlock) // same as...
-let _ = [AnyAction(unlock)]
+_ = unlock* // preferred syntax, same as...
+_ = Array(unlock) // same as...
+_ = [AnyAction(unlock)]
 
-let _ = unlock & thankyou // preferred syntax, same as...
-let _ = AnyAction(unlock) & thankyou // same as...
-let _ = AnyAction(unlock) & AnyAction(thankyou) // same as...
-let _ = [AnyAction(unlock), AnyAction(thankyou)]
+_ = unlock & thankyou // preferred syntax, same as...
+_ = AnyAction(unlock) & thankyou // same as...
+_ = AnyAction(unlock) & AnyAction(thankyou) // same as...
+_ = [AnyAction(unlock), AnyAction(thankyou)]
 ```
 
 `SuperState` instances can also accept entry and exit actions:
@@ -602,12 +602,12 @@ let s: FSMValue<String> = "1" // equivalent to .some("1")
 let i: FSMValue<Int> = 1 // equivalent to .some(1)
 let ai: FSMValue<[Int]> = [1] // equivalent to .some([1])
 
-let _ = s + "1" // "11"
-let _ = i + 1 // 2
-let _ = ai[0] // 1
-let _ = ai[0] == i // true
-let _ = ai[0] > i // false
-let _ = "\(i)\(s)" // "11"
+_ = s + "1" // "11"
+_ = i + 1 // 2
+_ = ai[0] // 1
+_ = ai[0] == i // true
+_ = ai[0] > i // false
+_ = "\(i)\(s)" // "11"
 ```
 
 **Warning**: where forward operations are available on the wrapped type, be aware that this will crash if you attempt to access a value on a `.any` instance (much like force unwrapping a nil optional - in this sense, `.any` is a null value). `.any` should therefore only appear inside a define statement - there are no circumstances in which it would be useful or meaningful to pass such an event with `FSMValue.any` to `handleEvent`.
@@ -637,7 +637,7 @@ If you do have a use for this kind of conditional compilation, please open an is
 
 ### Swift Concurrency
 
-Swift FSM does not make assumptions about, or demands on its client’s concurrency handling. The public methods on the `FSM` class are polymorphically isolated to the caller’s `Actor` (if there is one), or no `Actor` at all. This is achieved by including the argument `isolation: isolated (any Actor)? = #isolation` in all public method signatures. As isolation rules are inferred at the call site, decisions about isolation defer to the client.
+Swift FSM does not make assumptions about, or demands on its clients’ concurrency handling. The public methods on the `FSM` class are polymorphically isolated to the caller’s `Actor` (if there is one), or no `Actor` at all. This is achieved by including the argument `isolation: isolated (any Actor)? = #isolation` in all public method signatures. As isolation rules are inferred at the call site, decisions about isolation defer to the client.
 
 The upside is that Swift FSM will work transparently in any concurrency or non-concurrency environment. The downside is that it is _technically_ possible (though impractical) to call each of the `FSM` class’ public methods from a different actor, as actor polymorphism currently works at an individual function level, rather than at a class level - it is therefore the client’s responsibility to call these methods in a concurrency-appropriate way.
 
