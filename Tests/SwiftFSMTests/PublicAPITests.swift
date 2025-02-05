@@ -3,6 +3,8 @@ import SwiftFSM
 // Do not use @testable here //
 
 final class PublicAPITests: XCTestCase {
+    // These make little attempt to avoid duplication, as the point is to test the public API as-is, so polymorphism, additional protocols, etc. should be avoided
+    
     class SUT: SyntaxBuilder {
         enum State { case locked, unlocked }
         enum Event { case coin, pass }
