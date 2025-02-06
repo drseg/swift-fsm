@@ -75,7 +75,11 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     var spy: FSMSpy!
     
     override func setUp() async throws {
-        sut = FSM(type: .eager, initialState: 1)
+        sut = FSM(
+            type: .eager,
+            initialState: 1,
+            enforceConcurrency: true
+        )
         spy = FSMSpy(initialState: 1)
         sut.fsm = spy
     }
@@ -254,7 +258,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         typealias Event = Int
 
         public override func buildTable(
-            file: String = #file,
+            file: StaticString = #file,
             line: Int = #line,
             isolation: isolated (any Actor)? = #isolation,
             @TableBuilder<State, Event> _ block: @isolated(any) () -> [Internal.Define<State, Event>]
@@ -264,7 +268,9 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
 
         public override func handleEvent(
             _ event: Event,
-            isolation: isolated (any Actor)? = #isolation
+            isolation: isolated (any Actor)? = #isolation,
+            file: StaticString = #file,
+            line: UInt = #line
         ) async {
             log(args: [isolation!])
         }
@@ -272,7 +278,9 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         internal override func handleEvent(
             _ event: Event,
             predicates: [any Predicate],
-            isolation: isolated (any Actor)? = #isolation
+            isolation: isolated (any Actor)? = #isolation,
+            file: StaticString = #file,
+            line: UInt = #line
         ) async {
             log(args: [predicates, isolation!])
         }
@@ -292,5 +300,55 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             contains: "buildTable", "MainActor", "handleEvent", "MainActor", "handleEvent", "P.b", "MainActor",
             at: 0, 1, 2, 3, 4, 5, 6
         )
+    }
+    
+    
+    func testFSMConcurrencyValidation() async throws {
+        actor BadActor: Actor { }
+        
+        func preconditionSpy(
+            _ condition: @autoclosure () -> Bool,
+            _ message: @autoclosure () -> String,
+            _ file: StaticString,
+            _ line: UInt
+        ) -> () {
+            fileLineLog.append("\(file) \(line)")
+            messageLog.append(message())
+            preconditionLog.append(condition())
+        }
+        
+        var preconditionLog = [Bool]()
+        var messageLog = [String]()
+        var fileLineLog = [String]()
+        
+        sut._precondition = preconditionSpy
+        
+        await sut.handleEvent(1)
+        XCTAssertEqual(preconditionLog, [])
+        XCTAssertEqual(messageLog, [])
+        
+        let l1 = #line; await sut.handleEvent(1)
+        XCTAssertEqual(fileLineLog, ["\(#file) \(l1)"])
+        XCTAssertEqual(preconditionLog, [true])
+        XCTAssertEqual(
+            messageLog,
+            ["Concurrency violation: handleEvent(_:isolation:file:line:) called by both NonIsolated and NonIsolated"]
+        )
+        
+        sut.isolation = BadActor()
+        
+        let l2 = #line; await sut.handleEvent(1)
+        XCTAssertEqual(fileLineLog, ["\(#file) \(l1)", "\(#file) \(l2)"])
+        XCTAssertEqual(preconditionLog, [true, false])
+        XCTAssertEqual(
+            messageLog,
+            ["Concurrency violation: handleEvent(_:isolation:file:line:) called by both NonIsolated and NonIsolated",
+             "Concurrency violation: handleEvent(_:isolation:file:line:) called by both NonIsolated and BadActor"]
+        )
+        
+        sut.assertsIsolation = false
+        XCTAssertEqual(fileLineLog.count, 2)
+        XCTAssertEqual(preconditionLog.count, 2)
+        XCTAssertEqual(messageLog.count, 2)
     }
 }
