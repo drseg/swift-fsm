@@ -752,7 +752,7 @@ actor MyCustomActor {
 
 ### Runtime Errors
 
-**Warning** - most Swift FSM function calls and initialisers take additional parameters `file: String = #file`  and `line: Int = #line`. This is similar to `XCTest` assertions, and allows Swift FSM to produce errors that pinpoint the location of problematic statement/s.
+**Warning** - most Swift FSM function calls and initialisers take additional ‘magic’ parameters `file: String = #file`  and `line: Int = #line`. Some also take `isolation: isolated (any Actor)? = #isolation`.
 
 As these cannot be hidden, please note that there are unlikely to be any circumstances in which it would be useful or necessary to override these default arguments with alternate values.
 
