@@ -140,7 +140,7 @@ extension FSM {
     ) {
         let current = type(of: isolation)
         let previous = type(of: self.isolation)
-        let message = "Concurrency violation: \(caller) called by both \(current) and \(previous)"
+        let message = "Concurrency violation: \(caller) called by \(current) (expected \(previous))"
         
         _precondition(current == previous, message, file, UInt(line))
     }

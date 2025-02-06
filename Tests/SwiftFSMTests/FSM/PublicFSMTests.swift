@@ -323,15 +323,18 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         sut._precondition = preconditionSpy
         
         await sut.handleEvent(1)
+        XCTAssertEqual(fileLineLog, [])
         XCTAssertEqual(preconditionLog, [])
         XCTAssertEqual(messageLog, [])
         
-        let l1 = #line; await sut.handleEvent(1)
+        let l1 = #line; try sut.buildTable {
+            define(1) { when(1) | then() }
+        }
         XCTAssertEqual(fileLineLog, ["\(#file) \(l1)"])
         XCTAssertEqual(preconditionLog, [true])
         XCTAssertEqual(
             messageLog,
-            ["Concurrency violation: handleEvent(_:isolation:file:line:) called by both NonIsolated and NonIsolated"]
+            ["Concurrency violation: buildTable(file:line:isolation:_:) called by NonIsolated (expected NonIsolated)"]
         )
         
         sut.isolation = BadActor()
@@ -341,8 +344,8 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         XCTAssertEqual(preconditionLog, [true, false])
         XCTAssertEqual(
             messageLog,
-            ["Concurrency violation: handleEvent(_:isolation:file:line:) called by both NonIsolated and NonIsolated",
-             "Concurrency violation: handleEvent(_:predicates:isolation:file:line:) called by both NonIsolated and BadActor"]
+            ["Concurrency violation: buildTable(file:line:isolation:_:) called by NonIsolated (expected NonIsolated)",
+             "Concurrency violation: handleEvent(_:predicates:isolation:file:line:) called by NonIsolated (expected BadActor)"]
         )
         
         sut.assertsIsolation = false

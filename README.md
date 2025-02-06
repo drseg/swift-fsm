@@ -666,7 +666,7 @@ try fsm.buildTable {
 await c.one() 
 // ✅ Same 'NonIsolated' as first call
 await c.two() 
-// 💥 Concurrency violation: handleEvent called from both MainActor and NonIsolated
+// 💥 Concurrency violation: handleEvent called by MainActor (expected NonIsolated)
 ```
 
 #### Working on the Main Actor
