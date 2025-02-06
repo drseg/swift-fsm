@@ -639,13 +639,41 @@ If you do have a use for this kind of conditional compilation, please open an is
 
 Swift FSM does not make assumptions about, or demands on its clients’ concurrency handling. The public methods on the `FSM` class are polymorphically isolated to the caller’s `Actor` (if there is one), or no `Actor` at all. This is achieved by including the argument `isolation: isolated (any Actor)? = #isolation` in all public method signatures. As isolation rules are inferred at the call site, decisions about isolation defer to the client.
 
-The upside is that Swift FSM will work transparently in any concurrency or non-concurrency environment. The downside is that it is _technically_ possible (though impractical) to call each of the `FSM` class’ public methods from a different actor, as actor polymorphism currently works at an individual function level, rather than at a class level - it is therefore the client’s responsibility to call these methods in a concurrency-appropriate way.
+The upside is that Swift FSM will work transparently in any concurrency or non-concurrency environment. The downside is that it is _technically_ possible (though impractical) to call each of the `FSM` class’ public methods from a different actor, as actor polymorphism currently works at an individual function level, rather than at a class level. 
+
+`FSM` has an optional runtime concurrency checker that fails a `precondition` check if you try to call its methods from conflicting concurrency environments. The check can be enabled by passing the argument `enforceConcurrency: true` (default = `false`) to `FSM.init`. Even when enabled, this check will not run or consume any resources when compiling for release.
+
+```swift
+class MyClass {
+    let fsm: FSM<Int, Int>
+    init(fsm: FSM<Int, Int>) {
+        self.fsm = fsm
+    }
+    
+    func one() async { await fsm.handleEvent(1) }
+    
+    @MainActor
+    func two() async { await fsm.handleEvent(1) }
+}
+
+let fsm = FSM<Int, Int>(initialState: 1, enforceConcurrency: true)
+let c = MyClass(fsm: fsm)
+
+try fsm.buildTable {
+    define(1) { when(2) | then() }
+}             
+// ✅ First call sets the actor for future calls
+await c.one() 
+// ✅ Same 'NonIsolated' as first call
+await c.two() 
+// 💥 Concurrency violation: handleEvent called from both MainActor and NonIsolated
+```
 
 #### Working on the Main Actor
 
-Though the `FSM` class will work transparently on the main actor if its methods are called from a main actor context, until Swift provides a way of unifying polymorphic actor behaviour across an entire class and beyond, Swift FSM also provides a convenience wrapper `MainActorFSM<State, Event>`, which is annotated `@MainActor` to allow the compiler to prevent access from any other context.
+Though the `FSM` class will work transparently on the main actor if its methods are called from a main actor context, until Swift provides a way of unifying polymorphic actor behaviour across an entire class and beyond, Swift FSM also provides a convenience wrapper `MainActorFSM<State, Event>`, which is annotated `@MainActor` to allow the compiler to prevent access from any other context without having to use the optional runtime checker built in to the `FSM`.
 
-In most situations however, there will be no difference between the concurrency behaviour of either `FSM` or `MainActorFSM` in a main actor context - `MainActorFSM` simply guards against an unlikely but possible technicality. The following illustrates some of the nuances of this system (when compiled in Swift 6 Language Mode):
+In most situations however, there will be no difference between the concurrency behaviour of either `FSM` or `MainActorFSM` in a main actor context - `MainActorFSM` simply guards against an unlikely but possible technicality at compile time. The following illustrates some of the nuances of this system (when compiled in Swift 6 Language Mode):
 
 ```swift
 @MainActor
