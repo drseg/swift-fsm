@@ -302,7 +302,6 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         )
     }
     
-    
     func testFSMConcurrencyValidation() async throws {
         actor BadActor: Actor { }
         
@@ -337,13 +336,13 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         
         sut.isolation = BadActor()
         
-        let l2 = #line; await sut.handleEvent(1)
+        let l2 = #line; await sut.handleEvent(1, predicates: P.a)
         XCTAssertEqual(fileLineLog, ["\(#file) \(l1)", "\(#file) \(l2)"])
         XCTAssertEqual(preconditionLog, [true, false])
         XCTAssertEqual(
             messageLog,
             ["Concurrency violation: handleEvent(_:isolation:file:line:) called by both NonIsolated and NonIsolated",
-             "Concurrency violation: handleEvent(_:isolation:file:line:) called by both NonIsolated and BadActor"]
+             "Concurrency violation: handleEvent(_:predicates:isolation:file:line:) called by both NonIsolated and BadActor"]
         )
         
         sut.assertsIsolation = false

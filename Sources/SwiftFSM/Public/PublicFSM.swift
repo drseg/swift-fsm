@@ -74,7 +74,7 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
         isolation: isolated (any Actor)? = #isolation,
         @TableBuilder<State, Event> _ block: @isolated(any) () -> [Internal.Define<State, Event>]
     ) throws {
-        verifyIsolation(isolation ?? NonIsolated(), file: file, line: UInt(line))
+        verifyIsolation(isolation, file: file, line: UInt(line))
         try fsm.buildTable(file: "\(file)", line: line, isolation: isolation, block)
     }
 
@@ -106,7 +106,6 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
         file: StaticString = #file,
         line: UInt = #line
     ) async {
-        verifyIsolation(isolation, file: file, line: line)
         await fsm.handleEvent(event, predicates: predicates, isolation: isolation)
     }
 }
