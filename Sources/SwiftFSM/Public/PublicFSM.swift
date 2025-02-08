@@ -23,13 +23,9 @@ public class MainActorFSM<State: FSMHashable, Event: FSMHashable> {
     public func buildTable(
         file: StaticString = #file,
         line: Int = #line,
-        @TableBuilder<State, Event> _ block: @isolated(any) () -> [Internal.Define<State, Event>]
+        @TableBuilder<State, Event> _ block: @MainActor () -> [Internal.Define<State, Event>]
     ) throws {
         try fsm.buildTable(file: file, line: line, block)
-    }
-
-    public func handleEvent(_ event: Event) async {
-        await fsm.handleEvent(event)
     }
 
     public func handleEvent(_ event: Event, predicates: any Predicate...) async {
@@ -77,20 +73,10 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
         verifyIsolation(isolation, file: file, line: UInt(line))
         try fsm.buildTable(file: "\(file)", line: line, isolation: isolation, block)
     }
-
-    public func handleEvent(
-        _ event: Event,
-        isolation: isolated (any Actor)? = #isolation,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) async {
-        verifyIsolation(isolation, file: file, line: line)
-        await fsm.handleEvent(event, isolation: isolation)
-    }
     
     public func handleEvent(
         _ event: Event,
-        predicates: any Predicate...,
+        predicates: (any Predicate)...,
         isolation: isolated (any Actor)? = #isolation,
         file: StaticString = #file,
         line: UInt = #line

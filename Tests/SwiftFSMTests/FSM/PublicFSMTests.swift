@@ -265,15 +265,6 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         ) throws {
             log(args: [isolation!])
         }
-
-        public override func handleEvent(
-            _ event: Event,
-            isolation: isolated (any Actor)? = #isolation,
-            file: StaticString = #file,
-            line: UInt = #line
-        ) async {
-            log(args: [isolation!])
-        }
         
         internal override func handleEvent(
             _ event: Event,
@@ -297,8 +288,8 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
         await sut.handleEvent(1, predicates: P.b)
         
         spy.assertLog(
-            contains: "buildTable", "MainActor", "handleEvent", "MainActor", "handleEvent", "P.b", "MainActor",
-            at: 0, 1, 2, 3, 4, 5, 6
+            contains: "buildTable", "MainActor", "handleEvent", "[]", "MainActor", "handleEvent", "P.b", "MainActor",
+            at: 0, 1, 2, 3, 4, 5, 6, 7
         )
     }
     
