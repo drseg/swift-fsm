@@ -34,16 +34,13 @@ enum TransitionStatus<Event: FSMHashable> {
     case executed(Transition), notFound(Event, [any Predicate]), notExecuted(Transition)
 }
 
-protocol FSMProtocol<State, Event>: AnyObject {
+protocol TestableFSM<State, Event>: AnyObject {
     associatedtype State: FSMHashable
     associatedtype Event: FSMHashable
 
     var stateActionsPolicy: StateActionsPolicy { get }
-    var table: [TableKey: Transition] { get set }
     var state: AnyHashable { get set }
     
-    func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode
-
     func handleEvent(
         _ event: Event,
         predicates: [any Predicate],
@@ -58,7 +55,7 @@ protocol FSMProtocol<State, Event>: AnyObject {
     ) throws
 }
 
-extension FSMProtocol {
+extension TestableFSM {
     func handleEvent(
         _ event: Event,
         predicates: any Predicate...,
@@ -77,7 +74,7 @@ extension FSMProtocol {
     }
 }
 
-class BaseFSM<State: FSMHashable, Event: FSMHashable> {
+class FSMBase<State: FSMHashable, Event: FSMHashable> {
     let stateActionsPolicy: StateActionsPolicy
 
     var table: [TableKey: Transition] = [:]

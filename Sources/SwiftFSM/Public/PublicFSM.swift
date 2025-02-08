@@ -28,7 +28,10 @@ public class MainActorFSM<State: FSMHashable, Event: FSMHashable> {
         try fsm.buildTable(file: file, line: line, block)
     }
 
-    public func handleEvent(_ event: Event, predicates: any Predicate...) async {
+    public func handleEvent(
+        _ event: Event,
+        predicates: any Predicate...
+    ) async {
         await fsm.handleEvent(event, predicates: predicates)
     }
 }
@@ -48,7 +51,7 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
     var isolationWasSet = false
     var _precondition: Precondition = Swift.precondition
 
-    var fsm: any FSMProtocol<State, Event>
+    var fsm: any TestableFSM<State, Event>
     
     public init(
         type: PredicateHandling = .eager,

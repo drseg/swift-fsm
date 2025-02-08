@@ -47,7 +47,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
 
     enum P: Predicate { case a, b }
 
-    class FSMSpy: BaseFSM<Int, Int>, FSMSpyProtocol, FSMProtocol {
+    class FSMSpy: FSMBase<Int, Int>, FSMSpyProtocol, TestableFSM {
         typealias State = Int
         typealias Event = Int
 

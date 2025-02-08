@@ -24,7 +24,7 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     
     override var initialState: TurnstileState { .locked }
     
-    override func makeSUT() -> any FSMProtocol<State, Event> {
+    override func makeSUT() -> any TestableFSM<State, Event> {
         makeEager()
     }
 }
@@ -164,7 +164,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
 }
 
 final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
-    override func makeSUT() -> any FSMProtocol<State, Event> {
+    override func makeSUT() -> any TestableFSM<State, Event> {
         makeLazy()
     }
 }
@@ -293,7 +293,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
 }
 
 class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
-    override func makeSUT() -> any FSMProtocol<State, Event> {
+    override func makeSUT() -> any TestableFSM<State, Event> {
         makeLazy()
     }
 }
@@ -351,7 +351,7 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
 
 
 class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
-    override func makeSUT() -> any FSMProtocol<State, Event> {
+    override func makeSUT() -> any TestableFSM<State, Event> {
         makeLazy()
     }
 }
@@ -558,7 +558,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
 }
 
 class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
-    override func makeSUT() -> any FSMProtocol<State, Event> {
+    override func makeSUT() -> any TestableFSM<State, Event> {
         makeLazy()
     }
 }
@@ -576,7 +576,7 @@ enum ComplexEvent: EventWithValues {
 }
 
 class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent> {
-    override func makeSUT() -> any FSMProtocol<State, Event> {
+    override func makeSUT() -> any TestableFSM<State, Event> {
         makeEager()
     }
 
@@ -646,7 +646,7 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
 }
 
 final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
-    override func makeSUT() -> any FSMProtocol<State, Event> {
+    override func makeSUT() -> any TestableFSM<State, Event> {
         makeLazy()
     }
 }
