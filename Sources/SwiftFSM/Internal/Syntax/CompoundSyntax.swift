@@ -18,10 +18,10 @@ public enum Syntax {
     public class MTA: CompoundSyntax { }
     public class MWTA: CompoundSyntax { }
     
-    public final class MatchingActions<Event: FSMHashable>: MA { }
-    public final class MatchingWhenActions<Event: FSMHashable>: MWA { }
-    public final class MatchingThenActions<Event: FSMHashable>: MTA { }
-    public final class MatchingWhenThenActions<Event>: MWTA { }
+    public final class MatchingActions: MA { }
+    public final class MatchingWhenActions: MWA { }
+    public final class MatchingThenActions: MTA { }
+    public final class MatchingWhenThenActions: MWTA { }
 
     protocol CompoundBlockSyntax {
         var node: any Node<DefaultIO> { get }

@@ -5,21 +5,21 @@ public extension Syntax {
         public static func | (
             lhs: Self,
             rhs: @escaping FSMAction
-        ) -> MatchingThenActions<Event> {
+        ) -> MatchingThenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
             rhs: @escaping FSMActionWithEvent<Event>
-        ) -> MatchingThenActions<Event> {
+        ) -> MatchingThenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
             rhs: [AnyAction]
-        ) -> MatchingThenActions<Event> {
+        ) -> MatchingThenActions {
             .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
         }
 

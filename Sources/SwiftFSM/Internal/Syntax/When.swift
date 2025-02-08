@@ -12,28 +12,28 @@ public extension Syntax {
         public static func | (
             lhs: Self,
             rhs: Then<State, Event>
-        ) -> MatchingWhenThenActions<Event> {
+        ) -> MatchingWhenThenActions {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
 
         public static func | (
             lhs: Self,
             rhs: @escaping FSMAction
-        ) -> MatchingWhenActions<Event> {
+        ) -> MatchingWhenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
             rhs: @escaping FSMActionWithEvent<Event>
-        ) -> MatchingWhenActions<Event> {
+        ) -> MatchingWhenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
             rhs: [AnyAction]
-        ) -> MatchingWhenActions<Event> {
+        ) -> MatchingWhenActions {
             .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
         }
 
