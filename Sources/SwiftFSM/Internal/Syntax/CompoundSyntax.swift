@@ -9,6 +9,12 @@ public enum Syntax {
         }
     }
     
+    protocol CompoundSyntaxGroup {
+        var node: any Node<DefaultIO> { get }
+        
+        init(node: any Node<DefaultIO>)
+    }
+    
     public final class MatchingWhen<State: FSMHashable, Event: FSMHashable>: CompoundSyntax { }
     public final class MatchingThen<Event: FSMHashable>: CompoundSyntax { }
     public final class MatchingWhenThen<Event: FSMHashable>: CompoundSyntax { }
@@ -18,33 +24,23 @@ public enum Syntax {
     public class MatchingThenActions: CompoundSyntax { }
     public class MatchingWhenThenActions: CompoundSyntax { }
 
-    protocol CompoundSyntaxGroup {
-        var node: any Node<DefaultIO> { get }
-        
-        init(node: any Node<DefaultIO>)
-    }
-    
-    public final class MWTA_Group: MatchingWhenThenActions, CompoundSyntaxGroup { }
     public final class MWA_Group: MatchingWhenActions, CompoundSyntaxGroup { }
     public final class MTA_Group: MatchingThenActions, CompoundSyntaxGroup { }
+    public final class MWTA_Group: MatchingWhenThenActions, CompoundSyntaxGroup { }
 
-    @resultBuilder
-    public struct MWTABuilder: ResultBuilder {
+    @resultBuilder public struct MWTABuilder: ResultBuilder {
         public typealias T = MatchingWhenThenActions
     }
-
-    @resultBuilder
-    public struct MWABuilder: ResultBuilder {
+    
+    @resultBuilder public struct MWABuilder: ResultBuilder {
         public typealias T = MatchingWhenActions
     }
-
-    @resultBuilder
-    public struct MTABuilder: ResultBuilder {
+    
+    @resultBuilder public struct MTABuilder: ResultBuilder {
         public typealias T = MatchingThenActions
     }
-
-    @resultBuilder
-    public struct MABuilder: ResultBuilder {
+    
+    @resultBuilder public struct MABuilder: ResultBuilder {
         public typealias T = MatchingActions
     }
 }
