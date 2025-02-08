@@ -2,30 +2,30 @@ import XCTest
 @testable import SwiftFSM
 
 class BlockTestsBase: SyntaxTestsBase {
-    typealias MWTABuilder = Internal.MWTABuilder
-    typealias MWABuilder = Internal.MWABuilder
-    typealias MTABuilder = Internal.MTABuilder
-    typealias MABuilder = Internal.MABuilder
-    typealias Actions = Internal.Actions<Event>
+    typealias MWTABuilder = Syntax.MWTABuilder
+    typealias MWABuilder = Syntax.MWABuilder
+    typealias MTABuilder = Syntax.MTABuilder
+    typealias MABuilder = Syntax.MABuilder
+    typealias Actions = Syntax.Actions<Event>
 
     let baseFile = #file
 
-    let mwtaLine = #line + 1; @MWTABuilder var mwtaBlock: [Internal.MWTA] {
+    let mwtaLine = #line + 1; @MWTABuilder var mwtaBlock: [Syntax.MWTA] {
         matching(P.a) | when(1, or: 2) | then(1) | pass
                         when(1, or: 2) | then(1) | pass
     }
 
-    let mwaLine = #line + 1; @MWABuilder var mwaBlock: [Internal.MWA] {
+    let mwaLine = #line + 1; @MWABuilder var mwaBlock: [Syntax.MWA] {
         matching(P.a) | when(1, or: 2) | pass
                         when(1, or: 2) | pass
     }
 
-    let mtaLine = #line + 1; @MTABuilder var mtaBlock: [Internal.MTA] {
+    let mtaLine = #line + 1; @MTABuilder var mtaBlock: [Syntax.MTA] {
         matching(P.a) | then(1) | pass
                         then(1) | pass
     }
 
-    let maLine = #line + 1; var maBlock: Internal.MA {
+    let maLine = #line + 1; var maBlock: Syntax.MA {
         matching(P.a) | pass
     }
 

@@ -72,7 +72,7 @@ extension Node {
 
 extension Array {
     var nodes: [any Node<DefaultIO>] {
-        compactMap { ($0 as? Internal.CompoundSyntax)?.node }
+        compactMap { ($0 as? Syntax.CompoundSyntax)?.node }
     }
 }
 

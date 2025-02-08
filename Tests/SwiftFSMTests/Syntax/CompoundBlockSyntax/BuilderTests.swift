@@ -3,7 +3,7 @@ import XCTest
 
 class BuilderTests: BlockTestsBase {
     func testMWTA() async {
-        let line = #line; @MWTABuilder var mwta: [Internal.MWTA] {
+        let line = #line; @MWTABuilder var mwta: [Syntax.MWTA] {
             matching(P.a) | when(1, or: 2) | then(1) | pass
                             when(1, or: 2) | then(1) | pass
             matching(P.a) | when(1, or: 2) | then(1) | passAsync
@@ -45,7 +45,7 @@ class BuilderTests: BlockTestsBase {
     }
 
     func testMWA() async {
-        let line = #line; @MWABuilder var mwa: [Internal.MWA] {
+        let line = #line; @MWABuilder var mwa: [Syntax.MWA] {
             matching(P.a) | when(1, or: 2) | pass
                             when(1, or: 2) | pass
             matching(P.a) | when(1, or: 2) | passAsync
@@ -79,7 +79,7 @@ class BuilderTests: BlockTestsBase {
     }
 
     func testMTA() async {
-        let line = #line; @MTABuilder var mta: [Internal.MTA] {
+        let line = #line; @MTABuilder var mta: [Syntax.MTA] {
             matching(P.a) | then(1) | pass
                             then(1) | pass
             matching(P.a) | then(1) | passAsync
@@ -113,7 +113,7 @@ class BuilderTests: BlockTestsBase {
     }
 
     func testMA() async {
-        let line = #line; @MABuilder var ma: [Internal.MA] {
+        let line = #line; @MABuilder var ma: [Syntax.MA] {
             matching(P.a) | pass
             matching(P.a) | passAsync
             matching(P.a) | passWithEvent

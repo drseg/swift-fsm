@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Internal {
+public extension Syntax {
     struct Actions<Event: FSMHashable> {
         let actions: [AnyAction]
         let file: String
@@ -17,20 +17,20 @@ public extension Internal {
         }
 
         public func callAsFunction(
-            @Internal.MWTABuilder _ block: @isolated(any) () -> [MWTA]
-        ) -> Internal.MWTABlock {
+            @MWTABuilder _ block: @isolated(any) () -> [MWTA]
+        ) -> MWTABlock {
             .init(actions, file: file, line: line, block)
         }
 
         public func callAsFunction(
-            @Internal.MWABuilder _ block: @isolated(any) () -> [MWA]
-        ) -> Internal.MWABlock {
+            @MWABuilder _ block: @isolated(any) () -> [MWA]
+        ) -> MWABlock {
             .init(actions, file: file, line: line, block)
         }
 
         public func callAsFunction(
-            @Internal.MTABuilder _ block: @isolated(any) () -> [MTA]
-        ) -> Internal.MTABlock {
+            @MTABuilder _ block: @isolated(any) () -> [MTA]
+        ) -> MTABlock {
             .init(actions, file: file, line: line, block)
         }
     }

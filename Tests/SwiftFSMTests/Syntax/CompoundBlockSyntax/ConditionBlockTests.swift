@@ -2,7 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 class ConditionBlockTests: BlockTestsBase {
-    func mbnComponents(of s: Internal.CompoundSyntax) -> (MatchingBlockNode, MatchingBlockNode) {
+    func mbnComponents(of s: Syntax.CompoundSyntax) -> (MatchingBlockNode, MatchingBlockNode) {
         let a1 = mbn(s.node)
         let a2 = mbn(a1.rest.first!)
         return (a1, a2)
@@ -57,7 +57,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testMWTABlocks() async {
         func assertMWTABlock(
-            _ b: Internal.MWTABlock,
+            _ b: Syntax.MWTABlock,
             condition: Bool,
             nodeLine sl: Int,
             xctLine xl: UInt = #line
@@ -77,7 +77,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testMWABlocks() async {
         func assertMWABlock(
-            _ b: Internal.MWABlock,
+            _ b: Syntax.MWABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
@@ -95,7 +95,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testMTABlocks() async {
         func assertMTABlock(
-            _ b: Internal.MTABlock,
+            _ b: Syntax.MTABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
@@ -113,7 +113,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testCompoundMWTABlocks() async {
         func assertCompoundMWTABlock(
-            _ b: Internal.MWTABlock,
+            _ b: Syntax.MWTABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
@@ -134,7 +134,7 @@ class ConditionBlockTests: BlockTestsBase {
     
     func testCompoundMWABlocks() async {
         func assertCompoundMWABlock(
-            _ b: Internal.MWABlock,
+            _ b: Syntax.MWABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
@@ -155,7 +155,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testCompoundMTABlocks() async {
         func assertCompoundMTABlock(
-            _ b: Internal.MTABlock,
+            _ b: Syntax.MTABlock,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line

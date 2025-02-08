@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Internal {
+public enum Syntax {
     public class CompoundSyntax {
         let node: any Node<DefaultIO>
 
@@ -54,10 +54,10 @@ public enum Internal {
     }
 }
 
-extension Internal.CompoundBlockSyntax {
+extension Syntax.CompoundBlockSyntax {
     init<N: Node<DefaultIO>>(
         _ n: N,
-        _ block: () -> [Internal.CompoundSyntax]
+        _ block: () -> [Syntax.CompoundSyntax]
     ) where N.Input == N.Output {
         var n = n
         n.rest = block().nodes
@@ -68,7 +68,7 @@ extension Internal.CompoundBlockSyntax {
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        _ block: () -> [Internal.CompoundSyntax]
+        _ block: () -> [Syntax.CompoundSyntax]
     ) {
         self.init(
             node: ActionsBlockNode(

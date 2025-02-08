@@ -4,7 +4,7 @@ import XCTest
 class ActionsBlockTests: BlockTestsBase {
     let eventOutput = ActionsBlockTests.defaultOutputWithEvent
 
-    func abnComponents(of s: Internal.CompoundSyntax) -> (ActionsBlockNode, ActionsBlockNode) {
+    func abnComponents(of s: Syntax.CompoundSyntax) -> (ActionsBlockNode, ActionsBlockNode) {
         let a1 = abn(s.node)
         let a2 = abn(a1.rest.first!)
         return (a1, a2)
@@ -68,7 +68,7 @@ class ActionsBlockTests: BlockTestsBase {
     
     func testMWTABlocks() async {
         func assertMWTA(
-            _ b: Internal.MWTABlock,
+            _ b: Syntax.MWTABlock,
             expectedNodeOutput eo: String = Self.defaultOutput,
             expectedRestOutput er: String = Self.defaultOutput,
             sutLine sl: Int = #line,
@@ -97,7 +97,7 @@ class ActionsBlockTests: BlockTestsBase {
     
     func testMWABlocks() async {
         func assertMWA(
-            _ b: Internal.MWABlock,
+            _ b: Syntax.MWABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             nodeLine sl: Int = #line,
@@ -138,7 +138,7 @@ class ActionsBlockTests: BlockTestsBase {
     
     func testMTABlocks() async {
         func assertMTA(
-            _ b: Internal.MTABlock,
+            _ b: Syntax.MTABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             nodeLine nl: Int = #line,
@@ -182,7 +182,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testCompoundMWTABlocks() async {
         func assertMWTA(
-            _ b: Internal.MWTABlock,
+            _ b: Syntax.MWTABlock,
             expectedNodeOutput eo: String = BlockTestsBase.defaultOutput,
             expectedRestOutput er: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,
@@ -218,7 +218,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testCompoundMWABlocks() async {
         func assertMWA(
-            _ b: Internal.MWABlock,
+            _ b: Syntax.MWABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,
@@ -254,7 +254,7 @@ class ActionsBlockTests: BlockTestsBase {
     
     func testCompoundMTABlocks() async {
         func assertMTA(
-            _ b: Internal.MTABlock,
+            _ b: Syntax.MTABlock,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,

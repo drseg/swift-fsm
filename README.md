@@ -671,9 +671,9 @@ await c.two()
 
 #### Working on the Main Actor
 
-Though the `FSM` class will work transparently on the main actor if its methods are called from a main actor context, until Swift provides a way of unifying polymorphic actor behaviour across an entire class and beyond, Swift FSM also provides a convenience wrapper `MainActorFSM<State, Event>`, which is annotated `@MainActor` to allow the compiler to prevent access from any other context without having to use the optional runtime checker built in to the `FSM`.
+Though the `FSM` class will work transparently on the main actor if its methods are called from a main actor context, until Swift provides a way of unifying polymorphic actor behaviour across an entire class and beyond, Swift FSM also provides a convenience wrapper `FSM<State, Event>.Isolated`, which is annotated `@MainActor` to allow the compiler to prevent access from any other context without having to use the optional runtime checker built in to the `FSM`.
 
-In most situations however, there will be no difference between the concurrency behaviour of either `FSM` or `MainActorFSM` in a main actor context - `MainActorFSM` simply guards against an unlikely but possible technicality at compile time. The following illustrates some of the nuances of this system (when compiled in Swift 6 Language Mode):
+In most situations however, there will be no difference between the concurrency behaviour of either `FSM` or `FSM.Isolated` in a main actor context - `Isolated` simply guards against an unlikely but possible technicality at compile time. The following illustrates some of the nuances of this system (when compiled in Swift 6 Language Mode):
 
 ```swift
 @MainActor
@@ -683,7 +683,7 @@ class MyMainActorClass {
         let fsm = FSM<Int, Int>(initialState: 1)
         
         // ✅ Called with Main Actor isolation
-        let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1)
+        let mainActorFSM = FSM<Int, Int>.Isolated(initialState: 1)
     }
     
     func myAsyncMethod() async {
@@ -691,7 +691,7 @@ class MyMainActorClass {
         let fsm = FSM<Int, Int>(initialState: 1)
         
         // ✅ Called with Main Actor isolation
-        let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1)
+        let mainActorFSM = FSM<Int, Int>.Isolated(initialState: 1)
     }
 }
 
@@ -701,7 +701,7 @@ class MyNonIsolatedClass {
         let fsm = FSM<Int, Int>(initialState: 1)
         
         // ⛔️ Call to main actor-isolated initializer 'init(type:initialState:actionsPolicy:)' in a synchronous nonisolated context
-        let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1)
+        let mainActorFSM = FSM<Int, Int>.Isolated(initialState: 1)
     }
     
     func myAsyncMethod() async {
@@ -709,7 +709,7 @@ class MyNonIsolatedClass {
         let fsm = FSM<Int, Int>(initialState: 1)
         
         // ✅ Called with Main Actor isolation
-        let mainActorFSM = await MainActorFSM<Int, Int>(initialState: 1)
+        let mainActorFSM = await FSM<Int, Int>.Isolated(initialState: 1)
     }
     
     @MainActor
@@ -718,7 +718,7 @@ class MyNonIsolatedClass {
         let fsm = FSM<Int, Int>(initialState: 1)
         
         // ✅ Called with Main Actor isolation
-        let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1)
+        let mainActorFSM = FSM<Int, Int>.Isolated(initialState: 1)
     }
 }
 
@@ -728,7 +728,7 @@ actor MyCustomActor {
         let fsm = FSM<Int, Int>(initialState: 1)
         
         // ⛔️ Call to main actor-isolated initializer 'init(type:initialState:actionsPolicy:)' in a synchronous nonisolated context
-        let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1)
+        let mainActorFSM = FSM<Int, Int>.Isolated(initialState: 1)
     }
     
     func myAsyncMethod() async {
@@ -736,7 +736,7 @@ actor MyCustomActor {
         let fsm = FSM<Int, Int>(initialState: 1)
         
         // ✅ Called with Main Actor isolation
-        let mainActorFSM = await MainActorFSM<Int, Int>(initialState: 1)
+        let mainActorFSM = await FSM.Isolated<Int, Int>(initialState: 1)
     }
     
     @MainActor
@@ -745,7 +745,7 @@ actor MyCustomActor {
         let fsm = FSM<Int, Int>(initialState: 1)
         
         // ✅ Called with Main Actor isolation
-        let mainActorFSM = MainActorFSM<Int, Int>(initialState: 1)
+        let mainActorFSM = FSM<Int, Int>.Isolated(initialState: 1)
     }
 }
 ```

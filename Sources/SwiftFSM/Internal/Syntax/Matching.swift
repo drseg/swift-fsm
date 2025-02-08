@@ -2,7 +2,7 @@ import Foundation
 
 public typealias ConditionProvider = @Sendable () -> Bool
 
-public extension Internal {
+public extension Syntax {
     protocol Conditional<State, Event> {
         associatedtype State: FSMHashable
         associatedtype Event: FSMHashable
@@ -88,13 +88,13 @@ public extension Internal {
     }
 }
 
-extension Internal.Conditional {
+extension Syntax.Conditional {
     var node: MatchingNode { this.node }
     var file: String { this.file }
     var line: Int { this.line }
     var name: String { this.name }
     
-    var this: any Internal._Conditional { self as! any Internal._Conditional }
+    var this: any Syntax._Conditional { self as! any Syntax._Conditional }
     
     var blockNode: MatchingBlockNode {
         MatchingBlockNode(
@@ -107,20 +107,20 @@ extension Internal.Conditional {
     }
     
     public func callAsFunction(
-        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTABlock {
+        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
+    ) -> Syntax.MWTABlock {
         .init(blockNode, block)
     }
     
     public func callAsFunction(
-        @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWABlock {
+        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
+    ) -> Syntax.MWABlock {
         .init(blockNode, block)
     }
     
     public func callAsFunction(
-        @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MTABlock {
+        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
+    ) -> Syntax.MTABlock {
         .init(blockNode, block)
     }
 }

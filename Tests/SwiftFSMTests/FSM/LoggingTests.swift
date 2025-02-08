@@ -118,7 +118,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
     
-    class FSMSpy: EagerFSM<Int, Int>, LoggableFSM {
+    class FSMSpy: FSM<State, Event>.Eager, LoggableFSM {
         var loggedEvents: [LogData] = []
         var loggedTransitions: [Transition] = []
         
@@ -135,7 +135,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         }
     }
     
-    class LazyFSMSpy: LazyFSM<Int, Int>, LoggableFSM {
+    class LazyFSMSpy: FSM<State, Event>.Lazy, LoggableFSM {
         var loggedEvents: [LogData] = []
         var loggedTransitions: [Transition] = []
         
@@ -155,7 +155,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     let fsm = FSMSpy(initialState: 1)
     let lazyFSM = LazyFSMSpy(initialState: 1)
     
-    func buildTable(@TableBuilder<Int, Int> _ block: () -> [Internal.Define<Int, Int>]) {
+    func buildTable(@FSM<Int, Int>.TableBuilder _ block: () -> [Syntax.Define<Int, Int>]) {
         try! fsm.buildTable(block)
         try! lazyFSM.buildTable(block)
     }

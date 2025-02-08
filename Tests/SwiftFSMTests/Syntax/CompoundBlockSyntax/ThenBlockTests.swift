@@ -15,7 +15,7 @@ class ThenBlockTests: BlockTestsBase {
     }
 }
 
-private extension Internal.CompoundBlockSyntax {
+private extension Syntax.CompoundBlockSyntax {
     var thenBlockNode: ThenBlockNode {
         node as! ThenBlockNode
     }

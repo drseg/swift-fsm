@@ -1,25 +1,25 @@
 import Foundation
 
-public extension Internal {
+public extension Syntax {
     struct Then<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,
             rhs: @escaping FSMAction
-        ) -> Internal.MatchingThenActions<Event> {
+        ) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
             rhs: @escaping FSMActionWithEvent<Event>
-        ) -> Internal.MatchingThenActions<Event> {
+        ) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
             rhs: [AnyAction]
-        ) -> Internal.MatchingThenActions<Event> {
+        ) -> MatchingThenActions<Event> {
             .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
         }
 
@@ -45,14 +45,14 @@ public extension Internal {
         }
 
         public func callAsFunction(
-            @Internal.MWABuilder _ block: () -> [MWA]
-        ) -> Internal.MWTABlock {
+            @MWABuilder _ block: () -> [MWA]
+        ) -> MWTABlock {
             .init(blockNode, block)
         }
 
         public func callAsFunction(
-            @Internal.MABuilder _ block: () -> [MA]
-        ) -> Internal.MTABlock {
+            @MABuilder _ block: () -> [MA]
+        ) -> MTABlock {
             .init(blockNode, block)
         }
     }

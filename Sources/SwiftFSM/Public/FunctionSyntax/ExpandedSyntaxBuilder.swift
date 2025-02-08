@@ -4,7 +4,7 @@ public protocol ExpandedSyntaxBuilder: SyntaxBuilder { }
 
 // MARK: - Matching
 public extension ExpandedSyntaxBuilder {
-    typealias Matching = Internal.Matching
+    typealias Matching = Syntax.Matching
 
     func matching<P: Predicate>(
         _ predicate: P,
@@ -46,8 +46,8 @@ public extension ExpandedSyntaxBuilder {
         _ predicate: P,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTABlock {
+        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
+    ) -> Syntax.MWTABlock {
         Matching<State, Event>(predicate, or: [], and: [], file: file, line: line)
             .callAsFunction(block)
     }
@@ -57,8 +57,8 @@ public extension ExpandedSyntaxBuilder {
         or: P...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTABlock {
+        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
+    ) -> Syntax.MWTABlock {
         Matching<State, Event>(predicate, or: or, and: [], file: file, line: line)
             .callAsFunction(block)
     }
@@ -69,8 +69,8 @@ public extension ExpandedSyntaxBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTABlock {
+        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
+    ) -> Syntax.MWTABlock {
         Matching<State, Event>(predicate, or: or, and: and, file: file, line: line)
             .callAsFunction(block)
     }
@@ -79,8 +79,8 @@ public extension ExpandedSyntaxBuilder {
         _ predicate: P,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWABlock {
+        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
+    ) -> Syntax.MWABlock {
         Matching<State, Event>(predicate, or: [], and: [], file: file, line: line)
             .callAsFunction(block)
     }
@@ -90,8 +90,8 @@ public extension ExpandedSyntaxBuilder {
         or: P...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWABlock {
+        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
+    ) -> Syntax.MWABlock {
         Matching<State, Event>(predicate, or: or, and: [], file: file, line: line)
             .callAsFunction(block)
     }
@@ -102,8 +102,8 @@ public extension ExpandedSyntaxBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWABlock {
+        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
+    ) -> Syntax.MWABlock {
         Matching<State, Event>(predicate, or: or, and: and, file: file, line: line)
             .callAsFunction(block)
     }
@@ -112,8 +112,8 @@ public extension ExpandedSyntaxBuilder {
         _ predicate: P,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MTABlock {
+        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
+    ) -> Syntax.MTABlock {
         Matching<State, Event>(predicate, or: [], and: [], file: file, line: line)
             .callAsFunction(block)
     }
@@ -124,8 +124,8 @@ public extension ExpandedSyntaxBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MTABlock {
+        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
+    ) -> Syntax.MTABlock {
         Matching<State, Event>(predicate, or: or, and: and, file: file, line: line)
             .callAsFunction(block)
     }
@@ -133,14 +133,14 @@ public extension ExpandedSyntaxBuilder {
 
 // MARK: - Condition
 public extension ExpandedSyntaxBuilder {
-    typealias Condition = Internal.Condition
+    typealias Condition = Syntax.Condition
 
     func condition(
         _ condition: @escaping ConditionProvider,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWTABuilder _ block: () -> [Internal.MWTA]
-    ) -> Internal.MWTABlock {
+        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
+    ) -> Syntax.MWTABlock {
         Condition<State, Event>(condition, file: file, line: line)
             .callAsFunction(block)
     }
@@ -157,8 +157,8 @@ public extension ExpandedSyntaxBuilder {
         _ condition: @escaping ConditionProvider,
         file: String = #file,
         line: Int = #line,
-        @Internal.MWABuilder _ block: () -> [Internal.MWA]
-    ) -> Internal.MWABlock {
+        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
+    ) -> Syntax.MWABlock {
         Condition<State, Event>(condition, file: file, line: line)
             .callAsFunction(block)
     }
@@ -167,8 +167,8 @@ public extension ExpandedSyntaxBuilder {
         _ condition: @escaping ConditionProvider,
         file: String = #file,
         line: Int = #line,
-        @Internal.MTABuilder _ block: () -> [Internal.MTA]
-    ) -> Internal.MTABlock {
+        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
+    ) -> Syntax.MTABlock {
         Condition<State, Event>(condition, file: file, line: line)
             .callAsFunction(block)
     }

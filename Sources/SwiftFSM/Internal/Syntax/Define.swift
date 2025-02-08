@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Internal {
+public extension Syntax {
     struct Define<State: FSMHashable, Event: FSMHashable> {
         let node: DefineNode
 
@@ -11,7 +11,7 @@ public extension Internal {
             onExit: [AnyAction],
             file: String = #file,
             line: Int = #line,
-            @Internal.MWTABuilder _ block: () -> [MWTA]
+            @MWTABuilder _ block: () -> [MWTA]
         ) {
             let elements = block()
             

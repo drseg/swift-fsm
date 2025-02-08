@@ -2,7 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 class MatchingBlockTests: BlockTestsBase {
-    func mbnComponents(of s: Internal.CompoundSyntax) -> (MatchingBlockNode, MatchingBlockNode) {
+    func mbnComponents(of s: Syntax.CompoundSyntax) -> (MatchingBlockNode, MatchingBlockNode) {
         let a1 = mbn(s.node)
         let a2 = mbn(a1.rest.first!)
         return (a1, a2)
@@ -61,7 +61,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testMWTABlocks() async {
         func assertMWTABlock(
-            _ b: Internal.MWTABlock,
+            _ b: Syntax.MWTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine sl: Int = #line,
@@ -87,7 +87,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testMWABlocks() async {
         func assertMWABlock(
-            _ b: Internal.MWABlock,
+            _ b: Syntax.MWABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
@@ -111,7 +111,7 @@ class MatchingBlockTests: BlockTestsBase {
     
     func testMTABlocks() async {
         func assertMTABlock(
-            _ b: Internal.MTABlock,
+            _ b: Syntax.MTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
@@ -132,7 +132,7 @@ class MatchingBlockTests: BlockTestsBase {
     
     func testCompoundMWTABlocks() async {
         func assertCompoundMWTABlock(
-            _ b: Internal.MWTABlock,
+            _ b: Syntax.MWTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
@@ -156,7 +156,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testCompoundMWABlocks() async {
         func assertCompoundMWABlock(
-            _ b: Internal.MWABlock,
+            _ b: Syntax.MWABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
@@ -180,7 +180,7 @@ class MatchingBlockTests: BlockTestsBase {
 
     func testCompoundMTABlocks() async {
         func assertCompoundMTABlock(
-            _ b: Internal.MTABlock,
+            _ b: Syntax.MTABlock,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,

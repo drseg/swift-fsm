@@ -8,12 +8,12 @@ protocol FSMTestsProtocol<State, Event> {
 
     var initialState: State { get }
 
-    func makeSUT() -> FSMBase<State, Event>
+    func makeSUT() -> FSM<State, Event>.Base
 }
 
 class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
     XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
-    var fsm: FSMBase<State, Event>!
+    var fsm: FSM<State, Event>.Base!
     var actionsPolicy = StateActionsPolicy.executeOnChangeOnly
 
     override func setUp() async throws {
@@ -24,16 +24,16 @@ class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
         fatalError("subclasses must implement")
     }
     
-    func makeSUT() -> FSMBase<State, Event> {
+    func makeSUT() -> FSM<State, Event>.Base {
         fatalError("subclasses must implement")
     }
 
-    func makeEager() -> FSMBase<State, Event> {
-        EagerFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    func makeEager() -> FSM<State, Event>.Base {
+        FSM<State, Event>.Eager(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 
-    func makeLazy() -> FSMBase<State, Event> {
-        LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
+    func makeLazy() -> FSM<State, Event>.Base {
+        FSM<State, Event>.Lazy(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 
     func assertThrowsError<T: Error>(
@@ -55,7 +55,7 @@ class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
 class FSMTests: FSMTestsBase<Int, Double> {
     override var initialState: Int { 1 }
 
-    override func makeSUT() -> FSMBase<State, Event> {
+    override func makeSUT() -> FSM<State, Event>.Base {
         makeEager()
     }
     
@@ -252,7 +252,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
 }
 
 class LazyFSMTests: FSMTests {
-    override func makeSUT() -> FSMBase<State, Event> {
+    override func makeSUT() -> FSM<State, Event>.Base {
         makeLazy()
     }
 
@@ -268,7 +268,7 @@ class LazyFSMTests: FSMTests {
         await assertHandleEvent(1.1, predicates: P.b, state: 2, output: "pass")
     }
 
-    class EarlyReturnSpy: LazyFSM<State, Event> {
+    class EarlyReturnSpy: FSM<State, Event>.Lazy {
         override func logTransitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
             XCTFail("should never be called in this test")
         }

@@ -3,7 +3,7 @@ import XCTest
 
 class WhenBlockTests: BlockTestsBase {
     func assert(
-        _ b: Internal.MWTABlock,
+        _ b: Syntax.MWTABlock,
         events: [Int] = [1, 2],
         nodeLine nl: Int = #line,
         restLine rl: Int,
@@ -15,7 +15,7 @@ class WhenBlockTests: BlockTestsBase {
     }
 
     func assert(
-        _ b: Internal.MWABlock,
+        _ b: Syntax.MWABlock,
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
         events: [Int] = [1, 2],
         nodeLine nl: Int = #line,

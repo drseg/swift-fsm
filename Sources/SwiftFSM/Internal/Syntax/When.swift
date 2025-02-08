@@ -1,39 +1,39 @@
 import Foundation
 
-public extension Internal {
+public extension Syntax {
     struct When<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,
             rhs: Then<State, Event>
-        ) -> Internal.MatchingWhenThen<Event> {
+        ) -> MatchingWhenThen<Event> {
             .init(node: rhs.node.appending(lhs.node))
         }
 
         public static func | (
             lhs: Self,
             rhs: Then<State, Event>
-        ) -> Internal.MatchingWhenThenActions<Event> {
+        ) -> MatchingWhenThenActions<Event> {
             .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
         }
 
         public static func | (
             lhs: Self,
             rhs: @escaping FSMAction
-        ) -> Internal.MatchingWhenActions<Event> {
+        ) -> MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
             rhs: @escaping FSMActionWithEvent<Event>
-        ) -> Internal.MatchingWhenActions<Event> {
+        ) -> MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
             rhs: [AnyAction]
-        ) -> Internal.MatchingWhenActions<Event> {
+        ) -> MatchingWhenActions<Event> {
             .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
         }
 
@@ -60,14 +60,14 @@ public extension Internal {
         }
 
         public func callAsFunction(
-            @Internal.MTABuilder _ block: () -> [MTA]
-        ) -> Internal.MWTABlock {
+            @MTABuilder _ block: () -> [MTA]
+        ) -> MWTABlock {
             .init(blockNode, block)
         }
 
         public func callAsFunction(
-            @Internal.MABuilder _ block: () -> [MA]
-        ) -> Internal.MWABlock {
+            @MABuilder _ block: () -> [MA]
+        ) -> MWABlock {
             .init(blockNode, block)
         }
     }

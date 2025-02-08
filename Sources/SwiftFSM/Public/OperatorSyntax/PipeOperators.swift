@@ -1,135 +1,135 @@
 import Foundation
 
-public extension Internal.MatchingWhen {
+public extension Syntax.MatchingWhen {
     static func | (
-        lhs: Internal.MatchingWhen<State, Event>,
-        rhs: Internal.Then<State, Event>
-    ) -> Internal.MatchingWhenThen<Event> {
+        lhs: Syntax.MatchingWhen<State, Event>,
+        rhs: Syntax.Then<State, Event>
+    ) -> Syntax.MatchingWhenThen<Event> {
         .init(node: rhs.node.appending(lhs.node))
     }
 
     static func | (
-        lhs: Internal.MatchingWhen<State, Event>,
+        lhs: Syntax.MatchingWhen<State, Event>,
         rhs: @escaping FSMAction
-    ) -> Internal.MatchingWhenActions<Event> {
+    ) -> Syntax.MatchingWhenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
-        lhs: Internal.MatchingWhen<State, Event>,
+        lhs: Syntax.MatchingWhen<State, Event>,
         rhs: @escaping FSMActionWithEvent<Event>
-    ) -> Internal.MatchingWhenActions<Event> {
+    ) -> Syntax.MatchingWhenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
-        lhs: Internal.MatchingWhen<State, Event>,
+        lhs: Syntax.MatchingWhen<State, Event>,
         rhs: [AnyAction]
-    ) -> Internal.MatchingWhenActions<Event> {
+    ) -> Syntax.MatchingWhenActions<Event> {
         .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
     }
 
     static func | (
-        lhs: Internal.MatchingWhen<State, Event>,
-        rhs: Internal.Then<State, Event>
-    ) -> Internal.MatchingWhenThenActions<Event> {
+        lhs: Syntax.MatchingWhen<State, Event>,
+        rhs: Syntax.Then<State, Event>
+    ) -> Syntax.MatchingWhenThenActions<Event> {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
 }
 
-public extension Internal.MatchingThen {
+public extension Syntax.MatchingThen {
     static func | (
-        lhs: Internal.MatchingThen<Event>,
+        lhs: Syntax.MatchingThen<Event>,
         rhs: @escaping FSMAction
-    ) -> Internal.MatchingThenActions<Event> {
+    ) -> Syntax.MatchingThenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
-        lhs: Internal.MatchingThen<Event>,
+        lhs: Syntax.MatchingThen<Event>,
         rhs: @escaping FSMActionWithEvent<Event>
-    ) -> Internal.MatchingThenActions<Event> {
+    ) -> Syntax.MatchingThenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
-        lhs: Internal.MatchingThen<Event>,
+        lhs: Syntax.MatchingThen<Event>,
         rhs: [AnyAction]
-    ) -> Internal.MatchingThenActions<Event> {
+    ) -> Syntax.MatchingThenActions<Event> {
         .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
     }
 }
 
-public extension Internal.MatchingWhenThen {
+public extension Syntax.MatchingWhenThen {
     static func | (
-        lhs: Internal.MatchingWhenThen<Event>,
+        lhs: Syntax.MatchingWhenThen<Event>,
         rhs: @escaping FSMAction
-    ) -> Internal.MatchingWhenThenActions<Event> {
+    ) -> Syntax.MatchingWhenThenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
-        lhs: Internal.MatchingWhenThen<Event>,
+        lhs: Syntax.MatchingWhenThen<Event>,
         rhs: @escaping FSMActionWithEvent<Event>
-    ) -> Internal.MatchingWhenThenActions<Event> {
+    ) -> Syntax.MatchingWhenThenActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
-        lhs: Internal.MatchingWhenThen<Event>,
+        lhs: Syntax.MatchingWhenThen<Event>,
         rhs: [AnyAction]
-    ) -> Internal.MatchingWhenThenActions<Event> {
+    ) -> Syntax.MatchingWhenThenActions<Event> {
         .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
     }
 }
 
-public extension Internal.Conditional {
+public extension Syntax.Conditional {
     static func | (
         lhs: Self,
-        rhs: Internal.When<State, Event>
-    ) -> Internal.MatchingWhen<State, Event> {
-        .init(node: rhs.node.appending(lhs.node))
-    }
-
-    static func | (
-        lhs: Self,
-        rhs: Internal.When<State, Event>
-    ) -> Internal.MatchingWhenActions<Event> {
-        .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
-    }
-
-    static func | (
-        lhs: Self,
-        rhs: Internal.Then<State, Event>
-    ) -> Internal.MatchingThen<Event> {
+        rhs: Syntax.When<State, Event>
+    ) -> Syntax.MatchingWhen<State, Event> {
         .init(node: rhs.node.appending(lhs.node))
     }
 
     static func | (
         lhs: Self,
-        rhs: Internal.Then<State, Event>
-    ) -> Internal.MatchingThenActions<Event> {
+        rhs: Syntax.When<State, Event>
+    ) -> Syntax.MatchingWhenActions<Event> {
+        .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
+    }
+
+    static func | (
+        lhs: Self,
+        rhs: Syntax.Then<State, Event>
+    ) -> Syntax.MatchingThen<Event> {
+        .init(node: rhs.node.appending(lhs.node))
+    }
+
+    static func | (
+        lhs: Self,
+        rhs: Syntax.Then<State, Event>
+    ) -> Syntax.MatchingThenActions<Event> {
         .init(node: ActionsNode(rest: [rhs.node.appending(lhs.node)]))
     }
 
     static func | (
         lhs: Self,
         rhs: @escaping FSMAction
-    ) -> Internal.MatchingActions<Event> {
+    ) -> Syntax.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Self,
         rhs: @escaping FSMActionWithEvent<Event>
-    ) -> Internal.MatchingActions<Event> {
+    ) -> Syntax.MatchingActions<Event> {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Self,
         rhs: [AnyAction]
-    ) -> Internal.MatchingActions<Event> {
+    ) -> Syntax.MatchingActions<Event> {
         .init(node: ActionsNode(actions: rhs, rest: [lhs.node]))
     }
 

@@ -10,16 +10,16 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
     
-    typealias Define = Internal.Define<State, Event>
-    typealias Matching = Internal.Matching<State, Event>
-    typealias Condition = Internal.Condition<State, Event>
-    typealias When = Internal.When<State, Event>
-    typealias Then = Internal.Then<State, Event>
-    typealias Actions = Internal.Actions
-    typealias Override = Internal.Override
+    typealias Define = Syntax.Define<State, Event>
+    typealias Matching = Syntax.Matching<State, Event>
+    typealias Condition = Syntax.Condition<State, Event>
+    typealias When = Syntax.When<State, Event>
+    typealias Then = Syntax.Then<State, Event>
+    typealias Actions = Syntax.Actions
+    typealias Override = Syntax.Override
     
-    typealias MatchingWhenThen = Internal.MatchingWhenThen
-    typealias MatchingWhen = Internal.MatchingWhen
+    typealias MatchingWhenThen = Syntax.MatchingWhenThen
+    typealias MatchingWhen = Syntax.MatchingWhen
     
     typealias AnyNode = any Node
     

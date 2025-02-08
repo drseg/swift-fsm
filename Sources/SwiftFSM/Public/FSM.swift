@@ -4,38 +4,6 @@ public enum StateActionsPolicy {
     case executeAlways, executeOnChangeOnly
 }
 
-@MainActor
-public class MainActorFSM<State: FSMHashable, Event: FSMHashable> {
-    var fsm: FSM<State, Event>
-    
-    public init(
-        type: FSM<State, Event>.PredicateHandling = .eager,
-        initialState initial: State,
-        actionsPolicy policy: StateActionsPolicy = .executeOnChangeOnly
-    ) {
-        fsm = FSM(
-            type: type,
-            initialState: initial,
-            actionsPolicy: policy
-        )
-    }
-    
-    public func buildTable(
-        file: StaticString = #file,
-        line: Int = #line,
-        @TableBuilder<State, Event> _ block: @MainActor () -> [Internal.Define<State, Event>]
-    ) throws {
-        try fsm.buildTable(file: file, line: line, block)
-    }
-
-    public func handleEvent(
-        _ event: Event,
-        predicates: any Predicate...
-    ) async {
-        await fsm.handleEvent(event, predicates: predicates)
-    }
-}
-
 public class FSM<State: FSMHashable, Event: FSMHashable> {
     public enum PredicateHandling { case eager, lazy }
     
@@ -51,7 +19,7 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
     var isolationWasSet = false
     var _precondition: Precondition = Swift.precondition
 
-    var fsm: FSMBase<State, Event>
+    var fsm: Base
     
     public init(
         type: PredicateHandling = .eager,
@@ -60,8 +28,8 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
         enforceConcurrency: Bool = false
     ) {
         fsm = switch type {
-        case .eager: EagerFSM(initialState: initial, actionsPolicy: policy)
-        case .lazy: LazyFSM(initialState: initial, actionsPolicy: policy)
+        case .eager: Eager(initialState: initial, actionsPolicy: policy)
+        case .lazy: Lazy(initialState: initial, actionsPolicy: policy)
         }
         
         self.assertsIsolation = enforceConcurrency
@@ -71,7 +39,7 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
         file: StaticString = #file,
         line: Int = #line,
         isolation: isolated (any Actor)? = #isolation,
-        @TableBuilder<State, Event> _ block: @isolated(any) () -> [Internal.Define<State, Event>]
+        @TableBuilder _ block: @isolated(any) () -> [Syntax.Define<State, Event>]
     ) throws {
         verifyIsolation(isolation, file: file, line: UInt(line))
         try fsm.buildTable(file: "\(file)", line: line, isolation: isolation, block)
@@ -137,5 +105,39 @@ extension FSM {
     private func setIsolation(_ isolation: (any Actor)) {
         self.isolation = isolation
         isolationWasSet = true
+    }
+}
+
+extension FSM {
+    @MainActor
+    public class Isolated {
+        var fsm: FSM<State, Event>
+        
+        public init(
+            type: FSM<State, Event>.PredicateHandling = .eager,
+            initialState initial: State,
+            actionsPolicy policy: StateActionsPolicy = .executeOnChangeOnly
+        ) {
+            fsm = FSM(
+                type: type,
+                initialState: initial,
+                actionsPolicy: policy
+            )
+        }
+        
+        public func buildTable(
+        file: StaticString = #file,
+        line: Int = #line,
+        @TableBuilder _ block: @MainActor () -> [Syntax.Define<State, Event>]
+        ) throws {
+            try fsm.buildTable(file: file, line: line, block)
+        }
+        
+        public func handleEvent(
+            _ event: Event,
+            predicates: any Predicate...
+        ) async {
+            await fsm.handleEvent(event, predicates: predicates)
+        }
     }
 }
