@@ -46,10 +46,10 @@ public extension ExpandedSyntaxBuilder {
         _ predicate: P,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
+    ) -> Syntax.MWTA_Group {
         Matching<State, Event>(predicate, or: [], and: [], file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func matching<P: Predicate>(
@@ -57,10 +57,10 @@ public extension ExpandedSyntaxBuilder {
         or: P...,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
+    ) -> Syntax.MWTA_Group {
         Matching<State, Event>(predicate, or: or, and: [], file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func matching<P: Predicate>(
@@ -69,20 +69,20 @@ public extension ExpandedSyntaxBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
+    ) -> Syntax.MWTA_Group {
         Matching<State, Event>(predicate, or: or, and: and, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func matching<P: Predicate>(
         _ predicate: P,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
-    ) -> Syntax.MWABlock {
+        @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
+    ) -> Syntax.MWA_Group {
         Matching<State, Event>(predicate, or: [], and: [], file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func matching<P: Predicate>(
@@ -90,10 +90,10 @@ public extension ExpandedSyntaxBuilder {
         or: P...,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
-    ) -> Syntax.MWABlock {
+        @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
+    ) -> Syntax.MWA_Group {
         Matching<State, Event>(predicate, or: or, and: [], file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func matching<P: Predicate>(
@@ -102,20 +102,20 @@ public extension ExpandedSyntaxBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
-    ) -> Syntax.MWABlock {
+        @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
+    ) -> Syntax.MWA_Group {
         Matching<State, Event>(predicate, or: or, and: and, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func matching<P: Predicate>(
         _ predicate: P,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
-    ) -> Syntax.MTABlock {
+        @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
+    ) -> Syntax.MTA_Group {
         Matching<State, Event>(predicate, or: [], and: [], file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func matching<P: Predicate>(
@@ -124,10 +124,10 @@ public extension ExpandedSyntaxBuilder {
         and: any Predicate...,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
-    ) -> Syntax.MTABlock {
+        @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
+    ) -> Syntax.MTA_Group {
         Matching<State, Event>(predicate, or: or, and: and, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 }
 
@@ -139,10 +139,10 @@ public extension ExpandedSyntaxBuilder {
         _ condition: @escaping ConditionProvider,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
+    ) -> Syntax.MWTA_Group {
         Condition<State, Event>(condition, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func condition(
@@ -157,20 +157,20 @@ public extension ExpandedSyntaxBuilder {
         _ condition: @escaping ConditionProvider,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
-    ) -> Syntax.MWABlock {
+        @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
+    ) -> Syntax.MWA_Group {
         Condition<State, Event>(condition, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func condition(
         _ condition: @escaping ConditionProvider,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
-    ) -> Syntax.MTABlock {
+        @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
+    ) -> Syntax.MTA_Group {
         Condition<State, Event>(condition, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 }
 

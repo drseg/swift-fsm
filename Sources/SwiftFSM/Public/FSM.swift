@@ -126,9 +126,9 @@ extension FSM {
         }
         
         public func buildTable(
-        file: StaticString = #file,
-        line: Int = #line,
-        @TableBuilder _ block: @MainActor () -> [Syntax.Define<State, Event>]
+            file: StaticString = #file,
+            line: Int = #line,
+            @TableBuilder _ block: @MainActor () -> [Syntax.Define<State, Event>]
         ) throws {
             try fsm.buildTable(file: file, line: line, block)
         }

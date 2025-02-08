@@ -57,7 +57,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testMWTABlocks() async {
         func assertMWTABlock(
-            _ b: Syntax.MWTABlock,
+            _ b: Syntax.MWTA_Group,
             condition: Bool,
             nodeLine sl: Int,
             xctLine xl: UInt = #line
@@ -77,7 +77,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testMWABlocks() async {
         func assertMWABlock(
-            _ b: Syntax.MWABlock,
+            _ b: Syntax.MWA_Group,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
@@ -95,7 +95,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testMTABlocks() async {
         func assertMTABlock(
-            _ b: Syntax.MTABlock,
+            _ b: Syntax.MTA_Group,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
@@ -113,7 +113,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testCompoundMWTABlocks() async {
         func assertCompoundMWTABlock(
-            _ b: Syntax.MWTABlock,
+            _ b: Syntax.MWTA_Group,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
@@ -134,7 +134,7 @@ class ConditionBlockTests: BlockTestsBase {
     
     func testCompoundMWABlocks() async {
         func assertCompoundMWABlock(
-            _ b: Syntax.MWABlock,
+            _ b: Syntax.MWA_Group,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line
@@ -155,7 +155,7 @@ class ConditionBlockTests: BlockTestsBase {
 
     func testCompoundMTABlocks() async {
         func assertCompoundMTABlock(
-            _ b: Syntax.MTABlock,
+            _ b: Syntax.MTA_Group,
             condition: Bool,
             nodeLine nl: Int,
             xctLine xl: UInt = #line

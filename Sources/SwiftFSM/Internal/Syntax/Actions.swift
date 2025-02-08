@@ -17,21 +17,21 @@ public extension Syntax {
         }
 
         public func callAsFunction(
-            @MWTABuilder _ block: @isolated(any) () -> [MWTA]
-        ) -> MWTABlock {
-            .init(actions, file: file, line: line, block)
+            @MWTABuilder _ group: @isolated(any) () -> [MatchingWhenThenActions]
+        ) -> MWTA_Group {
+            .init(actions, file: file, line: line, group)
         }
 
         public func callAsFunction(
-            @MWABuilder _ block: @isolated(any) () -> [MWA]
-        ) -> MWABlock {
-            .init(actions, file: file, line: line, block)
+            @MWABuilder _ group: @isolated(any) () -> [MatchingWhenActions]
+        ) -> MWA_Group {
+            .init(actions, file: file, line: line, group)
         }
 
         public func callAsFunction(
-            @MTABuilder _ block: @isolated(any) () -> [MTA]
-        ) -> MTABlock {
-            .init(actions, file: file, line: line, block)
+            @MTABuilder _ group: @isolated(any) () -> [MatchingThenActions]
+        ) -> MTA_Group {
+            .init(actions, file: file, line: line, group)
         }
     }
 }

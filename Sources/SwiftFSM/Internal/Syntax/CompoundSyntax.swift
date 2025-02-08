@@ -13,54 +13,49 @@ public enum Syntax {
     public final class MatchingThen<Event: FSMHashable>: CompoundSyntax { }
     public final class MatchingWhenThen<Event: FSMHashable>: CompoundSyntax { }
     
-    public class MA: CompoundSyntax { }
-    public class MWA: CompoundSyntax { }
-    public class MTA: CompoundSyntax { }
-    public class MWTA: CompoundSyntax { }
-    
-    public final class MatchingActions: MA { }
-    public final class MatchingWhenActions: MWA { }
-    public final class MatchingThenActions: MTA { }
-    public final class MatchingWhenThenActions: MWTA { }
+    public class MatchingActions: CompoundSyntax { }
+    public class MatchingWhenActions: CompoundSyntax { }
+    public class MatchingThenActions: CompoundSyntax { }
+    public class MatchingWhenThenActions: CompoundSyntax { }
 
-    protocol CompoundBlockSyntax {
+    protocol CompoundSyntaxGroup {
         var node: any Node<DefaultIO> { get }
         
         init(node: any Node<DefaultIO>)
     }
     
-    public final class MWTABlock: MWTA, CompoundBlockSyntax { }
-    public final class MWABlock: MWA, CompoundBlockSyntax { }
-    public final class MTABlock: MTA, CompoundBlockSyntax { }
+    public final class MWTA_Group: MatchingWhenThenActions, CompoundSyntaxGroup { }
+    public final class MWA_Group: MatchingWhenActions, CompoundSyntaxGroup { }
+    public final class MTA_Group: MatchingThenActions, CompoundSyntaxGroup { }
 
     @resultBuilder
     public struct MWTABuilder: ResultBuilder {
-        public typealias T = MWTA
+        public typealias T = MatchingWhenThenActions
     }
 
     @resultBuilder
     public struct MWABuilder: ResultBuilder {
-        public typealias T = MWA
+        public typealias T = MatchingWhenActions
     }
 
     @resultBuilder
     public struct MTABuilder: ResultBuilder {
-        public typealias T = MTA
+        public typealias T = MatchingThenActions
     }
 
     @resultBuilder
     public struct MABuilder: ResultBuilder {
-        public typealias T = MA
+        public typealias T = MatchingActions
     }
 }
 
-extension Syntax.CompoundBlockSyntax {
+extension Syntax.CompoundSyntaxGroup {
     init<N: Node<DefaultIO>>(
         _ n: N,
-        _ block: () -> [Syntax.CompoundSyntax]
+        _ group: () -> [Syntax.CompoundSyntax]
     ) where N.Input == N.Output {
         var n = n
-        n.rest = block().nodes
+        n.rest = group().nodes
         self.init(node: n)
     }
 
@@ -68,12 +63,12 @@ extension Syntax.CompoundBlockSyntax {
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        _ block: () -> [Syntax.CompoundSyntax]
+        _ group: () -> [Syntax.CompoundSyntax]
     ) {
         self.init(
             node: ActionsBlockNode(
                 actions: actions,
-                rest: block().nodes,
+                rest: group().nodes,
                 caller: "actions",
                 file: file,
                 line: line

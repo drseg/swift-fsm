@@ -68,7 +68,7 @@ class ActionsBlockTests: BlockTestsBase {
     
     func testMWTABlocks() async {
         func assertMWTA(
-            _ b: Syntax.MWTABlock,
+            _ b: Syntax.MWTA_Group,
             expectedNodeOutput eo: String = Self.defaultOutput,
             expectedRestOutput er: String = Self.defaultOutput,
             sutLine sl: Int = #line,
@@ -97,7 +97,7 @@ class ActionsBlockTests: BlockTestsBase {
     
     func testMWABlocks() async {
         func assertMWA(
-            _ b: Syntax.MWABlock,
+            _ b: Syntax.MWA_Group,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             nodeLine sl: Int = #line,
@@ -138,7 +138,7 @@ class ActionsBlockTests: BlockTestsBase {
     
     func testMTABlocks() async {
         func assertMTA(
-            _ b: Syntax.MTABlock,
+            _ b: Syntax.MTA_Group,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             nodeLine nl: Int = #line,
@@ -182,7 +182,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testCompoundMWTABlocks() async {
         func assertMWTA(
-            _ b: Syntax.MWTABlock,
+            _ b: Syntax.MWTA_Group,
             expectedNodeOutput eo: String = BlockTestsBase.defaultOutput,
             expectedRestOutput er: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,
@@ -218,7 +218,7 @@ class ActionsBlockTests: BlockTestsBase {
 
     func testCompoundMWABlocks() async {
         func assertMWA(
-            _ b: Syntax.MWABlock,
+            _ b: Syntax.MWA_Group,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,
@@ -254,7 +254,7 @@ class ActionsBlockTests: BlockTestsBase {
     
     func testCompoundMTABlocks() async {
         func assertMTA(
-            _ b: Syntax.MTABlock,
+            _ b: Syntax.MTA_Group,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,

@@ -1,14 +1,14 @@
 public extension Syntax {
     struct Override {
         public func callAsFunction(
-            @MWTABuilder _ block: () -> [MWTA]
-        ) -> [MWTA] {
-            return block().asOverrides()
+            @MWTABuilder _ group: () -> [MatchingWhenThenActions]
+        ) -> [MatchingWhenThenActions] {
+            return group().asOverrides()
         }
     }
 }
 
-extension [Syntax.MWTA] {
+extension [Syntax.MatchingWhenThenActions] {
     func asOverrides() -> Self {
         (map(\.node) as? [OverridableNode])?.forEach {
             $0.isOverride = true

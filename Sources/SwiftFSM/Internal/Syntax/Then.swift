@@ -45,15 +45,15 @@ public extension Syntax {
         }
 
         public func callAsFunction(
-            @MWABuilder _ block: () -> [MWA]
-        ) -> MWTABlock {
-            .init(blockNode, block)
+            @MWABuilder _ group: () -> [MatchingWhenActions]
+        ) -> MWTA_Group {
+            .init(blockNode, group)
         }
 
         public func callAsFunction(
-            @MABuilder _ block: () -> [MA]
-        ) -> MTABlock {
-            .init(blockNode, block)
+            @MABuilder _ group: () -> [MatchingActions]
+        ) -> MTA_Group {
+            .init(blockNode, group)
         }
     }
 }

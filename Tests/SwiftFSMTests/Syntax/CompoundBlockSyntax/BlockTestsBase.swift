@@ -10,22 +10,22 @@ class BlockTestsBase: SyntaxTestsBase {
 
     let baseFile = #file
 
-    let mwtaLine = #line + 1; @MWTABuilder var mwtaBlock: [Syntax.MWTA] {
+    let mwtaLine = #line + 1; @MWTABuilder var mwtaBlock: [Syntax.MatchingWhenThenActions] {
         matching(P.a) | when(1, or: 2) | then(1) | pass
                         when(1, or: 2) | then(1) | pass
     }
 
-    let mwaLine = #line + 1; @MWABuilder var mwaBlock: [Syntax.MWA] {
+    let mwaLine = #line + 1; @MWABuilder var mwaBlock: [Syntax.MatchingWhenActions] {
         matching(P.a) | when(1, or: 2) | pass
                         when(1, or: 2) | pass
     }
 
-    let mtaLine = #line + 1; @MTABuilder var mtaBlock: [Syntax.MTA] {
+    let mtaLine = #line + 1; @MTABuilder var mtaBlock: [Syntax.MatchingThenActions] {
         matching(P.a) | then(1) | pass
                         then(1) | pass
     }
 
-    let maLine = #line + 1; var maBlock: Syntax.MA {
+    let maLine = #line + 1; var maBlock: Syntax.MatchingActions {
         matching(P.a) | pass
     }
 

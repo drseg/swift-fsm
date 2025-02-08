@@ -115,19 +115,30 @@ class ManualTests: ExpandedSyntaxBuilder {
     
     func invalidBlocksAfterPipes1() {
         define(1) {
-            when(1)       | then(1) { }
+            when(1) | then(1) { }
         }
     }
     
     func invalidBlocksAfterPipes2() {
         define(1) {
-            when(1)       | then(1) | actions(function) { }
+            when(1) | then(1) | actions(function) { }
         }
     }
     
     func invalidBlocksAfterPipes3() {
         define(1) {
             matching(A.x) | when(1) { }
+        }
+    }
+    
+    #warning("this seems to compile when it shouldn't")
+    func noControlLogicInBuilders() {
+        define(1) {
+            if(false) {
+                when(2) | then()
+            } else {
+                when(2) | then()
+            }
         }
     }
 }

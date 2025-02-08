@@ -11,9 +11,9 @@ public extension Syntax {
             onExit: [AnyAction],
             file: String = #file,
             line: Int = #line,
-            @MWTABuilder _ block: () -> [MWTA]
+            @MWTABuilder _ group: () -> [MatchingWhenThenActions]
         ) {
-            let elements = block()
+            let elements = group()
             
             self.init(
                 state,
@@ -31,7 +31,7 @@ public extension Syntax {
             adopts superStates: [SuperState],
             onEntry: [AnyAction],
             onExit: [AnyAction],
-            elements: [MWTA],
+            elements: [MatchingWhenThenActions],
             file: String = #file,
             line: Int = #line
         ) {

@@ -34,7 +34,7 @@ public extension SyntaxBuilder {
         onExit: [AnyAction] = [],
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
     ) -> Syntax.Define<State, Event> {
         .init(state: state,
               adopts: superStates,
@@ -42,7 +42,7 @@ public extension SyntaxBuilder {
               onExit: onExit,
               file: file,
               line: line,
-              block)
+              group)
     }
 }
 
@@ -52,90 +52,90 @@ public extension SyntaxBuilder {
         _ action: @escaping FSMAction,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
+    ) -> Syntax.MWTA_Group {
         Syntax.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func actions(
         _ action: @escaping FSMActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
+    ) -> Syntax.MWTA_Group {
         Syntax.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func actions(
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
+    ) -> Syntax.MWTA_Group {
         Syntax.Actions<Event>(actions, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func actions(
         _ action: @escaping FSMAction,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
-    ) -> Syntax.MWABlock {
+        @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
+    ) -> Syntax.MWA_Group {
         Syntax.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func actions(
         _ action: @escaping FSMActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
-    ) -> Syntax.MWABlock {
+        @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
+    ) -> Syntax.MWA_Group {
         Syntax.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func actions(
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
-    ) -> Syntax.MWABlock {
+        @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
+    ) -> Syntax.MWA_Group {
         Syntax.Actions<Event>(actions, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func actions(
         _ action: @escaping FSMAction,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
-    ) -> Syntax.MTABlock {
+        @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
+    ) -> Syntax.MTA_Group {
         Syntax.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func actions(
         _ action: @escaping FSMActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
-    ) -> Syntax.MTABlock {
+        @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
+    ) -> Syntax.MTA_Group {
         Syntax.Actions<Event>(Array(action), file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func actions(
         _ actions: [AnyAction],
         file: String = #file,
         line: Int = #line,
-        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
-    ) -> Syntax.MTABlock {
+        @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
+    ) -> Syntax.MTA_Group {
         Syntax.Actions<Event>(actions, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 }
 
@@ -153,20 +153,20 @@ public extension SyntaxBuilder {
         _ state: State? = nil,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
+    ) -> Syntax.MWTA_Group {
         Syntax.Then<State, Event>(state, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func then(
         _ state: State? = nil,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MABuilder _ block: () -> [Syntax.MA]
-    ) -> Syntax.MTABlock {
+        @Syntax.MABuilder _ group: () -> [Syntax.MatchingActions]
+    ) -> Syntax.MTA_Group {
         Syntax.Then<State, Event>(state, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 }
 
@@ -194,20 +194,20 @@ public extension SyntaxBuilder {
         or otherEvents: Event...,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
+    ) -> Syntax.MWTA_Group {
         Syntax.When<State, Event>([event] + otherEvents, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func when(
         _ event: Event,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
-    ) -> Syntax.MWTABlock {
+        @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
+    ) -> Syntax.MWTA_Group {
         Syntax.When<State, Event>([event], file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func when(
@@ -215,29 +215,29 @@ public extension SyntaxBuilder {
         or otherEvents: Event...,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MABuilder _ block: () -> [Syntax.MA]
-    ) -> Syntax.MWABlock {
+        @Syntax.MABuilder _ group: () -> [Syntax.MatchingActions]
+    ) -> Syntax.MWA_Group {
         Syntax.When<State, Event>([event] + otherEvents, file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 
     func when(
         _ event: Event,
         file: String = #file,
         line: Int = #line,
-        @Syntax.MABuilder _ block: () -> [Syntax.MA]
-    ) -> Syntax.MWABlock {
+        @Syntax.MABuilder _ group: () -> [Syntax.MatchingActions]
+    ) -> Syntax.MWA_Group {
         Syntax.When<State, Event>([event], file: file, line: line)
-            .callAsFunction(block)
+            .callAsFunction(group)
     }
 }
 
 // MARK: - Overriding
 public extension SyntaxBuilder {
     func overriding(
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
-    ) -> [Syntax.MWTA] {
-        Syntax.Override().callAsFunction(block)
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
+    ) -> [Syntax.MatchingWhenThenActions] {
+        Syntax.Override().callAsFunction(group)
     }
 }
 
@@ -260,10 +260,10 @@ public extension SuperState {
         adopts superStates: SuperState...,
         onEntry: [AnyAction] = [],
         onExit: [AnyAction] = [],
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
     ) {
         self.init(
-            nodes: block().nodes.withOverrideGroupID(),
+            nodes: group().nodes.withOverrideGroupID(),
             superStates: superStates,
             onEntry: onEntry,
             onExit: onExit

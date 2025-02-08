@@ -107,20 +107,20 @@ extension Syntax.Conditional {
     }
     
     public func callAsFunction(
-        @Syntax.MWTABuilder _ block: () -> [Syntax.MWTA]
-    ) -> Syntax.MWTABlock {
-        .init(blockNode, block)
+        @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
+    ) -> Syntax.MWTA_Group {
+        .init(blockNode, group)
     }
     
     public func callAsFunction(
-        @Syntax.MWABuilder _ block: () -> [Syntax.MWA]
-    ) -> Syntax.MWABlock {
-        .init(blockNode, block)
+        @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
+    ) -> Syntax.MWA_Group {
+        .init(blockNode, group)
     }
     
     public func callAsFunction(
-        @Syntax.MTABuilder _ block: () -> [Syntax.MTA]
-    ) -> Syntax.MTABlock {
-        .init(blockNode, block)
+        @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
+    ) -> Syntax.MTA_Group {
+        .init(blockNode, group)
     }
 }
