@@ -1606,7 +1606,7 @@ Nonetheless, you may see reference to some of these objects in compilation error
 
 Swift FSM is written using test driven development, and as a non-UI framework maintains a requirement of 100% code coverage. Coverage does not guarantee test quality, however _lack_ of coverage does guarantee _lack_ of test quality. As a DSL, it is particularly heavily tested, as can be seen in the \~4:1 ratio of test code lines to production code lines.
 
-The exception to the ‘100%’ rule is code that is not executed - Swift’s insistence rejection of abstract classes and methods in favour of protocols still requires the `fatalError("subclasses must implement")` pattern where protocols either won’t do the job or won’t do it cleanly. 
+The exception to the ‘100%’ rule is code that is not executed - Swift’s rejection of abstract classes and methods in favour of protocols still requires the `fatalError("subclasses must implement")` pattern where protocols either won’t do the job or won’t do it cleanly. 
 
 This tends not to occur in untested/untestable production code, but testability does sometimes force this pattern in the absence of any other reasonable solution. Nonetheless, the project still tries to respect Swift’s accepted practices wherever possible, including encapsulation and immutability, and wherever those practices do not impact testability and do not create duplication. Where they do, testability and deduplication always win. Over time, the goal is to refactor ‘non-Swifty’ solutions to ‘Swiftier’ solutions when a reasonable opportunity to do so presents itself.
 
