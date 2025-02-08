@@ -51,7 +51,7 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
     var isolationWasSet = false
     var _precondition: Precondition = Swift.precondition
 
-    var fsm: any TestableFSM<State, Event>
+    var fsm: FSMBase<State, Event>
     
     public init(
         type: PredicateHandling = .eager,

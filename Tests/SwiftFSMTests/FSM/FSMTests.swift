@@ -8,12 +8,12 @@ protocol FSMTestsProtocol<State, Event> {
 
     var initialState: State { get }
 
-    func makeSUT() -> any TestableFSM<State, Event>
+    func makeSUT() -> FSMBase<State, Event>
 }
 
 class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
     XCTestCase, ExpandedSyntaxBuilder, FSMTestsProtocol {
-    var fsm: (any TestableFSM<State, Event>)!
+    var fsm: FSMBase<State, Event>!
     var actionsPolicy = StateActionsPolicy.executeOnChangeOnly
 
     override func setUp() async throws {
@@ -24,15 +24,15 @@ class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
         fatalError("subclasses must implement")
     }
     
-    func makeSUT() -> any TestableFSM<State, Event> {
+    func makeSUT() -> FSMBase<State, Event> {
         fatalError("subclasses must implement")
     }
 
-    func makeEager() -> any TestableFSM<State, Event> {
+    func makeEager() -> FSMBase<State, Event> {
         EagerFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 
-    func makeLazy() -> any TestableFSM<State, Event> {
+    func makeLazy() -> FSMBase<State, Event> {
         LazyFSM<State, Event>(initialState: initialState, actionsPolicy: actionsPolicy)
     }
 
@@ -55,7 +55,7 @@ class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
 class FSMTests: FSMTestsBase<Int, Double> {
     override var initialState: Int { 1 }
 
-    override func makeSUT() -> any TestableFSM<State, Event> {
+    override func makeSUT() -> FSMBase<State, Event> {
         makeEager()
     }
     
@@ -252,7 +252,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
 }
 
 class LazyFSMTests: FSMTests {
-    override func makeSUT() -> any TestableFSM<State, Event> {
+    override func makeSUT() -> FSMBase<State, Event> {
         makeLazy()
     }
 

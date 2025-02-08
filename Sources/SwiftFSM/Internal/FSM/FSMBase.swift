@@ -30,51 +30,11 @@ struct TableKey: @unchecked Sendable, Hashable {
     }
 }
 
-enum TransitionStatus<Event: FSMHashable> {
-    case executed(Transition), notFound(Event, [any Predicate]), notExecuted(Transition)
-}
-
-protocol TestableFSM<State, Event>: AnyObject {
-    associatedtype State: FSMHashable
-    associatedtype Event: FSMHashable
-
-    var stateActionsPolicy: StateActionsPolicy { get }
-    var state: AnyHashable { get set }
-    
-    func handleEvent(
-        _ event: Event,
-        predicates: [any Predicate],
-        isolation: isolated (any Actor)?
-    ) async
-    
-    func buildTable(
-        file: String,
-        line: Int,
-        isolation: isolated (any Actor)?,
-        @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
-    ) throws
-}
-
-extension TestableFSM {
-    func handleEvent(
-        _ event: Event,
-        predicates: any Predicate...,
-        isolation: isolated (any Actor)? = #isolation
-    ) async {
-        await handleEvent(event, predicates: predicates, isolation: isolation)
-    }
-
-    func buildTable(
-        file: String = #file,
-        line: Int = #line,
-        isolation: isolated (any Actor)? = #isolation,
-        @TableBuilder<State, Event> _ block: () -> [Internal.Define<State, Event>]
-    ) throws {
-        try buildTable(file: file, line: line, isolation: isolation, block)
-    }
-}
-
 class FSMBase<State: FSMHashable, Event: FSMHashable> {
+    enum TransitionStatus {
+        case executed(Transition), notFound(Event, [any Predicate]), notExecuted(Transition)
+    }
+    
     let stateActionsPolicy: StateActionsPolicy
 
     var table: [TableKey: Transition] = [:]
@@ -107,13 +67,22 @@ class FSMBase<State: FSMHashable, Event: FSMHashable> {
         try checkForErrors(result)
         makeTable(result.output)
     }
+    
+    @discardableResult
+    func handleEvent(
+        _ event: Event,
+        predicates: any Predicate...,
+        isolation: isolated (any Actor)? = #isolation
+    ) async -> TransitionStatus {
+        await handleEvent(event, predicates: predicates, isolation: isolation)
+    }
 
     @discardableResult
-    func _handleEvent(
+    func handleEvent(
         _ event: Event,
         predicates: [any Predicate],
         isolation: isolated (any Actor)?
-    ) async -> TransitionStatus<Event> {
+    ) async -> TransitionStatus {
         guard let transition = transition(event, predicates) else {
             return .notFound(event, predicates)
         }

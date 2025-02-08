@@ -1,28 +1,34 @@
 import Foundation
 
-class EagerFSM<State: FSMHashable, Event: FSMHashable>: FSMBase<State, Event>, TestableFSM {
-    override func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
+class EagerFSM<State: FSMHashable, Event: FSMHashable>: FSMBase<State, Event> {
+    override func makeMatchResolvingNode(
+        rest: [any Node<IntermediateIO>]
+    ) -> any MatchResolvingNode {
         EagerMatchResolvingNode(rest: rest)
     }
     
-    func handleEvent(
+    @discardableResult
+    override func handleEvent(
         _ event: Event,
         predicates: [any Predicate],
         isolation: isolated (any Actor)? = #isolation
-    ) async {
-        handleResult(
-            await _handleEvent(event, predicates: predicates, isolation: isolation),
-            for: event,
-            with: predicates
+    ) async -> TransitionStatus {
+        let status = await super.handleEvent(
+            event,
+            predicates: predicates,
+            isolation: isolation
         )
+        
+        logTransitionStatus(status, for: event, with: predicates)
+        return status
     }
     
-    private func handleResult(
-        _ result: TransitionStatus<Event>,
+    private func logTransitionStatus(
+        _ status: TransitionStatus,
         for event: Event,
         with predicates: [any Predicate]
     ) {
-        switch result {
+        switch status {
         case let .executed(transition):
             logTransitionExecuted(transition)
         case let .notExecuted(transition):

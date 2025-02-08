@@ -1,10 +1,7 @@
 import XCTest
 @testable import SwiftFSM
 
-protocol FSMSpyProtocol<State, Event>: AnyObject {
-    associatedtype State: FSMHashable
-    associatedtype Event: FSMHashable
-    
+protocol FSMSpyProtocol: AnyObject {
     var log: [String] { get set }
 }
 
@@ -47,18 +44,20 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
 
     enum P: Predicate { case a, b }
 
-    class FSMSpy: FSMBase<Int, Int>, FSMSpyProtocol, TestableFSM {
+    class FSMSpy: FSMBase<Int, Int>, FSMSpyProtocol {
         typealias State = Int
         typealias Event = Int
 
         var log = [String]()
 
-        func handleEvent(
+        @discardableResult
+        override func handleEvent(
             _ event: Int,
             predicates: [any Predicate],
             isolation: isolated (any Actor)?
-        ) async {
+        ) async -> TransitionStatus {
             log(args: predicates)
+            return .notFound(event, [])
         }
 
         override func buildTable(
@@ -180,11 +179,11 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     class LazyFSMSpy: LazyFSM<Int, Int>, FSMSpyProtocol {
         var log = [String]()
         
-        override func _handleEvent(
+        override func handleEvent(
             _ event: Int,
             predicates: [any Predicate],
             isolation: isolated (any Actor)?
-        ) async -> TransitionStatus<Int> {
+        ) async -> TransitionStatus {
             log(args: [isolation as Any])
             return .notFound(1, [])
         }
@@ -202,11 +201,11 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     class EagerFSMSpy: EagerFSM<Int, Int>, FSMSpyProtocol {
         var log = [String]()
         
-        override func _handleEvent(
+        override func handleEvent(
             _ event: Int,
             predicates: [any Predicate],
             isolation: isolated (any Actor)?
-        ) async -> TransitionStatus<Int> {
+        ) async -> TransitionStatus {
             log(args: [isolation as Any])
             return .notFound(1, [])
         }
@@ -296,6 +295,10 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     func testFSMConcurrencyValidation() async throws {
         actor BadActor: Actor { }
         
+        var preconditionLog = [Bool]()
+        var messageLog = [String]()
+        var fileLineLog = [String]()
+        
         func preconditionSpy(
             _ condition: @autoclosure () -> Bool,
             _ message: @autoclosure () -> String,
@@ -306,10 +309,6 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
             messageLog.append(message())
             preconditionLog.append(condition())
         }
-        
-        var preconditionLog = [Bool]()
-        var messageLog = [String]()
-        var fileLineLog = [String]()
         
         sut._precondition = preconditionSpy
         

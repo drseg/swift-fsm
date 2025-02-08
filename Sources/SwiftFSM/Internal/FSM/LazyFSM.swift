@@ -1,56 +1,39 @@
 import Foundation
 import Algorithms
 
-/// Swift bug:
-///
-/// https://github.com/apple/swift/issues/63377
-/// https://github.com/apple/swift/issues/62906
-/// https://github.com/apple/swift/issues/66740
-///
-/// It should be possible to inherit from:
-///
-/// BaseFSM<State, Event> & FSMProtocol<Event>
-///
-/// but the compiler currently won't allow it (even though it is officially supported).
-
-class LazyFSM<State: FSMHashable, Event: FSMHashable>: FSMBase<State, Event>, TestableFSM {
-    override func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
+class LazyFSM<State: FSMHashable, Event: FSMHashable>: FSMBase<State, Event> {
+    override func makeMatchResolvingNode(
+        rest: [any Node<IntermediateIO>]
+    ) -> any MatchResolvingNode {
         LazyMatchResolvingNode(rest: rest)
     }
 
-    func handleEvent(
+    @discardableResult
+    override func handleEvent(
         _ event: Event,
         predicates: [any Predicate],
         isolation: isolated (any Actor)? = #isolation
-    ) async {
+    ) async -> TransitionStatus {
         for combinations in makeCombinationsSequences(predicates) {
-            for predicates in combinations {
-                if logTransitionStatus(
-                    await _handleEvent(
-                        event, predicates: predicates,
-                        isolation: isolation
-                    )
-                ) { return }
+            for combination in combinations {
+                let status = await super.handleEvent(
+                    event,
+                    predicates: combination,
+                    isolation: isolation
+                )
+                
+                if transitionWasFound(status) {
+                    logTransitionFound(status)
+                    return status
+                }
             }
         }
 
         logTransitionNotFound(event, predicates)
+        return .notFound(event, predicates)
     }
-
-    private func logTransitionStatus(_ tr: TransitionStatus<Event>) -> Bool {
-        switch tr {
-        case let .executed(transition):
-            logTransitionExecuted(transition)
-            return true
-        case let .notExecuted(transition):
-            logTransitionNotExecuted(transition)
-            return true
-        case .notFound:
-            return false
-        }
-    }
-
-    func makeCombinationsSequences(
+    
+    private func makeCombinationsSequences(
         _ predicates: [any Predicate]
     ) -> [some Sequence<[any Predicate]>] {
         (0..<predicates.count)
@@ -58,5 +41,22 @@ class LazyFSM<State: FSMHashable, Event: FSMHashable>: FSMBase<State, Event>, Te
             .reduce(into: [predicates.combinations(ofCount: predicates.count)]) {
                 $0.append(predicates.combinations(ofCount: $1))
             }
+    }
+    
+    private func transitionWasFound(_ status: TransitionStatus) -> Bool {
+        switch status {
+        case .executed, .notExecuted:
+            true
+        case .notFound:
+            false
+        }
+    }
+
+    private func logTransitionFound(_ status: TransitionStatus) {
+        if case let .executed(transition) = status {
+            logTransitionExecuted(transition)
+        } else if case let .notExecuted(transition) = status {
+            logTransitionNotExecuted(transition)
+        }
     }
 }
