@@ -278,7 +278,7 @@ final class PublicFSMTests: XCTestCase, ExpandedSyntaxBuilder {
     
     @MainActor
     func testMainActorFSMMethodForwarding() async throws {
-        let sut = FSM<Int, Int>.Isolated(initialState: 1)
+        let sut = FSM<Int, Int>.OnMainActor(initialState: 1)
         let spy = FSMForwardingSpy(initialState: 1)
         sut.fsm = spy
         

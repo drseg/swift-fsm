@@ -110,7 +110,7 @@ extension FSM {
 
 extension FSM {
     @MainActor
-    public class Isolated {
+    public class OnMainActor {
         var fsm: FSM<State, Event>
         
         public init(

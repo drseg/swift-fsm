@@ -68,10 +68,10 @@ final class PublicAPITests: XCTestCase {
         enum State { case locked, unlocked }
         enum Event { case coin, pass }
         
-        let turnstile: FSM<State, Event>.Isolated
+        let turnstile: FSM<State, Event>.OnMainActor
         
         init() throws {
-            turnstile = FSM<State, Event>.Isolated(initialState: .locked)
+            turnstile = FSM<State, Event>.OnMainActor(initialState: .locked)
             
             try turnstile.buildTable {
                 define(.locked) {
