@@ -1,5 +1,5 @@
 # Swift FSM
-[![codecov][image-1]][1] ![Testspace tests][image-2] ![GitHub Workflow Status][image-3] ![GitHub][image-4]
+[![codecov][image-1]][1] ![Testspace tests][image-2]
 
 **Friendly Finite State Machine Syntax for Swift on macOS, iOS, tvOS and watchOS**
 
@@ -1611,5 +1611,3 @@ If you do encounter executed code that is not covered by tests, please file an i
 
 [image-1]:	https://codecov.io/gh/drseg/swift-fsm/branch/master/graph/badge.svg?token=4UV1D0M80T
 [image-2]:	https://img.shields.io/testspace/tests/drseg/drseg:swift-fsm/master
-[image-3]:	https://img.shields.io/github/actions/workflow/status/drseg/swift-fsm/swift.yml
-[image-4]:	https://img.shields.io/github/license/drseg/swift-fsm
