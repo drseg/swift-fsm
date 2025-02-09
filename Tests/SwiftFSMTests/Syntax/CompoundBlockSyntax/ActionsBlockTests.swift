@@ -10,7 +10,7 @@ class ActionsBlockTests: BlockTestsBase {
         return (a1, a2)
     }
 
-    func abn(_ n: any Node<DefaultIO>) -> ActionsBlockNode {
+    func abn(_ n: any SyntaxNode<RawSyntaxDTO>) -> ActionsBlockNode {
         n as! ActionsBlockNode
     }
 

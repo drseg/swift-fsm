@@ -52,7 +52,7 @@ private struct Thrower: Throwing {
 
 nonisolated(unsafe) private var thrower: any Throwing = Thrower()
 
-#if DEVELOPMENT
+#if DEBUG
 extension FSMValue {
     static func setThrower(_ t: some Throwing) {
         thrower = t

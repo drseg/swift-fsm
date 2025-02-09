@@ -3,7 +3,7 @@ import Foundation
 extension FSM {
     class Eager: Base {
         override func makeMatchResolvingNode(
-            rest: [any Node<IntermediateIO>]
+            rest: [any SyntaxNode<OverrideSyntaxDTO>]
         ) -> any MatchResolvingNode {
             EagerMatchResolvingNode(rest: rest)
         }

@@ -2,11 +2,11 @@ import Foundation
 
 class MatchingNodeBase: OverridableNode {
     let descriptor: MatchDescriptorChain
-    var rest: [any Node<DefaultIO>]
+    var rest: [any SyntaxNode<RawSyntaxDTO>]
 
     init(
         descriptor: MatchDescriptorChain,
-        rest: [any Node<DefaultIO>] = [],
+        rest: [any SyntaxNode<RawSyntaxDTO>] = [],
         overrideGroupID: UUID = UUID(),
         isOverride: Bool = false
     ) {
@@ -15,9 +15,9 @@ class MatchingNodeBase: OverridableNode {
         super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
 
-    func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func makeOutput(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         rest.reduce(into: []) {
-            $0.append(DefaultIO($1.descriptor.prepend(descriptor),
+            $0.append(RawSyntaxDTO($1.descriptor.prepend(descriptor),
                                 $1.event,
                                 $1.state,
                                 $1.actions,
@@ -27,8 +27,8 @@ class MatchingNodeBase: OverridableNode {
     }
 }
 
-class MatchingNode: MatchingNodeBase, Node {
-    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
+class MatchingNode: MatchingNodeBase, SyntaxNode {
+    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest) ??? makeDefaultIO(match: descriptor)
     }
 }
@@ -40,7 +40,7 @@ class MatchingBlockNode: MatchingNodeBase, NeverEmptyNode {
 
     init(
         descriptor: MatchDescriptorChain,
-        rest: [any Node<Input>] = [],
+        rest: [any SyntaxNode<Input>] = [],
         overrideGroupID: UUID = UUID(),
         isOverride: Bool = false,
         caller: String = #function,
@@ -57,7 +57,7 @@ class MatchingBlockNode: MatchingNodeBase, NeverEmptyNode {
                    isOverride: isOverride)
     }
 
-    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest)
     }
 }

@@ -2,7 +2,7 @@ import Foundation
 
 class Logger<Event: FSMHashable> {
     func transitionNotFound(_ event: Event, _ predicates: [any Predicate]) {
-#if DEVELOPMENT
+#if DEBUG
         warning(transitionNotFoundString(event, predicates))
 #endif
     }
@@ -19,7 +19,7 @@ class Logger<Event: FSMHashable> {
     }
 
     func transitionNotExecuted(_ t: Transition) {
-#if DEVELOPMENT
+#if DEBUG
         info(transitionNotExecutedString(t))
 #endif
     }
@@ -29,7 +29,7 @@ class Logger<Event: FSMHashable> {
     }
 
     func transitionExecuted(_ t: Transition) {
-#if DEVELOPMENT
+#if DEBUG
         info(transitionExecutedString(t))
 #endif
     }

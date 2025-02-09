@@ -4,7 +4,7 @@ import Algorithms
 extension FSM {
     class Lazy: Base {
         override func makeMatchResolvingNode(
-            rest: [any Node<IntermediateIO>]
+            rest: [any SyntaxNode<OverrideSyntaxDTO>]
         ) -> any MatchResolvingNode {
             LazyMatchResolvingNode(rest: rest)
         }

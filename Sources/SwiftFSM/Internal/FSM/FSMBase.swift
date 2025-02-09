@@ -43,7 +43,7 @@ extension FSM {
         var state: AnyHashable
         let logger = Logger<Event>()
         
-        func makeMatchResolvingNode(rest: [any Node<IntermediateIO>]) -> any MatchResolvingNode {
+        func makeMatchResolvingNode(rest: [any SyntaxNode<OverrideSyntaxDTO>]) -> any MatchResolvingNode {
             fatalError("subclasses must implement")
         }
         
@@ -111,10 +111,10 @@ extension FSM {
             t.condition?() ?? true
         }
         
-        func makeActionsResolvingNode(rest: [DefineNode]) -> ActionsResolvingNodeBase {
+        func makeActionsResolvingNode(rest: [DefineNode]) -> ActionsResolvingNode {
             switch stateActionsPolicy {
-            case .executeAlways: ActionsResolvingNode(rest: rest)
-            case .executeOnChangeOnly: ConditionalActionsResolvingNode(rest: rest)
+            case .executeAlways: ActionsResolvingNode.ExecuteAlways(rest: rest)
+            case .executeOnChangeOnly: ActionsResolvingNode.OnStateChange(rest: rest)
             }
         }
         

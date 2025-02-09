@@ -2,9 +2,9 @@ import XCTest
 @testable import SwiftFSM
 
 class NodeTests: XCTestCase {
-    struct StringNode: Node {
+    struct StringNode: SyntaxNode {
         let first: String
-        var rest: [any Node<String>]
+        var rest: [any SyntaxNode<String>]
 
         func findErrors() -> [Error] { ["E"] }
 
@@ -40,8 +40,8 @@ class NodeTests: XCTestCase {
     
     // FIXME: Currently, there is a temporal coupling between Node.combinedWith() and Node.validate() - validate() cannot find all errors until combinedWith() has already been called. This test clarifies this arrangement until a better solution can be implemented.
     func testResolveCallsCombinedWithBeforeValidate() {
-        class NodeSpy: Node {
-            var rest: [any Node<String>] = []
+        class NodeSpy: SyntaxNode {
+            var rest: [any SyntaxNode<String>] = []
             
             var log = [String]()
             

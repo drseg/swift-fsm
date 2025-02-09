@@ -1,6 +1,6 @@
 import Foundation
 
-struct GivenNode: Node {
+struct GivenNode: SyntaxNode {
     struct Output {
         let state: AnyTraceable,
             descriptor: MatchDescriptorChain,
@@ -30,9 +30,9 @@ struct GivenNode: Node {
     }
 
     let states: [AnyTraceable]
-    var rest: [any Node<DefaultIO>] = []
+    var rest: [any SyntaxNode<RawSyntaxDTO>] = []
 
-    func combinedWith(_ rest: [DefaultIO]) -> [Output] {
+    func combinedWith(_ rest: [RawSyntaxDTO]) -> [Output] {
         states.reduce(into: []) { result, state in
             rest.forEach {
                 result.append(Output(state,

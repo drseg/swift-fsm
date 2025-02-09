@@ -9,7 +9,7 @@ final class ActionsNodeTests: SyntaxNodeTests {
         
         XCTAssertTrue(errors.isEmpty)
         guard assertCount(output, expected: 1) else { return }
-        assertEqual(DefaultIO(MatchDescriptorChain(), nil, nil, actions), output.first)
+        assertEqual(RawSyntaxDTO(MatchDescriptorChain(), nil, nil, actions), output.first)
     }
     
     func testEmptyActionsBlockIsError() {

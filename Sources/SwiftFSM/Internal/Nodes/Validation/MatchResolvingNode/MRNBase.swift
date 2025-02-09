@@ -1,17 +1,12 @@
 import Foundation
 
-protocol MatchResolvingNode: Node {
+protocol MatchResolvingNode: SyntaxNode {
+    var errors: [Error] { get }
+    init(rest: [any SyntaxNode<OverrideSyntaxDTO>])
     func resolve() -> (output: [Transition], errors: [Error])
 }
 
-class MRNBase {
-    var rest: [any Node<IntermediateIO>]
-    var errors: [Error] = []
-
-    required init(rest: [any Node<IntermediateIO>] = []) {
-        self.rest = rest
-    }
-
+extension MatchResolvingNode {
     func findErrors() -> [Error] {
         errors
     }

@@ -76,7 +76,7 @@ extension FSM {
         file: StaticString,
         line: UInt
     ) {
-#if(DEVELOPMENT)
+#if DEBUG
         guard assertsIsolation else { return }
         
         let isolation = isolation ?? NonIsolated()

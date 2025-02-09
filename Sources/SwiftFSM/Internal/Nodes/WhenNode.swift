@@ -2,7 +2,7 @@ import Foundation
 
 class WhenNodeBase: OverridableNode {
     let events: [AnyTraceable]
-    var rest: [any Node<DefaultIO>]
+    var rest: [any SyntaxNode<RawSyntaxDTO>]
 
     let caller: String
     let file: String
@@ -10,7 +10,7 @@ class WhenNodeBase: OverridableNode {
 
     init(
         events: [AnyTraceable],
-        rest: [any Node<DefaultIO>] = [],
+        rest: [any SyntaxNode<RawSyntaxDTO>] = [],
         overrideGroupID: UUID = UUID(),
         isOverride: Bool = false,
         caller: String = #function,
@@ -26,9 +26,9 @@ class WhenNodeBase: OverridableNode {
         super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
 
-    func makeOutput(_ rest: [DefaultIO], _ event: AnyTraceable) -> [DefaultIO] {
+    func makeOutput(_ rest: [RawSyntaxDTO], _ event: AnyTraceable) -> [RawSyntaxDTO] {
         rest.reduce(into: []) {
-            $0.append(DefaultIO($1.descriptor,
+            $0.append(RawSyntaxDTO($1.descriptor,
                                 event,
                                 $1.state,
                                 $1.actions,
@@ -39,7 +39,7 @@ class WhenNodeBase: OverridableNode {
 }
 
 class WhenNode: WhenNodeBase, NeverEmptyNode {
-    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         events.reduce(into: []) { output, event in
             output.append(contentsOf: makeOutput(rest, event) ??? makeDefaultIO(event: event))
         }
@@ -51,7 +51,7 @@ class WhenNode: WhenNodeBase, NeverEmptyNode {
 }
 
 class WhenBlockNode: WhenNodeBase, NeverEmptyNode {
-    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         events.reduce(into: []) { output, event in
             output.append(contentsOf: makeOutput(rest, event))
         }

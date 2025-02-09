@@ -219,7 +219,7 @@ extension SemanticValidationNode.ClashError: ValidationError {
 }
 
 extension SemanticValidationNode.OverrideError {
-    func describe(_ o: IntermediateIO) -> String {
+    func describe(_ o: OverrideSyntaxDTO) -> String {
         String {
             let define = override.state.defineDescription
             let matching = override.descriptor.errorDescription

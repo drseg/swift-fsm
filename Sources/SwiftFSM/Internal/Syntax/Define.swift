@@ -66,8 +66,8 @@ public extension Syntax {
 private extension DefineNode {
     func setUp<S: FSMHashable>(
         givenState: S,
-        superStateNodes: [any Node<DefaultIO>],
-        defineNodes: [any Node<DefaultIO>],
+        superStateNodes: [any SyntaxNode<RawSyntaxDTO>],
+        defineNodes: [any SyntaxNode<RawSyntaxDTO>],
         file: String,
         line: Int
     ) {
@@ -79,7 +79,7 @@ private extension DefineNode {
 }
 
 private extension Array<SuperState> {
-    var nodes: [any Node<DefaultIO>] {
+    var nodes: [any SyntaxNode<RawSyntaxDTO>] {
         map(\.nodes).flattened
     }
     

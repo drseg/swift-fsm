@@ -2,7 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 class MRNTestBase: StringableNodeTest {
-    typealias ARN = ConditionalActionsResolvingNode
+    typealias ARN = ActionsResolvingNode.OnStateChange
     typealias EMRN = EagerMatchResolvingNode
     typealias SVN = SemanticValidationNode
     typealias MRNResult = (output: [Transition], errors: [Error])

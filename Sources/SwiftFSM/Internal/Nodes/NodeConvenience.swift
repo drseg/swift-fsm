@@ -1,6 +1,6 @@
 import Foundation
 
-protocol NeverEmptyNode: Node {
+protocol NeverEmptyNode: SyntaxNode {
     var caller: String { get }
     var file: String { get }
     var line: Int { get }
@@ -26,7 +26,7 @@ class OverridableNode {
     }
 }
 
-struct DefaultIO: Sendable {
+struct RawSyntaxDTO: Sendable {
     let descriptor: MatchDescriptorChain,
         event: AnyTraceable?,
         state: AnyTraceable?,
@@ -35,14 +35,14 @@ struct DefaultIO: Sendable {
         isOverride: Bool
 
     init(
-        _ match: MatchDescriptorChain,
+        _ descriptor: MatchDescriptorChain,
         _ event: AnyTraceable?,
         _ state: AnyTraceable?,
         _ actions: [AnyAction],
         _ overrideGroupID: UUID = UUID(),
         _ isOverride: Bool = false
     ) {
-        self.descriptor = match
+        self.descriptor = descriptor
         self.event = event
         self.state = state
         self.actions = actions
@@ -58,12 +58,12 @@ func makeDefaultIO(
     actions: [AnyAction] = [],
     overrideGroupID: UUID = UUID(),
     isOverride: Bool = false
-) -> [DefaultIO] {
-    [DefaultIO(match, event, state, actions, overrideGroupID, isOverride)]
+) -> [RawSyntaxDTO] {
+    [RawSyntaxDTO(match, event, state, actions, overrideGroupID, isOverride)]
 }
 
-extension Node {
-    func appending<Other: Node>(_ other: Other) -> Self where Input == Other.Output {
+extension SyntaxNode {
+    func appending<Other: SyntaxNode>(_ other: Other) -> Self where Input == Other.Output {
         var this = self
         this.rest = [other]
         return this
@@ -71,7 +71,7 @@ extension Node {
 }
 
 extension Array {
-    var nodes: [any Node<DefaultIO>] {
+    var nodes: [any SyntaxNode<RawSyntaxDTO>] {
         compactMap { ($0 as? Syntax.CompoundSyntax)?.node }
     }
 }

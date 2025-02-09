@@ -3,7 +3,7 @@ import XCTest
 
 final class SemanticValidationNodeTests: DefineConsumer {
     typealias SVN = SemanticValidationNode
-    typealias ARN = ActionsResolvingNodeBase
+    typealias ARN = ActionsResolvingNode
     
     func actionsResolvingNode(
         _ g: AnyTraceable,
@@ -112,7 +112,7 @@ final class SemanticValidationNodeTests: DefineConsumer {
             XCTFail(); return
         }
         
-        let expectedOverride = IntermediateIO(s1, MatchDescriptorChain(), e1, s2, [], id, true)
+        let expectedOverride = OverrideSyntaxDTO(s1, MatchDescriptorChain(), e1, s2, [], id, true)
         XCTAssertEqual(expectedOverride, error.override)
     }
     
@@ -132,8 +132,8 @@ final class SemanticValidationNodeTests: DefineConsumer {
             XCTFail(); return
         }
         
-        let expectedOverride = IntermediateIO(s1, MatchDescriptorChain(), e1, s2, [], id1, true)
-        let expectedOutOfOrder = IntermediateIO(s1, MatchDescriptorChain(), e1, s2, [], id2, false)
+        let expectedOverride = OverrideSyntaxDTO(s1, MatchDescriptorChain(), e1, s2, [], id1, true)
+        let expectedOutOfOrder = OverrideSyntaxDTO(s1, MatchDescriptorChain(), e1, s2, [], id2, false)
         
         XCTAssertEqual(expectedOverride, error.override)
         XCTAssertEqual([expectedOutOfOrder], error.outOfOrder)

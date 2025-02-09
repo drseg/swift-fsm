@@ -65,7 +65,7 @@ class DefineTests: BlockTestsBase {
 
     func testDefineAddsBlockAndSuperStateNodesTogetherParentFirst() async {
         func assertDefine(_ n: DefineNode, line: UInt = #line) async {
-            func castRest<T: Node, U: Node>(_ n: [U], to: T.Type) -> [T] {
+            func castRest<T: SyntaxNode, U: SyntaxNode>(_ n: [U], to: T.Type) -> [T] {
                 n.map { $0.rest }.flattened as! [T]
             }
 

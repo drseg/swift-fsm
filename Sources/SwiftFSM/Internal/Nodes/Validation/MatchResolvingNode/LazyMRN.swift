@@ -1,6 +1,13 @@
 import Foundation
 
-final class LazyMatchResolvingNode: MRNBase, MatchResolvingNode {
+final class LazyMatchResolvingNode: MatchResolvingNode {
+    var rest: [any SyntaxNode<OverrideSyntaxDTO>]
+    var errors: [Error] = []
+
+    required init(rest: [any SyntaxNode<OverrideSyntaxDTO>] = []) {
+        self.rest = rest
+    }
+    
     func combinedWith(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
         do {
             return try rest.reduce(into: []) { result, input in
@@ -10,12 +17,12 @@ final class LazyMatchResolvingNode: MRNBase, MatchResolvingNode {
                     result.append(t)
                 }
 
-                let anyAndAll = input.descriptor.combineAnyAndAll()
+                let allPredicates = input.descriptor.combineAnyAndAll()
 
-                if anyAndAll.isEmpty {
+                if allPredicates.isEmpty {
                     try appendTransition(predicates: [])
                 } else {
-                    try anyAndAll.forEach(appendTransition)
+                    try allPredicates.forEach(appendTransition)
                 }
             }
         } catch {
@@ -26,7 +33,7 @@ final class LazyMatchResolvingNode: MRNBase, MatchResolvingNode {
 }
 
 extension Transition {
-    init(io: IntermediateIO, predicates p: PredicateSet) {
+    init(io: OverrideSyntaxDTO, predicates p: PredicateSet) {
         condition = io.descriptor.condition
         state = io.state.base
         predicates = p

@@ -4,7 +4,7 @@ import XCTest
 class StringableNodeTestTests: StringableNodeTest {
     func assertToString(
         _ expected: String,
-        _ actual: any Node,
+        _ actual: any SyntaxNode,
         fileAndLine: Bool = false,
         file: StaticString = #filePath,
         line: UInt = #line
@@ -146,13 +146,13 @@ class StringableNodeTestTests: StringableNodeTest {
             "    }"
             "  }"
             "}"
-        }, ActionsResolvingNodeBase(
+        }, ActionsResolvingNode(
             rest: [defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])])
         )
     }
     
     func testSemanticValidationNode() async {
-        let a = ActionsResolvingNodeBase(
+        let a = ActionsResolvingNode(
             rest: [defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])]
         )
         let svn = SemanticValidationNode(rest: [a])
@@ -230,8 +230,8 @@ class StringableNodeTestTests: StringableNodeTest {
 
 class StringableNodeTest: DefineConsumer {
     func assertEqual(
-        _ lhs: any Node,
-        _ rhs: any Node,
+        _ lhs: any SyntaxNode,
+        _ rhs: any SyntaxNode,
         file: StaticString = #filePath,
         line: UInt = #line
     ) async {
@@ -241,8 +241,8 @@ class StringableNodeTest: DefineConsumer {
     }
     
     func assertEqualFileAndLine(
-        _ lhs: any Node,
-        _ rhs: any Node,
+        _ lhs: any SyntaxNode,
+        _ rhs: any SyntaxNode,
         file: StaticString = #filePath,
         line: UInt = #line
     ) async {
@@ -255,7 +255,7 @@ class StringableNodeTest: DefineConsumer {
     }
 
     func toString(
-        _ n: some Node,
+        _ n: some SyntaxNode,
         printFileAndLine: Bool = false,
         indent: Int = 0
     ) async -> String {
@@ -274,7 +274,7 @@ class StringableNodeTest: DefineConsumer {
             await visit(n, &output, printFileAndLine)
         case let n as DefineNode:
             await visit(n, &output, printFileAndLine)
-        case let n as ActionsResolvingNodeBase:
+        case let n as ActionsResolvingNode:
             await visit(n, &output, printFileAndLine)
         case let n as SemanticValidationNode:
             await visit(n, &output, printFileAndLine)
@@ -383,7 +383,7 @@ class StringableNodeTest: DefineConsumer {
     }
 
     private func visit(
-        _ n: ActionsResolvingNodeBase,
+        _ n: ActionsResolvingNode,
         _ output: inout String,
         _ printFileAndLine: Bool
     ) async {
@@ -399,7 +399,7 @@ class StringableNodeTest: DefineConsumer {
     }
 
     private func addRest(
-        _ n: some Node,
+        _ n: some SyntaxNode,
         _ output: inout String,
         _ printFileAndLine: Bool,
         _ indent: Int

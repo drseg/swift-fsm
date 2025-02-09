@@ -2,11 +2,11 @@ import Foundation
 
 class ActionsNodeBase: OverridableNode {
     let actions: [AnyAction]
-    var rest: [any Node<DefaultIO>]
+    var rest: [any SyntaxNode<RawSyntaxDTO>]
 
     init(
         actions: [AnyAction] = [],
-        rest: [any Node<DefaultIO>] = [],
+        rest: [any SyntaxNode<RawSyntaxDTO>] = [],
         overrideGroupID: UUID = UUID(),
         isOverride: Bool = false
     ) {
@@ -15,10 +15,10 @@ class ActionsNodeBase: OverridableNode {
         super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
     
-    func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func makeOutput(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         rest.reduce(into: []) {
             $0.append(
-                DefaultIO(
+                RawSyntaxDTO(
                     $1.descriptor,
                     $1.event,
                     $1.state,
@@ -31,8 +31,8 @@ class ActionsNodeBase: OverridableNode {
     }
 }
 
-class ActionsNode: ActionsNodeBase, Node {
-    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
+class ActionsNode: ActionsNodeBase, SyntaxNode {
+    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest) ??? makeDefaultIO(actions: actions)
     }
 }
@@ -44,7 +44,7 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
 
     init(
         actions: [AnyAction],
-        rest: [any Node<Input>],
+        rest: [any SyntaxNode<Input>],
         overrideGroupID: UUID = UUID(),
         isOverride: Bool = false,
         caller: String = #function,
@@ -63,7 +63,7 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
         )
     }
     
-    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest)
     }
 }

@@ -1,12 +1,12 @@
 import Foundation
 
 public struct SuperState {
-    internal var nodes: [any Node<DefaultIO>]
+    internal var nodes: [any SyntaxNode<RawSyntaxDTO>]
     internal var onEntry: [AnyAction]
     internal var onExit: [AnyAction]
     
     internal init(
-        nodes: [any Node<DefaultIO>] = [],
+        nodes: [any SyntaxNode<RawSyntaxDTO>] = [],
         superStates: [SuperState],
         onEntry: [AnyAction],
         onExit: [AnyAction]
@@ -17,7 +17,7 @@ public struct SuperState {
     }
 }
 
-extension [any Node<DefaultIO>] {
+extension [any SyntaxNode<RawSyntaxDTO>] {
     func withOverrideGroupID() -> Self {
         let overrideGroupID = UUID()
         overridableNodes?.forEach { $0.overrideGroupID = overrideGroupID }

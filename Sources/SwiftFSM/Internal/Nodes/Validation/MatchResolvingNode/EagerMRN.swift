@@ -1,6 +1,6 @@
 import Foundation
 
-final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
+final class EagerMatchResolvingNode: MatchResolvingNode {
     struct ErrorOutput {
         let state: AnyTraceable,
             descriptor: MatchDescriptorChain,
@@ -65,13 +65,20 @@ final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
     }
 
     typealias ImplicitClashesDictionary = [ImplicitClashesKey: [ErrorOutput]]
+    
+    var rest: [any SyntaxNode<OverrideSyntaxDTO>]
+    var errors: [Error] = []
+
+    required init(rest: [any SyntaxNode<OverrideSyntaxDTO>] = []) {
+        self.rest = rest
+    }
 
     func combinedWith(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
         var clashes = ImplicitClashesDictionary()
         let allCases = rest.allCases()
 
         let result = rest.reduce(into: [RankedOutput]()) { result, input in
-            func appendInput(_ predicateResult: RankedPredicates = RankedPredicates()) {
+            func appendInput(_ predicateResult: RankedPredicates = RankedPredicates.empty) {
                 let ro = RankedOutput(state: input.state,
                                       descriptor: input.descriptor,
                                       predicateResult: predicateResult,
@@ -119,9 +126,8 @@ final class EagerMatchResolvingNode: MRNBase, MatchResolvingNode {
 }
 
 extension RankedPredicates {
-    init() {
-        predicates = []
-        rank = 0
+    static var empty: Self {
+        Self([], priority: 0)
     }
 }
 

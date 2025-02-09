@@ -145,17 +145,17 @@ Actions that take an `Event` can be useful if you wish to pass an associated val
 
 As `handleEvent` may call an `async` action, `handleEvent` itself must also be `async`.
 
-`FSM` will fine the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, we call the `unlock` function and transition to the `unlocked` state.  If no transition is found, nothing will happen, and if compiled for debugging, a warning message will print to the console.
+`FSM` will find the appropriate transition for its current state, call the associated function, and transition to the associated next state. In this case, we call the `unlock` function and transition to the `unlocked` state.  If no transition is found, nothing will happen, and if compiled for debugging, a warning message will print to the console.
 
 ##### Arrays of Actions
 
-If you wish to pass an array of actions, you may wish to use the convenience `&` operator overload provided by Swift FSM in order to enable mixing and matching of the two different action signatures:
+If you pass an array of actions, you may wish to use the convenience `&` operator overload provided by Swift FSM to enable mixing and matching of different action signatures:
 
 ```swift
 when(.coin) | then(.unlocked) | first & secondAsync & thirdWithEvent ...
 ```
 
-This is functionally equivalent (though not technically identical) to the more verbose, but equally valid:
+This is equivalent (though not technically identical) to the more verbose, but equally valid:
 
 ```swift
 when(.coin) | then(.unlocked) | { event in await first(); await secondAsync(); thirdWithEvent(event) ... }

@@ -21,7 +21,7 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
     typealias MatchingWhenThen = Syntax.MatchingWhenThen
     typealias MatchingWhen = Syntax.MatchingWhen
     
-    typealias AnyNode = any Node
+    typealias AnyNode = any SyntaxNode
     
     var output = ""
     

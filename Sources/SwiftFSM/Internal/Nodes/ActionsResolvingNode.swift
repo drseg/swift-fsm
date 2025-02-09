@@ -1,6 +1,6 @@
 import Foundation
 
-struct IntermediateIO: Sendable {
+struct OverrideSyntaxDTO: Sendable {
     let state: AnyTraceable,
         descriptor: MatchDescriptorChain,
         event: AnyTraceable,
@@ -28,14 +28,14 @@ struct IntermediateIO: Sendable {
     }
 }
 
-class ActionsResolvingNodeBase: Node {
-    var rest: [any Node<DefineNode.Output>]
+class ActionsResolvingNode: SyntaxNode {
+    var rest: [any SyntaxNode<DefineNode.Output>]
 
-    required init(rest: [any Node<Input>] = []) {
+    required init(rest: [any SyntaxNode<Input>] = []) {
         self.rest = rest
     }
 
-    func combinedWith(_ rest: [DefineNode.Output]) -> [IntermediateIO] {
+    func combinedWith(_ rest: [DefineNode.Output]) -> [OverrideSyntaxDTO] {
         var onEntry = [AnyTraceable: [AnyAction]]()
         Set(rest.map(\.state)).forEach { state in
             onEntry[state] = rest.first { $0.state == state }?.onEntry
@@ -47,7 +47,7 @@ class ActionsResolvingNodeBase: Node {
             : $1.actions
             
             $0.append(
-                IntermediateIO(
+                OverrideSyntaxDTO(
                     $1.state,
                     $1.match,
                     $1.event,
@@ -65,8 +65,11 @@ class ActionsResolvingNodeBase: Node {
     }
 }
 
-final class ConditionalActionsResolvingNode: ActionsResolvingNodeBase { }
-
-final class ActionsResolvingNode: ActionsResolvingNodeBase {
-    override func shouldAddEntryExitActions(_ input: Input) -> Bool { true }
+extension ActionsResolvingNode {
+    final class OnStateChange: ActionsResolvingNode { }
+    
+    final class ExecuteAlways: ActionsResolvingNode {
+        override func shouldAddEntryExitActions(_ input: Input) -> Bool { true }
+    }
 }
+

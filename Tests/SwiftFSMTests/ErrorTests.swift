@@ -220,11 +220,11 @@ final class ErrorTests: SyntaxNodeTests {
     func s2(_ line: Int) -> AnyTraceable { AnyTraceable("s2", file: "/fns", line: line) }
     
     func testSVNDuplicatesError() {
-        let k1 = SVN.DuplicatesKey(IntermediateIO(s1(0), m1(0), e1(0), s2(0), []))
-        let k2 = SVN.DuplicatesKey(IntermediateIO(s2(0), m1(0), e1(0), s2(0), []))
+        let k1 = SVN.DuplicatesKey(OverrideSyntaxDTO(s1(0), m1(0), e1(0), s2(0), []))
+        let k2 = SVN.DuplicatesKey(OverrideSyntaxDTO(s2(0), m1(0), e1(0), s2(0), []))
 
-        let values: [SVN.Input] = [IntermediateIO(s1(1), m1(2), e1(3), s2(4), []),
-                                   IntermediateIO(s1(5), m1(6), e1(7), s2(8), [])]
+        let values: [SVN.Input] = [OverrideSyntaxDTO(s1(1), m1(2), e1(3), s2(4), []),
+                                   OverrideSyntaxDTO(s1(5), m1(6), e1(7), s2(8), [])]
         let duplicates = [k1: values, k2: values]
         
         e = SVN.DuplicatesError(duplicates: duplicates)
@@ -260,11 +260,11 @@ final class ErrorTests: SyntaxNodeTests {
     }
     
     func testSVNClashesError() {
-        let k1 = SVN.ClashesKey(IntermediateIO(s1(0), m1(0), e1(0), s2(0), []))
-        let k2 = SVN.ClashesKey(IntermediateIO(s2(0), m1(0), e1(0), s2(0), []))
+        let k1 = SVN.ClashesKey(OverrideSyntaxDTO(s1(0), m1(0), e1(0), s2(0), []))
+        let k2 = SVN.ClashesKey(OverrideSyntaxDTO(s2(0), m1(0), e1(0), s2(0), []))
 
-        let values: [SVN.Input] = [IntermediateIO(s1(1), m1(2), e1(3), s2(4), []),
-                                   IntermediateIO(s2(5), m1(6), e1(7), s2(8), [])]
+        let values: [SVN.Input] = [OverrideSyntaxDTO(s1(1), m1(2), e1(3), s2(4), []),
+                                   OverrideSyntaxDTO(s2(5), m1(6), e1(7), s2(8), [])]
         let clashes = [k1: values, k2: values]
         
         e = SVN.ClashError(clashes: clashes)
@@ -297,7 +297,7 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testSVNNothingToOverrideError() {
         let m = MatchDescriptorChain(all: P.a, file: "/fm", line: 2)
-        let override = IntermediateIO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
+        let override = OverrideSyntaxDTO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
         e = SVN.NothingToOverride(override)
         e.assertDescription(
             String {
@@ -318,7 +318,7 @@ final class ErrorTests: SyntaxNodeTests {
     
     func testSVNOutOfOrderOverrideError() {
         let m = MatchDescriptorChain(all: P.a, file: "/fm", line: 2)
-        let override = IntermediateIO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
+        let override = OverrideSyntaxDTO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
         e = SVN.OverrideOutOfOrder(override, [override, override])
         e.assertDescription(
             String {

@@ -2,17 +2,17 @@ import Foundation
 
 public enum Syntax {
     public class CompoundSyntax {
-        let node: any Node<DefaultIO>
+        let node: any SyntaxNode<RawSyntaxDTO>
 
-        init(node: any Node<DefaultIO>) {
+        init(node: any SyntaxNode<RawSyntaxDTO>) {
             self.node = node
         }
     }
     
     protocol CompoundSyntaxGroup {
-        var node: any Node<DefaultIO> { get }
+        var node: any SyntaxNode<RawSyntaxDTO> { get }
         
-        init(node: any Node<DefaultIO>)
+        init(node: any SyntaxNode<RawSyntaxDTO>)
     }
     
     public final class MatchingWhen<State: FSMHashable, Event: FSMHashable>: CompoundSyntax { }
@@ -46,7 +46,7 @@ public enum Syntax {
 }
 
 extension Syntax.CompoundSyntaxGroup {
-    init<N: Node<DefaultIO>>(
+    init<N: SyntaxNode<RawSyntaxDTO>>(
         _ n: N,
         _ group: () -> [Syntax.CompoundSyntax]
     ) where N.Input == N.Output {

@@ -10,7 +10,7 @@ final class CompoundSyntaxTests: SyntaxTestsBase {
         await assertMWNode(mw.node, sutLine: sl, xctLine: xl)
     }
     
-    func assertMWNode<N: Node>(_ n: N, sutLine sl: Int, xctLine xl: UInt = #line) async{
+    func assertMWNode<N: SyntaxNode>(_ n: N, sutLine sl: Int, xctLine xl: UInt = #line) async{
         let whenNode = n as! WhenNode
         let matchNode = n.rest.first as! MatchingNode
         

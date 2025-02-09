@@ -2,11 +2,11 @@ import Foundation
 
 class ThenNodeBase: OverridableNode {
     let state: AnyTraceable?
-    var rest: [any Node<DefaultIO>]
+    var rest: [any SyntaxNode<RawSyntaxDTO>]
 
     init(
         state: AnyTraceable?,
-        rest: [any Node<DefaultIO>] = [],
+        rest: [any SyntaxNode<RawSyntaxDTO>] = [],
         overrideGroupID: UUID = UUID(),
         isOverride: Bool = false
     ) {
@@ -15,9 +15,9 @@ class ThenNodeBase: OverridableNode {
         super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
 
-    func makeOutput(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func makeOutput(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         rest.reduce(into: []) {
-            $0.append(DefaultIO($1.descriptor,
+            $0.append(RawSyntaxDTO($1.descriptor,
                                 $1.event,
                                 state,
                                 $1.actions,
@@ -27,8 +27,8 @@ class ThenNodeBase: OverridableNode {
     }
 }
 
-class ThenNode: ThenNodeBase, Node {
-    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
+class ThenNode: ThenNodeBase, SyntaxNode {
+    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest) ??? makeDefaultIO(state: state)
     }
 }
@@ -40,7 +40,7 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
 
     init(
         state: AnyTraceable?,
-        rest: [any Node<Input>],
+        rest: [any SyntaxNode<Input>],
         caller: String = #function,
         overrideGroupID: UUID = UUID(),
         isOverride: Bool = false,
@@ -57,7 +57,7 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
                    isOverride: isOverride)
     }
 
-    func combinedWith(_ rest: [DefaultIO]) -> [DefaultIO] {
+    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest)
     }
 }

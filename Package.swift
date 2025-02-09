@@ -28,7 +28,6 @@ let package = Package(
                 .product(name: "Algorithms", package: "swift-algorithms"),
             ],
             swiftSettings: [
-                .define("DEVELOPMENT", .when(configuration: .debug)),
                 .enableExperimentalFeature("StrictConcurrency=complete")
             ]
         ),

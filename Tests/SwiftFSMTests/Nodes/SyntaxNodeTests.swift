@@ -53,8 +53,8 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func assertEqual(
-        _ lhs: DefaultIO?,
-        _ rhs: DefaultIO?,
+        _ lhs: RawSyntaxDTO?,
+        _ rhs: RawSyntaxDTO?,
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
@@ -131,7 +131,7 @@ class SyntaxNodeTests: XCTestCase {
     }
     
     func assertEmptyNodeWithoutError(
-        _ n: some Node,
+        _ n: some SyntaxNode,
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
@@ -200,8 +200,8 @@ class SyntaxNodeTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty, file: file, line: line)
         XCTAssertEqual(result.count, 2, file: file, line: line)
         
-        assertEqual(result[0], DefaultIO(MatchDescriptorChain(), e1, s1, []), file: file, line: line)
-        assertEqual(result[1], DefaultIO(MatchDescriptorChain(), e2, s1, []), file: file, line: line)
+        assertEqual(result[0], RawSyntaxDTO(MatchDescriptorChain(), e1, s1, []), file: file, line: line)
+        assertEqual(result[1], RawSyntaxDTO(MatchDescriptorChain(), e2, s1, []), file: file, line: line)
         
         await assertActions(
             result.map(\.actions).flattened,
@@ -267,7 +267,7 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) async {
-        let nodeChains: [any Node<DefaultIO>] = {
+        let nodeChains: [any SyntaxNode<RawSyntaxDTO>] = {
             let nodes: [any DefaultIONode] =
             [MatchingNode(descriptor: MatchDescriptorChain(any: P.a, all: Q.a)),
              WhenNode(events: [e1]),
@@ -280,11 +280,11 @@ class SyntaxNodeTests: XCTestCase {
                     three = $1[2].copy(),
                     four = $1[3].copy()
                 
-                three.rest.append(four as! any Node<DefaultIO>)
-                two.rest.append(three as! any Node<DefaultIO>)
-                one.rest.append(two as! any Node<DefaultIO>)
+                three.rest.append(four as! any SyntaxNode<RawSyntaxDTO>)
+                two.rest.append(three as! any SyntaxNode<RawSyntaxDTO>)
+                one.rest.append(two as! any SyntaxNode<RawSyntaxDTO>)
                 
-                $0.append(one as! any Node<DefaultIO>)
+                $0.append(one as! any SyntaxNode<RawSyntaxDTO>)
             }
         }()
         
@@ -351,7 +351,7 @@ class DefineConsumer: SyntaxNodeTests {
 }
 
 extension Collection {
-    func executeAll() async where Element == DefaultIO {
+    func executeAll() async where Element == RawSyntaxDTO {
         for action in map(\.actions).flattened {
             await action()
         }
@@ -366,7 +366,7 @@ extension Collection {
 
 let testGroupID = UUID()
 
-protocol DefaultIONode: Node where Output == DefaultIO, Input == Output {
+protocol DefaultIONode: SyntaxNode where Output == RawSyntaxDTO, Input == Output {
     func copy() -> Self
 }
 

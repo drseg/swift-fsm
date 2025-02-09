@@ -8,7 +8,7 @@ class ConditionBlockTests: BlockTestsBase {
         return (a1, a2)
     }
 
-    func mbn(_ n: any Node<DefaultIO>) -> MatchingBlockNode {
+    func mbn(_ n: any SyntaxNode<RawSyntaxDTO>) -> MatchingBlockNode {
         n as! MatchingBlockNode
     }
 

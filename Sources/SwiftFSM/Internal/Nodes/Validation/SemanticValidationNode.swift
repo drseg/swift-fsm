@@ -4,71 +4,18 @@ protocol SVNKey: FSMHashable {
     init(_ input: SemanticValidationNode.Input)
 }
 
-class SemanticValidationNode: Node {
-    struct DuplicatesError: Error {
-        let duplicates: DuplicatesDictionary
-    }
-
-    struct ClashError: Error {
-        let clashes: ClashesDictionary
-    }
-
-    class OverrideError: @unchecked Sendable, Error {
-        let override: IntermediateIO
-
-        init(_ override: IntermediateIO) {
-            self.override = override
-        }
-    }
-
-    final class OverrideOutOfOrder: OverrideError, @unchecked Sendable {
-        let outOfOrder: [IntermediateIO]
-
-        init(_ override: IntermediateIO, _ outOfOrder: [IntermediateIO]) {
-            self.outOfOrder = outOfOrder
-            super.init(override)
-        }
-    }
-
-    final class NothingToOverride: OverrideError, @unchecked Sendable { }
-
-    struct DuplicatesKey: SVNKey {
-        let state: AnyTraceable,
-            match: MatchDescriptorChain,
-            event: AnyTraceable,
-            nextState: AnyTraceable
-
-        init(_ input: Input) {
-            state = input.state
-            match = input.descriptor
-            event = input.event
-            nextState = input.nextState
-        }
-    }
-
-    struct ClashesKey: SVNKey {
-        let state: AnyTraceable,
-            match: MatchDescriptorChain,
-            event: AnyTraceable
-
-        init(_ input: Input) {
-            state = input.state
-            match = input.descriptor
-            event = input.event
-        }
-    }
-
+class SemanticValidationNode: SyntaxNode {
     typealias DuplicatesDictionary = [DuplicatesKey: [Input]]
     typealias ClashesDictionary = [ClashesKey: [Input]]
 
-    var rest: [any Node<IntermediateIO>]
+    var rest: [any SyntaxNode<OverrideSyntaxDTO>]
     var errors: [Error] = []
 
-    init(rest: [any Node<Input>]) {
+    init(rest: [any SyntaxNode<Input>]) {
         self.rest = rest
     }
 
-    func combinedWith(_ rest: [IntermediateIO]) -> [IntermediateIO] {
+    func combinedWith(_ rest: [OverrideSyntaxDTO]) -> [OverrideSyntaxDTO] {
         var duplicates = DuplicatesDictionary()
         var clashes = ClashesDictionary()
 
@@ -112,32 +59,32 @@ class SemanticValidationNode: Node {
             errors.append(ClashError(clashes: clashes))
         }
 
-        output = handleOverrides(in: output)
+        output = implementOverrides(in: output)
         return errors.isEmpty ? output : []
     }
 
-    private func handleOverrides(in output: [IntermediateIO]) -> [IntermediateIO] {
+    private func implementOverrides(in output: [OverrideSyntaxDTO]) -> [OverrideSyntaxDTO] {
         var reverseOutput = Array(output.reversed())
         let overrides = reverseOutput.filter(\.isOverride)
         guard !overrides.isEmpty else { return output }
 
-        var alreadyOverridden = [IntermediateIO]()
+        var alreadyOverridden = [OverrideSyntaxDTO]()
 
         overrides.forEach { override in
-            func isOverridden(_ candidate: IntermediateIO) -> Bool {
+            func isOverridden(_ candidate: OverrideSyntaxDTO) -> Bool {
                 candidate.state == override.state &&
                 candidate.descriptor == override.descriptor &&
                 candidate.event == override.event
             }
 
-            func handleOverrides() {
-                func findOutOfPlaceOverrides() -> [IntermediateIO]? {
+            func implementOverrides() {
+                func findOutOfPlaceOverrides() -> [OverrideSyntaxDTO]? {
                     let prefix = Array(reverseOutput.prefix(upTo: indexAfterOverride - 1))
                     let outOfPlaceOverrides = prefix.filter(isOverridden)
                     return outOfPlaceOverrides.isEmpty ? nil : outOfPlaceOverrides
                 }
 
-                func findSuffixFromOverride() -> [IntermediateIO]? {
+                func findSuffixFromOverride() -> [OverrideSyntaxDTO]? {
                     let suffix = Array(reverseOutput.suffix(from: indexAfterOverride))
                     return suffix.contains(where: isOverridden) ? suffix : nil
                 }
@@ -158,7 +105,7 @@ class SemanticValidationNode: Node {
 
             if !alreadyOverridden.contains(where: isOverridden) {
                 alreadyOverridden.append(override)
-                handleOverrides()
+                implementOverrides()
             }
         }
 
@@ -170,8 +117,63 @@ class SemanticValidationNode: Node {
     }
 }
 
-extension IntermediateIO: Equatable {
-    static func == (lhs: IntermediateIO, rhs: IntermediateIO) -> Bool {
+extension SemanticValidationNode {
+    struct DuplicatesError: Error {
+        let duplicates: DuplicatesDictionary
+    }
+
+    struct ClashError: Error {
+        let clashes: ClashesDictionary
+    }
+
+    class OverrideError: @unchecked Sendable, Error {
+        let override: OverrideSyntaxDTO
+
+        init(_ override: OverrideSyntaxDTO) {
+            self.override = override
+        }
+    }
+
+    final class OverrideOutOfOrder: OverrideError, @unchecked Sendable {
+        let outOfOrder: [OverrideSyntaxDTO]
+
+        init(_ override: OverrideSyntaxDTO, _ outOfOrder: [OverrideSyntaxDTO]) {
+            self.outOfOrder = outOfOrder
+            super.init(override)
+        }
+    }
+
+    final class NothingToOverride: OverrideError, @unchecked Sendable { }
+
+    struct DuplicatesKey: SVNKey {
+        let state: AnyTraceable,
+            match: MatchDescriptorChain,
+            event: AnyTraceable,
+            nextState: AnyTraceable
+
+        init(_ input: Input) {
+            state = input.state
+            match = input.descriptor
+            event = input.event
+            nextState = input.nextState
+        }
+    }
+
+    struct ClashesKey: SVNKey {
+        let state: AnyTraceable,
+            match: MatchDescriptorChain,
+            event: AnyTraceable
+
+        init(_ input: Input) {
+            state = input.state
+            match = input.descriptor
+            event = input.event
+        }
+    }
+}
+
+extension OverrideSyntaxDTO: Equatable {
+    static func == (lhs: OverrideSyntaxDTO, rhs: OverrideSyntaxDTO) -> Bool {
         lhs.state == rhs.state &&
         lhs.descriptor == rhs.descriptor &&
         lhs.event == rhs.event &&

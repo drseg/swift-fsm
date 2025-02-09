@@ -1,18 +1,18 @@
 import Foundation
 
-protocol Node<Output> {
+protocol SyntaxNode<Output> {
     associatedtype Input: Sendable
     associatedtype Output: Sendable
 
     typealias Result = (output: [Output], errors: [Error])
     
-    var rest: [any Node<Input>] { get set }
+    var rest: [any SyntaxNode<Input>] { get set }
 
     func combinedWith(_ rest: [Input]) -> [Output]
     func findErrors() -> [Error]
 }
 
-extension Node {
+extension SyntaxNode {
     func resolve() -> Result {
         var allOutput = [Input]()
         var allErrors = [Error]()

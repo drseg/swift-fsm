@@ -32,7 +32,7 @@ extension FSMSpyProtocol {
     }
     
     func makeMatchResolvingNode(
-        rest: [any Node<IntermediateIO>]
+        rest: [any SyntaxNode<OverrideSyntaxDTO>]
     ) -> any MatchResolvingNode {
         fatalError("never called")
     }

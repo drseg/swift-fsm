@@ -3,13 +3,13 @@ import XCTest
 
 class ActionsResolvingNodeTests: DefineConsumer {
     func testEmptyNode() {
-        let node = ConditionalActionsResolvingNode()
+        let node = ActionsResolvingNode.OnStateChange()
         let finalised = node.resolve()
         XCTAssertTrue(finalised.output.isEmpty)
         XCTAssertTrue(finalised.errors.isEmpty)
     }
     
-    func assertNode<T: ActionsResolvingNodeBase>(
+    func assertNode<T: ActionsResolvingNode>(
         type: T.Type,
         g: AnyTraceable,
         m: MatchDescriptorChain,
@@ -28,7 +28,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     }
     
     func assertResult(
-        _ result: ConditionalActionsResolvingNode.Output,
+        _ result: ActionsResolvingNode.OnStateChange.Output,
         _ g: AnyTraceable,
         _ m: MatchDescriptorChain,
         _ w: AnyTraceable,
@@ -49,23 +49,23 @@ class ActionsResolvingNodeTests: DefineConsumer {
     let m = MatchDescriptorChain()
     
     func testConditionalDoesNotAddExitActionsWithoutStateChange() async {
-        await assertNode(type: ConditionalActionsResolvingNode.self,
+        await assertNode(type: ActionsResolvingNode.OnStateChange.self,
                    g: s1, m: m, w: e1, t: s1, output: "12")
     }
     
     func testUnconditionalAddsExitActionsWithoutStateChange() async {
-        await assertNode(type: ActionsResolvingNode.self,
+        await assertNode(type: ActionsResolvingNode.ExecuteAlways.self,
                    g: s1, m: m, w: e1, t: s1, output: "12>>")
     }
     
     func testConditionalAddsExitActionsWithStateChange() async {
-        await assertNode(type: ConditionalActionsResolvingNode.self,
+        await assertNode(type: ActionsResolvingNode.OnStateChange.self,
                    g: s1, m: m, w: e1, t: s2, output: "12>>")
     }
     
     func testConditionalDoesNotAddEntryActionsWithoutStateChange() async {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: [])
-        let result = ConditionalActionsResolvingNode(rest: [d1]).resolve()
+        let result = ActionsResolvingNode.OnStateChange(rest: [d1]).resolve()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 1) else { return }
@@ -75,7 +75,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     
     func testUnconditionalAddsEntryActionsWithoutStateChange() async {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: onExit)
-        let result = ActionsResolvingNode(rest: [d1]).resolve()
+        let result = ActionsResolvingNode.ExecuteAlways(rest: [d1]).resolve()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 1) else { return }
@@ -86,7 +86,7 @@ class ActionsResolvingNodeTests: DefineConsumer {
     func testConditionalAddsEntryActionsForStateChange() async {
         let d1 = defineNode(s1, m, e1, s2)
         let d2 = defineNode(s2, m, e1, s3, entry: onEntry, exit: onExit)
-        let result = ConditionalActionsResolvingNode(rest: [d1, d2]).resolve()
+        let result = ActionsResolvingNode.OnStateChange(rest: [d1, d2]).resolve()
         
         XCTAssertTrue(result.errors.isEmpty)
         guard assertCount(result.output, expected: 2) else { return }
