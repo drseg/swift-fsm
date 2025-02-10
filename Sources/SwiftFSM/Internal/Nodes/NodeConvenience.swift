@@ -51,7 +51,7 @@ struct RawSyntaxDTO: Sendable {
     }
 }
 
-func makeDefaultIO(
+func makeRawDTO(
     match: MatchDescriptorChain = MatchDescriptorChain(),
     event: AnyTraceable? = nil,
     state: AnyTraceable? = nil,

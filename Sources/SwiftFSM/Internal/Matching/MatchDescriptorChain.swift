@@ -70,13 +70,15 @@ final class MatchDescriptorChain: Sendable {
 
 extension MatchDescriptorChain {
     func prepend(_ m: MatchDescriptorChain) -> MatchDescriptorChain {
-        .init(any: m.matchingAny,
-              all: m.matchingAll,
-              condition: m.condition,
-              childDescriptor: self,
-              originalSelf: m.originalSelf,
-              file: m.file,
-              line: m.line)
+        .init(
+            any: m.matchingAny,
+            all: m.matchingAll,
+            condition: m.condition,
+            childDescriptor: self,
+            originalSelf: m.originalSelf,
+            file: m.file,
+            line: m.line
+        )
     }
 
     func resolve() -> ResolvedMatchDescriptor {
@@ -140,10 +142,10 @@ extension MatchDescriptorChain {
 
         return .success(self)
     }
-
+    
     func combineWith(_ other: MatchDescriptorChain) -> MatchDescriptorChain {
         var condition: ConditionProvider? {
-            return switch (self.condition == nil, other.condition == nil) {
+            switch (self.condition == nil, other.condition == nil) {
             case (true, true): nil
             case (true, false): other.condition!
             case (false, true): self.condition!
@@ -163,16 +165,16 @@ extension MatchDescriptorChain {
     }
 
     func allPredicateCombinations(_ predicatePool: PredicateSets) -> Set<RankedPredicates> {
-        let anyAndAll = combineAnyAndAll().removingEmpties
+        let predicates = resolvedPredicates()
 
         return predicatePool.reduce(into: []) { result, poolElement in
             func insertPoolElement(priority: Int) {
                 result.insert(.init(poolElement, priority: priority))
             }
 
-            guard !anyAndAll.isEmpty else { insertPoolElement(priority: 0); return }
+            guard !predicates.isEmpty else { insertPoolElement(priority: 0); return }
 
-            anyAndAll.forEach {
+            predicates.forEach {
                 if $0.allSatisfy(poolElement.contains) {
                     insertPoolElement(priority: $0.count)
                 }
@@ -180,10 +182,10 @@ extension MatchDescriptorChain {
         }
     }
 
-    func combineAnyAndAll() -> PredicateSets {
-        matchingAny.combinations().reduce(into: PredicateSets()) {
+    func resolvedPredicates() -> PredicateSets {
+        (matchingAny.combinations().reduce(into: PredicateSets()) {
             $0.insert(Set(matchingAll + $1))
-        } ??? [matchingAll].asSets
+        } ??? [matchingAll].asSets).removingEmpties
     }
 }
 
@@ -261,7 +263,7 @@ extension [[AnyPredicate]] {
             for type in first where rest.flattened.contains(type) {
                 return false
             }
-            anyOf = rest.map { $0 }
+            anyOf = rest.map(\.self)
         }
 
         return true

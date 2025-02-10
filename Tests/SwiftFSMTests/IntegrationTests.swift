@@ -419,7 +419,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             }
         ) {
             let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(2, errors?.count)
+            XCTAssertEqual(2, errors?.count, "\(String(describing: errors))")
             
             let e1 = errors?.compactMap { $0 as? DE }.first?.duplicates.values
             let e2 = errors?.compactMap { $0 as? CE }.first?.clashes.values
@@ -472,7 +472,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             let errors = ($0 as? SwiftFSMError)?.errors
             XCTAssertEqual(1, errors?.count)
             
-            let error = errors?.first as? EagerMatchResolvingNode.ImplicitClashesError
+            let error = errors?.first as? MatchResolvingNode.Eager.ImplicitClashesError
             let clashes = error?.clashes.values
             XCTAssertEqual(1, clashes?.count)
             

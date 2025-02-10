@@ -15,11 +15,13 @@ class SemanticValidationNode: SyntaxNode {
         self.rest = rest
     }
 
-    func combinedWith(_ rest: [OverrideSyntaxDTO]) -> [OverrideSyntaxDTO] {
+    func combineWith(_ rest: [OverrideSyntaxDTO]) -> [OverrideSyntaxDTO] {
         var duplicates = DuplicatesDictionary()
         var clashes = ClashesDictionary()
 
-        var output = rest.reduce(into: [Output]()) { result, row in
+        var output = rest.reduce(into: [Output]()) {
+            result,
+            row in
             func isDuplicate(_ lhs: Input) -> Bool {
                 isError(lhs, keyType: DuplicatesKey.self)
             }
@@ -34,7 +36,9 @@ class SemanticValidationNode: SyntaxNode {
                 let haveOverrides = lhs.isOverride || row.isOverride
                 let areSameOverrideGroup = lhs.overrideGroupID == row.overrideGroupID
 
-                return haveClashingValues && (haveNoOverrides || haveOverrides && areSameOverrideGroup)
+                return haveClashingValues && (
+                    haveNoOverrides || haveOverrides && areSameOverrideGroup
+                )
             }
 
             func add<T: SVNKey>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {

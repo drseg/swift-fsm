@@ -22,28 +22,43 @@ class BuilderTests: BlockTestsBase {
         await assertMWTA(mwta[2].node, sutLine: line + 3)
         await assertWTA(mwta[3].node, sutLine: line + 4)
         
-        await assertMWTA(mwta[4].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 5)
+        await assertMWTA(
+            mwta[4].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 5
+        )
+        
         await assertWTA(
             mwta[5].node,
             expectedOutput: Self.defaultOutputWithEvent,
             sutLine: line + 6
         )
         
-        await assertMWTA(mwta[6].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 7)
+        await assertMWTA(
+            mwta[6].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 7
+        )
+        
         await assertWTA(
             mwta[7].node,
             expectedOutput: Self.defaultOutputWithEvent,
             sutLine: line + 8
         )
         
-        await assertMWTA(mwta[8].node,
-                         expectedOutput: Self.defaultOutput + Self.defaultOutput,
-                         sutLine: line + 9)
-        await assertWTA(mwta[9].node,
-                  expectedOutput: Self.defaultOutput + Self.defaultOutput,
-                  sutLine: line + 10)
+        await assertMWTA(
+            mwta[8].node,
+            expectedOutput: Self.defaultOutput + Self.defaultOutput,
+            sutLine: line + 9
+        )
+        
+        await assertWTA(
+            mwta[9].node,
+            expectedOutput: Self.defaultOutput + Self.defaultOutput,
+            sutLine: line + 10
+        )
     }
-
+    
     func testMWA() async {
         let line = #line; @MWABuilder var mwa: [Syntax.MatchingWhenActions] {
             matching(P.a) | when(1, or: 2) | pass
@@ -64,18 +79,41 @@ class BuilderTests: BlockTestsBase {
         await assertMWA(mwa[2].node, sutLine: line + 3)
         await assertWA(mwa[3].node, sutLine: line + 4)
 
-        await assertMWA(mwa[4].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 5)
-        await assertWA(mwa[5].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 6)
-
-        await assertMWA(mwa[6].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 7)
-        await assertWA(mwa[7].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 8)
-
-        await assertMWA(mwa[8].node,
-                  expectedOutput: Self.defaultOutput + Self.defaultOutput,
-                  sutLine: line + 9)
-        await assertWA(mwa[9].node,
-                 expectedOutput: Self.defaultOutput + Self.defaultOutput,
-                 sutLine: line + 10)
+        await assertMWA(
+            mwa[4].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 5
+        )
+        
+        await assertWA(
+            mwa[5].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 6
+        )
+        
+        await assertMWA(
+            mwa[6].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 7
+        )
+        
+        await assertWA(
+            mwa[7].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 8
+        )
+        
+        await assertMWA(
+            mwa[8].node,
+            expectedOutput: Self.defaultOutput + Self.defaultOutput,
+            sutLine: line + 9
+        )
+        
+        await assertWA(
+            mwa[9].node,
+            expectedOutput: Self.defaultOutput + Self.defaultOutput,
+            sutLine: line + 10
+        )
     }
 
     func testMTA() async {
@@ -98,18 +136,41 @@ class BuilderTests: BlockTestsBase {
         await assertMTA(mta[2].node, sutLine: line + 3)
         await assertTA(mta[3].node, sutLine: line + 4)
 
-        await assertMTA(mta[4].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 5)
-        await assertTA(mta[5].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 6)
-
-        await assertMTA(mta[6].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 7)
-        await assertTA(mta[7].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 8)
-
-        await assertMTA(mta[8].node,
-                  expectedOutput: Self.defaultOutput + Self.defaultOutput,
-                  sutLine: line + 9)
-        await assertTA(mta[9].node,
-                 expectedOutput: Self.defaultOutput + Self.defaultOutput,
-                 sutLine: line + 10)
+        await assertMTA(
+            mta[4].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 5
+        )
+        
+        await assertTA(
+            mta[5].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 6
+        )
+        
+        await assertMTA(
+            mta[6].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 7
+        )
+        
+        await assertTA(
+            mta[7].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 8
+        )
+        
+        await assertMTA(
+            mta[8].node,
+            expectedOutput: Self.defaultOutput + Self.defaultOutput,
+            sutLine: line + 9
+        )
+        
+        await assertTA(
+            mta[9].node,
+            expectedOutput: Self.defaultOutput + Self.defaultOutput,
+            sutLine: line + 10
+        )
     }
 
     func testMA() async {
@@ -123,10 +184,23 @@ class BuilderTests: BlockTestsBase {
 
         await assertMA(ma[0].node, sutLine: line + 1)
         await assertMA(ma[1].node, sutLine: line + 2)
-        await assertMA(ma[2].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 3)
-        await assertMA(ma[3].node, expectedOutput: Self.defaultOutputWithEvent, sutLine: line + 4)
-        await assertMA(ma[4].node,
-                 expectedOutput: Self.defaultOutput + Self.defaultOutput,
-                 sutLine: line + 5)
+        
+        await assertMA(
+            ma[2].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 3
+        )
+        
+        await assertMA(
+            ma[3].node,
+            expectedOutput: Self.defaultOutputWithEvent,
+            sutLine: line + 4
+        )
+        
+        await assertMA(
+            ma[4].node,
+            expectedOutput: Self.defaultOutput + Self.defaultOutput,
+            sutLine: line + 5
+        )
     }
 }

@@ -45,7 +45,7 @@ class FSMTestsBase<State: FSMHashable, Event: FSMHashable>:
     ) {
         XCTAssertThrowsError(try block(), line: line) {
             let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(count, errors?.count, line: line)
+            XCTAssertEqual(count, errors?.count, "\(String(describing: errors))", line: line)
             XCTAssertTrue(errors?.first is T, String(describing: errors), line: line)
             completion(errors?.first as? T)
         }
@@ -132,7 +132,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         passWithEvent(event)
     }
 
-    func testHandleEventWithoutPredicate_Async() async throws {
+    func testHandleEventWithoutPredicate() async throws {
         try fsm.buildTable {
             define(1) {
                 when(1.1) | then(2) | passAsync
@@ -145,7 +145,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.3, state: 2, output: "pass, event: 1.3")
     }
 
-    func testHandleEventWithSinglePredicate_Async() async throws {
+    func testHandleEventWithSinglePredicate() async throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a) | when(1.1) | then(2) | passAsync
@@ -157,7 +157,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, predicates: P.b, state: 3, output: "pass")
     }
 
-    func testHandleEventWithMultiplePredicates_Async() async throws {
+    func testHandleEventWithMultiplePredicates() async throws {
         try fsm.buildTable {
             define(1) {
                 matching(P.a, or: P.b)  | when(1.1) | then(2) | passAsync
@@ -201,7 +201,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
     func onExit()  { actionsOutput += "exit" }
     func onExitAsync() async  { onExit() }
 
-    func testHandleEventWithConditionalEntryExitActions_Async() async throws {
+    func testHandleEventWithConditionalEntryExitActions() async throws {
         try fsm.buildTable {
             define(1, onEntry: Array(onEntryAsync), onExit: Array(onExitAsync)) {
                 when(1.0) | then(1)
@@ -219,7 +219,7 @@ class FSMTests: FSMTestsBase<Int, Double> {
         await assertHandleEvent(1.1, state: 1, output: "exitentry")
     }
 
-    func testHandleEventWithUnconditionalEntryExitActions_Async() async throws {
+    func testHandleEventWithUnconditionalEntryExitActions() async throws {
         actionsPolicy = .executeAlways
         fsm = makeSUT()
         try fsm.buildTable {

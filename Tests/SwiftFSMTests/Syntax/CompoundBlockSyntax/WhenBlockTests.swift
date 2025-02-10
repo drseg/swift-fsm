@@ -29,7 +29,13 @@ class WhenBlockTests: BlockTestsBase {
         await assertActions(actionsNode.actions, expectedOutput: eo, xctLine: xl)
 
         let matchNode = actionsNode.rest.first as! MatchingNode
-        await assertMatchNode(matchNode, all: [P.a], sutFile: baseFile, sutLine: rl, xctLine: xl)
+        await assertMatchNode(
+            matchNode,
+            all: [P.a],
+            sutFile: baseFile,
+            sutLine: rl,
+            xctLine: xl
+        )
     }
 
     func testWhenBlockWithMTA() async {

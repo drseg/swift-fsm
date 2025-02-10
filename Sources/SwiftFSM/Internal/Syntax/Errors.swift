@@ -265,7 +265,7 @@ extension SemanticValidationNode.OverrideOutOfOrder: LocalizedError {
     }
 }
 
-extension EagerMatchResolvingNode.ImplicitClashesError: ValidationError {
+extension MatchResolvingNode.Eager.ImplicitClashesError: ValidationError {
     var errorDescription: String? {
         String {
             "The FSM table contains implicit logical clashes (total: \(clashes.count))"
@@ -334,7 +334,7 @@ extension MatchDescriptorChain {
     }
 }
 
-extension AnyTraceable {
+private extension AnyTraceable {
     var fileAndLine: String {
         "@\(file.name): \(line)"
     }

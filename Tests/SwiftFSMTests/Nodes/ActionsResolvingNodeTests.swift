@@ -50,17 +50,17 @@ class ActionsResolvingNodeTests: DefineConsumer {
     
     func testConditionalDoesNotAddExitActionsWithoutStateChange() async {
         await assertNode(type: ActionsResolvingNode.OnStateChange.self,
-                   g: s1, m: m, w: e1, t: s1, output: "12")
+                         g: s1, m: m, w: e1, t: s1, output: "12")
     }
     
     func testUnconditionalAddsExitActionsWithoutStateChange() async {
         await assertNode(type: ActionsResolvingNode.ExecuteAlways.self,
-                   g: s1, m: m, w: e1, t: s1, output: "12>>")
+                         g: s1, m: m, w: e1, t: s1, output: "12>>")
     }
     
     func testConditionalAddsExitActionsWithStateChange() async {
         await assertNode(type: ActionsResolvingNode.OnStateChange.self,
-                   g: s1, m: m, w: e1, t: s2, output: "12>>")
+                         g: s1, m: m, w: e1, t: s2, output: "12>>")
     }
     
     func testConditionalDoesNotAddEntryActionsWithoutStateChange() async {

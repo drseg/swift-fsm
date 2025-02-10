@@ -14,22 +14,26 @@ class MatchingNodeBase: OverridableNode {
         self.rest = rest
         super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
-
+    
     func makeOutput(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         rest.reduce(into: []) {
-            $0.append(RawSyntaxDTO($1.descriptor.prepend(descriptor),
-                                $1.event,
-                                $1.state,
-                                $1.actions,
-                                overrideGroupID,
-                                isOverride))
+            $0.append(
+                RawSyntaxDTO(
+                    $1.descriptor.prepend(descriptor),
+                    $1.event,
+                    $1.state,
+                    $1.actions,
+                    overrideGroupID,
+                    isOverride
+                )
+            )
         }
     }
 }
 
 class MatchingNode: MatchingNodeBase, SyntaxNode {
-    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
-        makeOutput(rest) ??? makeDefaultIO(match: descriptor)
+    func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
+        makeOutput(rest) ??? makeRawDTO(match: descriptor)
     }
 }
 
@@ -50,14 +54,16 @@ class MatchingBlockNode: MatchingNodeBase, NeverEmptyNode {
         self.caller = caller
         self.file = file
         self.line = line
-
-        super.init(descriptor: descriptor,
-                   rest: rest,
-                   overrideGroupID: overrideGroupID,
-                   isOverride: isOverride)
+        
+        super.init(
+            descriptor: descriptor,
+            rest: rest,
+            overrideGroupID: overrideGroupID,
+            isOverride: isOverride
+        )
     }
-
-    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
+    
+    func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest)
     }
 }

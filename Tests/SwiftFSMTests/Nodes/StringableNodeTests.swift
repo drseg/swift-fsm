@@ -248,10 +248,12 @@ class StringableNodeTest: DefineConsumer {
     ) async {
         let lhs = await toString(lhs, printFileAndLine: true)
         let rhs = await toString(rhs, printFileAndLine: true)
-        XCTAssertEqual(lhs,
-                       rhs,
-                       file: file,
-                       line: line)
+        XCTAssertEqual(
+            lhs,
+            rhs,
+            file: file,
+            line: line
+        )
     }
 
     func toString(
@@ -327,8 +329,10 @@ class StringableNodeTest: DefineConsumer {
             let description = n.events.map { $0.description + fileAndLine($0.file, $0.line) }
 
             if let n = n as? WhenBlockNode, printFileAndLine {
-                output.append("W" + fileAndLine(n.file, n.line)
-                              + ": \(description.joined(separator: ", "))")
+                output.append(
+                    "W" + fileAndLine(n.file, n.line)
+                    + ": \(description.joined(separator: ", "))"
+                )
 
             } else {
                 output.append("W: \(description.joined(separator: ", "))")
@@ -344,10 +348,14 @@ class StringableNodeTest: DefineConsumer {
         _ printFileAndLine: Bool
     ) async  {
         if let n = n as? MatchingBlockNode, printFileAndLine {
-            output.append("M" + fileAndLine(n.file, n.line) +
-                          ": any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)")
+            output.append(
+                "M" + fileAndLine(n.file, n.line) +
+                ": any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)"
+            )
         } else {
-            output.append("M: any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)")
+            output.append(
+                "M: any: \(n.descriptor.matchingAny), all: \(n.descriptor.matchingAll)"
+            )
         }
         if printFileAndLine {
             output.append(fileAndLine(n.descriptor.file, n.descriptor.line))
@@ -361,9 +369,13 @@ class StringableNodeTest: DefineConsumer {
     ) async {
         if printFileAndLine {
             let description = n.states.map { $0.description + fileAndLine($0.file, $0.line) }
-            output.append("G: \(description.joined(separator: ", "))")
+            output.append(
+                "G: \(description.joined(separator: ", "))"
+            )
         } else {
-            output.append("G: \(n.states.map(\.description).joined(separator: ", "))")
+            output.append(
+                "G: \(n.states.map(\.description).joined(separator: ", "))"
+            )
         }
     }
 
@@ -374,7 +386,9 @@ class StringableNodeTest: DefineConsumer {
     ) async {
         await n.onEntry.executeAll()
         await n.onExit.executeAll()
-        output.append("D: entry: \(onEntryOutput.formatted), exit: \(onExitOutput.formatted)")
+        output.append(
+            "D: entry: \(onEntryOutput.formatted), exit: \(onExitOutput.formatted)"
+        )
         if printFileAndLine {
             output.append(fileAndLine(n.file, n.line) )
         }
@@ -410,10 +424,13 @@ class StringableNodeTest: DefineConsumer {
 
         if !n.rest.isEmpty {
             output.append(" {\n")
-            await output.append(n.rest.asyncMap {
-                let rhs = await toString($0,
-                                         printFileAndLine: printFileAndLine,
-                                         indent: indent + 2)
+            await output.append(
+                n.rest.asyncMap {
+                    let rhs = await toString(
+                        $0,
+                        printFileAndLine: printFileAndLine,
+                        indent: indent + 2
+                    )
                 return string(indent + 2) + rhs
             }.joined(separator: "\n"))
             output.append("\n" + string(indent) + "}")

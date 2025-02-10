@@ -20,6 +20,6 @@ public extension ResultBuilder {
 
 extension Collection where Element: Collection {
     var flattened: [Element.Element] {
-        flatMap { $0 }
+        flatMap(\.self)
     }
 }

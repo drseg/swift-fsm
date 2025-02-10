@@ -1,12 +1,22 @@
 import Foundation
 
-protocol MatchResolvingNode: SyntaxNode {
-    var errors: [Error] { get }
-    init(rest: [any SyntaxNode<OverrideSyntaxDTO>])
-    func resolve() -> (output: [Transition], errors: [Error])
+enum MatchResolvingNode {
+    protocol Interface: SyntaxNode {
+        var errors: [Error] { get }
+        func resolve() -> (output: [Transition], errors: [Error])
+    }
+    
+    class Base {
+        var rest: [any SyntaxNode<OverrideSyntaxDTO>]
+        var errors: [Error] = []
+        
+        init(rest: [any SyntaxNode<OverrideSyntaxDTO>]) {
+            self.rest = rest
+        }
+    }
 }
 
-extension MatchResolvingNode {
+extension MatchResolvingNode.Interface {
     func findErrors() -> [Error] {
         errors
     }

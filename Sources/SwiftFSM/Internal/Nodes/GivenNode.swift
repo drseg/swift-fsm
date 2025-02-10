@@ -1,6 +1,27 @@
 import Foundation
 
 struct GivenNode: SyntaxNode {
+    let states: [AnyTraceable]
+    var rest: [any SyntaxNode<RawSyntaxDTO>] = []
+
+    func combineWith(_ rest: [RawSyntaxDTO]) -> [Output] {
+        states.reduce(into: []) { result, state in
+            rest.forEach {
+                result.append(
+                    Output(
+                        state,
+                        $0.descriptor,
+                        $0.event!,
+                        $0.state ?? state,
+                        $0.actions,
+                        $0.overrideGroupID,
+                        $0.isOverride
+                    )
+                )
+            }
+        }
+    }
+    
     struct Output {
         let state: AnyTraceable,
             descriptor: MatchDescriptorChain,
@@ -26,23 +47,6 @@ struct GivenNode: SyntaxNode {
             self.actions = actions
             self.overrideGroupID = overrideGroupID
             self.isOverride = isOverride
-        }
-    }
-
-    let states: [AnyTraceable]
-    var rest: [any SyntaxNode<RawSyntaxDTO>] = []
-
-    func combinedWith(_ rest: [RawSyntaxDTO]) -> [Output] {
-        states.reduce(into: []) { result, state in
-            rest.forEach {
-                result.append(Output(state,
-                                     $0.descriptor,
-                                     $0.event!,
-                                     $0.state ?? state,
-                                     $0.actions,
-                                     $0.overrideGroupID,
-                                     $0.isOverride))
-            }
         }
     }
 }

@@ -2,7 +2,7 @@ import XCTest
 @testable import SwiftFSM
 
 class LazyMatchResolvingNodeTests: MRNTestBase {
-    typealias LMRN = LazyMatchResolvingNode
+    typealias LMRN = MatchResolvingNode.Lazy
     
     func makeSUT(rest: [any SyntaxNode<DefineNode.Output>]) -> LMRN {
         .init(rest: [SVN(rest: [ARN(rest: rest)])])
@@ -16,8 +16,8 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
         
-        let p1 = m1.combineAnyAndAll().first ?? []
-        let p2 = m2.combineAnyAndAll().first ?? []
+        let p1 = m1.resolvedPredicates().first ?? []
+        let p2 = m2.resolvedPredicates().first ?? []
         
         let result = makeSUT(rest: [d1, d2]).resolve()
         
@@ -39,7 +39,11 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         )
     }
     
-    func assertMatchClash(_ m1: MatchDescriptorChain, _ m2: MatchDescriptorChain, line: UInt = #line) {
+    func assertMatchClash(
+        _ m1: MatchDescriptorChain,
+        _ m2: MatchDescriptorChain,
+        line: UInt = #line
+    ) {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
         let finalised = makeSUT(rest: [d1, d2]).resolve()

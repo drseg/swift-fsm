@@ -1,7 +1,7 @@
 #if(false)
 @testable import SwiftFSM
 
-class ManualTests: ExpandedSyntaxBuilder {
+class NonCompilationTests: ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
     
@@ -141,5 +141,4 @@ class ManualTests: ExpandedSyntaxBuilder {
         }
     }
 }
-
 #endif

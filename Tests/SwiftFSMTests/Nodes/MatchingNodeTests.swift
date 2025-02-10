@@ -3,15 +3,31 @@ import XCTest
 
 final class MatchingNodeTests: SyntaxNodeTests {
     func testEmptyMatchNodeIsNotError() {
-        assertCount(MatchingNode(descriptor: MatchDescriptorChain(), rest: []).resolve().errors, expected: 0)
+        assertCount(
+            MatchingNode(
+                descriptor: MatchDescriptorChain(), rest: []
+            ).resolve().errors,
+            expected: 0
+        )
     }
     
     func testEmptyMatchBlockNodeIsError() {
-        assertEmptyNodeWithError(MatchingBlockNode(descriptor: MatchDescriptorChain(), rest: []))
+        assertEmptyNodeWithError(
+            MatchingBlockNode(
+                descriptor: MatchDescriptorChain(),
+                rest: []
+            )
+        )
     }
     
     func testEmptyMatchBlockNodeHasNoOutput() {
-        assertCount(MatchingBlockNode(descriptor: MatchDescriptorChain(), rest: []).resolve().output, expected: 0)
+        assertCount(
+            MatchingBlockNode(
+                descriptor: MatchDescriptorChain(),
+                rest: []
+            ).resolve().output,
+            expected: 0
+        )
     }
     
     func testMatchNodeFinalisesCorrectly() async {
@@ -20,8 +36,10 @@ final class MatchingNodeTests: SyntaxNodeTests {
     
     func testMatchNodeWithChainFinalisesCorrectly() async {
         let m = MatchingNode(descriptor: MatchDescriptorChain(any: S.b, all: R.a))
-        await assertDefaultIONodeChains(node: m, expectedMatch: MatchDescriptorChain(any: [[P.a], [S.b]],
-                                                                                     all: Q.a, R.a))
+        await assertDefaultIONodeChains(
+            node: m,
+            expectedMatch: MatchDescriptorChain(any: [[P.a], [S.b]],
+                                                all: Q.a, R.a))
     }
     
     func testMatchNodeCanSetRestAfterInit() async {

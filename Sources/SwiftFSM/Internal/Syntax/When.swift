@@ -18,14 +18,14 @@ public extension Syntax {
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMAction
+            rhs: @escaping Action
         ) -> MatchingWhenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMActionWithEvent<Event>
+            rhs: @escaping ActionWithEvent<Event>
         ) -> MatchingWhenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
@@ -40,10 +40,12 @@ public extension Syntax {
         let node: WhenNode
 
         var blockNode: WhenBlockNode {
-            WhenBlockNode(events: node.events,
-                          caller: node.caller,
-                          file: node.file,
-                          line: node.line)
+            WhenBlockNode(
+                events: node.events,
+                caller: node.caller,
+                file: node.file,
+                line: node.line
+            )
         }
 
         init(

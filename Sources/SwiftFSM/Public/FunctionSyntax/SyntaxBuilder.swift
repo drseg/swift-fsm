@@ -49,7 +49,7 @@ public extension SyntaxBuilder {
 // MARK: - Actions
 public extension SyntaxBuilder {
     func actions(
-        _ action: @escaping FSMAction,
+        _ action: @escaping Action,
         file: String = #file,
         line: Int = #line,
         @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
@@ -59,7 +59,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMActionWithEvent<Event>,
+        _ action: @escaping ActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
         @Syntax.MWTABuilder _ group: () -> [Syntax.MatchingWhenThenActions]
@@ -79,7 +79,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMAction,
+        _ action: @escaping Action,
         file: String = #file,
         line: Int = #line,
         @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
@@ -89,7 +89,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMActionWithEvent<Event>,
+        _ action: @escaping ActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
         @Syntax.MWABuilder _ group: () -> [Syntax.MatchingWhenActions]
@@ -109,7 +109,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMAction,
+        _ action: @escaping Action,
         file: String = #file,
         line: Int = #line,
         @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]
@@ -119,7 +119,7 @@ public extension SyntaxBuilder {
     }
 
     func actions(
-        _ action: @escaping FSMActionWithEvent<Event>,
+        _ action: @escaping ActionWithEvent<Event>,
         file: String = #file,
         line: Int = #line,
         @Syntax.MTABuilder _ group: () -> [Syntax.MatchingThenActions]

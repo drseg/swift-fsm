@@ -23,7 +23,10 @@ final class ThenNodeTests: SyntaxNodeTests {
     }
     
     func testThenNodeFinalisesCorrectly() async {
-        await assertThenWithActions(expected: "12", ThenNode(state: s1, rest: [actionsNode]))
+        await assertThenWithActions(
+            expected: "12",
+            ThenNode(state: s1, rest: [actionsNode])
+        )
     }
     
     func testThenNodePlusChainFinalisesCorrectly() async {
@@ -38,9 +41,12 @@ final class ThenNodeTests: SyntaxNodeTests {
     }
     
     func testThenNodeFinalisesWithMultipleActionsNodes() async {
-        await assertThenWithActions(expected: "1212",
-                                    ThenNode(state: s1, rest: [actionsNode,
-                                                               actionsNode])
+        await assertThenWithActions(
+            expected: "1212",
+            ThenNode(
+                state: s1,
+                rest: [actionsNode, actionsNode]
+            )
         )
     }
 }

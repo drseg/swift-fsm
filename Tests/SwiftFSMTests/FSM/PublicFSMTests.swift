@@ -33,7 +33,7 @@ extension FSMSpyProtocol {
     
     func makeMatchResolvingNode(
         rest: [any SyntaxNode<OverrideSyntaxDTO>]
-    ) -> any MatchResolvingNode {
+    ) -> any MatchResolvingNode.Interface {
         fatalError("never called")
     }
 }

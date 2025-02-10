@@ -17,9 +17,11 @@ class DefineTests: BlockTestsBase {
             XCTAssertEqual([1], gNode.states.map(\.base))
             
             await assertMWTAResult(gNode.rest, sutLine: el, xctLine: xl)
-            await assertActions(d.node.onEntry + d.node.onExit,
-                                expectedOutput: "entry1exit1",
-                                xctLine: xl)
+            await assertActions(
+                d.node.onEntry + d.node.onExit,
+                expectedOutput: "entry1exit1",
+                xctLine: xl
+            )
         }
         
         func assertEmpty(_ d: Define, xctLine: UInt = #line) {
@@ -113,7 +115,12 @@ class DefineTests: BlockTestsBase {
                             when(1, or: 2) | then(1)
         }
 
-        await assertMWTAResult(d.node.rest.nodes, expectedOutput: "", sutFile: #file, sutLine: l1 + 1)
+        await assertMWTAResult(
+            d.node.rest.nodes,
+            expectedOutput: "",
+            sutFile: #file,
+            sutLine: l1 + 1
+        )
     }
 }
 

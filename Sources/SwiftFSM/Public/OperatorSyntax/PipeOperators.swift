@@ -10,14 +10,14 @@ public extension Syntax.MatchingWhen {
 
     static func | (
         lhs: Syntax.MatchingWhen<State, Event>,
-        rhs: @escaping FSMAction
+        rhs: @escaping Action
     ) -> Syntax.MatchingWhenActions {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Syntax.MatchingWhen<State, Event>,
-        rhs: @escaping FSMActionWithEvent<Event>
+        rhs: @escaping ActionWithEvent<Event>
     ) -> Syntax.MatchingWhenActions {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
@@ -40,14 +40,14 @@ public extension Syntax.MatchingWhen {
 public extension Syntax.MatchingThen {
     static func | (
         lhs: Syntax.MatchingThen<Event>,
-        rhs: @escaping FSMAction
+        rhs: @escaping Action
     ) -> Syntax.MatchingThenActions {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Syntax.MatchingThen<Event>,
-        rhs: @escaping FSMActionWithEvent<Event>
+        rhs: @escaping ActionWithEvent<Event>
     ) -> Syntax.MatchingThenActions {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
@@ -63,14 +63,14 @@ public extension Syntax.MatchingThen {
 public extension Syntax.MatchingWhenThen {
     static func | (
         lhs: Syntax.MatchingWhenThen<Event>,
-        rhs: @escaping FSMAction
+        rhs: @escaping Action
     ) -> Syntax.MatchingWhenThenActions {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Syntax.MatchingWhenThen<Event>,
-        rhs: @escaping FSMActionWithEvent<Event>
+        rhs: @escaping ActionWithEvent<Event>
     ) -> Syntax.MatchingWhenThenActions {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
@@ -114,14 +114,14 @@ public extension Syntax.Conditional {
 
     static func | (
         lhs: Self,
-        rhs: @escaping FSMAction
+        rhs: @escaping Action
     ) -> Syntax.MatchingActions {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }
 
     static func | (
         lhs: Self,
-        rhs: @escaping FSMActionWithEvent<Event>
+        rhs: @escaping ActionWithEvent<Event>
     ) -> Syntax.MatchingActions {
         .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
     }

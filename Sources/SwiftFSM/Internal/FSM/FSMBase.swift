@@ -7,25 +7,6 @@ import Foundation
 ///
 /// The struct TableBuilder below should be internal, but when marked as such, Swift fails to link when compiling in release mode
 
-
-struct TableKey: @unchecked Sendable, Hashable {
-    let state: AnyHashable
-    let predicates: PredicateSet
-    let event: AnyHashable
-
-    init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable) {
-        self.state = state
-        self.predicates = predicates
-        self.event = event
-    }
-    
-    init(_ value: Transition) {
-        state = value.state
-        predicates = value.predicates
-        event = value.event
-    }
-}
-
 extension FSM {
     @resultBuilder
     public struct TableBuilder: ResultBuilder {
@@ -43,11 +24,16 @@ extension FSM {
         var state: AnyHashable
         let logger = Logger<Event>()
         
-        func makeMatchResolvingNode(rest: [any SyntaxNode<OverrideSyntaxDTO>]) -> any MatchResolvingNode {
+        func makeMatchResolvingNode(
+            rest: [any SyntaxNode<OverrideSyntaxDTO>]
+        ) -> any MatchResolvingNode.Interface {
             fatalError("subclasses must implement")
         }
         
-        init(initialState: State, actionsPolicy: StateActionsPolicy = .executeOnChangeOnly) {
+        init(
+            initialState: State,
+            actionsPolicy: StateActionsPolicy = .executeOnChangeOnly
+        ) {
             self.state = initialState
             self.stateActionsPolicy = actionsPolicy
         }
@@ -99,9 +85,13 @@ extension FSM {
         }
         
         func transition(_ event: Event, _ predicates: [any Predicate]) -> Transition? {
-            table[TableKey(state: state,
-                           predicates: Set(predicates.erased()),
-                           event: event)]
+            table[
+                TableKey(
+                    state: state,
+                    predicates: Set(predicates.erased()),
+                    event: event
+                )
+            ]
         }
         
         func shouldExecute(
@@ -111,14 +101,21 @@ extension FSM {
             t.condition?() ?? true
         }
         
-        func makeActionsResolvingNode(rest: [DefineNode]) -> ActionsResolvingNode {
+        func makeActionsResolvingNode(
+            rest: [DefineNode]
+        ) -> ActionsResolvingNode {
             switch stateActionsPolicy {
             case .executeAlways: ActionsResolvingNode.ExecuteAlways(rest: rest)
             case .executeOnChangeOnly: ActionsResolvingNode.OnStateChange(rest: rest)
             }
         }
         
-        func checkForErrors(_ result: (output: [Transition], errors: [Error])) throws {
+        func checkForErrors(
+            _ result: (
+                output: [Transition],
+                errors: [Error]
+            )
+        ) throws {
             if !result.errors.isEmpty {
                 throw makeError(result.errors)
             }
@@ -151,6 +148,24 @@ extension FSM {
         func logTransitionExecuted(_ t: Transition) {
             logger.transitionExecuted(t)
         }
+    }
+}
+
+struct TableKey: @unchecked Sendable, Hashable {
+    let state: AnyHashable
+    let predicates: PredicateSet
+    let event: AnyHashable
+
+    init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable) {
+        self.state = state
+        self.predicates = predicates
+        self.event = event
+    }
+    
+    init(_ value: Transition) {
+        state = value.state
+        predicates = value.predicates
+        event = value.event
     }
 }
 

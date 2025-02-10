@@ -58,19 +58,23 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        XCTAssertTrue(lhs?.descriptor == rhs?.descriptor &&
-                      lhs?.event == rhs?.event &&
-                      lhs?.state == rhs?.state,
-                      "\(String(describing: lhs)) does not equal \(String(describing: rhs))",
-                      file: file,
-                      line: line)
+        XCTAssertTrue(
+            lhs?.descriptor == rhs?.descriptor &&
+            lhs?.event == rhs?.event &&
+            lhs?.state == rhs?.state,
+            "\(String(describing: lhs)) does not equal \(String(describing: rhs))",
+            file: file,
+            line: line
+        )
     }
     
     func assertEqual(lhs: [MSES], rhs: [MSES], file: StaticString = #filePath, line: UInt) {
-        XCTAssertTrue(isEqual(lhs: lhs, rhs: rhs),
-                      "\(lhs.description) does not equal \(rhs.description)",
-                      file: file,
-                      line: line)
+        XCTAssertTrue(
+            isEqual(lhs: lhs, rhs: rhs),
+            "\(lhs.description) does not equal \(rhs.description)",
+            file: file,
+            line: line
+        )
     }
     
     
@@ -146,10 +150,12 @@ class SyntaxNodeTests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        XCTAssertEqual(n.resolve().errors as? [EmptyBuilderError],
-                       [EmptyBuilderError(caller: n.caller, file: n.file, line: n.line)],
-                       file: file,
-                       line: line)
+        XCTAssertEqual(
+            n.resolve().errors as? [EmptyBuilderError],
+            [EmptyBuilderError(caller: n.caller, file: n.file, line: n.line)],
+            file: file,
+            line: line
+        )
     }
     
     func assertWhen(
@@ -192,7 +198,11 @@ class SyntaxNodeTests: XCTestCase {
         return true
     }
     
-    func assertMatch(_ m: MatchingNode, file: StaticString = #filePath, line: UInt = #line) async {
+    func assertMatch(
+        _ m: MatchingNode,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) async {
         let finalised = m.resolve()
         let result = finalised.0
         let errors = finalised.1
@@ -200,8 +210,29 @@ class SyntaxNodeTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty, file: file, line: line)
         XCTAssertEqual(result.count, 2, file: file, line: line)
         
-        assertEqual(result[0], RawSyntaxDTO(MatchDescriptorChain(), e1, s1, []), file: file, line: line)
-        assertEqual(result[1], RawSyntaxDTO(MatchDescriptorChain(), e2, s1, []), file: file, line: line)
+        assertEqual(
+            result[0],
+            RawSyntaxDTO(
+                MatchDescriptorChain(),
+                e1,
+                s1,
+                []
+            ),
+            file: file,
+            line: line
+        )
+        
+        assertEqual(
+            result[1],
+            RawSyntaxDTO(
+                MatchDescriptorChain(),
+                e2,
+                s1,
+                []
+            ),
+            file: file,
+            line: line
+        )
         
         await assertActions(
             result.map(\.actions).flattened,
@@ -302,14 +333,47 @@ class SyntaxNodeTests: XCTestCase {
             let actualPredicates = result.descriptor.resolve()
             let expectedPredicates = expectedMatch.resolve()
             
-            XCTAssertEqual(expectedPredicates, actualPredicates, file: file, line: line)
-            XCTAssertEqual(expectedEvent, result.event, file: file, line: line)
-            XCTAssertEqual(expectedState, result.state, file: file, line: line)
+            XCTAssertEqual(
+                expectedPredicates,
+                actualPredicates,
+                file: file,
+                line: line
+            )
             
-            XCTAssertEqual(testGroupID, result.overrideGroupID, file: file, line: line)
-            XCTAssertEqual(true, result.isOverride, file: file, line: line)
+            XCTAssertEqual(
+                expectedEvent,
+                result.event,
+                file: file,
+                line: line
+            )
             
-            await assertActions(result.actions, expectedOutput: expectedOutput, file: file, line: line)
+            XCTAssertEqual(
+                expectedState,
+                result.state,
+                file: file,
+                line: line
+            )
+            
+            XCTAssertEqual(
+                testGroupID,
+                result.overrideGroupID,
+                file: file,
+                line: line
+            )
+            
+            XCTAssertEqual(
+                true,
+                result.isOverride,
+                file: file,
+                line: line
+            )
+            
+            await assertActions(
+                result.actions,
+                expectedOutput: expectedOutput,
+                file: file,
+                line: line
+            )
         }
     }
     
@@ -336,17 +400,42 @@ class DefineConsumer: SyntaxNodeTests {
         overrideGroupID: UUID = testGroupID,
         isOverride: Bool = false
     ) -> DefineNode {
-        let actions = ActionsNode(actions: actions, overrideGroupID: overrideGroupID, isOverride: isOverride)
-        let then = ThenNode(state: t, rest: [actions], overrideGroupID: overrideGroupID, isOverride: isOverride)
-        let when = WhenNode(events: [w], rest: [then], overrideGroupID: overrideGroupID, isOverride: isOverride)
-        let match = MatchingNode(descriptor: m, rest: [when], overrideGroupID: overrideGroupID, isOverride: isOverride)
+        let actions = ActionsNode(
+            actions: actions,
+            overrideGroupID: overrideGroupID,
+            isOverride: isOverride
+        )
+        
+        let then = ThenNode(
+            state: t,
+            rest: [actions],
+            overrideGroupID: overrideGroupID,
+            isOverride: isOverride
+        )
+        
+        let when = WhenNode(
+            events: [w],
+            rest: [then],
+            overrideGroupID: overrideGroupID,
+            isOverride: isOverride
+        )
+        
+        let match = MatchingNode(
+            descriptor: m,
+            rest: [when],
+            overrideGroupID: overrideGroupID,
+            isOverride: isOverride
+        )
+        
         let given = GivenNode(states: [g], rest: [match])
         
-        return .init(onEntry: entry ?? [],
-                     onExit: exit ?? [],
-                     rest: [given],
-                     file: "null",
-                     line: -1)
+        return .init(
+            onEntry: entry ?? [],
+            onExit: exit ?? [],
+            rest: [given],
+            file: "null",
+            line: -1
+        )
     }
 }
 
@@ -357,7 +446,9 @@ extension Collection {
         }
     }
 
-    func executeAll<Event: FSMHashable>(_ event: Event = "TILT") async where Element == AnyAction {
+    func executeAll<Event: FSMHashable>(
+        _ event: Event = "TILT"
+    ) async where Element == AnyAction {
         for action in self {
             await action(event)
         }
@@ -372,25 +463,45 @@ protocol DefaultIONode: SyntaxNode where Output == RawSyntaxDTO, Input == Output
 
 extension ActionsNode: DefaultIONode {
     func copy() -> Self {
-        ActionsNode(actions: actions, rest: rest, overrideGroupID: testGroupID, isOverride: true) as! Self
+        ActionsNode(
+            actions: actions,
+            rest: rest,
+            overrideGroupID: testGroupID,
+            isOverride: true
+        ) as! Self
     }
 }
 
 extension ThenNode: DefaultIONode {
     func copy() -> Self {
-        ThenNode(state: state, rest: rest, overrideGroupID: testGroupID, isOverride: true) as! Self
+        ThenNode(
+            state: state,
+            rest: rest,
+            overrideGroupID: testGroupID,
+            isOverride: true
+        ) as! Self
     }
 }
 
 extension WhenNode: DefaultIONode {
     func copy() -> Self {
-        WhenNode(events: events, rest: rest, overrideGroupID: testGroupID, isOverride: true) as! Self
+        WhenNode(
+            events: events,
+            rest: rest,
+            overrideGroupID: testGroupID,
+            isOverride: true
+        ) as! Self
     }
 }
 
 extension MatchingNode: DefaultIONode {
     func copy() -> Self {
-        MatchingNode(descriptor: descriptor, rest: rest, overrideGroupID: testGroupID, isOverride: true) as! Self
+        MatchingNode(
+            descriptor: descriptor,
+            rest: rest,
+            overrideGroupID: testGroupID,
+            isOverride: true
+        ) as! Self
     }
 }
 
@@ -400,7 +511,12 @@ struct MSES {
         event: AnyTraceable,
         nextState: AnyTraceable
     
-    init(_ match: MatchDescriptorChain, _ state: AnyTraceable, _ event: AnyTraceable, _ nextState: AnyTraceable) {
+    init(
+        _ match: MatchDescriptorChain,
+        _ state: AnyTraceable,
+        _ event: AnyTraceable,
+        _ nextState: AnyTraceable
+    ) {
         self.match = match
         self.state = state
         self.event = event

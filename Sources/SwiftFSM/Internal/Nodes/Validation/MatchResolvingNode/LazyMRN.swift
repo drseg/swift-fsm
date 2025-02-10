@@ -1,45 +1,40 @@
 import Foundation
 
-final class LazyMatchResolvingNode: MatchResolvingNode {
-    var rest: [any SyntaxNode<OverrideSyntaxDTO>]
-    var errors: [Error] = []
+extension MatchResolvingNode {
+    final class Lazy: Base, Interface { }
+}
 
-    required init(rest: [any SyntaxNode<OverrideSyntaxDTO>] = []) {
-        self.rest = rest
-    }
-    
-    func combinedWith(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
-        do {
-            return try rest.reduce(into: []) { result, input in
-                func appendTransition(predicates: PredicateSet) throws {
-                    let t = Transition(io: input, predicates: predicates)
-                    guard !result.containsClash(t) else { throw "" }
-                    result.append(t)
-                }
-
-                let allPredicates = input.descriptor.combineAnyAndAll()
-
-                if allPredicates.isEmpty {
-                    try appendTransition(predicates: [])
-                } else {
-                    try allPredicates.forEach(appendTransition)
-                }
+extension MatchResolvingNode.Lazy {
+    func combineWith(_ rest: [SemanticValidationNode.Output]) -> [Transition] {
+        if !rest.isEmpty {
+            errors = MatchResolvingNode.Eager(rest: self.rest).resolve().errors
+            guard errors.isEmpty else { return [] }
+        }
+        
+        return rest.reduce(into: []) { result, dto in
+            func appendTransition(predicates: PredicateSet = []) {
+                result.append(Transition(dto: dto, predicates: predicates))
             }
-        } catch {
-            errors = EagerMatchResolvingNode(rest: self.rest).resolve().errors
-            return []
+            
+            let allPredicates = dto.descriptor.resolvedPredicates()
+            
+            if allPredicates.isEmpty {
+                appendTransition()
+            } else {
+                allPredicates.forEach(appendTransition)
+            }
         }
     }
 }
 
 extension Transition {
-    init(io: OverrideSyntaxDTO, predicates p: PredicateSet) {
-        condition = io.descriptor.condition
-        state = io.state.base
+    init(dto: OverrideSyntaxDTO, predicates p: PredicateSet) {
+        condition = dto.descriptor.condition
+        state = dto.state.base
         predicates = p
-        event = io.event.base
-        nextState = io.nextState.base
-        actions = io.actions
+        event = dto.event.base
+        nextState = dto.nextState.base
+        actions = dto.actions
     }
 
     var predicateTypes: Set<String> {

@@ -73,8 +73,7 @@ private extension DefineNode {
     ) {
         let traceableState = AnyTraceable(givenState, file: file, line: line)
         let rest = superStateNodes + defineNodes
-        let gNode = GivenNode(states: [traceableState], rest: rest)
-        self.rest = [gNode]
+        self.rest = [GivenNode(states: [traceableState], rest: rest)]
     }
 }
 

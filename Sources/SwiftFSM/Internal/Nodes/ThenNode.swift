@@ -14,22 +14,26 @@ class ThenNodeBase: OverridableNode {
         self.rest = rest
         super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
-
+    
     func makeOutput(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         rest.reduce(into: []) {
-            $0.append(RawSyntaxDTO($1.descriptor,
-                                $1.event,
-                                state,
-                                $1.actions,
-                                overrideGroupID,
-                                isOverride))
+            $0.append(
+                RawSyntaxDTO(
+                    $1.descriptor,
+                    $1.event,
+                    state,
+                    $1.actions,
+                    overrideGroupID,
+                    isOverride
+                )
+            )
         }
     }
 }
 
 class ThenNode: ThenNodeBase, SyntaxNode {
-    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
-        makeOutput(rest) ??? makeDefaultIO(state: state)
+    func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
+        makeOutput(rest) ??? makeRawDTO(state: state)
     }
 }
 
@@ -50,14 +54,16 @@ class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
         self.caller = caller
         self.file = file
         self.line = line
-
-        super.init(state: state,
-                   rest: rest,
-                   overrideGroupID: overrideGroupID,
-                   isOverride: isOverride)
+        
+        super.init(
+            state: state,
+            rest: rest,
+            overrideGroupID: overrideGroupID,
+            isOverride: isOverride
+        )
     }
-
-    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
+    
+    func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest)
     }
 }

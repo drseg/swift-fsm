@@ -11,7 +11,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
             actionsOutput: String
     }
 
-    typealias Key = EagerMatchResolvingNode.ImplicitClashesKey
+    typealias Key = MatchResolvingNode.Eager.ImplicitClashesKey
     
     enum P: Predicate { case a, b }
     enum Q: Predicate { case a, b }
@@ -143,15 +143,17 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         let d1 = defineNode(s1, MatchDescriptorChain(any: P.a), e1, s2)
         let d2 = defineNode(s1, MatchDescriptorChain(any: Q.a), e1, s3)
         let result = matchResolvingNode(rest: [d1, d2]).resolve()
-
+        
         guard assertCount(result.errors, expected: 1) else { return }
         guard let clashError = result.errors[0] as? EMRN.ImplicitClashesError else {
             XCTFail("unexpected error \(result.errors[0])"); return
         }
         
         guard assertCount(clashError.clashes.first?.value, expected: 2) else { return }
-        assertError(result, expected: [makeErrorOutput(s1, MatchDescriptorChain(any: P.a), [P.a, Q.a], e1, s2),
-                                       makeErrorOutput(s1, MatchDescriptorChain(any: Q.a), [P.a, Q.a], e1, s3)])
+        assertError(
+            result,
+            expected: [makeErrorOutput(s1, MatchDescriptorChain(any: P.a), [P.a, Q.a], e1, s2),
+                       makeErrorOutput(s1, MatchDescriptorChain(any: Q.a), [P.a, Q.a], e1, s3)])
     }
     
     func testMoreSubtleImplicitMatchClashes() throws {

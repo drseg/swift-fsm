@@ -8,7 +8,7 @@ class NodeTests: XCTestCase {
 
         func findErrors() -> [Error] { ["E"] }
 
-        func combinedWith(_ rest: [String]) -> [String] {
+        func combineWith(_ rest: [String]) -> [String] {
             rest.reduce(into: []) {
                 $0.append(first + $1)
             } ??? [first]
@@ -38,7 +38,6 @@ class NodeTests: XCTestCase {
                                ["E", "E", "E", "E"]))
     }
     
-    // FIXME: Currently, there is a temporal coupling between Node.combinedWith() and Node.validate() - validate() cannot find all errors until combinedWith() has already been called. This test clarifies this arrangement until a better solution can be implemented.
     func testResolveCallsCombinedWithBeforeValidate() {
         class NodeSpy: SyntaxNode {
             var rest: [any SyntaxNode<String>] = []
@@ -50,7 +49,7 @@ class NodeTests: XCTestCase {
                 return []
             }
             
-            func combinedWith(_ rest: [String]) -> [String] {
+            func combineWith(_ rest: [String]) -> [String] {
                 log.append("first call")
                 return []
             }

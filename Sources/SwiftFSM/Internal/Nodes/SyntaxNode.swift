@@ -8,7 +8,7 @@ protocol SyntaxNode<Output> {
     
     var rest: [any SyntaxNode<Input>] { get set }
 
-    func combinedWith(_ rest: [Input]) -> [Output]
+    func combineWith(_ rest: [Input]) -> [Output]
     func findErrors() -> [Error]
 }
 
@@ -23,7 +23,7 @@ extension SyntaxNode {
             allErrors.append(contentsOf: resolved.errors)
         }
 
-        return (combinedWith(allOutput), findErrors() + allErrors)
+        return (combineWith(allOutput), findErrors() + allErrors)
     }
 
     func findErrors() -> [Error] { [] }

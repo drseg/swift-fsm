@@ -32,8 +32,8 @@ class ActionsNodeBase: OverridableNode {
 }
 
 class ActionsNode: ActionsNodeBase, SyntaxNode {
-    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
-        makeOutput(rest) ??? makeDefaultIO(actions: actions)
+    func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
+        makeOutput(rest) ??? makeRawDTO(actions: actions)
     }
 }
 
@@ -63,7 +63,7 @@ class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
         )
     }
     
-    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
+    func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest)
     }
 }

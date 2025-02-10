@@ -11,9 +11,13 @@ public struct SuperState {
         onEntry: [AnyAction],
         onExit: [AnyAction]
     ) {
-        self.nodes = superStates.map(\.nodes).flattened + nodes
-        self.onEntry = superStates.map(\.onEntry).flattened + onEntry
-        self.onExit = superStates.map(\.onExit).flattened + onExit
+        func add<T: Collection>(_ items: [T.Element], _ keyPath: KeyPath<Self, T>) -> [T.Element] {
+            superStates.map { $0[keyPath: keyPath] }.flattened + items
+        }
+        
+        self.nodes = add(nodes, \.nodes)
+        self.onEntry = add(onEntry, \.onEntry)
+        self.onExit = add(onExit, \.onExit)
     }
 }
 

@@ -3,7 +3,7 @@ import XCTest
 
 class MRNTestBase: StringableNodeTest {
     typealias ARN = ActionsResolvingNode.OnStateChange
-    typealias EMRN = EagerMatchResolvingNode
+    typealias EMRN = MatchResolvingNode.Eager
     typealias SVN = SemanticValidationNode
     typealias MRNResult = (output: [Transition], errors: [Error])
     

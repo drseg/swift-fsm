@@ -52,7 +52,13 @@ class ConditionBlockTests: BlockTestsBase {
         xctLine xl: UInt = #line
     ) async {
         assertNeverEmptyNode(b, caller: "condition", sutLine: sl, xctLine: xl)
-        await assertMatchNode(b, condition: expected, caller: "condition", sutLine: sl, xctLine: xl)
+        await assertMatchNode(
+            b,
+            condition: expected,
+            caller: "condition",
+            sutLine: sl,
+            xctLine: xl
+        )
     }
 
     func testMWTABlocks() async {
@@ -82,11 +88,13 @@ class ConditionBlockTests: BlockTestsBase {
             nodeLine nl: Int,
             xctLine xl: UInt = #line
         ) async {
-            await assertMWANode(mbn(b.node),
-                                expected: condition,
-                                nodeLine: nl,
-                                restLine: mwaLine,
-                                xctLine: xl)
+            await assertMWANode(
+                mbn(b.node),
+                expected: condition,
+                nodeLine: nl,
+                restLine: mwaLine,
+                xctLine: xl
+            )
         }
         
         let l1 = #line; let c1 = condition({ false }) { mwaBlock }
@@ -100,11 +108,13 @@ class ConditionBlockTests: BlockTestsBase {
             nodeLine nl: Int,
             xctLine xl: UInt = #line
         ) async {
-            await assertMTANode(mbn(b.node),
-                          expected: condition,
-                          nodeLine: nl,
-                          restLine: mtaLine,
-                          xctLine: xl)
+            await assertMTANode(
+                mbn(b.node),
+                expected: condition,
+                nodeLine: nl,
+                restLine: mtaLine,
+                xctLine: xl
+            )
         }
 
         let l1 = #line; let c1 = condition({ false }) { mtaBlock }
@@ -121,11 +131,13 @@ class ConditionBlockTests: BlockTestsBase {
             let c = mbnComponents(of: b)
 
             await assertMatchBlock(c.0, expected: condition, sutLine: nl, xctLine: xl)
-            await assertMWTANode(c.1,
-                           expected: condition,
-                           nodeLine: nl,
-                           restLine: mwtaLine,
-                           xctLine: xl)
+            await assertMWTANode(
+                c.1,
+                expected: condition,
+                nodeLine: nl,
+                restLine: mwtaLine,
+                xctLine: xl
+            )
         }
 
         let l1 = #line; let c1 = condition({ false }) { condition({ false }) { mwtaBlock } }
@@ -142,11 +154,13 @@ class ConditionBlockTests: BlockTestsBase {
             let c = mbnComponents(of: b)
             
             await assertMatchBlock(c.0, expected: condition, sutLine: nl, xctLine: xl)
-            await assertMWANode(c.1,
-                                expected: condition,
-                                nodeLine: nl,
-                                restLine: mwaLine,
-                                xctLine: xl)
+            await assertMWANode(
+                c.1,
+                expected: condition,
+                nodeLine: nl,
+                restLine: mwaLine,
+                xctLine: xl
+            )
         }
         
         let l1 = #line; let c1 = condition({ false }) { condition({ false }) { mwaBlock } }
@@ -163,11 +177,13 @@ class ConditionBlockTests: BlockTestsBase {
             let c = mbnComponents(of: b)
             
             await assertMatchBlock(c.0, expected: condition, sutLine: nl, xctLine: xl)
-            await assertMTANode(c.1,
-                                expected: condition,
-                                nodeLine: nl,
-                                restLine: mtaLine,
-                                xctLine: xl)
+            await assertMTANode(
+                c.1,
+                expected: condition,
+                nodeLine: nl,
+                restLine: mtaLine,
+                xctLine: xl
+            )
         }
         
         let l1 = #line; let c1 = condition({ false }) { condition({ false }) { mtaBlock } }

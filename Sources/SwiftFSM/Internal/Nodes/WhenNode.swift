@@ -25,23 +25,26 @@ class WhenNodeBase: OverridableNode {
 
         super.init(overrideGroupID: overrideGroupID, isOverride: isOverride)
     }
-
+    
     func makeOutput(_ rest: [RawSyntaxDTO], _ event: AnyTraceable) -> [RawSyntaxDTO] {
         rest.reduce(into: []) {
-            $0.append(RawSyntaxDTO($1.descriptor,
-                                event,
-                                $1.state,
-                                $1.actions,
-                                overrideGroupID,
-                                isOverride))
+            $0.append(
+                RawSyntaxDTO(
+                    $1.descriptor,
+                    event,
+                    $1.state,
+                    $1.actions,
+                    overrideGroupID,
+                    isOverride)
+            )
         }
     }
 }
 
 class WhenNode: WhenNodeBase, NeverEmptyNode {
-    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
+    func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         events.reduce(into: []) { output, event in
-            output.append(contentsOf: makeOutput(rest, event) ??? makeDefaultIO(event: event))
+            output.append(contentsOf: makeOutput(rest, event) ??? makeRawDTO(event: event))
         }
     }
 
@@ -51,7 +54,7 @@ class WhenNode: WhenNodeBase, NeverEmptyNode {
 }
 
 class WhenBlockNode: WhenNodeBase, NeverEmptyNode {
-    func combinedWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
+    func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         events.reduce(into: []) { output, event in
             output.append(contentsOf: makeOutput(rest, event))
         }

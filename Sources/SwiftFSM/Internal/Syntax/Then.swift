@@ -4,14 +4,14 @@ public extension Syntax {
     struct Then<State: FSMHashable, Event: FSMHashable> {
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMAction
+            rhs: @escaping Action
         ) -> MatchingThenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
 
         public static func | (
             lhs: Self,
-            rhs: @escaping FSMActionWithEvent<Event>
+            rhs: @escaping ActionWithEvent<Event>
         ) -> MatchingThenActions {
             .init(node: ActionsNode(actions: [AnyAction(rhs)], rest: [lhs.node]))
         }
@@ -28,11 +28,13 @@ public extension Syntax {
         let line: Int
 
         var blockNode: ThenBlockNode {
-            ThenBlockNode(state: node.state,
-                          rest: node.rest,
-                          caller: "then",
-                          file: file,
-                          line: line)
+            ThenBlockNode(
+                state: node.state,
+                rest: node.rest,
+                caller: "then",
+                file: file,
+                line: line
+            )
         }
 
         init(_ state: State? = nil, file: String = #file, line: Int = #line) {

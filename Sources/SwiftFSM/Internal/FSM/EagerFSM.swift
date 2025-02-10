@@ -4,8 +4,8 @@ extension FSM {
     class Eager: Base {
         override func makeMatchResolvingNode(
             rest: [any SyntaxNode<OverrideSyntaxDTO>]
-        ) -> any MatchResolvingNode {
-            EagerMatchResolvingNode(rest: rest)
+        ) -> any MatchResolvingNode.Interface {
+            MatchResolvingNode.Eager(rest: rest)
         }
         
         @discardableResult
@@ -20,11 +20,11 @@ extension FSM {
                 isolation: isolation
             )
             
-            logTransitionStatus(status, for: event, with: predicates)
+            log(status, for: event, with: predicates)
             return status
         }
         
-        private func logTransitionStatus(
+        private func log(
             _ status: TransitionStatus,
             for event: Event,
             with predicates: [any Predicate]

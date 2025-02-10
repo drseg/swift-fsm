@@ -1,20 +1,6 @@
 import Foundation
 
 public enum Syntax {
-    public class CompoundSyntax {
-        let node: any SyntaxNode<RawSyntaxDTO>
-
-        init(node: any SyntaxNode<RawSyntaxDTO>) {
-            self.node = node
-        }
-    }
-    
-    protocol CompoundSyntaxGroup {
-        var node: any SyntaxNode<RawSyntaxDTO> { get }
-        
-        init(node: any SyntaxNode<RawSyntaxDTO>)
-    }
-    
     public final class MatchingWhen<State: FSMHashable, Event: FSMHashable>: CompoundSyntax { }
     public final class MatchingThen<Event: FSMHashable>: CompoundSyntax { }
     public final class MatchingWhenThen<Event: FSMHashable>: CompoundSyntax { }
@@ -42,6 +28,20 @@ public enum Syntax {
     
     @resultBuilder public struct MABuilder: ResultBuilder {
         public typealias T = MatchingActions
+    }
+    
+    public class CompoundSyntax {
+        let node: any SyntaxNode<RawSyntaxDTO>
+
+        init(node: any SyntaxNode<RawSyntaxDTO>) {
+            self.node = node
+        }
+    }
+    
+    protocol CompoundSyntaxGroup {
+        var node: any SyntaxNode<RawSyntaxDTO> { get }
+        
+        init(node: any SyntaxNode<RawSyntaxDTO>)
     }
 }
 

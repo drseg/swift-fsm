@@ -5,8 +5,8 @@ extension FSM {
     class Lazy: Base {
         override func makeMatchResolvingNode(
             rest: [any SyntaxNode<OverrideSyntaxDTO>]
-        ) -> any MatchResolvingNode {
-            LazyMatchResolvingNode(rest: rest)
+        ) -> any MatchResolvingNode.Interface {
+            MatchResolvingNode.Lazy(rest: rest)
         }
         
         @discardableResult
@@ -15,18 +15,16 @@ extension FSM {
             predicates: [any Predicate],
             isolation: isolated (any Actor)? = #isolation
         ) async -> TransitionStatus {
-            for combinations in makeCombinationsSequences(predicates) {
-                for combination in combinations {
-                    let status = await super.handleEvent(
-                        event,
-                        predicates: combination,
-                        isolation: isolation
-                    )
-                    
-                    if transitionWasFound(status) {
-                        logTransitionFound(status)
-                        return status
-                    }
+            for combination in allCombinations(predicates) {
+                let status = await super.handleEvent(
+                    event,
+                    predicates: combination,
+                    isolation: isolation
+                )
+                
+                if transitionWasFound(status) {
+                    logTransitionFound(status)
+                    return status
                 }
             }
             
@@ -34,14 +32,15 @@ extension FSM {
             return .notFound(event, predicates)
         }
         
-        private func makeCombinationsSequences(
+        private func allCombinations(
             _ predicates: [any Predicate]
-        ) -> [some Sequence<[any Predicate]>] {
+        ) -> [[any Predicate]] {
             (0..<predicates.count)
                 .reversed()
                 .reduce(into: [predicates.combinations(ofCount: predicates.count)]) {
                     $0.append(predicates.combinations(ofCount: $1))
                 }
+                .flatMap(\.self)
         }
         
         private func transitionWasFound(_ status: TransitionStatus) -> Bool {
