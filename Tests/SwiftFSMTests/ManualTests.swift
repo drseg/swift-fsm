@@ -131,7 +131,6 @@ class ManualTests: ExpandedSyntaxBuilder {
         }
     }
     
-    #warning("this seems to compile when it shouldn't")
     func noControlLogicInBuilders() {
         define(1) {
             if(false) {

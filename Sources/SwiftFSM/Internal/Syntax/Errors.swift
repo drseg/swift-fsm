@@ -314,12 +314,11 @@ extension MatchDescriptorChain {
 
         let and = matchingAll.map(\.description).joined(separator: " AND ")
 
-        var summary: String
-        switch (matchingAll.isEmpty, matchingAny.isEmpty) {
-        case (true, true): summary = ""
-        case (true, false): summary = "matching(\(or))"
-        case (false, true): summary = "matching(\(and))"
-        case (false, false): summary = "matching(\(or) AND \(and))"
+        let summary = switch (matchingAll.isEmpty, matchingAny.isEmpty) {
+        case (true, true): ""
+        case (true, false): "matching(\(or))"
+        case (false, true): "matching(\(and))"
+        case (false, false): "matching(\(or) AND \(and))"
         }
 
         let components = asArray
@@ -349,7 +348,8 @@ extension AnyTraceable {
     }
 }
 
-extension ResultBuilder {
+// Must remain private
+private extension ResultBuilder {
     static func buildEither(first: [T]) -> [T] { first }
     static func buildEither(second: [T]) -> [T] { second }
     static func buildOptional(_ component: [T]?) -> [T] { component ?? [] }
