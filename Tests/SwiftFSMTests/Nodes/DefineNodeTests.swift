@@ -1,8 +1,8 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 final class DefineNodeTests: SyntaxNodeTests {
-    func testEmptyDefineNodeProducesError() {
+    @Test func emptyDefineNodeProducesError() {
         assertEmptyNodeWithError(
             DefineNode(
                 onEntry: [],
@@ -15,7 +15,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         )
     }
     
-    func testDefineNodeWithActionsButNoRestProducesError() {
+    @Test func defineNodeWithActionsButNoRestProducesError() {
         assertEmptyNodeWithError(
             DefineNode(
                 onEntry: [AnyAction({ })],
@@ -28,7 +28,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         )
     }
     
-    func testCompleteNodeWithInvalidMatchProducesErrorAndNoOutput() {
+    @Test func completeNodeWithInvalidMatchProducesErrorAndNoOutput() {
         let invalidMatch = MatchDescriptorChain(all: P.a, P.a)
         
         let m = MatchingNode(descriptor: invalidMatch, rest: [WhenNode(events: [e1])])
@@ -37,12 +37,12 @@ final class DefineNodeTests: SyntaxNodeTests {
         
         let result = d.resolve()
         
-        XCTAssertEqual(0, result.output.count)
-        XCTAssertEqual(1, result.errors.count)
-        XCTAssertTrue(result.errors.first is MatchError)
+        #expect(0 == result.output.count)
+        #expect(1 == result.errors.count)
+        #expect(result.errors.first is MatchError)
     }
     
-    func testDefineNodeWithNoActions() async {
+    @Test func defineNodeWithNoActions() async {
         let d = DefineNode(onEntry: [],
                            onExit: [],
                            rest: [givenNode(thenState: s3,
@@ -58,7 +58,7 @@ final class DefineNodeTests: SyntaxNodeTests {
                          node: d)
     }
     
-    func testDefineNodeCanSetRestAfterInit() async {
+    @Test func defineNodeCanSetRestAfterInit() async {
         let t = ThenNode(state: s3, rest: [])
         let w = WhenNode(events: [e1, e2], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w])
@@ -80,7 +80,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         )
     }
     
-    func testDefineNodeWithMultipleGivensWithEntryActionsAndExitActions() async {
+    @Test func defineNodeWithMultipleGivensWithEntryActionsAndExitActions() async {
         let d = DefineNode(onEntry: onEntry,
                            onExit: onExit,
                            rest: [givenNode(thenState: s3,
@@ -104,7 +104,7 @@ final class DefineNodeTests: SyntaxNodeTests {
         )
     }
     
-    func testDefineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() async {
+    @Test func defineNodeDoesNotAddEntryAndExitActionsIfStateDoesNotChange() async {
         let d = DefineNode(onEntry: onEntry,
                            onExit: onExit,
                            rest: [givenNode(thenState: nil,
@@ -120,13 +120,13 @@ final class DefineNodeTests: SyntaxNodeTests {
                          node: d)
     }
     
-    func testDefineNodePassesGroupIDAndIsOverrideParams() {
+    @Test func defineNodePassesGroupIDAndIsOverrideParams() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w], overrideGroupID: testGroupID, isOverride: true)
         let g = GivenNode(states: [s1], rest: [m])
         let output = DefineNode(onEntry: [], onExit: [], rest: [g]).resolve().output
         
-        XCTAssert(output.allSatisfy { $0.overrideGroupID == testGroupID && $0.isOverride == true })
+        #expect(output.allSatisfy { $0.overrideGroupID == testGroupID && $0.isOverride == true })
     }
 }

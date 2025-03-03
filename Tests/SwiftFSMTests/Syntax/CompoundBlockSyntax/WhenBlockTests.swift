@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class WhenBlockTests: BlockTestsBase {
@@ -7,11 +7,11 @@ class WhenBlockTests: BlockTestsBase {
         events: [Int] = [1, 2],
         nodeLine nl: Int = #line,
         restLine rl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let node = b.node as! WhenBlockNode
-        assertWhenNode(node, events: events, sutLine: nl, xctLine: xl)
-        await assertMTAResult(node.rest, sutLine: rl, xctLine: xl)
+        assertWhenNode(node, events: events, sutLine: nl, location: location)
+        await assertMTAResult(node.rest, sutLine: rl, location: location)
     }
 
     func assert(
@@ -20,13 +20,13 @@ class WhenBlockTests: BlockTestsBase {
         events: [Int] = [1, 2],
         nodeLine nl: Int = #line,
         restLine rl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let wbn = b.node as! WhenBlockNode
-        assertWhenNode(wbn, events: events, sutLine: nl, xctLine: xl)
+        assertWhenNode(wbn, events: events, sutLine: nl, location: location)
 
         let actionsNode = wbn.rest.first as! ActionsNode
-        await assertActions(actionsNode.actions, expectedOutput: eo, xctLine: xl)
+        await assertActions(actionsNode.actions, expectedOutput: eo, location: location)
 
         let matchNode = actionsNode.rest.first as! MatchingNode
         await assertMatchNode(
@@ -34,16 +34,16 @@ class WhenBlockTests: BlockTestsBase {
             all: [P.a],
             sutFile: baseFile,
             sutLine: rl,
-            xctLine: xl
+            location: location
         )
     }
 
-    func testWhenBlockWithMTA() async {
+    @Test func whenBlockWithMTA() async {
         await assert(when(1, or: 2) { mtaBlock }, restLine: mtaLine)
         await assert(when(1) { mtaBlock }, events: [1], restLine: mtaLine)
     }
 
-    func testWhenBlockWithMA() async {
+    @Test func whenBlockWithMA() async {
         await assert(when(1, or: 2) { maBlock }, restLine: maLine)
         await assert(when(1) { maBlock }, events: [1], restLine: maLine)
     }

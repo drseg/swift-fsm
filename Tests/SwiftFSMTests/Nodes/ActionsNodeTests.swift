@@ -1,34 +1,34 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 final class ActionsNodeTests: SyntaxNodeTests {
-    func testEmptyActions() {
+    @Test func emptyActions() throws {
         let finalised = ActionsNode(actions: [], rest: []).resolve()
         let output = finalised.output
         let errors = finalised.errors
         
-        XCTAssertTrue(errors.isEmpty)
-        guard assertCount(output, expected: 1) else { return }
+        #expect(errors.isEmpty)
+        try #require(output.count == 1)
         assertEqual(RawSyntaxDTO(MatchDescriptorChain(), nil, nil, actions), output.first)
     }
     
-    func testEmptyActionsBlockIsError() {
+    @Test func emptyActionsBlockIsError() {
         assertEmptyNodeWithError(ActionsBlockNode(actions: [], rest: []))
     }
     
-    func testEmptyActionsBlockHasNoOutput() {
-        assertCount(ActionsBlockNode(actions: [], rest: []).resolve().output, expected: 0)
+    @Test func emptyActionsBlockHasNoOutput() {
+        #expect(ActionsBlockNode(actions: [], rest: []).resolve().output.isEmpty)
     }
     
-    func testActionsFinalisesCorrectly() async {
+    @Test func actionsFinalisesCorrectly() async {
         let n = actionsNode
         await n.resolve().output.executeAll()
-        XCTAssertEqual("12", actionsOutput)
-        XCTAssertTrue(n.resolve().errors.isEmpty)
+        #expect("12" == actionsOutput)
+        #expect(n.resolve().errors.isEmpty)
     }
     
-    func testActionsPlusChainFinalisesCorrectly() async {
+    @Test func actionsPlusChainFinalisesCorrectly() async throws {
         let a = ActionsNode(actions: [AnyAction({ self.actionsOutput += "action" })])
-        await assertDefaultIONodeChains(node: a, expectedOutput: "actionchain")
+        try await assertDefaultIONodeChains(node: a, expectedOutput: "actionchain")
     }
 }

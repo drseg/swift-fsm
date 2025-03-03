@@ -31,13 +31,13 @@ class ActionsNodeBase: OverridableNode {
     }
 }
 
-class ActionsNode: ActionsNodeBase, SyntaxNode {
+final class ActionsNode: ActionsNodeBase, SyntaxNode {
     func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest) ??? makeRawDTO(actions: actions)
     }
 }
 
-class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
+final class ActionsBlockNode: ActionsNodeBase, NeverEmptyNode {
     let caller: String
     let file: String
     let line: Int

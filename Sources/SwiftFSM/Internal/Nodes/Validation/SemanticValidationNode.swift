@@ -1,10 +1,10 @@
 import Foundation
 
-protocol SVNKey: FSMHashable {
-    init(_ input: SemanticValidationNode.Input)
-}
-
-class SemanticValidationNode: SyntaxNode {
+final class SemanticValidationNode: SyntaxNode {
+    protocol Key: FSMHashable {
+        init(_ input: SemanticValidationNode.Input)
+    }
+    
     typealias DuplicatesDictionary = [DuplicatesKey: [Input]]
     typealias ClashesDictionary = [ClashesKey: [Input]]
 
@@ -30,7 +30,7 @@ class SemanticValidationNode: SyntaxNode {
                 isError(lhs, keyType: ClashesKey.self)
             }
 
-            func isError<T: SVNKey>(_ lhs: Input, keyType: T.Type) -> Bool {
+            func isError<T: Key>(_ lhs: Input, keyType: T.Type) -> Bool {
                 let haveClashingValues = T.init(lhs) == T.init(row)
                 let haveNoOverrides = !lhs.isOverride && !row.isOverride
                 let haveOverrides = lhs.isOverride || row.isOverride
@@ -41,7 +41,7 @@ class SemanticValidationNode: SyntaxNode {
                 )
             }
 
-            func add<T: SVNKey>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {
+            func add<T: Key>(_ existing: Output, row: Output, to dict: inout [T: [Input]]) {
                 let key = T(row)
                 dict[key] = (dict[key] ?? [existing]) + [row]
             }
@@ -149,7 +149,7 @@ extension SemanticValidationNode {
 
     final class NothingToOverride: OverrideError, @unchecked Sendable { }
 
-    struct DuplicatesKey: SVNKey {
+    struct DuplicatesKey: Key {
         let state: AnyTraceable,
             match: MatchDescriptorChain,
             event: AnyTraceable,
@@ -163,7 +163,7 @@ extension SemanticValidationNode {
         }
     }
 
-    struct ClashesKey: SVNKey {
+    struct ClashesKey: Key {
         let state: AnyTraceable,
             match: MatchDescriptorChain,
             event: AnyTraceable

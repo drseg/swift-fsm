@@ -11,7 +11,7 @@ public struct SuperState {
         onEntry: [AnyAction],
         onExit: [AnyAction]
     ) {
-        func add<T: Collection>(_ items: [T.Element], _ keyPath: KeyPath<Self, T>) -> [T.Element] {
+        func add<T: Collection>(_ items: T, _ keyPath: KeyPath<Self, T>) -> [T.Element] {
             superStates.map { $0[keyPath: keyPath] }.flattened + items
         }
         

@@ -18,9 +18,9 @@ extension FSM {
             case executed(Transition), notFound(Event, [any Predicate]), notExecuted(Transition)
         }
         
-        let stateActionsPolicy: StateActionsPolicy
+        var stateActionsPolicy: StateActionsPolicy
         
-        var table: [TableKey: Transition] = [:]
+        var table: [Key: Transition] = [:]
         var state: AnyHashable
         let logger = Logger<Event>()
         
@@ -86,7 +86,7 @@ extension FSM {
         
         func transition(_ event: Event, _ predicates: [any Predicate]) -> Transition? {
             table[
-                TableKey(
+                Key(
                     state: state,
                     predicates: Set(predicates.erased()),
                     event: event
@@ -126,7 +126,7 @@ extension FSM {
         }
         
         func makeTable(_ output: [Transition]) {
-            output.forEach { table[TableKey($0)] = $0 }
+            output.forEach { table[Key($0)] = $0 }
         }
         
         func makeError(_ error: Error) -> SwiftFSMError {
@@ -151,21 +151,23 @@ extension FSM {
     }
 }
 
-struct TableKey: @unchecked Sendable, Hashable {
-    let state: AnyHashable
-    let predicates: PredicateSet
-    let event: AnyHashable
-
-    init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable) {
-        self.state = state
-        self.predicates = predicates
-        self.event = event
-    }
-    
-    init(_ value: Transition) {
-        state = value.state
-        predicates = value.predicates
-        event = value.event
+extension FSM.Base {
+    struct Key: @unchecked Sendable, Hashable {
+        let state: AnyHashable
+        let predicates: PredicateSet
+        let event: AnyHashable
+        
+        init(state: AnyHashable, predicates: PredicateSet, event: AnyHashable) {
+            self.state = state
+            self.predicates = predicates
+            self.event = event
+        }
+        
+        init(_ value: Transition) {
+            state = value.state
+            predicates = value.predicates
+            event = value.event
+        }
     }
 }
 

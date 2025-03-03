@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class StringableNodeTestTests: StringableNodeTest {
@@ -6,28 +6,24 @@ class StringableNodeTestTests: StringableNodeTest {
         _ expected: String,
         _ actual: any SyntaxNode,
         fileAndLine: Bool = false,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let actual = await toString(actual, printFileAndLine: fileAndLine)
-        XCTAssertEqual(expected,
-                       actual,
-                       file: file,
-                       line: line)
+        #expect(expected == actual, sourceLocation: location)
         
-        XCTAssertEqual("", actionsOutput, file: file, line: line)
-        XCTAssertEqual("", onExitOutput, file: file, line: line)
-        XCTAssertEqual("", onEntryOutput, file: file, line: line)
+        #expect("" == actionsOutput, sourceLocation: location)
+        #expect("" == onExitOutput, sourceLocation: location)
+        #expect("" == onEntryOutput, sourceLocation: location)
     }
 
     var entry: AnyAction { AnyAction({ self.onEntryOutput = "entry" }) }
     var exit: AnyAction { AnyAction({ self.onExitOutput = "exit"   }) }
 
-    func testSingleNodeWithNoRest() async {
+    @Test func singleNodeWithNoRest() async {
         await assertToString("A: 12", actionsNode)
     }
     
-    func testThenNodeWithSingleActionsNode() async {
+    @Test func thenNodeWithSingleActionsNode() async {
         await assertToString(String {
             "T: S1 {"
             "  A: 12"
@@ -35,7 +31,7 @@ class StringableNodeTestTests: StringableNodeTest {
         }, thenNode)
     }
     
-    func testThenNodeWithSingleActionsNodeFileAndLine() async {
+    @Test func thenNodeWithSingleActionsNodeFileAndLine() async {
         await assertToString(String {
             "T: S1 (null -1) {"
             "  A: 12"
@@ -43,7 +39,7 @@ class StringableNodeTestTests: StringableNodeTest {
         }, thenNode, fileAndLine: true)
     }
     
-    func testThenNodeWithDefaultArgumentAndSingleActionsNode() async {
+    @Test func thenNodeWithDefaultArgumentAndSingleActionsNode() async {
         await assertToString(String {
             "T: default {"
             "  A: 12"
@@ -51,7 +47,7 @@ class StringableNodeTestTests: StringableNodeTest {
         }, ThenNode(state: nil, rest: [actionsNode]))
     }
     
-    func testWhenNodeWithThenAndActionsNodes() async {
+    @Test func whenNodeWithThenAndActionsNodes() async {
         await assertToString(String {
             "W: E1, E2 {"
             "  T: S1 {"
@@ -61,7 +57,7 @@ class StringableNodeTestTests: StringableNodeTest {
         }, whenNode)
     }
     
-    func testWhenNodeWithThenAndActionsNodesFileAndLine() async {
+    @Test func whenNodeWithThenAndActionsNodesFileAndLine() async {
         await assertToString(String {
             "W: E1 (null -1), E2 (null -1) {"
             "  T: S1 (null -1) {"
@@ -71,7 +67,7 @@ class StringableNodeTestTests: StringableNodeTest {
         }, whenNode, fileAndLine: true)
     }
     
-    func testGivenNodeWithMatchWhenThenActionsNodes() async {
+    @Test func givenNodeWithMatchWhenThenActionsNodes() async {
         await assertToString(String {
             "G: S1, S2 {"
             "  M: any: [[P.a]], all: [Q.a] {"
@@ -85,7 +81,7 @@ class StringableNodeTestTests: StringableNodeTest {
         }, givenNode(thenState: s1, actionsNode: actionsNode))
     }
     
-    func testGivenNodeWithMatchWhenThenActionsNodesFileAndLine() async {
+    @Test func givenNodeWithMatchWhenThenActionsNodesFileAndLine() async {
         await assertToString(String {
             "G: S1 (null -1), S2 (null -1) {"
             "  M: any: [[P.a]], all: [Q.a] (null -1) {"
@@ -99,7 +95,7 @@ class StringableNodeTestTests: StringableNodeTest {
         }, givenNode(thenState: s1, actionsNode: actionsNode), fileAndLine: true)
     }
     
-    func testDefineNodeWithGivenMatchWhenThenActions() async {
+    @Test func defineNodeWithGivenMatchWhenThenActions() async {
         await assertToString(String {
             "D: entry: entry, exit: exit {"
             "  G: S1 {"
@@ -115,7 +111,7 @@ class StringableNodeTestTests: StringableNodeTest {
         }, defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit]))
     }
     
-    func testDefineNodeWithGivenMatchWhenThenActionsFileAndLine() async {
+    @Test func defineNodeWithGivenMatchWhenThenActionsFileAndLine() async {
         await assertToString(String {
             "D: entry: entry, exit: exit (null -1) {"
             "  G: S1 (null -1) {"
@@ -131,7 +127,7 @@ class StringableNodeTestTests: StringableNodeTest {
         }, defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit]), fileAndLine: true)
     }
     
-    func testActionsResolvingNode() async {
+    @Test func actionsResolvingNode() async {
         await assertToString(String {
             "ARN: {"
             "  D: entry: entry, exit: exit {"
@@ -151,7 +147,7 @@ class StringableNodeTestTests: StringableNodeTest {
         )
     }
     
-    func testSemanticValidationNode() async {
+    @Test func semanticValidationNode() async {
         let a = ActionsResolvingNode(
             rest: [defineNode(s1, m1, e1, s2, entry: [entry], exit: [exit])]
         )
@@ -176,28 +172,28 @@ class StringableNodeTestTests: StringableNodeTest {
         }, svn)
     }
     
-    func testActionsBlockNodeFileAndLine() async {
+    @Test func actionsBlockNodeFileAndLine() async {
         let a = ActionsBlockNode(actions: actions, rest: [], file: "null", line: -1)
         await assertToString("A: 12 (null -1)", a, fileAndLine: true)
     }
     
-    func testThenBlockNodeFileAndLine() async {
+    @Test func thenBlockNodeFileAndLine() async {
         let t = ThenBlockNode(state: s1, rest: [], file: "null", line: -1)
         await assertToString("T (null -1): S1 (null -1)", t, fileAndLine: true)
     }
     
-    func testWhenBlockNodeFileAndLine() async {
+    @Test func whenBlockNodeFileAndLine() async {
         let w = WhenBlockNode(events: [e1], rest: [], file: "null", line: -1)
         await assertToString("W (null -1): E1 (null -1)", w, fileAndLine: true)
     }
     
-    func testMatchBlockNodeFileAndLine() async {
+    @Test func matchBlockNodeFileAndLine() async {
         let w = MatchingBlockNode(descriptor: m1, file: "null", line: -1)
         await assertToString("M (null -1): any: [[P.a]], all: [Q.a] (null -1)",
                        w, fileAndLine: true)
     }
     
-    func testThenNodeWithMultipleActionsNodes() async {
+    @Test func thenNodeWithMultipleActionsNodes() async {
         await assertToString(String {
             "T: S1 {"
             "  A: 12"
@@ -210,7 +206,7 @@ class StringableNodeTestTests: StringableNodeTest {
     let t2 = ThenNode(state: AnyTraceable("", file: "f", line: 2))
     let t3 = ThenNode(state: AnyTraceable("", file: "g", line: 1))
     
-    func testAssertEqualPass() async throws {
+    @Test func assertEqualPass() async throws {
         await assertEqual(t1, t1)
         await assertEqual(t1, t2)
         await assertEqual(t1, t3)
@@ -218,13 +214,14 @@ class StringableNodeTestTests: StringableNodeTest {
         await assertEqualFileAndLine(t1, t1)
     }
     
-    func testAssertEqualFail() async throws {
-        XCTExpectFailure()
-        await assertEqual(t1, whenNode)
-        await assertEqualFileAndLine(t1, whenNode)
-        await assertEqualFileAndLine(t1, t2)
-        await assertEqualFileAndLine(t1, t3)
-        await assertEqualFileAndLine(t2, t3)
+    @Test func assertEqualFail() async throws {
+        await withKnownIssue("These should all fail") {
+            await assertEqual(t1, whenNode)
+            await assertEqualFileAndLine(t1, whenNode)
+            await assertEqualFileAndLine(t1, t2)
+            await assertEqualFileAndLine(t1, t3)
+            await assertEqualFileAndLine(t2, t3)
+        }
     }
 }
 
@@ -232,28 +229,21 @@ class StringableNodeTest: DefineConsumer {
     func assertEqual(
         _ lhs: any SyntaxNode,
         _ rhs: any SyntaxNode,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let lhs = await toString(lhs)
         let rhs = await toString(rhs)
-        XCTAssertEqual(lhs, rhs, file: file, line: line)
+        #expect(lhs == rhs, sourceLocation: location)
     }
     
     func assertEqualFileAndLine(
         _ lhs: any SyntaxNode,
         _ rhs: any SyntaxNode,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let lhs = await toString(lhs, printFileAndLine: true)
         let rhs = await toString(rhs, printFileAndLine: true)
-        XCTAssertEqual(
-            lhs,
-            rhs,
-            file: file,
-            line: line
-        )
+        #expect(lhs == rhs, sourceLocation: location)
     }
 
     func toString(

@@ -36,28 +36,4 @@ extension Transition {
         nextState = dto.nextState.base
         actions = dto.actions
     }
-
-    var predicateTypes: Set<String> {
-        Set(predicates.map(\.type))
-    }
-
-    func clashes(with t: Transition) -> Bool {
-        (state, event) == (t.state, t.event)
-    }
-
-    func predicateTypesOverlap(with t: Transition) -> Bool {
-        predicateTypes.isDisjoint(with: t.predicateTypes)
-    }
-}
-
-extension [Transition] {
-    func containsClash(_ t: Transition) -> Bool {
-        filter {
-            t.clashes(with: $0) &&
-            t.predicates.count == $0.predicates.count
-        }
-        .contains {
-            t.predicateTypesOverlap(with: $0)
-        }
-    }
 }

@@ -63,7 +63,7 @@ func makeRawDTO(
 }
 
 extension SyntaxNode {
-    func appending<Other: SyntaxNode>(_ other: Other) -> Self where Input == Other.Output {
+    func appending<N: SyntaxNode>(_ other: N) -> Self where Input == N.Output {
         var this = self
         this.rest = [other]
         return this

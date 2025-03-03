@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class BlockTestsBase: SyntaxTestsBase {
@@ -47,7 +47,7 @@ class BlockTestsBase: SyntaxTestsBase {
         sutFile sf: String? = nil,
         xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let sf = sf == nil ? #file : sf!
         
@@ -57,9 +57,8 @@ class BlockTestsBase: SyntaxTestsBase {
                 event: event,
                 expectedOutput: eo,
                 sutFile: sf,
-                xctFile: xf,
                 sutLine: sl + i,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -69,9 +68,8 @@ class BlockTestsBase: SyntaxTestsBase {
                 event: event,
                 expectedOutput: eo,
                 sutFile: sf,
-                xctFile: xf,
                 sutLine: sl + i,
-                xctLine: xl
+                location: location
             )
         }
     }
@@ -82,7 +80,7 @@ class BlockTestsBase: SyntaxTestsBase {
         sutFile sf: String? = nil,
         xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let sf = sf == nil ? #file : sf!
         
@@ -91,9 +89,8 @@ class BlockTestsBase: SyntaxTestsBase {
                 result[i],
                 expectedOutput: eo,
                 sutFile: sf,
-                xctFile: xf,
                 sutLine: sl + i,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -102,9 +99,8 @@ class BlockTestsBase: SyntaxTestsBase {
                 result[i],
                 expectedOutput: eo,
                 sutFile: sf,
-                xctFile: xf,
                 sutLine: sl + i,
-                xctLine: xl
+                location: location
             )
         }
     }
@@ -115,7 +111,7 @@ class BlockTestsBase: SyntaxTestsBase {
         sutFile sf: String? = nil,
         xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let sf = sf == nil ? #file : sf!
         
@@ -124,9 +120,8 @@ class BlockTestsBase: SyntaxTestsBase {
                 result[i],
                 expectedOutput: eo,
                 sutFile: sf,
-                xctFile: xf,
                 sutLine: sl + i,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -135,9 +130,8 @@ class BlockTestsBase: SyntaxTestsBase {
                 result[i],
                 expectedOutput: eo,
                 sutFile: sf,
-                xctFile: xf,
                 sutLine: sl + i,
-                xctLine: xl
+                location: location
             )
         }
     }
@@ -147,37 +141,37 @@ class BlockTestsBase: SyntaxTestsBase {
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
         xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         for i in 0..<result.count {
             await assertMA(
                 result[i],
                 expectedOutput: eo,
                 sutFile: baseFile,
-                xctFile: xf,
                 sutLine: sl + i,
-                xctLine: xl
+                location: location
             )
         }
     }
 
-    func assertGroupID(_ nodes: [any SyntaxNode<RawSyntaxDTO>], line: UInt = #line) {
+    func assertGroupID(
+        _ nodes: [any SyntaxNode<RawSyntaxDTO>],
+        location: SourceLocation = #_sourceLocation
+    ) {
         let output = nodes.map { $0.resolve().output }
-        XCTAssertEqual(3, output.count, line: line)
+        #expect(3 == output.count, sourceLocation: location)
 
         let defineOutput = output.dropFirst().flattened
         defineOutput.forEach {
-            XCTAssertEqual(
-                defineOutput.first?.overrideGroupID,
-                $0.overrideGroupID,
-                line: line
+            #expect(
+                defineOutput.first?.overrideGroupID == $0.overrideGroupID,
+                sourceLocation: location
             )
         }
 
-        XCTAssertNotEqual(
-            output.flattened.first?.overrideGroupID,
-            output.flattened.last?.overrideGroupID,
-            line: line
+        #expect(
+            output.flattened.first?.overrideGroupID != output.flattened.last?.overrideGroupID,
+            sourceLocation: location
         )
     }
 }

@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 @testable import SwiftFSM
 
 final class SemanticValidationNodeTests: DefineConsumer {
@@ -18,11 +19,19 @@ final class SemanticValidationNodeTests: DefineConsumer {
                               isOverride: isOverride)])
     }
     
-    func assertEqual(_ lhs: SVN.Output?, _ rhs: SVN.Output?, line: UInt = #line) {
-        guard let lhs else { XCTFail("lhs unexpectedly nil", line: line); return }
-        guard let rhs else { XCTFail("rhs unexpectedly nil", line: line); return }
+    func assertEqual(
+        _ lhs: SVN.Output?,
+        _ rhs: SVN.Output?,
+        location: SourceLocation = #_sourceLocation
+    ) {
+        guard let lhs else {
+            Issue.record("lhs unexpectedly nil", sourceLocation: location); return
+        }
+        guard let rhs else {
+            Issue.record("rhs unexpectedly nil", sourceLocation: location); return
+        }
         
-        XCTAssertEqual(SVN.DuplicatesKey(lhs), SVN.DuplicatesKey(rhs), line: line)
+        #expect(SVN.DuplicatesKey(lhs) == SVN.DuplicatesKey(rhs), sourceLocation: location)
     }
     
     func firstDuplicates(
@@ -37,19 +46,19 @@ final class SemanticValidationNodeTests: DefineConsumer {
         (finalised.errors[0] as? SVN.ClashError)?.clashes ?? [:]
     }
     
-    func testEmptyNode() {
+    @Test func emptyNode() {
         let finalised = SVN(rest: []).resolve()
         
-        assertCount(finalised.output, expected: 0)
-        assertCount(finalised.errors, expected: 0)
+        #expect(finalised.output.isEmpty)
+        #expect(finalised.errors.isEmpty)
     }
     
-    func testDuplicate() {
+    @Test func duplicate() throws {
         let a = actionsResolvingNode(s1, MatchDescriptorChain(), e1, s2)
         let finalised = SVN(rest: [a, a]).resolve()
         
-        guard assertCount(finalised.errors, expected: 1),
-              assertCount(finalised.output, expected: 0) else { return }
+        try #require(finalised.errors.count == 1)
+        try #require(finalised.output.count == 0)
         
         let duplicates = firstDuplicates(in: finalised)
         let expected = a.resolve().output[0]
@@ -59,14 +68,14 @@ final class SemanticValidationNodeTests: DefineConsumer {
         assertEqual(expected, duplicate?.last)
     }
     
-    func testClash() {
+    @Test func clash() throws {
         let a1 = actionsResolvingNode(s1, MatchDescriptorChain(), e1, s2)
         let a2 = actionsResolvingNode(s1, MatchDescriptorChain(), e1, s3)
 
         let finalised = SVN(rest: [a1, a2]).resolve()
         
-        guard assertCount(finalised.errors, expected: 1),
-              assertCount(finalised.output, expected: 0) else { return }
+        try #require(finalised.errors.count == 1)
+        try #require(finalised.output.count == 0)
 
         let clashes = firstClashes(in: finalised)
             
@@ -80,14 +89,14 @@ final class SemanticValidationNodeTests: DefineConsumer {
         assertEqual(secondExpected, secondClash?.last)
     }
     
-    func testNoError() async {
+    @Test func noError() async throws {
         let a1 = actionsResolvingNode(s1, MatchDescriptorChain(), e1, s2)
         let a2 = actionsResolvingNode(s1, MatchDescriptorChain(), e2, s3)
         
         let finalised = SVN(rest: [a1, a2]).resolve()
 
-        guard assertCount(finalised.errors, expected: 0),
-              assertCount(finalised.output, expected: 2) else { return }
+        try #require(finalised.errors.count == 0)
+        try #require(finalised.output.count == 2)
         
         let firstExpected = a1.resolve().output[0]
         let secondExpected = a2.resolve().output[0]
@@ -99,24 +108,24 @@ final class SemanticValidationNodeTests: DefineConsumer {
         await assertActions(finalised.output[1].actions, expectedOutput: "12")
     }
     
-    func testErrorIfNothingToOverride() {
+    @Test func errorIfNothingToOverride() throws {
         let id = UUID()
         let d1 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: id, isOverride: true)
         let a = ARN(rest: [d1])
         
         let finalised = SVN(rest: [a]).resolve()
-        assertCount(finalised.errors, expected: 1)
-        assertCount(finalised.output, expected: 0)
+        try #require(finalised.errors.count == 1)
+        try #require(finalised.output.count == 0)
         
         guard let error = finalised.errors.first as? SVN.NothingToOverride else {
-            XCTFail(); return
+            Issue.record(); return
         }
         
         let expectedOverride = OverrideSyntaxDTO(s1, MatchDescriptorChain(), e1, s2, [], id, true)
-        XCTAssertEqual(expectedOverride, error.override)
+        #expect(expectedOverride == error.override)
     }
     
-    func testErrorIfOverrideBeforeOverridden() {
+    @Test func errorIfOverrideBeforeOverridden() throws {
         let id1 = UUID()
         let id2 = UUID()
         
@@ -125,46 +134,46 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let a = ARN(rest: [d1, d2])
         
         let finalised = SVN(rest: [a]).resolve()
-        assertCount(finalised.errors, expected: 1)
-        assertCount(finalised.output, expected: 0)
+        try #require(finalised.errors.count == 1)
+        try #require(finalised.output.count == 0)
         
         guard let error = finalised.errors.first as? SVN.OverrideOutOfOrder else {
-            XCTFail(); return
+            Issue.record(); return
         }
         
         let expectedOverride = OverrideSyntaxDTO(s1, MatchDescriptorChain(), e1, s2, [], id1, true)
         let expectedOutOfOrder = OverrideSyntaxDTO(s1, MatchDescriptorChain(), e1, s2, [], id2, false)
         
-        XCTAssertEqual(expectedOverride, error.override)
-        XCTAssertEqual([expectedOutOfOrder], error.outOfOrder)
+        #expect(expectedOverride == error.override)
+        #expect([expectedOutOfOrder] == error.outOfOrder)
     }
     
-    func testNoErrorIfValidOverride() {
+    @Test func noErrorIfValidOverride() throws {
         let d1 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: UUID(), isOverride: false)
         let d2 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: UUID(), isOverride: true)
         let a = ARN(rest: [d1, d2])
         
         let finalised = SVN(rest: [a]).resolve()
-        assertCount(finalised.errors, expected: 0)
-        assertCount(finalised.output, expected: 1)
+        try #require(finalised.errors.count == 0)
+        try #require(finalised.output.count == 1)
         
-        XCTAssertEqual(true, finalised.output.first?.isOverride)
+        #expect(finalised.output.first?.isOverride ?? false)
     }
     
-    func testNoOutOfOrderErrorIfStatesDiffer() {
+    @Test func noOutOfOrderErrorIfStatesDiffer() throws {
         let d1 = defineNode(s1, MatchDescriptorChain(), e1, s1, overrideGroupID: UUID(), isOverride: false)
         let d2 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: UUID(), isOverride: true)
         let d3 = defineNode(s2, MatchDescriptorChain(), e1, s3, overrideGroupID: UUID(), isOverride: false)
         let a = ARN(rest: [d1, d2, d3])
         
         let finalised = SVN(rest: [a]).resolve()
-        assertCount(finalised.errors, expected: 0)
-        assertCount(finalised.output, expected: 2)
+        try #require(finalised.errors.count == 0)
+        try #require(finalised.output.count == 2)
         
-        XCTAssertEqual([s2, s3], finalised.output.map(\.nextState))
+        #expect([s2, s3] == finalised.output.map(\.nextState))
     }
     
-    func testOverrideChain() {
+    @Test func overrideChain() throws {
         let d1 = defineNode(s1, MatchDescriptorChain(), e1, s1, overrideGroupID: UUID(), isOverride: false)
         let d2 = defineNode(s1, MatchDescriptorChain(), e1, s2, overrideGroupID: UUID(), isOverride: true)
         let d3 = defineNode(s1, MatchDescriptorChain(), e1, s3, overrideGroupID: UUID(), isOverride: true)
@@ -172,10 +181,10 @@ final class SemanticValidationNodeTests: DefineConsumer {
         let a = ARN(rest: [d1, d2, d3])
         
         let finalised = SVN(rest: [a]).resolve()
-        assertCount(finalised.errors, expected: 0)
-        assertCount(finalised.output, expected: 1)
+        try #require(finalised.errors.count == 0)
+        try #require(finalised.output.count == 1)
                 
-        XCTAssertEqual(true, finalised.output.first?.isOverride)
-        XCTAssertEqual(s3, finalised.output.first?.nextState)
+        #expect(finalised.output.first?.isOverride ?? false)
+        #expect(s3 == finalised.output.first?.nextState)
     }
 }

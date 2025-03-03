@@ -31,13 +31,13 @@ class MatchingNodeBase: OverridableNode {
     }
 }
 
-class MatchingNode: MatchingNodeBase, SyntaxNode {
+final class MatchingNode: MatchingNodeBase, SyntaxNode {
     func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest) ??? makeRawDTO(match: descriptor)
     }
 }
 
-class MatchingBlockNode: MatchingNodeBase, NeverEmptyNode {
+final class MatchingBlockNode: MatchingNodeBase, NeverEmptyNode {
     let caller: String
     let file: String
     let line: Int

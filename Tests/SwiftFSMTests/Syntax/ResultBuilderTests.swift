@@ -1,7 +1,7 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
-class ResultBuilderTests: XCTestCase {
+class ResultBuilderTests {
     @resultBuilder
     struct Builder: ResultBuilder {
         typealias T = String
@@ -11,36 +11,36 @@ class ResultBuilderTests: XCTestCase {
         s().joined()
     }
     
-    func testEmptyBuilder() {
+    @Test func emptyBuilder() {
         let s = build { }
         
-        XCTAssertEqual("", s)
+        #expect("" == s)
     }
     
-    func testBuilderWithOneEmptyArgument() {
+    @Test func builderWithOneEmptyArgument() {
         let s = build { "" }
         
-        XCTAssertEqual("", s)
+        #expect("" == s)
     }
     
-    func testBuilderWithOneArgument() {
+    @Test func builderWithOneArgument() {
         let s = build {
             "Cat"
         }
         
-        XCTAssertEqual("Cat", s)
+        #expect("Cat" == s)
     }
     
-    func testBuilderWithMultipleEmptyArguments() {
+    @Test func builderWithMultipleEmptyArguments() {
         let s = build {
             ""
             ""
         }
         
-        XCTAssertEqual("", s)
+        #expect("" == s)
     }
     
-    func testBuilderWithMultipleArguments() {
+    @Test func builderWithMultipleArguments() {
         let s = build {
             "The "
             "cat "
@@ -50,41 +50,41 @@ class ResultBuilderTests: XCTestCase {
             "mat"
         }
         
-        XCTAssertEqual("The cat sat on the mat", s)
+        #expect("The cat sat on the mat" == s)
     }
     
-    func testBuilderWithEmptyArrayArgument() {
+    @Test func builderWithEmptyArrayArgument() {
         let s = build {
             []
         }
         
-        XCTAssertEqual("", s)
+        #expect("" == s)
     }
     
-    func testBuilderWithArrayArgument() {
+    @Test func builderWithArrayArgument() {
         let s = build {
             ["The ", "cat ", "sat ", "on ", "the ", "mat"]
         }
         
-        XCTAssertEqual("The cat sat on the mat", s)
+        #expect("The cat sat on the mat" == s)
     }
     
-    func testBuilderWithEmptyArrayArguments() {
+    @Test func builderWithEmptyArrayArguments() {
         let s = build {
             []
             []
         }
         
-        XCTAssertEqual("", s)
+        #expect("" == s)
     }
     
-    func testBuilderWithArrayArguments() {
+    @Test func builderWithArrayArguments() {
         let s = build {
             ["The ", "cat ", "sat "]
             ["on ", "the ", "mat"]
         }
         
-        XCTAssertEqual("The cat sat on the mat", s)
+        #expect("The cat sat on the mat" == s)
     }
 }
 

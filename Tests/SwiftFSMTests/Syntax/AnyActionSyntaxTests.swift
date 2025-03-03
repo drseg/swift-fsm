@@ -1,34 +1,38 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 final class AnyActionSyntaxTests: AnyActionTestsBase {
-    func assert(_ actions: [AnyAction], expected: String, line: UInt = #line) async {
+    func assert(
+        _ actions: [AnyAction],
+        expected: String,
+        location: SourceLocation = #_sourceLocation
+    ) async {
         for a in actions {
             await a("event")
         }
         
-        XCTAssertEqual(output, expected, line: line)
+        #expect(output == expected, sourceLocation: location)
         output = ""
     }
 
-    func testCanMakeAnyActionsArray() async {
+    @Test func canMakeAnyActionsArray() async {
         await assert(AnyAction(pass) & passAsync, expected: "passpass")
         await assert(AnyAction(pass) & passWithEventAsync, expected: "passevent")
     }
 
-    func testCombinesAnyActionsArrays() async {
+    @Test func combinesAnyActionsArrays() async {
         let a = AnyAction(pass) & pass
 
         await assert(a & passAsync, expected: "passpasspass")
         await assert(a & passWithEventAsync, expected: "passpassevent")
     }
 
-    func testOperatorChains() async {
+    @Test func operatorChains() async {
         await assert(AnyAction(pass) & pass & passAsync, expected: "passpasspass")
         await assert(AnyAction(pass) & pass & passWithEventAsync, expected: "passpassevent")
     }
 
-    func testCombinesRawActionsToFormAnyActions() async {
+    @Test func combinesRawActionsToFormAnyActions() async {
         await assert(pass & passAsync, expected: "passpass")
         await assert(pass & passWithEventAsync, expected: "passevent")
 
@@ -46,7 +50,7 @@ final class AnyActionSyntaxTests: AnyActionTestsBase {
         await assert(passWithEventAsync & passWithEventAsync, expected: "eventevent")
     }
 
-    func testFormsArrayWithSingleAction() async {
+    @Test func formsArrayWithSingleAction() async {
         await assert(Array(passAsync), expected: "pass")
         await assert(passAsync*, expected: "pass")
         await assert(Array(passWithEventAsync), expected: "event")
@@ -59,7 +63,7 @@ final class AnyActionSyntaxTests: AnyActionTestsBase {
     func passWithIntAsync(_ i: Int) { }
     
     // Nothing to assert, must compile
-    func testHandlesMixedEventTypes() {
+    @Test func handlesMixedEventTypes() {
         let a = AnyAction(passWithStringSync) & passWithIntSync
         let b = AnyAction(passWithStringAsync) & passWithIntAsync
         let c = AnyAction(passWithStringSync) & passWithIntAsync

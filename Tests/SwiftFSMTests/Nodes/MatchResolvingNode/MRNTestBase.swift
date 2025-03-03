@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class MRNTestBase: StringableNodeTest {
@@ -74,37 +74,34 @@ class MRNTestBase: StringableNodeTest {
     func assertResult(
         _ result: MRNResult,
         expected: ExpectedMRNOutput,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) async {
-        assertCount(result.errors, expected: 0, file: file, line: line)
+        location: SourceLocation = #_sourceLocation
+    ) async throws {
+        try #require(result.errors.isEmpty, sourceLocation: location)
         
         await assertEqual(expected, result.output.first {
             $0.state == expected.state &&
             $0.predicates == expected.predicates &&
             $0.event == expected.event &&
             $0.nextState == expected.nextState
-        }, file: file, line: line)
+        }, location: location)
     }
     
     func assertEqual(
         _ lhs: ExpectedMRNOutput?,
         _ rhs: Transition?,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let condition = rhs?.condition?()
-        XCTAssertEqual(lhs?.condition, condition, file: file, line: line)
-        XCTAssertEqual(lhs?.state, rhs?.state, file: file, line: line)
-        XCTAssertEqual(lhs?.predicates, rhs?.predicates, file: file, line: line)
-        XCTAssertEqual(lhs?.event, rhs?.event, file: file, line: line)
-        XCTAssertEqual(lhs?.nextState, rhs?.nextState, file: file, line: line)
+        #expect(lhs?.condition == condition, sourceLocation: location)
+        #expect(lhs?.state == rhs?.state, sourceLocation: location)
+        #expect(lhs?.predicates == rhs?.predicates, sourceLocation: location)
+        #expect(lhs?.event == rhs?.event, sourceLocation: location)
+        #expect(lhs?.nextState == rhs?.nextState, sourceLocation: location)
         
         await assertActions(
             rhs?.actions,
             expectedOutput: lhs?.actionsOutput,
-            file: file,
-            line: line
+            location: location
         )
     }
 }

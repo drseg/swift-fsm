@@ -1,57 +1,56 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 final class WhenNodeTests: SyntaxNodeTests {
-    func testEmptyWhenNode() {
+    @Test func emptyWhenNode() {
         assertEmptyNodeWithError(WhenNode(events: [], rest: []))
     }
     
-    func testEmptyWhenNodeWithActions() {
+    @Test func emptyWhenNodeWithActions() {
         assertEmptyNodeWithError(WhenNode(events: [], rest: [thenNode]))
     }
     
-    func testEmptyWhenBlockNodeWithActions() {
+    @Test func emptyWhenBlockNodeWithActions() {
         assertEmptyNodeWithError(WhenBlockNode(events: [e1]))
     }
     
-    func testEmptyWhenBlockNodeHasNoOutput() {
-        assertCount(WhenBlockNode(events: [e1]).resolve().output, expected: 0)
+    @Test func emptyWhenBlockNodeHasNoOutput() {
+        #expect(WhenBlockNode(events: [e1]).resolve().output.isEmpty)
     }
     
-    func testWhenNodeWithEmptyRest() async {
+    @Test func whenNodeWithEmptyRest() async {
         await assertWhen(
             state: nil,
             actionsCount: 0,
             actionsOutput: "",
-            node: WhenNode(events: [e1, e2], rest: []),
-            line: #line
+            node: WhenNode(events: [e1, e2], rest: [])
         )
     }
     
     func assertWhenNodeWithActions(
         expected: String = "1212",
         _ w: WhenNode,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         await assertWhen(
             state: s1,
             actionsCount: 2,
             actionsOutput: expected,
             node: w,
-            line: line
+            location: location
         )
     }
     
-    func testWhenNodeFinalisesCorrectly() async {
+    @Test func whenNodeFinalisesCorrectly() async {
         await assertWhenNodeWithActions(WhenNode(events: [e1, e2], rest: [thenNode]))
     }
     
-    func testWhenNodeWithChainFinalisesCorrectly() async {
+    @Test func whenNodeWithChainFinalisesCorrectly() async throws {
         let w = WhenNode(events: [e3])
-        await assertDefaultIONodeChains(node: w, expectedEvent: e3)
+        try await assertDefaultIONodeChains(node: w, expectedEvent: e3)
     }
     
-    func testWhenNodeCanSetRestAfterInit() async {
+    @Test func whenNodeCanSetRestAfterInit() async {
         let w = WhenNode(events: [e1, e2])
         w.rest.append(thenNode)
         await assertWhenNodeWithActions(w)

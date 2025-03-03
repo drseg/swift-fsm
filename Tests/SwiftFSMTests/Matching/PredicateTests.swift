@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 typealias Predicate = SwiftFSM.Predicate
@@ -11,86 +11,88 @@ private protocol AlwaysEqual { }; extension AlwaysEqual {
     static func == (lhs: Self, rhs: Self) -> Bool { true }
 }
 
-final class PredicateTests: XCTestCase {
+struct PredicateTests {
     enum NeverEqualPredicate: Predicate, NeverEqual   { case a }
     enum AlwaysEqualPredicate: Predicate, AlwaysEqual { case a }
     
-    func testDescription() {
-        XCTAssertEqual(NeverEqualPredicate.a.erased().description,
-                       "NeverEqualPredicate.a")
+    @Test func description() {
+        #expect(
+            NeverEqualPredicate.a.erased().description ==
+            "NeverEqualPredicate.a"
+        )
     }
-
-    func testPredicateInequality() {
+    
+    @Test func predicateInequality() {
         let p1 = NeverEqualPredicate.a.erased()
         let p2 = NeverEqualPredicate.a.erased()
 
-        XCTAssertNotEqual(p1, p2)
+        #expect(p1 != p2)
     }
 
-    func testPredicateEquality() {
+    @Test func predicateEquality() {
         let p1 = AlwaysEqualPredicate.a.erased()
         let p2 = AlwaysEqualPredicate.a.erased()
 
-        XCTAssertEqual(p1, p2)
+        #expect(p1 == p2)
     }
 
-    func testPredicateFalseSet() {
+    @Test func predicateFalseSet() {
         let p1 = NeverEqualPredicate.a.erased()
         let p2 = NeverEqualPredicate.a.erased()
 
-        XCTAssertEqual(2, Set([p1, p2]).count)
+        #expect(2 == Set([p1, p2]).count)
     }
 
-    func testPredicateTrueSet() {
+    @Test func predicateTrueSet() {
         let p1 = AlwaysEqualPredicate.a.erased()
         let p2 = AlwaysEqualPredicate.a.erased()
 
-        XCTAssertEqual(1, Set([p1, p2]).count)
+        #expect(1 == Set([p1, p2]).count)
     }
 
-    func testPredicateDictionaryLookup() {
+    @Test func predicateDictionaryLookup() {
         let p1 = AlwaysEqualPredicate.a.erased()
         let p2 = NeverEqualPredicate.a.erased()
 
         let a = [p1: "Pass"]
         let b = [p2: "Pass"]
 
-        XCTAssertEqual(a[p1], "Pass")
-        XCTAssertNil(a[p2])
+        #expect(a[p1] == "Pass")
+        #expect(a[p2] == nil)
 
-        XCTAssertNil(b[p1])
-        XCTAssertNil(b[p2])
+        #expect(b[p1] == nil)
+        #expect(b[p2] == nil)
     }
 
     @MainActor
-    func testErasedWrapperUsesWrappedHasher() {
+    @Test func erasedWrapperUsesWrappedHasher() async {
         struct Spy: Predicate, NeverEqual {
-            let fulfill: @Sendable () -> ()
+            let confirm: @Sendable (Int) -> ()
             static var allCases: [Spy] { [] }
-            func hash(into hasher: inout Hasher) { fulfill() }
+            func hash(into hasher: inout Hasher) { confirm(1) }
         }
-
-        let e = expectation(description: "hash")
-        let anyPredicate = Spy(fulfill: e.fulfill).erased()
-        let _ = [anyPredicate: "Pass"]
-        waitForExpectations(timeout: 0.1)
+        
+        await confirmation { confirmation in
+            let predicate = Spy(confirm: confirmation.confirm).erased()
+            let _ = [predicate: "Pass"]
+        }
     }
         
-    func testBasePreservesType() {
+    @Test func basePreservesType() {
         let a1 = P.a.erased().unwrap(to: P.self)
         let a2 = P.a
         
-        XCTAssertEqual(a1, a2)
+        #expect(a1 == a2)
     }
     
-    func testAllCases() {
-        XCTAssertEqual(P.a.allCases.erased(), P.allCases.erased())
-        XCTAssertEqual(P.a.erased().allCases, P.allCases.erased())
+    @Test func allCases() {
+        #expect(P.a.allCases.erased() == P.allCases.erased())
+        #expect(P.a.erased().allCases == P.allCases.erased())
     }
 }
 
-final class PredicateCombinationsTests: XCTestCase {
-    func testCombinationsAccuracy() {
+struct PredicateCombinationsTests {
+    @Test func combinationsAccuracy() {
         enum P: Predicate { case a, b }
         enum Q: Predicate { case a, b }
         enum R: Predicate { case a, b }
@@ -106,18 +108,18 @@ final class PredicateCombinationsTests: XCTestCase {
                         [P.a, Q.b, R.b],
                         [P.b, Q.b, R.b]].erasedSets
         
-        XCTAssertEqual(expected, predicates.combinationsOfAllCases)
+        #expect(expected == predicates.combinationsOfAllCases)
     }
     
-    func testLargeCombinations() {
+    @Test func largeCombinations() {
         enum P: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n } // 10
         enum Q: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n } // 10
         enum R: Predicate { case a, b, c, d, e, f, g, h, i, j, k, l, m, n } // 10
         
         let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erased()
         
-        XCTAssertEqual(P.allCases.count * Q.allCases.count * R.allCases.count, // 1000, O(m^n)
-                       predicates.combinationsOfAllCases.count)
+        #expect(P.allCases.count * Q.allCases.count * R.allCases.count == // 1000, O(m^n)
+                predicates.combinationsOfAllCases.count)
     }
 }
 

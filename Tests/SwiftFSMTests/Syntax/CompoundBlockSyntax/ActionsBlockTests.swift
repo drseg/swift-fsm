@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class ActionsBlockTests: BlockTestsBase {
@@ -23,10 +23,10 @@ class ActionsBlockTests: BlockTestsBase {
         expectedRestOutput er: String = BlockTestsBase.defaultOutput,
         nodeLine nl: Int,
         restLine rl: Int,
-        xctLine xl: UInt
+        location: SourceLocation
     ) async {
-        await assertActionsBlock(b, expectedOutput: eo, sutLine: nl, xctLine: xl)
-        await assertMWTAResult(b.rest, expectedOutput: er, sutLine: rl, xctLine: xl)
+        await assertActionsBlock(b, expectedOutput: eo, sutLine: nl, location: location)
+        await assertMWTAResult(b.rest, expectedOutput: er, sutLine: rl, location: location)
     }
 
     func assertMWANode(
@@ -37,13 +37,13 @@ class ActionsBlockTests: BlockTestsBase {
         nodeLine nl: Int,
         restFile rf: String? = nil,
         restLine rl: Int,
-        xctLine xl: UInt
+        location: SourceLocation
     ) async {
         await assertActionsBlock(
             b,
             expectedOutput: eno,
             sutLine: nl,
-            xctLine: xl
+            location: location
         )
         
         await assertMWAResult(
@@ -51,7 +51,7 @@ class ActionsBlockTests: BlockTestsBase {
             expectedOutput: ero,
             sutFile: rf,
             sutLine: rl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -63,13 +63,13 @@ class ActionsBlockTests: BlockTestsBase {
         nodeLine nl: Int,
         restFile rf: String? = nil,
         restLine rl: Int,
-        xctLine xl: UInt
+        location: SourceLocation
     ) async {
         await assertActionsBlock(
             b,
             expectedOutput: eno,
             sutLine: nl,
-            xctLine: xl
+            location: location
         )
         
         await assertMTAResult(
@@ -77,7 +77,7 @@ class ActionsBlockTests: BlockTestsBase {
             expectedOutput: ero,
             sutFile: rf,
             sutLine: rl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -86,20 +86,20 @@ class ActionsBlockTests: BlockTestsBase {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = BlockTestsBase.defaultOutput,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
-        assertNeverEmptyNode(b, caller: "actions", sutLine: sl, xctLine: xl)
-        await assertActions(b.actions, event: event, expectedOutput: eo, xctLine: xl)
+        assertNeverEmptyNode(b, caller: "actions", sutLine: sl, location: location)
+        await assertActions(b.actions, event: event, expectedOutput: eo, location: location)
     }
     
-    func testMWTABlocks() async {
+    @Test func mwtaBlocks() async {
         func assertMWTA(
             _ b: Syntax.MWTA_Group,
             expectedNodeOutput eo: String = Self.defaultOutput,
             expectedRestOutput er: String = Self.defaultOutput,
             sutLine sl: Int = #line,
             restLine rl: Int = mwtaLine,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             await assertMWTANode(
                 abn(b.node),
@@ -107,7 +107,7 @@ class ActionsBlockTests: BlockTestsBase {
                 expectedRestOutput: er,
                 nodeLine: sl,
                 restLine: rl,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -129,7 +129,7 @@ class ActionsBlockTests: BlockTestsBase {
         )
     }
     
-    func testMWABlocks() async {
+    @Test func mwaBlocks() async {
         func assertMWA(
             _ b: Syntax.MWA_Group,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
@@ -137,7 +137,7 @@ class ActionsBlockTests: BlockTestsBase {
             nodeLine sl: Int = #line,
             restFile rf: String? = nil,
             restLine rl: Int = #line,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             await assertMWANode(
                 abn(b.node),
@@ -146,7 +146,7 @@ class ActionsBlockTests: BlockTestsBase {
                 nodeLine: sl,
                 restFile: rf,
                 restLine: rl,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -181,7 +181,7 @@ class ActionsBlockTests: BlockTestsBase {
         )
     }
     
-    func testMTABlocks() async {
+    @Test func mtaBlocks() async {
         func assertMTA(
             _ b: Syntax.MTA_Group,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
@@ -189,7 +189,7 @@ class ActionsBlockTests: BlockTestsBase {
             nodeLine nl: Int = #line,
             restFile rf: String? = nil,
             restLine rl: Int = #line,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             await assertMTANode(
                 abn(b.node),
@@ -198,7 +198,7 @@ class ActionsBlockTests: BlockTestsBase {
                 nodeLine: nl,
                 restFile: rf,
                 restLine: rl,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -235,25 +235,25 @@ class ActionsBlockTests: BlockTestsBase {
         )
     }
     
-    func testCompoundMWTABlocks() async {
+    @Test func compoundMWTABlocks() async {
         func assertMWTA(
             _ b: Syntax.MWTA_Group,
             expectedNodeOutput eo: String = BlockTestsBase.defaultOutput,
             expectedRestOutput er: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,
             restLine rl: Int = mwtaLine,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             let c = abnComponents(of: b)
             
-            await assertActionsBlock(c.0, expectedOutput: eo, sutLine: sl, xctLine: xl)
+            await assertActionsBlock(c.0, expectedOutput: eo, sutLine: sl, location: location)
             await assertMWTANode(
                 c.1,
                 expectedNodeOutput: eo,
                 expectedRestOutput: er,
                 nodeLine: sl,
                 restLine: rl,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -277,25 +277,25 @@ class ActionsBlockTests: BlockTestsBase {
         )
     }
 
-    func testCompoundMWABlocks() async {
+    @Test func compoundMWABlocks() async {
         func assertMWA(
             _ b: Syntax.MWA_Group,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,
             restLine rl: Int = mwaLine,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             let c = abnComponents(of: b)
             
-            await assertActionsBlock(c.0, expectedOutput: eno, sutLine: sl, xctLine: xl)
+            await assertActionsBlock(c.0, expectedOutput: eno, sutLine: sl, location: location)
             await assertMWANode(
                 c.1,
                 expectedNodeOutput: eno,
                 expectedRestOutput: ero,
                 nodeLine: sl,
                 restLine: rl,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -319,25 +319,25 @@ class ActionsBlockTests: BlockTestsBase {
         )
     }
     
-    func testCompoundMTABlocks() async {
+    @Test func compoundMTABlocks() async {
         func assertMTA(
             _ b: Syntax.MTA_Group,
             expectedNodeOutput eno: String = BlockTestsBase.defaultOutput,
             expectedRestOutput ero: String = BlockTestsBase.defaultOutput,
             sutLine sl: Int = #line,
             restLine rl: Int = mtaLine,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             let c = abnComponents(of: b)
             
-            await assertActionsBlock(c.0, expectedOutput: eno, sutLine: sl, xctLine: xl)
+            await assertActionsBlock(c.0, expectedOutput: eno, sutLine: sl, location: location)
             await assertMTANode(
                 c.1,
                 expectedNodeOutput: eno,
                 expectedRestOutput: ero,
                 nodeLine: sl,
                 restLine: rl,
-                xctLine: xl
+                location: location
             )
         }
         

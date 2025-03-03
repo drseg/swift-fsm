@@ -1,7 +1,7 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
-class NodeTests: XCTestCase {
+class NodeTests {
     struct StringNode: SyntaxNode {
         let first: String
         var rest: [any SyntaxNode<String>]
@@ -19,15 +19,16 @@ class NodeTests: XCTestCase {
     func assertEqual<T: Equatable, E: Error>(
         actual: ([T], [E])?,
         expected: ([T], [E])?,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertEqual(actual?.0, expected?.0, line: line)
-        XCTAssertEqual(actual?.1.map(\.localizedDescription),
-                       expected?.1.map(\.localizedDescription), line: line)
+        #expect(actual?.0 == expected?.0, sourceLocation: location)
+        #expect(
+            actual?.1.map(\.localizedDescription) == expected?.1.map(\.localizedDescription),
+            sourceLocation: location
+        )
     }
-    
 
-    func testSafeNodesCallCombineWithRestRecursively() {
+    @Test func safeNodesCallCombineWithRestRecursively() {
         let n0 = StringNode(first: "Then1", rest: [])
         let n1 = StringNode(first: "Then2", rest: [])
         let n2 = StringNode(first: "When", rest: [n0, n1])
@@ -38,7 +39,7 @@ class NodeTests: XCTestCase {
                                ["E", "E", "E", "E"]))
     }
     
-    func testResolveCallsCombinedWithBeforeValidate() {
+    @Test func resolveCallsCombinedWithBeforeValidate() {
         class NodeSpy: SyntaxNode {
             var rest: [any SyntaxNode<String>] = []
             
@@ -57,7 +58,7 @@ class NodeTests: XCTestCase {
         
         let n = NodeSpy()
         let _ = n.resolve()
-        XCTAssertEqual(n.log, ["first call", "second call"])
+        #expect(n.log == ["first call", "second call"])
     }
 }
 

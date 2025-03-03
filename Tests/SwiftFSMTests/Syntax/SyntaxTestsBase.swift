@@ -1,9 +1,9 @@
 import Foundation
-import XCTest
-
+import Testing
+import Numerics
 @testable import SwiftFSM
 
-class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
+class SyntaxTestsBase: ExpandedSyntaxBuilder {
     static let defaultOutput = "pass"
     static let defaultOutputWithEvent =
         "\(SyntaxTestsBase.defaultOutput), event: \(SyntaxTestsBase.defaultEvent)"
@@ -41,20 +41,18 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         any: any Predicate...,
         all: any Predicate...,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
-        XCTAssertTrue(m.node.rest.isEmpty, file: xf, line: xl)
+        #expect(m.node.rest.isEmpty, sourceLocation: location)
         
         await assertMatchNode(
             m.node,
             any: [any],
             all: all,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -62,22 +60,20 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ c: Condition,
         expected: Bool,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
-        XCTAssertTrue(c.node.rest.isEmpty, file: xf, line: xl)
+        #expect(c.node.rest.isEmpty, sourceLocation: location)
         
         let condition = c.node.descriptor.condition?()
-        XCTAssertEqual(expected, condition, file: xf, line: xl)
+        #expect(expected == condition, sourceLocation: location)
         
         await assertMatchNode(
             c.node,
             condition: expected,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl)
+            location: location)
     }
 
     func assertMatchNode(
@@ -87,47 +83,36 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         condition expectedCondition: Bool? = nil,
         caller: String = "matching",
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let any = any.map { $0.erased() }.filter { !$0.isEmpty }
         let actualCondition = node.descriptor.condition?()
 
-        XCTAssertEqual(
-            any,
-            node.descriptor.matchingAny,
-            file: xf,
-            line: xl
+        #expect(
+            any == node.descriptor.matchingAny,
+            sourceLocation: location
         )
         
-        XCTAssertEqual(
-            all.erased(),
-            node.descriptor.matchingAll,
-            file: xf,
-            line: xl
+        #expect(
+            all.erased() == node.descriptor.matchingAll,
+            sourceLocation: location
         )
         
-        XCTAssertEqual(
-            actualCondition,
-            expectedCondition,
-            file: xf,
-            line: xl
+        #expect(
+            actualCondition == expectedCondition,
+            sourceLocation: location
         )
         
-        XCTAssertEqual(
-            node.descriptor.file,
-            sf,
-            file: xf,
-            line: xl
+        #expect(
+            node.descriptor.file == sf,
+            sourceLocation: location
         )
         
-        XCTAssertEqual(
-            node.descriptor.line,
-            sl,
-            accuracy: 1,
-            file: xf,
-            line: xl
+        let line = Double(node.descriptor.line)
+        #expect(
+            line.isApproximatelyEqual(to: Double(sl), relativeTolerance: 1),
+            sourceLocation: location
         )
 
         if let node = node as? MatchingBlockNode {
@@ -135,9 +120,8 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
                 node,
                 caller: caller,
                 sutFile: sf,
-                xctFile: xf,
                 sutLine: sl,
-                xctLine: xl)
+                location: location)
         }
     }
 
@@ -145,23 +129,18 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ w: When,
         events: [Int] = [1, 2],
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertTrue(
-            w.node.rest.isEmpty,
-            file: xf,
-            line: xl
-        )
+        #expect(w.node.rest.isEmpty, sourceLocation: location)
         
         assertWhenNode(
             w.node,
             events: events,
             sutFile: sf,
-            xctFile: xf,
+            
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -169,23 +148,17 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ t: Then,
         state: Int? = 1,
         sutFile sf: String? = nil,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int? = #line,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertTrue(
-            t.node.rest.isEmpty,
-            file: xf,
-            line: xl
-        )
+        #expect(t.node.rest.isEmpty, sourceLocation: location)
         
         assertThenNode(
             t.node,
             state: state,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -193,18 +166,20 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ node: WhenNodeBase,
         events: [Int] = [1, 2],
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
         let files = [String](repeating: sf, count: events.count)
         let lines = [Int](repeating: sl, count: events.count)
 
-        XCTAssertEqual(events, node.events.map(\.base), file: xf, line: xl)
-        XCTAssertEqual(files, node.events.map(\.file), file: xf, line: xl)
+        #expect(events == node.events.map { $0.base as! Int }, sourceLocation: location)
+        #expect(files == node.events.map(\.file), sourceLocation: location)
         
         zip(lines, node.events.map(\.line)).forEach {
-            XCTAssertEqual($0.0, $0.1, accuracy: 1, file: xf, line: xl)
+            #expect(
+                Double($0.0).isApproximatelyEqual(to: Double($0.1), absoluteTolerance: 1),
+                sourceLocation: location
+            )
         }
 
         if let node = node as? any NeverEmptyNode {
@@ -212,9 +187,9 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
                 node,
                 caller: "when",
                 sutFile: sf,
-                xctFile: xf,
+                
                 sutLine: sl,
-                xctLine: xl)
+                location: location)
         }
     }
 
@@ -222,22 +197,27 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ n: ThenNodeBase,
         state: State?,
         sutFile sf: String? = nil,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int?,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertEqual(state, n.state?.base as? State, file: xf, line: xl)
-        XCTAssertEqual(sf, n.state?.file, file: xf, line: xl)
-        XCTAssertEqual(sl ?? 0, n.state?.line ?? 0, accuracy: 1, file: xf, line: xl)
+        #expect(state == n.state?.base as? State, sourceLocation: location)
+        #expect(sf == n.state?.file, sourceLocation: location)
+        
+        let expLine = Double(sl ?? 0)
+        let actLine = Double(n.state?.line ?? 0)
+        
+        #expect(
+            expLine.isApproximatelyEqual(to: actLine, absoluteTolerance: 1),
+            sourceLocation: location
+        )
 
         if let node = n as? ThenBlockNode {
             assertNeverEmptyNode(
                 node,
                 caller: "then",
                 sutFile: sf,
-                xctFile: xf,
                 sutLine: sl ?? -1,
-                xctLine: xl)
+                location: location)
         }
     }
 
@@ -247,26 +227,23 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         expectedOutput eo: String,
         state: State?,
         sutFile sf: String? = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int?,
-        xctLine xl: UInt
+        location: SourceLocation = #_sourceLocation
     ) async {
         let thenNode = n.rest.first as! ThenNode
         assertThenNode(
             thenNode,
             state: state,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
         
         await assertActions(
             n.actions,
             event: e,
             expectedOutput: eo,
-            file: xf,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -276,26 +253,23 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         expectedOutput eo: String,
         state: State?,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt
+        location: SourceLocation = #_sourceLocation
     ) async {
         let matchNode = n.rest.first as! MatchingNode
         await assertMatchNode(
             matchNode,
             all: [P.a],
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
         
         await assertActions(
             n.actions,
             event: e,
             expectedOutput: eo,
-            file: xf,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -303,13 +277,17 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ node: any NeverEmptyNode,
         caller: String,
         sutFile sf: String? = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertEqual(sf, node.file, file: xf, line: xl)
-        XCTAssertEqual(sl, node.line, accuracy: 1, file: xf, line: xl)
-        XCTAssertEqual(caller, node.caller, file: xf, line: xl)
+        #expect(sf == node.file, sourceLocation: location)
+        
+        #expect(
+            Double(sl).isApproximatelyEqual(to: Double(node.line), absoluteTolerance: 1),
+            sourceLocation: location
+        )
+        
+        #expect(caller == node.caller, sourceLocation: location)
     }
 
     func assertMWTA(
@@ -317,19 +295,18 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event e: Event = SyntaxTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
         let when = then.rest.first as! WhenNode
         let match = when.rest.first as! MatchingNode
 
-        XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
-        XCTAssertEqual(1, then.rest.count, file: xf, line: xl)
-        XCTAssertEqual(1, when.rest.count, file: xf, line: xl)
-        XCTAssertEqual(0, match.rest.count, file: xf, line: xl)
+        #expect(1 == actions.rest.count, sourceLocation: location)
+        #expect(1 == then.rest.count, sourceLocation: location)
+        #expect(1 == when.rest.count, sourceLocation: location)
+        #expect(0 == match.rest.count, sourceLocation: location)
 
         await assertActionsThenNode(
             actions,
@@ -337,26 +314,23 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
             expectedOutput: eo,
             state: 1,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
 
         assertWhenNode(
             when,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
         
         await assertMatchNode(
             match,
             all: [P.a],
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -365,41 +339,37 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let actions = n as! ActionsNode
         let when = actions.rest.first as! WhenNode
         let match = when.rest.first as! MatchingNode
 
-        XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
-        XCTAssertEqual(1, when.rest.count, file: xf, line: xl)
-        XCTAssertEqual(0, match.rest.count, file: xf, line: xl)
+        #expect(1 == actions.rest.count, sourceLocation: location)
+        #expect(1 == when.rest.count, sourceLocation: location)
+        #expect(0 == match.rest.count, sourceLocation: location)
 
         await assertActions(
             actions.actions,
             event: event,
             expectedOutput: eo,
-            file: xf,
-            xctLine: xl
+            location: location
         )
         
         assertWhenNode(
             when,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
         
         await assertMatchNode(
             match,
             all: [P.a],
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -408,17 +378,16 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
         let match = then.rest.first as! MatchingNode
 
-        XCTAssertEqual(1, actions.rest.count, line: xl)
-        XCTAssertEqual(1, then.rest.count, line: xl)
-        XCTAssertEqual(0, match.rest.count, line: xl)
+        #expect(1 == actions.rest.count, sourceLocation: location)
+        #expect(1 == then.rest.count, sourceLocation: location)
+        #expect(0 == match.rest.count, sourceLocation: location)
 
         await assertActionsThenNode(
             actions,
@@ -426,18 +395,16 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
             expectedOutput: eo,
             state: 1,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
 
         await assertMatchNode(
             match,
             all: [P.a],
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -446,17 +413,16 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = SyntaxTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
         let when = then.rest.first as! WhenNode
 
-        XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
-        XCTAssertEqual(1, then.rest.count, file: xf, line: xl)
-        XCTAssertEqual(0, when.rest.count, file: xf, line: xl)
+        #expect(1 == actions.rest.count, sourceLocation: location)
+        #expect(1 == then.rest.count, sourceLocation: location)
+        #expect(0 == when.rest.count, sourceLocation: location)
 
         await assertActionsThenNode(
             actions,
@@ -464,12 +430,11 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
             expectedOutput: eo,
             state: 1,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
 
-        assertWhenNode(when, sutFile: sf, xctFile: xf, sutLine: sl, xctLine: xl)
+        assertWhenNode(when, sutFile: sf,  sutLine: sl, location: location)
     }
 
     func assertWA(
@@ -477,30 +442,27 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let actions = n as! ActionsNode
         let when = actions.rest.first as! WhenNode
 
-        XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
-        XCTAssertEqual(0, when.rest.count, file: xf, line: xl)
+        #expect(1 == actions.rest.count, sourceLocation: location)
+        #expect(0 == when.rest.count, sourceLocation: location)
 
         await assertActions(
             actions.actions,
             event: event,
             expectedOutput: eo,
-            file: xf,
-            xctLine: xl
+            location: location
         )
         
         assertWhenNode(
             when,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -509,15 +471,14 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let actions = n as! ActionsNode
         let then = actions.rest.first as! ThenNode
 
-        XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
-        XCTAssertEqual(0, then.rest.count, file: xf, line: xl)
+        #expect(1 == actions.rest.count, sourceLocation: location)
+        #expect(0 == then.rest.count, sourceLocation: location)
 
         await assertActionsThenNode(
             actions,
@@ -525,9 +486,8 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
             expectedOutput: eo,
             state: 1,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -536,15 +496,14 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         event: Event = BlockTestsBase.defaultEvent,
         expectedOutput eo: String = SyntaxTestsBase.defaultOutput,
         sutFile sf: String = #file,
-        xctFile xf: StaticString = #filePath,
         sutLine sl: Int = #line,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let actions = n as! ActionsNode
         let match = actions.rest.first as! MatchingNode
 
-        XCTAssertEqual(1, actions.rest.count, file: xf, line: xl)
-        XCTAssertEqual(0, match.rest.count, file: xf, line: xl)
+        #expect(1 == actions.rest.count, sourceLocation: location)
+        #expect(0 == match.rest.count, sourceLocation: location)
 
         await assertActionsMatchNode(
             actions,
@@ -552,23 +511,20 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
             expectedOutput: eo,
             state: 1,
             sutFile: sf,
-            xctFile: xf,
             sutLine: sl,
-            xctLine: xl
+            location: location
         )
     }
 
     func assertActions(
         _ actions: [Action],
         expectedOutput eo: String,
-        file: StaticString = #filePath,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         await assertActions(
             actions.map(AnyAction.init),
             expectedOutput: eo,
-            file: file,
-            xctLine: xl
+            location: location
         )
     }
 
@@ -576,11 +532,10 @@ class SyntaxTestsBase: XCTestCase, ExpandedSyntaxBuilder {
         _ actions: [AnyAction],
         event e: Event = SyntaxTestsBase.defaultEvent,
         expectedOutput eo: String,
-        file: StaticString = #filePath,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         await actions.executeAll(e)
-        XCTAssertEqual(eo, output, file: file, line: xl)
+        #expect(eo == output, sourceLocation: location)
         output = ""
     }
 }

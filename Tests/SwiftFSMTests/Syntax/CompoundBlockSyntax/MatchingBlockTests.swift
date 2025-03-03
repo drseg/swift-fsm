@@ -1,14 +1,14 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class MatchingBlockTests: BlockTestsBase {
-    func testMWTABlocks() async {
+    @Test func mwtaBlocks() async {
         func assertMWTABlock(
             _ b: Syntax.MWTA_Group,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine sl: Int = #line,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async  {
             await assertMWTANode(
                 mbn(b.node),
@@ -16,7 +16,7 @@ class MatchingBlockTests: BlockTestsBase {
                 all: all,
                 nodeLine: sl,
                 restLine: mwtaLine,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -42,13 +42,13 @@ class MatchingBlockTests: BlockTestsBase {
         )
     }
 
-    func testMWABlocks() async {
+    @Test func mwaBlocks() async {
         func assertMWABlock(
             _ b: Syntax.MWA_Group,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             await assertMWANode(
                 mbn(b.node),
@@ -56,7 +56,7 @@ class MatchingBlockTests: BlockTestsBase {
                 all: all,
                 nodeLine: nl,
                 restLine: mwaLine,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -82,13 +82,13 @@ class MatchingBlockTests: BlockTestsBase {
         )
     }
     
-    func testMTABlocks() async {
+    @Test func mtaBlocks() async {
         func assertMTABlock(
             _ b: Syntax.MTA_Group,
             any: [any Predicate] = [],
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             await assertMTANode(
                 mbn(b.node),
@@ -96,7 +96,7 @@ class MatchingBlockTests: BlockTestsBase {
                 all: all,
                 nodeLine: nl,
                 restLine: mtaLine,
-                xctLine: xl
+                location: location
             )
         }
         
@@ -107,12 +107,12 @@ class MatchingBlockTests: BlockTestsBase {
         )
     }
     
-    func testCompoundMWTABlocks() async {
+    @Test func compoundMWTABlocks() async {
         func assertCompoundMWTABlock(
             _ b: Syntax.MWTA_Group,
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             let c = mbnComponents(of: b)
             
@@ -121,7 +121,7 @@ class MatchingBlockTests: BlockTestsBase {
                 any: [],
                 all: all,
                 sutLine: nl,
-                xctLine: xl
+                location: location
             )
             
             await assertMWTANode(
@@ -130,19 +130,19 @@ class MatchingBlockTests: BlockTestsBase {
                 all: all,
                 nodeLine: nl,
                 restLine: mwtaLine,
-                xctLine: xl
+                location: location
             )
         }
 
         await assertCompoundMWTABlock(matching(Q.a) { matching(Q.a) { mwtaBlock } }, all: [Q.a])
     }
 
-    func testCompoundMWABlocks() async {
+    @Test func compoundMWABlocks() async {
         func assertCompoundMWABlock(
             _ b: Syntax.MWA_Group,
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             let c = mbnComponents(of: b)
             
@@ -151,7 +151,7 @@ class MatchingBlockTests: BlockTestsBase {
                 any: [],
                 all: all,
                 sutLine: nl,
-                xctLine: xl
+                location: location
             )
             
             await assertMWANode(
@@ -160,19 +160,19 @@ class MatchingBlockTests: BlockTestsBase {
                 all: all,
                 nodeLine: nl,
                 restLine: mwaLine,
-                xctLine: xl
+                location: location
             )
         }
 
         await assertCompoundMWABlock(matching(Q.a) { matching(Q.a) { mwaBlock } }, all: [Q.a])
     }
 
-    func testCompoundMTABlocks() async {
+    @Test func compoundMTABlocks() async {
         func assertCompoundMTABlock(
             _ b: Syntax.MTA_Group,
             all: [any Predicate] = [],
             nodeLine nl: Int = #line,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             let c = mbnComponents(of: b)
             
@@ -181,7 +181,7 @@ class MatchingBlockTests: BlockTestsBase {
                 any: [],
                 all: all,
                 sutLine: nl,
-                xctLine: xl
+                location: location
             )
             
             await assertMTANode(
@@ -190,7 +190,7 @@ class MatchingBlockTests: BlockTestsBase {
                 all: all,
                 nodeLine: nl,
                 restLine: mtaLine,
-                xctLine: xl
+                location: location
             )
         }
 
@@ -213,10 +213,10 @@ class MatchingBlockTests: BlockTestsBase {
         all: [any Predicate],
         nodeLine nl: Int,
         restLine rl: Int,
-        xctLine xl: UInt
+        location: SourceLocation
     ) async {
-        await assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
-        await assertMWTAResult(b.rest, sutLine: rl, xctLine: xl)
+        await assertMatchBlock(b, any: any, all: all, sutLine: nl, location: location)
+        await assertMWTAResult(b.rest, sutLine: rl, location: location)
     }
 
     func assertMWANode(
@@ -225,10 +225,10 @@ class MatchingBlockTests: BlockTestsBase {
         all: [any Predicate],
         nodeLine nl: Int,
         restLine rl: Int,
-        xctLine xl: UInt
+        location: SourceLocation
     ) async {
-        await assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
-        await assertMWAResult(b.rest, sutLine: rl, xctLine: xl)
+        await assertMatchBlock(b, any: any, all: all, sutLine: nl, location: location)
+        await assertMWAResult(b.rest, sutLine: rl, location: location)
     }
 
     func assertMTANode(
@@ -237,10 +237,10 @@ class MatchingBlockTests: BlockTestsBase {
         all: [any Predicate],
         nodeLine nl: Int,
         restLine rl: Int,
-        xctLine xl: UInt
+        location: SourceLocation
     ) async {
-        await assertMatchBlock(b, any: any, all: all, sutLine: nl, xctLine: xl)
-        await assertMTAResult(b.rest, sutLine: rl, xctLine: xl)
+        await assertMatchBlock(b, any: any, all: all, sutLine: nl, location: location)
+        await assertMTAResult(b.rest, sutLine: rl, location: location)
     }
 
     func assertMatchBlock(
@@ -248,9 +248,9 @@ class MatchingBlockTests: BlockTestsBase {
         any: [any Predicate],
         all: [any Predicate],
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
-        assertNeverEmptyNode(b, caller: "matching", sutLine: sl, xctLine: xl)
-        await assertMatchNode(b, any: [any], all: all, sutLine: sl, xctLine: xl)
+        assertNeverEmptyNode(b, caller: "matching", sutLine: sl, location: location)
+        await assertMatchNode(b, any: [any], all: all, sutLine: sl, location: location)
     }
 }

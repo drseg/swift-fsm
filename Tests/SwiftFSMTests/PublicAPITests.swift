@@ -1,124 +1,126 @@
-import XCTest
+import Testing
 import SwiftFSM // Do not use @testable here
 
-final class PublicAPITests: XCTestCase {
-    // These make little attempt to avoid duplication, as the point is to test the public API as-is, so polymorphism, additional protocols, etc. should be avoided
-    
-    class SUT: SyntaxBuilder {
-        enum State { case locked, unlocked }
-        enum Event { case coin, pass }
-        
-        let turnstile: FSM<State, Event>
-        
-        init() throws {
-            turnstile = FSM<State, Event>(initialState: .locked)
+struct PublicAPITests {
+    struct NonIsolated {
+        class SUT: SyntaxBuilder {
+            enum State { case locked, unlocked }
+            enum Event { case coin, pass }
             
-            try turnstile.buildTable {
-                define(.locked) {
-                    when(.coin) | then(.unlocked) | unlock
-                    when(.pass) | then(.locked)   | alarm
-                }
+            let turnstile: FSM<State, Event>
+            
+            init() throws {
+                turnstile = FSM<State, Event>(initialState: .locked)
                 
-                define(.unlocked) {
-                    when(.coin) | then(.unlocked) | thankyou
-                    when(.pass) | then(.locked)   | lock
+                try turnstile.buildTable {
+                    define(.locked) {
+                        when(.coin) | then(.unlocked) | unlock
+                        when(.pass) | then(.locked)   | alarm
+                    }
+                    
+                    define(.unlocked) {
+                        when(.coin) | then(.unlocked) | thankyou
+                        when(.pass) | then(.locked)   | lock
+                    }
                 }
+            }
+            
+            func unlock() async { logAction() }
+            func alarm() async { logAction() }
+            func thankyou() async { logAction() }
+            func lock() async { logAction() }
+            
+            var log = [String]()
+            
+            func logAction(_ f: String = #function) {
+                log.append(f)
             }
         }
         
-        func unlock() async { logAction() }
-        func alarm() async { logAction() }
-        func thankyou() async { logAction() }
-        func lock() async { logAction() }
-        
-        var log = [String]()
-        
-        func logAction(_ f: String = #function) {
-            log.append(f)
-        }
-    }
-    
-    func testPublicAPI() async throws {
-        func assertLogged(_ a: String..., line: UInt = #line) {
-            XCTAssertEqual(sut.log, a, line: line)
-        }
-        
-        let sut = try SUT()
-        XCTAssert(sut.log.isEmpty)
-        
-        await sut.turnstile.handleEvent(.coin)
-        assertLogged("unlock()")
-        
-        await sut.turnstile.handleEvent(.coin)
-        assertLogged("unlock()", "thankyou()")
-        
-        await sut.turnstile.handleEvent(.coin)
-        assertLogged("unlock()", "thankyou()", "thankyou()")
-        
-        await sut.turnstile.handleEvent(.pass)
-        assertLogged("unlock()", "thankyou()", "thankyou()", "lock()")
-        
-        await sut.turnstile.handleEvent(.pass)
-        assertLogged("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
-    }
-    
-    @MainActor
-    class MainActorSUT: SyntaxBuilder {
-        enum State { case locked, unlocked }
-        enum Event { case coin, pass }
-        
-        let turnstile: FSM<State, Event>.OnMainActor
-        
-        init() throws {
-            turnstile = FSM<State, Event>.OnMainActor(initialState: .locked)
+        @Test func publicAPI() async throws {
+            func assertLogged(_ a: String..., location: SourceLocation = #_sourceLocation) {
+                #expect(sut.log == a, sourceLocation: location)
+            }
             
-            try turnstile.buildTable {
-                define(.locked) {
-                    when(.coin) | then(.unlocked) | unlock
-                    when(.pass) | then(.locked)   | alarm
-                }
+            let sut = try SUT()
+            #expect(sut.log.isEmpty)
+            
+            await sut.turnstile.handleEvent(.coin)
+            assertLogged("unlock()")
+            
+            await sut.turnstile.handleEvent(.coin)
+            assertLogged("unlock()", "thankyou()")
+            
+            await sut.turnstile.handleEvent(.coin)
+            assertLogged("unlock()", "thankyou()", "thankyou()")
+            
+            await sut.turnstile.handleEvent(.pass)
+            assertLogged("unlock()", "thankyou()", "thankyou()", "lock()")
+            
+            await sut.turnstile.handleEvent(.pass)
+            assertLogged("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
+        }
+    }
+    
+    struct OnMainActor {
+        @MainActor
+        class SUT: SyntaxBuilder {
+            enum State { case locked, unlocked }
+            enum Event { case coin, pass }
+            
+            let turnstile: FSM<State, Event>.OnMainActor
+            
+            init() throws {
+                turnstile = FSM<State, Event>.OnMainActor(initialState: .locked)
                 
-                define(.unlocked) {
-                    when(.coin) | then(.unlocked) | thankyou
-                    when(.pass) | then(.locked)   | lock
+                try turnstile.buildTable {
+                    define(.locked) {
+                        when(.coin) | then(.unlocked) | unlock
+                        when(.pass) | then(.locked)   | alarm
+                    }
+                    
+                    define(.unlocked) {
+                        when(.coin) | then(.unlocked) | thankyou
+                        when(.pass) | then(.locked)   | lock
+                    }
                 }
+            }
+            
+            func unlock() async { logAction() }
+            func alarm() async { logAction() }
+            func thankyou() async { logAction() }
+            func lock() async { logAction() }
+            
+            var log = [String]()
+            
+            func logAction(_ f: String = #function) {
+                log.append(f)
             }
         }
         
-        func unlock() async { logAction() }
-        func alarm() async { logAction() }
-        func thankyou() async { logAction() }
-        func lock() async { logAction() }
-        
-        var log = [String]()
-        
-        func logAction(_ f: String = #function) {
-            log.append(f)
+        @MainActor
+        @Test func mainActorPublicAPI() async throws {
+            func assertLogged(_ a: String..., location: SourceLocation = #_sourceLocation) {
+                #expect(sut.log == a, sourceLocation: location)
+            }
+            
+            let sut = try SUT()
+            #expect(sut.log.isEmpty)
+            
+            await sut.turnstile.handleEvent(.coin)
+            assertLogged("unlock()")
+            
+            await sut.turnstile.handleEvent(.coin)
+            assertLogged("unlock()", "thankyou()")
+            
+            await sut.turnstile.handleEvent(.coin)
+            assertLogged("unlock()", "thankyou()", "thankyou()")
+            
+            await sut.turnstile.handleEvent(.pass)
+            assertLogged("unlock()", "thankyou()", "thankyou()", "lock()")
+            
+            await sut.turnstile.handleEvent(.pass)
+            assertLogged("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
         }
-    }
-    
-    @MainActor
-    func testMainActorPublicAPI() async throws {
-        func assertLogged(_ a: String..., line: UInt = #line) {
-            XCTAssertEqual(sut.log, a, line: line)
-        }
-        
-        let sut = try MainActorSUT()
-        XCTAssert(sut.log.isEmpty)
-        
-        await sut.turnstile.handleEvent(.coin)
-        assertLogged("unlock()")
-        
-        await sut.turnstile.handleEvent(.coin)
-        assertLogged("unlock()", "thankyou()")
-        
-        await sut.turnstile.handleEvent(.coin)
-        assertLogged("unlock()", "thankyou()", "thankyou()")
-        
-        await sut.turnstile.handleEvent(.pass)
-        assertLogged("unlock()", "thankyou()", "thankyou()", "lock()")
-        
-        await sut.turnstile.handleEvent(.pass)
-        assertLogged("unlock()", "thankyou()", "thankyou()", "lock()", "alarm()")
     }
 }

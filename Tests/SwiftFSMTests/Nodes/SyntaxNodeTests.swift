@@ -1,7 +1,8 @@
-import XCTest
+import Testing
+import Foundation
 @testable import SwiftFSM
 
-class SyntaxNodeTests: XCTestCase {
+class SyntaxNodeTests {
     let s1: AnyTraceable = "S1", s2: AnyTraceable = "S2", s3: AnyTraceable = "S3"
     let e1: AnyTraceable = "E1", e2: AnyTraceable = "E2", e3: AnyTraceable = "E3"
     
@@ -55,25 +56,22 @@ class SyntaxNodeTests: XCTestCase {
     func assertEqual(
         _ lhs: RawSyntaxDTO?,
         _ rhs: RawSyntaxDTO?,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertTrue(
+        #expect(
             lhs?.descriptor == rhs?.descriptor &&
             lhs?.event == rhs?.event &&
             lhs?.state == rhs?.state,
             "\(String(describing: lhs)) does not equal \(String(describing: rhs))",
-            file: file,
-            line: line
+            sourceLocation: location
         )
     }
     
-    func assertEqual(lhs: [MSES], rhs: [MSES], file: StaticString = #filePath, line: UInt) {
-        XCTAssertTrue(
+    func assertEqual(lhs: [MSES], rhs: [MSES], location: SourceLocation = #_sourceLocation) {
+        #expect(
             isEqual(lhs: lhs, rhs: rhs),
             "\(lhs.description) does not equal \(rhs.description)",
-            file: file,
-            line: line
+            sourceLocation: location
         )
     }
     
@@ -100,61 +98,55 @@ class SyntaxNodeTests: XCTestCase {
     func assertEmptyThen(
         _ t: ThenNode,
         thenState: AnyTraceable? = "S1",
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) {
+        location: SourceLocation = #_sourceLocation
+    ) throws {
         let finalised = t.resolve()
         let result = finalised.0
         let errors = finalised.1
         
-        guard assertCount(result, expected: 1, file: file, line: line) else { return }
-        
-        XCTAssertTrue(errors.isEmpty, file: file, line: line)
-        XCTAssertEqual(thenState, result[0].state, file: file, line: line)
-        XCTAssertTrue(result[0].actions.isEmpty, file: file, line: line)
+        try #require(result.count == 1, sourceLocation: location)
+        #expect(errors.isEmpty, sourceLocation: location)
+        #expect(thenState == result[0].state, sourceLocation: location)
+        #expect(result[0].actions.isEmpty, sourceLocation: location)
     }
     
     func assertThenWithActions(
         expected: String,
         _ t: ThenNode,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let finalised = t.resolve()
         let result = finalised.0
         let errors = finalised.1
         
-        XCTAssertTrue(errors.isEmpty, file: file, line: line)
-        XCTAssertEqual(result[0].state, s1, file: file, line: line)
+        #expect(errors.isEmpty, sourceLocation: location)
+        #expect(result[0].state == s1, sourceLocation: location)
+        
         await assertActions(
             result.map(\.actions).flattened,
             expectedOutput: expected,
-            file: file,
-            line: line
+            location: location
         )
     }
     
     func assertEmptyNodeWithoutError(
         _ n: some SyntaxNode,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
         let f = n.resolve()
         
-        XCTAssertTrue(f.output.isEmpty, "Output not empty: \(f.0)", file: file, line: line)
-        XCTAssertTrue(f.errors.isEmpty, "Errors not empty: \(f.1)", file: file, line: line)
+        #expect(f.output.isEmpty, "Output not empty: \(f.0)", sourceLocation: location)
+        #expect(f.errors.isEmpty, "Errors not empty: \(f.1)", sourceLocation: location)
     }
     
     func assertEmptyNodeWithError(
         _ n: some NeverEmptyNode,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertEqual(
-            n.resolve().errors as? [EmptyBuilderError],
+        #expect(
+            n.resolve().errors as? [EmptyBuilderError] ==
             [EmptyBuilderError(caller: n.caller, file: n.file, line: n.line)],
-            file: file,
-            line: line
+            sourceLocation: location
         )
     }
     
@@ -163,52 +155,34 @@ class SyntaxNodeTests: XCTestCase {
         actionsCount: Int,
         actionsOutput: String,
         node: WhenNode,
-        file: StaticString = #filePath,
-        line: UInt
+        location: SourceLocation = #_sourceLocation
     ) async {
         let result = node.resolve().0
         let errors = node.resolve().1
         
         for i in 0..<2 {
-            XCTAssertEqual(state, result[i].state, file: file, line: line)
-            XCTAssertEqual(actionsCount, result[i].actions.count, file: file, line: line)
+            #expect(state == result[i].state, sourceLocation: location)
+            #expect(actionsCount == result[i].actions.count, sourceLocation: location)
             await result.executeAll()
         }
         
-        XCTAssertEqual(e1, result[0].event, file: file, line: line)
-        XCTAssertEqual(e2, result[1].event, file: file,  line: line)
+        #expect(e1 == result[0].event, sourceLocation: location)
+        #expect(e2 == result[1].event, sourceLocation: location)
         
-        XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
-        XCTAssertTrue(errors.isEmpty, file: file, line: line)
-    }
-    
-    @discardableResult
-    func assertCount(
-        _ actual: (any Collection)?,
-        expected: Int,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) -> Bool {
-        guard actual?.count ?? -1 == expected else {
-            XCTFail("Incorrect count: \(actual?.count ?? -1), expected: \(expected)",
-                    file: file,
-                    line: line)
-            return false
-        }
-        return true
+        #expect(actionsOutput == actionsOutput, sourceLocation: location)
+        #expect(errors.isEmpty, sourceLocation: location)
     }
     
     func assertMatch(
         _ m: MatchingNode,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) async {
+        location: SourceLocation = #_sourceLocation
+    ) async throws {
         let finalised = m.resolve()
         let result = finalised.0
         let errors = finalised.1
         
-        XCTAssertTrue(errors.isEmpty, file: file, line: line)
-        XCTAssertEqual(result.count, 2, file: file, line: line)
+        #expect(errors.isEmpty, sourceLocation: location)
+        try #require(result.count == 2, sourceLocation: location)
         
         assertEqual(
             result[0],
@@ -218,8 +192,7 @@ class SyntaxNodeTests: XCTestCase {
                 s1,
                 []
             ),
-            file: file,
-            line: line
+            location: location
         )
         
         assertEqual(
@@ -230,15 +203,13 @@ class SyntaxNodeTests: XCTestCase {
                 s1,
                 []
             ),
-            file: file,
-            line: line
+            location: location
         )
         
         await assertActions(
             result.map(\.actions).flattened,
             expectedOutput: "1212",
-            file: file,
-            line: line
+            location: location
         )
     }
     
@@ -246,8 +217,7 @@ class SyntaxNodeTests: XCTestCase {
         expected: [MSES],
         actionsOutput: String,
         node: GivenNode,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let finalised = node.resolve()
         let result = finalised.0
@@ -255,20 +225,18 @@ class SyntaxNodeTests: XCTestCase {
         
         assertEqual(lhs: expected,
                     rhs: result.map { MSES($0.descriptor, $0.state, $0.event, $0.nextState) },
-                    file: file,
-                    line: line)
+                    location: location)
         
         await result.map(\.actions).flattened.executeAll()
-        XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
-        XCTAssertTrue(errors.isEmpty, file: file, line: line)
+        #expect(actionsOutput == actionsOutput, sourceLocation: location)
+        #expect(errors.isEmpty, sourceLocation: location)
     }
     
     func assertDefineNode(
         expected: [MSES],
         actionsOutput: String,
         node: DefineNode,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let finalised = node.resolve()
         let result = finalised.0
@@ -276,8 +244,7 @@ class SyntaxNodeTests: XCTestCase {
         
         assertEqual(lhs: expected,
                     rhs: result.map { MSES($0.match, $0.state, $0.event, $0.nextState) },
-                    file: file,
-                    line: line)
+                    location: location)
         
         for node in result {
             await node.onEntry.executeAll()
@@ -285,21 +252,20 @@ class SyntaxNodeTests: XCTestCase {
             await node.onExit.executeAll()
         }
         
-        XCTAssertTrue(errors.isEmpty, file: file, line: line)
-        XCTAssertEqual(actionsOutput, actionsOutput, file: file, line: line)
+        #expect(errors.isEmpty, sourceLocation: location)
+        #expect(actionsOutput == actionsOutput, sourceLocation: location)
     }
     
     func assertDefaultIONodeChains(
-        node: any DefaultIONode,
+        node: any RawDTONode,
         expectedMatch: MatchDescriptorChain = MatchDescriptorChain(any: P.a, all: Q.a),
         expectedEvent: AnyTraceable = "E1",
         expectedState: AnyTraceable = "S1",
         expectedOutput: String = "chain",
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) async {
+        location: SourceLocation = #_sourceLocation
+    ) async throws {
         let nodeChains: [any SyntaxNode<RawSyntaxDTO>] = {
-            let nodes: [any DefaultIONode] =
+            let nodes: [any RawDTONode] =
             [MatchingNode(descriptor: MatchDescriptorChain(any: P.a, all: Q.a)),
              WhenNode(events: [e1]),
              ThenNode(state: s1),
@@ -325,54 +291,43 @@ class SyntaxNodeTests: XCTestCase {
             
             let output = node.resolve()
             let results = output.0
-                        
-            guard assertCount(results, expected: 1, file: file, line: line) else { return }
             
+            try #require(results.count == 1, sourceLocation: location)
+                                    
             let result = results[0]
             
             let actualPredicates = result.descriptor.resolve()
             let expectedPredicates = expectedMatch.resolve()
             
-            XCTAssertEqual(
-                expectedPredicates,
-                actualPredicates,
-                file: file,
-                line: line
+            #expect(
+                expectedPredicates == actualPredicates,
+                sourceLocation: location
             )
             
-            XCTAssertEqual(
-                expectedEvent,
-                result.event,
-                file: file,
-                line: line
+            #expect(
+                expectedEvent == result.event,
+                sourceLocation: location
             )
             
-            XCTAssertEqual(
-                expectedState,
-                result.state,
-                file: file,
-                line: line
+            #expect(
+                expectedState == result.state,
+                sourceLocation: location
             )
             
-            XCTAssertEqual(
-                testGroupID,
-                result.overrideGroupID,
-                file: file,
-                line: line
+            #expect(
+                testGroupID == result.overrideGroupID,
+                sourceLocation: location
             )
             
-            XCTAssertEqual(
-                true,
+            #expect(
                 result.isOverride,
-                file: file,
-                line: line
+                sourceLocation: location
             )
             
             await assertActions(
                 result.actions,
                 expectedOutput: expectedOutput,
-                file: file,
-                line: line
+                location: location
             )
         }
     }
@@ -380,11 +335,10 @@ class SyntaxNodeTests: XCTestCase {
     func assertActions(
         _ actions: [AnyAction]?,
         expectedOutput: String?,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         await actions?.executeAll()
-        XCTAssertEqual(actionsOutput, expectedOutput, file: file, line: line)
+        #expect(actionsOutput == expectedOutput, sourceLocation: location)
         actionsOutput = ""
     }
 }
@@ -457,51 +411,51 @@ extension Collection {
 
 let testGroupID = UUID()
 
-protocol DefaultIONode: SyntaxNode where Output == RawSyntaxDTO, Input == Output {
+protocol RawDTONode: SyntaxNode where Output == RawSyntaxDTO, Input == Output {
     func copy() -> Self
 }
 
-extension ActionsNode: DefaultIONode {
-    func copy() -> Self {
+extension ActionsNode: RawDTONode {
+    func copy() -> ActionsNode {
         ActionsNode(
             actions: actions,
             rest: rest,
             overrideGroupID: testGroupID,
             isOverride: true
-        ) as! Self
+        )
     }
 }
 
-extension ThenNode: DefaultIONode {
-    func copy() -> Self {
+extension ThenNode: RawDTONode {
+    func copy() -> ThenNode {
         ThenNode(
             state: state,
             rest: rest,
             overrideGroupID: testGroupID,
             isOverride: true
-        ) as! Self
+        )
     }
 }
 
-extension WhenNode: DefaultIONode {
-    func copy() -> Self {
+extension WhenNode: RawDTONode {
+    func copy() -> WhenNode {
         WhenNode(
             events: events,
             rest: rest,
             overrideGroupID: testGroupID,
             isOverride: true
-        ) as! Self
+        )
     }
 }
 
-extension MatchingNode: DefaultIONode {
-    func copy() -> Self {
+extension MatchingNode: RawDTONode {
+    func copy() -> MatchingNode {
         MatchingNode(
             descriptor: descriptor,
             rest: rest,
             overrideGroupID: testGroupID,
             isOverride: true
-        ) as! Self
+        )
     }
 }
 

@@ -13,8 +13,8 @@ public extension ResultBuilder {
         [row]
     }
 
-    static func buildBlock(_ cs: [T]...) -> [T] {
-        cs.flattened
+    static func buildBlock(_ rows: [T]...) -> [T] {
+        rows.flattened
     }
 }
 

@@ -31,13 +31,13 @@ class ThenNodeBase: OverridableNode {
     }
 }
 
-class ThenNode: ThenNodeBase, SyntaxNode {
+final class ThenNode: ThenNodeBase, SyntaxNode {
     func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         makeOutput(rest) ??? makeRawDTO(state: state)
     }
 }
 
-class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
+final class ThenBlockNode: ThenNodeBase, NeverEmptyNode {
     let caller: String
     let file: String
     let line: Int

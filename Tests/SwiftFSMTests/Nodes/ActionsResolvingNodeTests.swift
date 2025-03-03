@@ -1,12 +1,12 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class ActionsResolvingNodeTests: DefineConsumer {
-    func testEmptyNode() {
+    @Test func emptyNode() {
         let node = ActionsResolvingNode.OnStateChange()
         let finalised = node.resolve()
-        XCTAssertTrue(finalised.output.isEmpty)
-        XCTAssertTrue(finalised.errors.isEmpty)
+        #expect(finalised.output.isEmpty)
+        #expect(finalised.errors.isEmpty)
     }
     
     func assertNode<T: ActionsResolvingNode>(
@@ -16,15 +16,15 @@ class ActionsResolvingNodeTests: DefineConsumer {
         w: AnyTraceable,
         t: AnyTraceable,
         output: String,
-        line: UInt = #line
-    ) async {
+        location: SourceLocation = #_sourceLocation
+    ) async throws {
         let node = T.init(rest: [defineNode(g, m, w, t, exit: onExit)])
         let finalised = node.resolve()
-        XCTAssertTrue(finalised.errors.isEmpty, line: line)
-        guard assertCount(finalised.output, expected: 1, line: line) else { return }
+        #expect(finalised.errors.isEmpty, sourceLocation: location)
+        try #require(finalised.output.count == 1, sourceLocation: location)
         
         let result = finalised.output[0]
-        await assertResult(result, g, m, w, t, output, line)
+        await assertResult(result, g, m, w, t, output, location)
     }
     
     func assertResult(
@@ -34,62 +34,61 @@ class ActionsResolvingNodeTests: DefineConsumer {
         _ w: AnyTraceable,
         _ t: AnyTraceable,
         _ output: String,
-        _ line: UInt = #line
+        _ location: SourceLocation = #_sourceLocation
+
     ) async {
-        XCTAssertEqual(result.state, g, line: line)
-        XCTAssertEqual(result.descriptor, m, line: line)
-        XCTAssertEqual(result.event, w, line: line)
-        XCTAssertEqual(result.nextState, t, line: line)
-        XCTAssertEqual(result.overrideGroupID, testGroupID, line: line)
-        XCTAssertEqual(result.isOverride, false, line: line)
+        #expect(result.state == g, sourceLocation: location)
+        #expect(result.descriptor == m, sourceLocation: location)
+        #expect(result.event == w, sourceLocation: location)
+        #expect(result.nextState == t, sourceLocation: location)
+        #expect(result.overrideGroupID == testGroupID, sourceLocation: location)
+        #expect(!result.isOverride, sourceLocation: location)
         
-        await assertActions(result.actions, expectedOutput: output, line: line)
+        await assertActions(result.actions, expectedOutput: output, location: location)
     }
     
     let m = MatchDescriptorChain()
     
-    func testConditionalDoesNotAddExitActionsWithoutStateChange() async {
-        await assertNode(type: ActionsResolvingNode.OnStateChange.self,
-                         g: s1, m: m, w: e1, t: s1, output: "12")
+    @Test func conditionalDoesNotAddExitActionsWithoutStateChange() async throws{
+        try await assertNode(type: ActionsResolvingNode.OnStateChange.self,
+                             g: s1, m: m, w: e1, t: s1, output: "12")
     }
     
-    func testUnconditionalAddsExitActionsWithoutStateChange() async {
-        await assertNode(type: ActionsResolvingNode.ExecuteAlways.self,
-                         g: s1, m: m, w: e1, t: s1, output: "12>>")
+    @Test func unconditionalAddsExitActionsWithoutStateChange() async throws {
+        try await assertNode(type: ActionsResolvingNode.ExecuteAlways.self,
+                             g: s1, m: m, w: e1, t: s1, output: "12>>")
     }
     
-    func testConditionalAddsExitActionsWithStateChange() async {
-        await assertNode(type: ActionsResolvingNode.OnStateChange.self,
-                         g: s1, m: m, w: e1, t: s2, output: "12>>")
+    @Test func conditionalAddsExitActionsWithStateChange() async throws {
+        try await assertNode(type: ActionsResolvingNode.OnStateChange.self,
+                             g: s1, m: m, w: e1, t: s2, output: "12>>")
     }
     
-    func testConditionalDoesNotAddEntryActionsWithoutStateChange() async {
+    @Test func conditionalDoesNotAddEntryActionsWithoutStateChange() async throws {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: [])
         let result = ActionsResolvingNode.OnStateChange(rest: [d1]).resolve()
         
-        XCTAssertTrue(result.errors.isEmpty)
-        guard assertCount(result.output, expected: 1) else { return }
-        
+        #expect(result.errors.isEmpty)
+        try #require(result.output.count == 1)
         await assertResult(result.output[0], s1, m, e1, s1, "12")
     }
     
-    func testUnconditionalAddsEntryActionsWithoutStateChange() async {
+    @Test func unconditionalAddsEntryActionsWithoutStateChange() async throws {
         let d1 = defineNode(s1, m, e1, s1, entry: onEntry, exit: onExit)
         let result = ActionsResolvingNode.ExecuteAlways(rest: [d1]).resolve()
         
-        XCTAssertTrue(result.errors.isEmpty)
-        guard assertCount(result.output, expected: 1) else { return }
-        
+        #expect(result.errors.isEmpty)
+        try #require(result.output.count == 1)
         await assertResult(result.output[0], s1, m, e1, s1, "12>><<")
     }
     
-    func testConditionalAddsEntryActionsForStateChange() async {
+    @Test func conditionalAddsEntryActionsForStateChange() async throws {
         let d1 = defineNode(s1, m, e1, s2)
         let d2 = defineNode(s2, m, e1, s3, entry: onEntry, exit: onExit)
         let result = ActionsResolvingNode.OnStateChange(rest: [d1, d2]).resolve()
         
-        XCTAssertTrue(result.errors.isEmpty)
-        guard assertCount(result.output, expected: 2) else { return }
+        #expect(result.errors.isEmpty)
+        try #require(result.output.count == 2)
         
         await assertResult(result.output[0], s1, m, e1, s2, "12<<")
         await assertResult(result.output[1], s2, m, e1, s3, "12>>")

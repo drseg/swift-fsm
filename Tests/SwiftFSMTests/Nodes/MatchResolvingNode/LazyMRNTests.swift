@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class LazyMatchResolvingNodeTests: MRNTestBase {
@@ -11,8 +11,8 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
     func assertNotMatchClash(
         _ m1: MatchDescriptorChain,
         _ m2: MatchDescriptorChain,
-        line: UInt = #line
-    ) async {
+        location: SourceLocation = #_sourceLocation
+    ) async throws {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
         
@@ -21,53 +21,49 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         
         let result = makeSUT(rest: [d1, d2]).resolve()
         
-        guard
-            assertCount(result.errors, expected: 0, line: line),
-            assertCount(result.output, expected: 2, line: line)
-        else { return }
+        try #require(result.errors.count == 0)
+        try #require(result.output.count == 2)
         
         await assertEqual(
             makeOutput(c: nil, g: s1, m: m1, p: p1, w: e1, t: s2),
             result.output.first,
-            line: line
+            location: location
         )
         
         await assertEqual(
             makeOutput(c: nil, g: s1, m: m2, p: p2, w: e1, t: s3),
             result.output.last,
-            line: line
+            location: location
         )
     }
     
     func assertMatchClash(
         _ m1: MatchDescriptorChain,
         _ m2: MatchDescriptorChain,
-        line: UInt = #line
-    ) {
+        location: SourceLocation = #_sourceLocation
+    ) throws {
         let d1 = defineNode(s1, m1, e1, s2)
         let d2 = defineNode(s1, m2, e1, s3)
-        let finalised = makeSUT(rest: [d1, d2]).resolve()
+        let result = makeSUT(rest: [d1, d2]).resolve()
         
-        guard
-            assertCount(finalised.output, expected: 0, line: line),
-            assertCount(finalised.errors, expected: 1, line: line)
-        else { return }
+        try #require(result.errors.count == 1)
+        try #require(result.output.count == 0)
         
-        XCTAssert(finalised.errors.first is EMRN.ImplicitClashesError, line: line)
+        #expect(result.errors.first is EMRN.ImplicitClashesError, sourceLocation: location)
     }
     
-    func testInit() async {
+    @Test func canInit() async {
         let sut = makeSUT(rest: [defineNode(s1, m1, e1, s2)])
         let rest = SVN(rest: [ARN(rest: [defineNode(s1, m1, e1, s2)])])
         await assertEqualFileAndLine(rest, sut.rest.first!)
     }
     
-    func testEmptyMatchOutput() async {
+    @Test func emptyMatchOutput() async throws {
         let sut = makeSUT(rest: [defineNode(s1, MatchDescriptorChain(), e1, s2)])
         let result = sut.resolve()
         
-        assertCount(result.errors, expected: 0)
-        assertCount(result.output, expected: 1)
+        try #require(result.errors.count == 0)
+        try #require(result.output.count == 1)
         
         await assertEqual(
             makeOutput(
@@ -77,12 +73,12 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         )
     }
 
-    func testPredicateMatchOutput() async {
+    @Test func predicateMatchOutput() async throws {
         let sut = makeSUT(rest: [defineNode(s1, m1, e1, s2)])
         let result = sut.resolve()
         
-        assertCount(result.errors, expected: 0)
-        assertCount(result.output, expected: 1)
+        try #require(result.errors.count == 0)
+        try #require(result.output.count == 1)
         
         await assertEqual(
             makeOutput(
@@ -92,17 +88,17 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         )
     }
     
-    func testImplicitMatchClashes() async {
-        await assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a))
-        await assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a, Q.a))
-        await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: Q.a, S.a))
-
-        await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b))
-        await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b, Q.b))
-        await assertNotMatchClash(MatchDescriptorChain(all: P.a, Q.a), MatchDescriptorChain(all: P.b, Q.b))
-      
-        assertMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: Q.a))
-        assertMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(any: Q.a))
-        assertMatchClash(MatchDescriptorChain(all: P.a, R.a), MatchDescriptorChain(all: Q.a, S.a))
+    @Test func implicitMatchClashes() async throws {
+        try await assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a))
+        try await assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a, Q.a))
+        try await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: Q.a, S.a))
+        
+        try await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b))
+        try await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b, Q.b))
+        try await assertNotMatchClash(MatchDescriptorChain(all: P.a, Q.a), MatchDescriptorChain(all: P.b, Q.b))
+        
+        try assertMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: Q.a))
+        try assertMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(any: Q.a))
+        try assertMatchClash(MatchDescriptorChain(all: P.a, R.a), MatchDescriptorChain(all: Q.a, S.a))
     }
 }

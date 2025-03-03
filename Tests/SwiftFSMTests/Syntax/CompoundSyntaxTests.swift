@@ -1,31 +1,31 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 final class CompoundSyntaxTests: SyntaxTestsBase {
     func assertMW(
         _ mw: MatchingWhen<State, Event>,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
-        await assertMWNode(mw.node, sutLine: sl, xctLine: xl)
+        await assertMWNode(mw.node, sutLine: sl, location: location)
     }
     
     func assertMWNode<N: SyntaxNode>(
         _ n: N,
         sutLine sl: Int,
-        xctLine xl: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) async {
         let whenNode = n as! WhenNode
         let matchNode = n.rest.first as! MatchingNode
         
-        XCTAssertEqual(1, whenNode.rest.count, line: xl)
-        XCTAssertEqual(0, matchNode.rest.count, line: xl)
+        #expect(1 == whenNode.rest.count, sourceLocation: location)
+        #expect(0 == matchNode.rest.count, sourceLocation: location)
         
-        assertWhenNode(whenNode, sutLine: sl, xctLine: xl)
-        await assertMatchNode(matchNode, all: [P.a], sutLine: sl, xctLine: xl)
+        assertWhenNode(whenNode, sutLine: sl, location: location)
+        await assertMatchNode(matchNode, all: [P.a], sutLine: sl, location: location)
     }
     
-    func testMatching() async {
+    @Test func matching() async {
         await assertMatching(matching(P.a), all: P.a)
         await assertMatching(matching(P.a, or: P.b, line: -1), any: P.a, P.b, sutLine: -1)
         await assertMatching(matching(P.a, and: Q.a, line: -1), all: P.a, Q.a, sutLine: -1)
@@ -43,40 +43,40 @@ final class CompoundSyntaxTests: SyntaxTestsBase {
         )
     }
     
-    func testCondition() async {
+    @Test func condition() async {
         await assertCondition(condition({ true }), expected: true)
     }
             
-    func testWhen() {
+    @Test func when() {
         assertWhen(when(1, or: 2))
         assertWhen(when(1), events: [1])
     }
     
-    func testThen() {
+    @Test func then() {
         assertThen(then(1), sutFile: #file)
         assertThen(then(), state: nil, sutLine: nil)
     }
     
-    func testMatchingWhen() async {
+    @Test func matchingWhen() async {
         await assertMW(matching(P.a) | when(1, or: 2), sutLine: #line)
     }
 
-    func testMatchingWhenThen() async {
+    @Test func matchingWhenThen() async {
         func assertMWT(
             _ mwt: MatchingWhenThen<Event>,
             sutLine sl: Int,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
             let then = mwt.node
             let when = then.rest.first as! WhenNode
             
-            XCTAssertEqual(1, then.rest.count, line: xl)
+            #expect(1 == then.rest.count, sourceLocation: location)
             assertThenNode(
                 then as! ThenNodeBase,
                 state: 1,
                 sutFile: #file,
                 sutLine: sl,
-                xctLine: xl
+                location: location
             )
             await assertMWNode(when, sutLine: sl)
         }
@@ -84,7 +84,7 @@ final class CompoundSyntaxTests: SyntaxTestsBase {
         await assertMWT(matching(P.a) | when(1, or: 2) | then(1), sutLine: #line)
     }
     
-    func testMatchingWhenThenActions() async {
+    @Test func matchingWhenThenActions() async {
         let mwta1 = matching(P.a) | when(1, or: 2) | then(1) | pass; let l1 = #line
         let mwta2 = matching(P.a) | when(1, or: 2) | then(1) | pass & pass; let l2 = #line
 
@@ -96,7 +96,7 @@ final class CompoundSyntaxTests: SyntaxTestsBase {
         )
     }
 
-    func testMatchingWhenThenActions_withEvent() async {
+    @Test func matchingWhenThenActions_withEvent() async {
         let mwta = matching(P.a) | when(1, or: 2) | then(1) | passWithEvent; let l2 = #line
         await assertMWTA(
             mwta.node,
@@ -106,12 +106,12 @@ final class CompoundSyntaxTests: SyntaxTestsBase {
         )
     }
 
-    func testMatchingWhenThenActionsAsync() async {
+    @Test func matchingWhenThenActionsAsync() async {
         let mwta = matching(P.a) | when(1, or: 2) | then(1) | passAsync; let l1 = #line
         await assertMWTA(mwta.node, sutLine: l1)
     }
 
-    func testMatchingWhenThenActionsAsync_withEvent() async {
+    @Test func matchingWhenThenActionsAsync_withEvent() async {
         let mwta = matching(P.a) | when(1, or: 2) | then(1) | passWithEventAsync; let l2 = #line
         await assertMWTA(
             mwta.node,
@@ -121,32 +121,32 @@ final class CompoundSyntaxTests: SyntaxTestsBase {
         )
     }
 
-    func testWhenThen() {
+    @Test func whenThen() {
         func assertWT(
             _ wt: MatchingWhenThen<Event>,
             sutLine sl: Int,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) {
             let then = wt.node
             let when = then.rest.first as! WhenNode
 
-            XCTAssertEqual(1, then.rest.count, line: xl)
-            XCTAssertEqual(0, when.rest.count, line: xl)
+            #expect(1 == then.rest.count, sourceLocation: location)
+            #expect(0 == when.rest.count, sourceLocation: location)
 
             assertThenNode(
                 then as! ThenNodeBase,
                 state: 1,
                 sutFile: #file,
                 sutLine: sl,
-                xctLine: xl
+                location: location
             )
-            assertWhenNode(when, sutLine: sl, xctLine: xl)
+            assertWhenNode(when, sutLine: sl, location: location)
         }
 
         assertWT(when(1, or: 2) | then(1), sutLine: #line)
     }
     
-    func testWhenThenActions() async {
+    @Test func whenThenActions() async {
         let wta1 = when(1, or: 2) | then(1) | pass; let l1 = #line
         let wta2 = when(1, or: 2) | then(1) | pass & pass; let l2 = #line
 
@@ -158,12 +158,12 @@ final class CompoundSyntaxTests: SyntaxTestsBase {
         )
     }
 
-    func testWhenThenActionsAsync() async {
+    @Test func whenThenActionsAsync() async {
         let wta1 = when(1, or: 2) | then(1) | passAsync; let l1 = #line
         await assertWTA(wta1.node, sutLine: l1)
     }
 
-    func testWhenThenActions_withEvent() async {
+    @Test func whenThenActions_withEvent() async {
         let wta2 = when(1, or: 2) | then(1) | passWithEvent; let l2 = #line
         await assertWTA(
             wta2.node,
@@ -172,7 +172,7 @@ final class CompoundSyntaxTests: SyntaxTestsBase {
         )
     }
 
-    func testWhenThenActionsAsync_withEvent() async {
+    @Test func whenThenActionsAsync_withEvent() async {
         let wta2 = when(1, or: 2) | then(1) | passWithEventAsync; let l2 = #line
         await assertWTA(
             wta2.node,

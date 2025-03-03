@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 struct LogData: Equatable {
@@ -16,7 +16,7 @@ protocol LoggableFSM {
     var loggedTransitions: [Transition] { get set }
 }
 
-class LoggerTests: XCTestCase {
+class LoggerTests {
     class LoggerSpy: Logger<Int> {
         var callStack = [String]()
         
@@ -45,80 +45,80 @@ class LoggerTests: XCTestCase {
     
     let logger = LoggerSpy()
     
-    func assertStack(_ expected: [String], line: UInt = #line) {
-        XCTAssertEqual(expected, logger.callStack, line: line)
+    func assertStack(_ expected: [String], location: SourceLocation = #_sourceLocation) {
+        #expect(expected == logger.callStack, sourceLocation: location)
     }
     
-    func testTransitionNotFoundCallsForString() {
+    @Test func transitionNotFoundCallsForString() {
         logger.transitionNotFound(1, [])
         assertStack(["transitionNotFoundString"])
     }
     
-    func testTransitionNotFoundString() {
+    @Test func transitionNotFoundString() {
         let output = logger.transitionNotFoundString(1, [])
-        XCTAssertEqual("no transition found for event '1'", output)
+        #expect("no transition found for event '1'" == output)
     }
     
-    func testTransitionNotFoundStringWithPredicate() {
+    @Test func transitionNotFoundStringWithPredicate() {
         enum P: Predicate, CustomStringConvertible {
             case a; var description: String { "P.a" }
         }
         
         let output = logger.transitionNotFoundString(1, [P.a])
-        XCTAssertEqual(
-            "no transition found for event '1' matching predicates [P.a]",
+        #expect(
+            "no transition found for event '1' matching predicates [P.a]" ==
             output
         )
     }
     
-    func testTransitionNotExecutedCallsForString() {
+    @Test func transitionNotExecutedCallsForString() {
         logger.transitionNotExecuted(Transition(nil, 1, [], 1, 1, []))
         assertStack(["transitionNotExecutedString"])
     }
     
-    func testTransitionNotExecutedString() {
+    @Test func transitionNotExecutedString() {
         let output = logger.transitionNotExecutedString(Transition(nil, 1, [], 1, 1, []))
-        XCTAssertEqual(
-            "conditional transition { define(1) | when(1) | then(1) } not executed",
+        #expect(
+            "conditional transition { define(1) | when(1) | then(1) } not executed" ==
             output
         )
     }
 
-    func testTransitionNotExecutedStringWithPredicates() {
+    @Test func transitionNotExecutedStringWithPredicates() {
         let output = logger.transitionNotExecutedString(Transition(nil, 1, [P.a.erased()], 1, 1, []))
-        XCTAssertEqual(
-            "conditional transition { define(1) | matching([P.a]) | when(1) | then(1) } not executed",
+        #expect(
+            "conditional transition { define(1) | matching([P.a]) | when(1) | then(1) } not executed" ==
             output
         )
     }
 
-    func testTransitionExecutedCallsForString() {
+    @Test func transitionExecutedCallsForString() {
         logger.transitionExecuted(Transition(nil, 1, [], 1, 1, []))
         assertStack(["transitionExecutedString"])
     }
 
-    func testTransitionExecutedString() {
+    @Test func transitionExecutedString() {
         let output = logger.transitionExecutedString(Transition(nil, 1, [], 1, 1, []))
-        XCTAssertEqual(
-            "transition { define(1) | when(1) | then(1) } was executed",
+        #expect(
+            "transition { define(1) | when(1) | then(1) } was executed" ==
             output
         )
     }
 
-    func testTransitionExecutedStringWithPredicates() {
+    @Test func transitionExecutedStringWithPredicates() {
         let output = logger.transitionExecutedString(Transition(nil, 1, [P.a.erased()], 1, 1, []))
-        XCTAssertEqual(
-            "transition { define(1) | matching([P.a]) | when(1) | then(1) } was executed",
+        #expect(
+            "transition { define(1) | matching([P.a]) | when(1) | then(1) } was executed" ==
             output
         )
     }
 }
 
-class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
+class FSMLoggingTests: ExpandedSyntaxBuilder {
     typealias State = Int
     typealias Event = Int
     
-    class FSMSpy: FSM<State, Event>.Eager, LoggableFSM {
+    class FSMSpy: FSM<State, Event>.Eager, LoggableFSM, @unchecked Sendable {
         var loggedEvents: [LogData] = []
         var loggedTransitions: [Transition] = []
         
@@ -135,7 +135,7 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         }
     }
     
-    class LazyFSMSpy: FSM<State, Event>.Lazy, LoggableFSM {
+    class LazyFSMSpy: FSM<State, Event>.Lazy, LoggableFSM, @unchecked Sendable {
         var loggedEvents: [LogData] = []
         var loggedTransitions: [Transition] = []
         
@@ -171,13 +171,13 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
     func assertEqual<T: Equatable>(
         _ expected: [T],
         _ actual: KeyPath<LoggableFSM, [T]>,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertEqual(expected, fsm[keyPath: actual], line: line)
-        XCTAssertEqual(expected, lazyFSM[keyPath: actual], line: line)
+        #expect(expected == fsm[keyPath: actual], sourceLocation: location)
+        #expect(expected == lazyFSM[keyPath: actual], sourceLocation: location)
     }
 
-    func testTransitionExecutedIsLogged() async {
+    @Test func transitionExecutedIsLogged() async {
         buildTable {
             define(1) {
                 when(2) | then(3)
@@ -189,13 +189,13 @@ class FSMLoggingTests: XCTestCase, ExpandedSyntaxBuilder {
         assertEqual([t], \.loggedTransitions)
     }
 
-    func testTransitionNotFoundIsLogged() async {
+    @Test func transitionNotFoundIsLogged() async {
         enum P: Predicate { case a }
         await handleEvent(1, P.a)
         assertEqual([LogData(1, [P.a])], \.loggedEvents)
     }
     
-    func testTransitionNotExecutedIsLogged() async {
+    @Test func transitionNotExecutedIsLogged() async {
         buildTable {
             define(1) {
                 condition({ false }) | when(2) | then(3)

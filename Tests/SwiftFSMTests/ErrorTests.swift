@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 typealias EMRN = MatchResolvingNode.Eager
@@ -6,14 +6,14 @@ typealias EMRN = MatchResolvingNode.Eager
 final class ErrorTests: SyntaxNodeTests {
     var e: Error!
     
-    func testFileName() {
-        XCTAssertEqual("", "".name)
-        XCTAssertEqual("test", "test".name)
-        XCTAssertEqual("test", "/test".name)
-        XCTAssertEqual("test", "// ///test".name)
+    @Test func fileName() {
+        #expect("" == "".name)
+        #expect("test" == "test".name)
+        #expect("test" == "/test".name)
+        #expect("test" == "// ///test".name)
     }
     
-    func testSwiftFSMError() {
+    @Test func swiftFSMError() {
         e = SwiftFSMError(errors: ["Error1", "Error2"])
         let message = String {
             ""
@@ -28,17 +28,17 @@ final class ErrorTests: SyntaxNodeTests {
         }
 
         e.assertDescription(message)
-        XCTAssertEqual((e as CustomStringConvertible).description, message)
+        #expect((e as CustomStringConvertible).description == message)
     }
 
-    func testEmptyBlockError() {
+    @Test func EmptyBlockError() {
         e = EmptyBuilderError(caller: "caller", file: "/testfile", line: 10)
         e.assertDescription(
             "Empty @resultBuilder block passed to 'caller' in testfile at line 10"
         )
     }
     
-    func testDuplicateMatchTypes() {
+    @Test func duplicateMatchTypes() {
         e = DuplicateMatchTypes(predicates: [P.a, P.b].erased(),
                                 files: ["/f1"],
                                 lines: [1])
@@ -50,7 +50,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testDuplicateMatchTypesThroughAddition() {
+    @Test func duplicateMatchTypesThroughAddition() {
         e = DuplicateMatchTypes(predicates: [P.a, P.b, Q.a, Q.b].erased(),
                                 files: ["/f1", "/f2"],
                                 lines: [1, 2])
@@ -65,7 +65,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testDuplicateMatchValues() {
+    @Test func duplicateMatchValues() {
         e = DuplicateAnyValues(predicates: [P.a, P.a, P.b, P.b].erased(),
                                files: ["/f1"],
                                lines: [1])
@@ -77,7 +77,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testDuplicateMatchValuesThroughAddition() {
+    @Test func duplicateMatchValuesThroughAddition() {
         e = DuplicateAnyValues(predicates: [P.a, P.a, P.b, P.b].erased(),
                                files: ["/f1", "/f2"],
                                lines: [1, 2])
@@ -91,7 +91,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testDuplicateMatchAnyAllValues() {
+    @Test func duplicateMatchAnyAllValues() {
         e = DuplicateAnyAllValues(predicates: [P.a, P.a, P.b, P.b].erased(),
                                   files: ["/f1"],
                                   lines: [1])
@@ -100,7 +100,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testDuplicateMatchAnyAllValuesThroughAddition() {
+    @Test func duplicateMatchAnyAllValuesThroughAddition() {
         e = DuplicateAnyAllValues(predicates: [P.a, P.a, P.b, P.b].erased(),
                                   files: ["/f1", "/f2"],
                                   lines: [1, 2])
@@ -114,7 +114,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testConflictingMatchAnyvalues() {
+    @Test func conflictingMatchAnyvalues() {
         e = ConflictingAnyTypes(predicates: [P.a, R.a].erased(),
                                 files: ["/f1"],
                                 lines: [1])
@@ -127,24 +127,24 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testEmptyTableError() {
+    @Test func emptyTableError() {
         e = EmptyTableError()
         e.assertDescription(
             "FSM tables must have at least one 'define' statement in them"
         )
     }
     
-    func testTableAlreadyBuiltError() {
+    @Test func tableAlreadyBuiltError() {
         e = TableAlreadyBuiltError(file: "/f", line: 1)
         e.assertDescription("Duplicate call to method buildTable in file f at line 1")
     }
     
-    func testSingleMatchAsArray() {
+    @Test func singleMatchAsArray() {
         let array = try? MatchDescriptorChain(any: P.a).resolve().get() .asArray
-        XCTAssertEqual(array, [MatchDescriptorChain(any: P.a)])
+        #expect(array == [MatchDescriptorChain(any: P.a)])
     }
     
-    func testMultipleMatchesAsArray() {
+    @Test func multipleMatchesAsArray() {
         let array = try? MatchDescriptorChain(any: P.a)
             .prepend(MatchDescriptorChain(any: R.a))
             .prepend(MatchDescriptorChain())
@@ -152,64 +152,52 @@ final class ErrorTests: SyntaxNodeTests {
             .get()
             .asArray
         
-        XCTAssertEqual(array, [MatchDescriptorChain(), MatchDescriptorChain(any: R.a), MatchDescriptorChain(any: P.a)])
+        #expect(array == [MatchDescriptorChain(), MatchDescriptorChain(any: R.a), MatchDescriptorChain(any: P.a)])
     }
     
-    func testMatchDescriptionWithCondition() {
+    @Test func matchDescriptionWithCondition() {
         let match = MatchDescriptorChain(condition: { true }, file: "/f", line: 1)
-        
-        XCTAssertEqual("condition(() -> Bool) @f: 1",
-                       match.errorDescription)
+        #expect("condition(() -> Bool) @f: 1" == match.errorDescription)
     }
     
-    func testMatchDescriptionWithNoPredicates() {
+    @Test func matchDescriptionWithNoPredicates() {
         let match = MatchDescriptorChain(file: "f", line: 1)
-        
-        XCTAssertEqual("matching()",
-                       match.errorDescription)
+        #expect("matching()" == match.errorDescription)
     }
     
-    func testMatchDescriptionWithOrOnly() {
+    @Test func matchDescriptionWithOrOnly() {
         let match = MatchDescriptorChain(any: [[P.a, P.b]], file: "/f", line: 1)
-        
-        XCTAssertEqual("matching((P.a OR P.b)) @f: 1",
-                       match.errorDescription)
+        #expect("matching((P.a OR P.b)) @f: 1" == match.errorDescription)
     }
     
-    func testMatchDescriptionWithMultipleOrOnly() {
+    @Test func matchDescriptionWithMultipleOrOnly() {
         let match = MatchDescriptorChain(any: [[P.a, P.b], [Q.a, Q.b]], file: "/f", line: 1)
-        
-        XCTAssertEqual("matching((P.a OR P.b) AND (Q.a OR Q.b)) @f: 1",
-                       match.errorDescription)
+        #expect("matching((P.a OR P.b) AND (Q.a OR Q.b)) @f: 1" == match.errorDescription)
     }
     
-    func testMatchDescriptionWithAndOnly() {
+    @Test func matchDescriptionWithAndOnly() {
         let match = MatchDescriptorChain(all: R.a, S.a, file: "/f", line: 1)
-        
-        XCTAssertEqual("matching(R.a AND S.a) @f: 1",
-                       match.errorDescription)
+        #expect("matching(R.a AND S.a) @f: 1" == match.errorDescription)
     }
     
-    func testMatchDescriptionWithOrAndAnd() {
+    @Test func matchDescriptionWithOrAndAnd() {
         let match = MatchDescriptorChain(any: [[P.a, P.b]], all: R.a, S.a, file: "/f", line: 1)
         
-        XCTAssertEqual("matching((P.a OR P.b) AND R.a AND S.a) @f: 1",
-                       match.errorDescription)
+        #expect("matching((P.a OR P.b) AND R.a AND S.a) @f: 1" == match.errorDescription)
     }
     
-    func testMatchDescriptionWithNext() {
+    @Test func matchDescriptionWithNext() {
         let match = try? MatchDescriptorChain(any: [[Q.a, Q.b]], file: "/2", line: 2)
             .prepend(MatchDescriptorChain(any: [[P.a, P.b]], all: R.a, S.a, file: "/1", line: 1))
             .resolve()
             .get()
 
-        XCTAssertEqual(String {
+        #expect(String {
             "matching((P.a OR P.b) AND (Q.a OR Q.b) AND R.a AND S.a)"
             "  formed by combining:"
             "    - matching((P.a OR P.b) AND R.a AND S.a) @1: 1"
             "    - matching((Q.a OR Q.b)) @2: 2"
-        },
-                       match?.errorDescription)
+        } == match?.errorDescription)
     }
     
     typealias SVN = SemanticValidationNode
@@ -227,7 +215,7 @@ final class ErrorTests: SyntaxNodeTests {
         AnyTraceable("s2", file: "/fns", line: line)
     }
     
-    func testSVNDuplicatesError() {
+    @Test func svnDuplicatesError() {
         let k1 = SVN.DuplicatesKey(
             OverrideSyntaxDTO(s1(0), m1(0), e1(0), s2(0), [])
         )
@@ -275,7 +263,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testSVNClashesError() {
+    @Test func svnClashesError() {
         let k1 = SVN.ClashesKey(
             OverrideSyntaxDTO(s1(0), m1(0), e1(0), s2(0), [])
         )
@@ -319,7 +307,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testSVNNothingToOverrideError() {
+    @Test func svnNothingToOverrideError() {
         let m = MatchDescriptorChain(all: P.a, file: "/fm", line: 2)
         let override = OverrideSyntaxDTO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
         e = SVN.NothingToOverride(override)
@@ -340,7 +328,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
     
-    func testSVNOutOfOrderOverrideError() {
+    @Test func svnOutOfOrderOverrideError() {
         let m = MatchDescriptorChain(all: P.a, file: "/fm", line: 2)
         let override = OverrideSyntaxDTO(s1(1), m, e1(3), s2(4), [], testGroupID, true)
         e = SVN.OverrideOutOfOrder(override, [override, override])
@@ -377,7 +365,7 @@ final class ErrorTests: SyntaxNodeTests {
         )
     }
 
-    func testMRNClashesError() {
+    @Test func mrnClashesError() {
         let m1 = MatchDescriptorChain(any: P.a, file: "/fm", line: 2)
         let m2 = MatchDescriptorChain(any: Q.a, file: "/fm", line: 6)
         
@@ -431,7 +419,7 @@ final class ErrorTests: SyntaxNodeTests {
 }
 
 extension Error {
-    func assertDescription(_ expected: String, file: StaticString = #filePath, line: UInt = #line) {
-        XCTAssertEqual(expected, localizedDescription, file: file, line: line)
+    func assertDescription(_ expected: String, location: SourceLocation = #_sourceLocation) {
+        #expect(expected == localizedDescription, sourceLocation: location)
     }
 }

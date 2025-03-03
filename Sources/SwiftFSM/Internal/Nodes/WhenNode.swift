@@ -41,7 +41,7 @@ class WhenNodeBase: OverridableNode {
     }
 }
 
-class WhenNode: WhenNodeBase, NeverEmptyNode {
+final class WhenNode: WhenNodeBase, NeverEmptyNode {
     func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         events.reduce(into: []) { output, event in
             output.append(contentsOf: makeOutput(rest, event) ??? makeRawDTO(event: event))
@@ -53,7 +53,7 @@ class WhenNode: WhenNodeBase, NeverEmptyNode {
     }
 }
 
-class WhenBlockNode: WhenNodeBase, NeverEmptyNode {
+final class WhenBlockNode: WhenNodeBase, NeverEmptyNode {
     func combineWith(_ rest: [RawSyntaxDTO]) -> [RawSyntaxDTO] {
         events.reduce(into: []) { output, event in
             output.append(contentsOf: makeOutput(rest, event))

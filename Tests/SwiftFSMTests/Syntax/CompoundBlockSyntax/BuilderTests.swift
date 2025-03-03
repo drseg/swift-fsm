@@ -1,8 +1,8 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class BuilderTests: BlockTestsBase {
-    func testMWTA() async {
+    @Test func mwta() async {
         let line = #line; @MWTABuilder var mwta: [Syntax.MatchingWhenThenActions] {
             matching(P.a) | when(1, or: 2) | then(1) | pass
                             when(1, or: 2) | then(1) | pass
@@ -59,7 +59,7 @@ class BuilderTests: BlockTestsBase {
         )
     }
     
-    func testMWA() async {
+    @Test func mwa() async {
         let line = #line; @MWABuilder var mwa: [Syntax.MatchingWhenActions] {
             matching(P.a) | when(1, or: 2) | pass
                             when(1, or: 2) | pass
@@ -116,7 +116,7 @@ class BuilderTests: BlockTestsBase {
         )
     }
 
-    func testMTA() async {
+    @Test func mta() async {
         let line = #line; @MTABuilder var mta: [Syntax.MatchingThenActions] {
             matching(P.a) | then(1) | pass
                             then(1) | pass
@@ -173,7 +173,7 @@ class BuilderTests: BlockTestsBase {
         )
     }
 
-    func testMA() async {
+    @Test func ma() async {
         let line = #line; @MABuilder var ma: [Syntax.MatchingActions] {
             matching(P.a) | pass
             matching(P.a) | passAsync

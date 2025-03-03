@@ -1,7 +1,7 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
-class AnyActionTestsBase: XCTestCase {
+class AnyActionTestsBase {
     var output = ""
 
     func pass() {
@@ -22,31 +22,31 @@ class AnyActionTestsBase: XCTestCase {
 }
 
 final class AnyActionTests: AnyActionTestsBase {
-    func testCanCallAsyncActionWithNoArgs() async {
+    @Test func canCallAsyncActionWithNoArgs() async {
         let action = AnyAction(passAsync)
         await action()
 
-        XCTAssertEqual(output, "pass")
+        #expect(output == "pass")
     }
 
-    func testAsyncActionWithNoArgsIgnoresEvent() async {
+    @Test func asyncActionWithNoArgsIgnoresEvent() async {
         let action = AnyAction(passAsync)
         await action("fail")
 
-        XCTAssertEqual(output, "pass")
+        #expect(output == "pass")
     }
 
-    func testCanCallSyncActionWithNoArgsWithAsync() async {
+    @Test func canCallSyncActionWithNoArgsWithAsync() async {
         let action = AnyAction(pass)
         await action()
 
-        XCTAssertEqual(output, "pass")
+        #expect(output == "pass")
     }
 
-    func testCanCallAsyncActionWithEventArg() async {
+    @Test func canCallAsyncActionWithEventArg() async {
         let action = AnyAction(passWithEventAsync)
         await action("pass")
 
-        XCTAssertEqual(output, "pass")
+        #expect(output == "pass")
     }
 }

@@ -1,20 +1,20 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 final class GivenNodeTests: SyntaxNodeTests {
-    func testEmptyGivenNode() {
+    @Test func emptyGivenNode() {
         assertEmptyNodeWithoutError(GivenNode(states: [], rest: []))
     }
     
-    func testGivenNodeWithEmptyStates() {
+    @Test func givenNodeWithEmptyStates() {
         assertEmptyNodeWithoutError(GivenNode(states: [], rest: [whenNode]))
     }
     
-    func testGivenNodeWithEmptyRest() {
+    @Test func givenNodeWithEmptyRest() {
         assertEmptyNodeWithoutError(GivenNode(states: [s1, s2], rest: []))
     }
     
-    func testGivenNodeFinalisesFillingInEmptyNextStates() async {
+    @Test func givenNodeFinalisesFillingInEmptyNextStates() async {
         let expected = [MSES(m1, s1, e1, s1),
                         MSES(m1, s1, e2, s1),
                         MSES(m1, s2, e1, s2),
@@ -25,7 +25,7 @@ final class GivenNodeTests: SyntaxNodeTests {
                               node: givenNode(thenState: nil, actionsNode: actionsNode))
     }
     
-    func testGivenNodeFinalisesWithNextStates() async {
+    @Test func givenNodeFinalisesWithNextStates() async {
         let expected = [MSES(m1, s1, e1, s3),
                         MSES(m1, s1, e2, s3),
                         MSES(m1, s2, e1, s3),
@@ -36,7 +36,7 @@ final class GivenNodeTests: SyntaxNodeTests {
                               node: givenNode(thenState: s3, actionsNode: actionsNode))
     }
     
-    func testGivenNodeCanSetRestAfterInitialisation() async {
+    @Test func givenNodeCanSetRestAfterInitialisation() async {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w])
@@ -53,7 +53,7 @@ final class GivenNodeTests: SyntaxNodeTests {
                               node: g)
     }
     
-    func testGivenNodeWithMultipleWhenNodes() async {
+    @Test func givenNodeWithMultipleWhenNodes() async {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1, e2], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w, w])
@@ -73,12 +73,12 @@ final class GivenNodeTests: SyntaxNodeTests {
                               node: g)
     }
     
-    func testGivenNodePassesGroupIDAndIsOverrideParams() {
+    @Test func givenNodePassesGroupIDAndIsOverrideParams() {
         let t = ThenNode(state: s3, rest: [actionsNode])
         let w = WhenNode(events: [e1], rest: [t])
         let m = MatchingNode(descriptor: m1, rest: [w], overrideGroupID: testGroupID, isOverride: true)
         let output = GivenNode(states: [s1], rest: [m]).resolve().output
         
-        XCTAssert(output.allSatisfy { $0.overrideGroupID == testGroupID && $0.isOverride == true })
+        #expect(output.allSatisfy { $0.overrideGroupID == testGroupID && $0.isOverride == true })
     }
 }

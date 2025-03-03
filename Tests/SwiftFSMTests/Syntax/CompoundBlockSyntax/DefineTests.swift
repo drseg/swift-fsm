@@ -1,31 +1,31 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class DefineTests: BlockTestsBase {
-    func testDefine() async {
+    @Test func define() async {
         func verify(
             _ d: Define,
             hasEvent: Bool = false,
             sutLine sl: Int = #line,
             elementLine el: Int = mwtaLine,
-            xctLine xl: UInt = #line
+            location: SourceLocation = #_sourceLocation
         ) async {
-            assertNeverEmptyNode(d.node, caller: "define", sutLine: sl, xctLine: xl)
+            assertNeverEmptyNode(d.node, caller: "define", sutLine: sl, location: location)
 
-            XCTAssertEqual(1, d.node.rest.count, line: xl)
+            #expect(1 == d.node.rest.count, sourceLocation: location)
             let gNode = d.node.rest.first as! GivenNode
-            XCTAssertEqual([1], gNode.states.map(\.base))
+            #expect([1] == gNode.states.map(\.base), sourceLocation: location)
             
-            await assertMWTAResult(gNode.rest, sutLine: el, xctLine: xl)
+            await assertMWTAResult(gNode.rest, sutLine: el, location: location)
             await assertActions(
                 d.node.onEntry + d.node.onExit,
                 expectedOutput: "entry1exit1",
-                xctLine: xl
+                location: location
             )
         }
         
-        func assertEmpty(_ d: Define, xctLine: UInt = #line) {
-            XCTAssertEqual(0, d.node.rest.count, line: xctLine)
+        func assertEmpty(_ d: Define, location: SourceLocation = #_sourceLocation) {
+            #expect(0 == d.node.rest.count, sourceLocation: location)
         }
 
         let s = SuperState { mwtaBlock }
@@ -39,7 +39,7 @@ class DefineTests: BlockTestsBase {
         assertEmpty(define(1, adopts: s, onEntry: entry1, onExit: exit1) { })
     }
 
-    func testDefineAddsSuperStateEntryExitActions() async {
+    @Test func defineAddsSuperStateEntryExitActions() async {
         let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
                             when(1, or: 2) | then(1) | pass
@@ -51,7 +51,7 @@ class DefineTests: BlockTestsBase {
         await assertActions(d1.node.onExit, expectedOutput: "exit1exit1exit2")
     }
 
-    func testDefineAddsMultipleSuperStateNodes() async {
+    @Test func defineAddsMultipleSuperStateNodes() async {
         let l1 = #line + 1; let s1 = SuperState(onEntry: entry1, onExit: exit1) {
             matching(P.a) | when(1, or: 2) | then(1) | pass
                             when(1, or: 2) | then(1) | pass
@@ -65,8 +65,8 @@ class DefineTests: BlockTestsBase {
         await assertMWTAResult(Array(g1.rest.suffix(2)), sutFile: #file, sutLine: l1)
     }
 
-    func testDefineAddsBlockAndSuperStateNodesTogetherParentFirst() async {
-        func assertDefine(_ n: DefineNode, line: UInt = #line) async {
+    @Test func defineAddsBlockAndSuperStateNodesTogetherParentFirst() async {
+        func assertDefine(_ n: DefineNode, location: SourceLocation = #_sourceLocation) async {
             func castRest<T: SyntaxNode, U: SyntaxNode>(_ n: [U], to: T.Type) -> [T] {
                 n.map { $0.rest }.flattened as! [T]
             }
@@ -81,13 +81,13 @@ class DefineTests: BlockTestsBase {
             func thenState(_ n: ThenNode?)    -> AnyHashable   { n?.state?.base }
             func bases(_ t: [AnyTraceable]?)  -> [AnyHashable] { t?.map(\.base) ?? [] }
 
-            XCTAssertEqual([1], givenStates(givens(0)), line: line)
-            XCTAssertEqual([[1], [2]], [events(whens(0)), events(whens(1))], line: line)
-            XCTAssertEqual([1, 2], [thenState(thens(0)), thenState(thens(1))], line: line)
-
+            #expect([1] == givenStates(givens(0)), sourceLocation: location)
+            #expect([[1], [2]] == [events(whens(0)), events(whens(1))], sourceLocation: location)
+            #expect([1, 2] == [thenState(thens(0)), thenState(thens(1))], sourceLocation: location)
+            
             await assertActions(actions.map(\.actions).flattened,
-                          expectedOutput: "passpass",
-                          xctLine: line)
+                                expectedOutput: "passpass",
+                                location: location)
         }
 
         let s = SuperState            { when(1) | then(1) | pass }
@@ -95,7 +95,7 @@ class DefineTests: BlockTestsBase {
         await assertDefine(d1.node)
     }
 
-    func testDefineSetsUniqueGroupIDForOwnNodesOnly() {
+    @Test func defineSetsUniqueGroupIDForOwnNodesOnly() {
         let s = SuperState {
             when(1) | then(1) | pass
         }
@@ -109,7 +109,7 @@ class DefineTests: BlockTestsBase {
         assertGroupID(given.rest)
     }
 
-    func testOptionalActions() async {
+    @Test func optionalActions() async {
         let l1 = #line; let d = define(1) {
             matching(P.a) | when(1, or: 2) | then(1)
                             when(1, or: 2) | then(1)

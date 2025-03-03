@@ -1,5 +1,5 @@
 import Foundation
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 enum TurnstileState: String, CustomStringConvertible {
@@ -22,36 +22,43 @@ class FSMIntegrationTests: FSMTestsBase<TurnstileState, TurnstileEvent> {
     func unlock()   { actions.append("unlock")   }
     func thankyou() { actions.append("thankyou") }
     
-    override var initialState: TurnstileState { .locked }
-    
-    override func makeSUT() -> FSM<State, Event>.Base {
-        makeEager()
-    }
+    class override var initialState: TurnstileState { .locked }
 }
 
 class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
-    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) async {
-        await assertEventAction(e, a.isEmpty ? [] : [a], line: line)
+    func assertEventAction(
+        _ e: Event,
+        _ a: String,
+        fsm: SUT,
+        location: SourceLocation = #_sourceLocation
+    ) async {
+        await assertEventAction(e, a.isEmpty ? [] : [a], fsm: fsm, location: location)
     }
     
-    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) async {
+    func assertEventAction(
+        _ e: Event,
+        _ a: [String],
+        fsm: SUT,
+        location: SourceLocation = #_sourceLocation
+    ) async {
         actual += a
         await fsm.handleEvent(e)
-        XCTAssertEqual(actions, actual, line: line)
+        #expect(actions == actual, sourceLocation: location)
     }
     
-    func assertTurnstile() async {
-        await assertEventAction(.coin,  "unlock")
-        await assertEventAction(.pass,  "lock")
-        await assertEventAction(.pass,  "alarmOn")
-        await assertEventAction(.reset, ["alarmOff", "lock"])
-        await assertEventAction(.coin,  "unlock")
-        await assertEventAction(.coin,  "thankyou")
-        await assertEventAction(.coin,  "thankyou")
-        await assertEventAction(.reset, "lock")
+    func assertTurnstile(fsm: SUT) async {
+        await assertEventAction(.coin,  "unlock", fsm: fsm)
+        await assertEventAction(.pass,  "lock", fsm: fsm)
+        await assertEventAction(.pass,  "alarmOn", fsm: fsm)
+        await assertEventAction(.reset, ["alarmOff", "lock"], fsm: fsm)
+        await assertEventAction(.coin,  "unlock", fsm: fsm)
+        await assertEventAction(.coin,  "thankyou", fsm: fsm)
+        await assertEventAction(.coin,  "thankyou", fsm: fsm)
+        await assertEventAction(.reset, "lock", fsm: fsm)
     }
     
-    func testTurnstile() async throws {
+    @Test(arguments: suts)
+    func turnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -70,10 +77,11 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        await assertTurnstile()
+        await assertTurnstile(fsm: fsm)
     }
     
-    func testConditionTurnstile() async throws {
+    @Test(arguments: suts)
+    func conditionTurnstile(_ fsm: SUT) async throws {
         let bool = false
         
         try fsm.buildTable {
@@ -94,22 +102,23 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
 
-        await assertEventAction(.coin,  "")
-        await assertEventAction(.pass,  "")
-        await assertEventAction(.reset,  "")
+        await assertEventAction(.coin,  "", fsm: fsm)
+        await assertEventAction(.pass,  "", fsm: fsm)
+        await assertEventAction(.reset,  "", fsm: fsm)
 
         fsm.state = AnyHashable(State.unlocked)
 
-        await assertEventAction(.coin,  "")
-        await assertEventAction(.pass,  "")
-        await assertEventAction(.reset,  "")
+        await assertEventAction(.coin,  "", fsm: fsm)
+        await assertEventAction(.pass,  "", fsm: fsm)
+        await assertEventAction(.reset,  "", fsm: fsm)
 
         fsm.state = AnyHashable(State.alarming)
 
-        await assertEventAction(.reset,  "")
+        await assertEventAction(.reset,  "", fsm: fsm)
     }
     
-    func testOverrideTurnstile() async throws {
+    @Test(arguments: suts)
+    func overrideTurnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -136,18 +145,19 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        await assertEventAction(.reset, "thankyou")
+        await assertEventAction(.reset, "thankyou", fsm: fsm)
         
         fsm.state = AnyHashable(State.unlocked)
-        await assertEventAction(.reset, ["lock", "lock"])
+        await assertEventAction(.reset, ["lock", "lock"], fsm: fsm)
         
         fsm.state = AnyHashable(State.alarming)
-        await assertEventAction(.reset, ["alarmOff", "lock"])
+        await assertEventAction(.reset, ["alarmOff", "lock"], fsm: fsm)
     }
     
-    func fail() { XCTFail("should not have been called") }
+    func fail() { Issue.record("should not have been called") }
     
-    func testChainedOverrides() async throws {
+    @Test(arguments: suts)
+    func chainedOverrides(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let s1 = SuperState { when(.coin) | then(.unlocked) | fail  }
             let s2 = SuperState(adopts: s1) { overriding { when(.coin) | then(.unlocked) | fail } }
@@ -159,13 +169,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
             }
         }
 
-        await assertEventAction(.coin, "unlock")
-    }
-}
-
-final class LazyFSMIntegrationTests_Turnstile: FSMIntegrationTests_Turnstile {
-    override func makeSUT() -> FSM<State, Event>.Base {
-        makeLazy()
+        await assertEventAction(.coin, "unlock", fsm: fsm)
     }
 }
 
@@ -175,30 +179,41 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
     
     func idiot() { actions.append("idiot") }
     
-    func assertEventAction(_ e: Event, _ a: String, line: UInt = #line) async {
-        await assertEventAction(e, [a], line: line)
+    func assertEventAction(
+        _ e: Event,
+        _ a: String,
+        fsm: SUT,
+        location: SourceLocation = #_sourceLocation
+    ) async {
+        await assertEventAction(e, [a], fsm: fsm, location: location)
     }
     
-    func assertEventAction(_ e: Event, _ a: [String], line: UInt = #line) async {
+    func assertEventAction(
+        _ e: Event,
+        _ a: [String],
+        fsm: SUT,
+        location: SourceLocation = #_sourceLocation
+    ) async {
         if !(a.first?.isEmpty ?? false) {
             actual += a
         }
         await fsm.handleEvent(e, predicates: [Enforcement.weak, Reward.punishing], isolation: nil)
-        XCTAssertEqual(actions, actual, line: line)
+        #expect(actions == actual, sourceLocation: location)
     }
     
-    func assertTable() async {
-        await assertEventAction(.coin,  "unlock")
-        await assertEventAction(.pass,  "lock")
-        await assertEventAction(.pass,  "")
-        await assertEventAction(.reset, "")
-        await assertEventAction(.coin,  "unlock")
-        await assertEventAction(.coin,  "idiot")
-        await assertEventAction(.coin,  "idiot")
-        await assertEventAction(.reset, "lock")
+    func assertTable(fsm: SUT) async {
+        await assertEventAction(.coin,  "unlock", fsm: fsm)
+        await assertEventAction(.pass,  "lock", fsm: fsm)
+        await assertEventAction(.pass,  "", fsm: fsm)
+        await assertEventAction(.reset, "", fsm: fsm)
+        await assertEventAction(.coin,  "unlock", fsm: fsm)
+        await assertEventAction(.coin,  "idiot", fsm: fsm)
+        await assertEventAction(.coin,  "idiot", fsm: fsm)
+        await assertEventAction(.reset, "lock", fsm: fsm)
     }
     
-    func testPredicateTurnstile() async throws {
+    @Test(arguments: suts)
+    func predicateTurnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -221,10 +236,11 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        await assertTable()
+        await assertTable(fsm: fsm)
     }
     
-    func testDeduplicatedPredicateTurnstile() async throws {
+    @Test(arguments: suts)
+    func deduplicatedPredicateTurnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -253,10 +269,11 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        await assertTable()
+        await assertTable(fsm: fsm)
     }
     
-    func testActionsBlockTurnstile() async throws {
+    @Test(arguments: suts)
+    func actionsBlockTurnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
                 when(.reset) | then(.locked)
@@ -288,18 +305,13 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
             define(.alarming, adopts: resetable, onEntry: Array(alarmOn), onExit: Array(alarmOff))
         }
         
-        await assertTable()
-    }
-}
-
-class LazyFSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests_PredicateTurnstile {
-    override func makeSUT() -> FSM<State, Event>.Base {
-        makeLazy()
+        await assertTable(fsm: fsm)
     }
 }
 
 class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
-    func testMultiplePredicateBlocks() async throws {
+    @Test(arguments: suts)
+    func multiplePredicateBlocks(_ fsm: SUT) async throws {
         try fsm.buildTable {
             define(.locked) {
                 matching(P.a, or: P.b) {
@@ -319,21 +331,22 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
         }
         
         await fsm.handleEvent(.coin, predicates: P.a, Q.a, R.a, S.a, T.a, U.a, V.a)
-        XCTAssertEqual(["thankyou"], actions)
+        #expect(["thankyou"] == actions)
         
         await fsm.handleEvent(.coin, predicates: P.b, Q.a, R.a, S.a, T.a, U.a, V.a)
-        XCTAssertEqual(["thankyou", "thankyou"], actions)
+        #expect(["thankyou", "thankyou"] == actions)
         
         actions = []
         await fsm.handleEvent(.coin, predicates: P.c, Q.a, R.a, S.a, T.a, U.a, V.a)
-        XCTAssertEqual([], actions)
+        #expect([] == actions)
         
         actions = []
         await fsm.handleEvent(.coin, predicates: P.a, Q.b, R.b, S.b, T.b, U.b, V.b)
-        XCTAssertEqual(["unlock"], actions)
+        #expect(["unlock"] == actions)
     }
     
-    func testMultiplActionsBlocks() async throws {
+    @Test(arguments: suts)
+    func multipleActionsBlocks(_ fsm: SUT) async throws {
         try fsm.buildTable {
             define(.locked) {
                 actions(thankyou) {
@@ -345,44 +358,41 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
         }
         
         await fsm.handleEvent(.coin, predicates: P.a)
-        XCTAssertEqual(["thankyou", "lock", "unlock"], actions)
-    }
-}
-
-
-class LazyFSMIntegrationTests_NestedBlocks: FSMIntegrationTests_NestedBlocks {
-    override func makeSUT() -> FSM<State, Event>.Base {
-        makeLazy()
+        #expect(["thankyou", "lock", "unlock"] == actions)
     }
 }
 
 class FSMIntegrationTests_Errors: FSMIntegrationTests {
-    func assertEmptyError(_ e: EmptyBuilderError?,
-                     expectedCaller: String,
-                     expectedLine: Int,
-                     line: UInt = #line
+    func assertEmptyError(
+        _ e: EmptyBuilderError?,
+        expectedCaller: String,
+        expectedLine: Int,
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertEqual(expectedCaller, e?.caller, line: line)
-        XCTAssertEqual("file", e?.file, line: line)
-        XCTAssertEqual(expectedLine, e?.line, line: line)
+        #expect(expectedCaller == e?.caller, sourceLocation: location)
+        #expect("file" == e?.file, sourceLocation: location)
+        #expect(expectedLine == e?.line, sourceLocation: location)
     }
     
-    func testEmptyBlockThrowsError() {
-        XCTAssertThrowsError (
+    @Test(arguments: suts)
+    func emptyBlockThrowsError(_ fsm: SUT) {
+        #expect(performing: {
             try fsm.buildTable {
                 define(.locked, file: "file", line: 1 ) { }
             }
-        ) {
+        }, throws: {
             let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(1, errors?.count)
+            #expect(1 == errors?.count)
             let error = errors?.first as? EmptyBuilderError
             
             assertEmptyError(error, expectedCaller: "define", expectedLine: 1)
-        }
+            return true
+        })
     }
     
-    func testEmptyBlocksThrowErrors() {
-        XCTAssertThrowsError (
+    @Test(arguments: suts)
+    func emptyBlocksThrowErrors(_ fsm: SUT) {
+        #expect(performing: {
             try fsm.buildTable {
                 define(.locked) {
                     matching(P.a, file: "file", line: 1) {}
@@ -390,9 +400,9 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
                     when(.pass,   file: "file", line: 3) {}
                 }
             }
-        ) {
+        }, throws: {
             let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(3, errors?.count)
+            #expect(3 == errors?.count)
             
             let e1 = errors?(0) as? EmptyBuilderError
             assertEmptyError(e1, expectedCaller: "matching", expectedLine: 1)
@@ -402,14 +412,17 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
             
             let e3 = errors?(2) as? EmptyBuilderError
             assertEmptyError(e3, expectedCaller: "when", expectedLine: 3)
-        }
+            
+            return true
+        })
     }
     
-    func testDuplicatesAndClashesThrowErrors() {
+    @Test(arguments: suts)
+    func duplicatesAndClashesThrowErrors(_ fsm: SUT) {
         typealias DE = SemanticValidationNode.DuplicatesError
         typealias CE = SemanticValidationNode.ClashError
         
-        XCTAssertThrowsError (
+        #expect(performing: {
             try fsm.buildTable {
                 define(.locked, line: 1) {
                     matching(P.a, line: 2) | when(.coin, line: 3) | then(.unlocked, line: 4)
@@ -417,23 +430,23 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
                     matching(P.a, line: 2) | when(.coin, line: 3) | then(.locked, line: 4)
                 }
             }
-        ) {
+        }, throws: {
             let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(2, errors?.count, "\(String(describing: errors))")
+            #expect(2 == errors?.count, "\(String(describing: errors))")
             
             let e1 = errors?.compactMap { $0 as? DE }.first?.duplicates.values
             let e2 = errors?.compactMap { $0 as? CE }.first?.clashes.values
 
-            XCTAssertEqual(1, e1?.count)
-            XCTAssertEqual(1, e2?.count)
+            #expect(1 == e1?.count)
+            #expect(1 == e2?.count)
             
             let duplicates = e1?.first ?? []
             let clashes = e2?.first ?? []
             
-            XCTAssertEqual(2, duplicates.count)
-            XCTAssertEqual(2, clashes.count)
+            #expect(2 == duplicates.count)
+            #expect(2 == clashes.count)
             
-            XCTAssert(
+            #expect(
                 duplicates.allSatisfy {
                     $0.state.isEqual(AnyTraceable(State.locked, file: #file, line: 1)) &&
                     $0.descriptor.isEqual(MatchDescriptorChain(all: P.a, file: #file, line: 2)) &&
@@ -442,7 +455,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
                 }, "\(duplicates)"
             )
             
-            XCTAssert(
+            #expect(
                 clashes.allSatisfy {
                     $0.state.isEqual(AnyTraceable(State.locked, file: #file, line: 1)) &&
                     $0.descriptor.isEqual(MatchDescriptorChain(all: P.a, file: #file, line: 2)) &&
@@ -450,13 +463,16 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
                 }, "\(clashes)"
             )
             
-            XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(State.locked) })
-            XCTAssert(clashes.contains { $0.nextState.base == AnyHashable(State.unlocked) })
-        }
+            #expect(clashes.contains { $0.nextState.base == AnyHashable(State.locked) })
+            #expect(clashes.contains { $0.nextState.base == AnyHashable(State.unlocked) })
+            
+            return true
+        })
     }
     
-    func testImplicitMatchClashesThrowErrors() {
-        XCTAssertThrowsError (
+    @Test(arguments: suts)
+    func implicitMatchClashesThrowErrors(_ fsm: SUT) {
+        #expect(performing: {
             try fsm.buildTable {
                 define(.locked, file: "1", line: 1) {
                     matching(P.a, file: "1", line: 1)
@@ -468,98 +484,100 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
                     | then(.locked, file: "2", line: 2)
                 }
             }
-        ) {
+        }, throws: {
             let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(1, errors?.count)
+            #expect(1 == errors?.count)
             
             let error = errors?.first as? MatchResolvingNode.Eager.ImplicitClashesError
             let clashes = error?.clashes.values
-            XCTAssertEqual(1, clashes?.count)
+            #expect(1 == clashes?.count)
             
             let clash = clashes?.first
-            XCTAssertEqual(2, clash?.count)
+            #expect(2 == clash?.count)
             
-            XCTAssert(clash?.contains {
+            #expect(clash?.contains {
                 $0.state.isEqual(AnyTraceable(State.locked, file: "1", line: 1)) &&
                 $0.event.isEqual(AnyTraceable(Event.coin, file: "1", line: 1)) &&
                 $0.descriptor.isEqual(MatchDescriptorChain(all: P.a, file: "1", line: 1))
             } ?? false, "\(String(describing: clash))")
             
-            XCTAssert(clash?.contains {
+            #expect(clash?.contains {
                 $0.state.isEqual(AnyTraceable(State.locked, file: "1", line: 1)) &&
                 $0.event.isEqual(AnyTraceable(Event.coin, file: "2", line: 2)) &&
                 $0.descriptor.isEqual(MatchDescriptorChain(all: Q.a, file: "2", line: 2))
             } ?? false, "\(String(describing: clash))")
             
-            XCTAssertEqual(AnyHashable(State.unlocked), clash?.first?.nextState.base)
-            XCTAssertEqual(AnyHashable(State.locked), clash?.last?.nextState.base)
-        }
+            #expect(AnyHashable(State.unlocked) == clash?.first?.nextState.base)
+            #expect(AnyHashable(State.locked) == clash?.last?.nextState.base)
+            
+            return true
+        })
     }
     
-    func testMatchesThrowErrors() {
-        XCTAssertThrowsError (
+    @Test(arguments: suts)
+    func matchesThrowErrors(_ fsm: SUT) {
+        #expect(performing: {
             try fsm.buildTable {
                 define(.locked) {
                     matching(P.a, or: P.a, file: "1", line: 1)  | when(.coin) | then(.unlocked)
                     matching(P.a, and: P.a, file: "2", line: 2) | when(.coin) | then(.locked)
                 }
             }
-        ) {
+        }, throws: {
             func assertError(
                 _ e: MatchError?,
                 expectedFile: String,
                 expectedLine: Int,
-                line: UInt = #line
+                location: SourceLocation = #_sourceLocation
             ) {
-                XCTAssertEqual([expectedFile], e?.files, line: line)
-                XCTAssertEqual([expectedLine], e?.lines, line: line)
-                XCTAssert(e?.description.contains("P.a, P.a") ?? false, line: line)
+                #expect([expectedFile] == e?.files, sourceLocation: location)
+                #expect([expectedLine] == e?.lines, sourceLocation: location)
+                #expect(e?.description.contains("P.a, P.a") ?? false, sourceLocation: location)
             }
             
             let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(2, errors?.count)
+            #expect(2 == errors?.count)
             
             assertError(errors?.first as? MatchError, expectedFile: "1", expectedLine: 1)
             assertError(errors?.last as? MatchError, expectedFile: "2", expectedLine: 2)
-        }
+            
+            return true
+        })
     }
     
-    func testNothingToOverrideThrowsErrors() {
-        XCTAssertThrowsError (
+    @Test(arguments: suts)
+    func nothingToOverrideThrowsErrors(_ fsm: SUT) {
+        #expect(performing: {
             try fsm.buildTable {
                 define(.locked) {
                     overriding { when(.coin) | then(.unlocked) }
                 }
             }
-        ) {
+        }, throws: {
             let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(1, errors?.count)
-            XCTAssert(errors?.first is SemanticValidationNode.NothingToOverride)
-        }
+            #expect(1 == errors?.count)
+            #expect(errors?.first is SemanticValidationNode.NothingToOverride)
+            return true
+        })
     }
     
-    func testOutOfOrderOverridesThrowErrors() {
-        XCTAssertThrowsError (
+    @Test(arguments: suts)
+    func outOfOrderOverridesThrowErrors(_ fsm: SUT) {
+        #expect(performing: {
+            let s = SuperState {
+                overriding { when(.coin) | then(.unlocked) }
+            }
             try fsm.buildTable {
-                let s = SuperState {
-                    overriding { when(.coin) | then(.unlocked) }
-                }
-                
                 define(.locked, adopts: s) {
                     when(.coin) | then(.unlocked)
                 }
             }
-        ) {
+        }, throws: {
             let errors = ($0 as? SwiftFSMError)?.errors
-            XCTAssertEqual(1, errors?.count)
-            XCTAssert(errors?.first is SemanticValidationNode.OverrideOutOfOrder)
-        }
-    }
-}
-
-class LazyFSMIntegrationTests_Errors: FSMIntegrationTests_Errors {
-    override func makeSUT() -> FSM<State, Event>.Base {
-        makeLazy()
+            #expect(1 == errors?.count)
+            #expect(errors?.first is SemanticValidationNode.OverrideOutOfOrder)
+            return true
+        })
     }
 }
 
@@ -576,11 +594,8 @@ enum ComplexEvent: EventWithValues {
 }
 
 class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent> {
-    override func makeSUT() -> FSM<State, Event>.Base {
-        makeEager()
-    }
-
-    override var initialState: TurnstileState { .locked }
+    override class var initialState: TurnstileState { .locked }
+    
     var event = ComplexEvent.null
 
     func setEvent(_ e: ComplexEvent) {
@@ -591,10 +606,11 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
         cat: ComplexEvent,
         fish: ComplexEvent,
         dog: ComplexEvent,
-        any: ComplexEvent
+        any: ComplexEvent,
+        fsm: SUT
     ) async {
         func assertValue(_ expectedValue: ComplexEvent) {
-            XCTAssertEqual(expectedValue.stringValue, event.stringValue)
+            #expect(expectedValue.stringValue == event.stringValue)
             event = .null
         }
 
@@ -616,7 +632,7 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
         assertValue(fish)
 
         await fsm.handleEvent(dog)
-        XCTAssertEqual(event, .null)
+        #expect(event == .null)
 
         fsm.state = AnyHashable(State.unlocked)
         await fsm.handleEvent(cat)
@@ -626,28 +642,27 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
         assertValue(fish)
     }
 
-    func testEventPassingUsingValueEnum() async {
-        await assertEventPassing(cat: .didSetOtherValue(.some("cat")),
-                                 fish: .didSetOtherValue(.some("fish")),
-                                 dog: .didSetOtherValue(.some("dog")),
-                                 any: .didSetOtherValue(.any))
+    @Test(arguments: suts)
+    func EventPassingUsingValueEnum(_ fsm: SUT) async {
+        await assertEventPassing(
+            cat: .didSetOtherValue(.some("cat")),
+            fish: .didSetOtherValue(.some("fish")),
+            dog: .didSetOtherValue(.some("dog")),
+            any: .didSetOtherValue(.any),
+            fsm: fsm
+        )
     }
 
-    func testDuplicatesDetectedAsExpectedUsingStruct() {
-        XCTAssertThrowsError(
+    @Test(arguments: suts)
+    func DuplicatesDetectedAsExpectedUsingStruct(_ fsm: SUT) {
+        #expect(performing: {
             try fsm.buildTable {
                 define(.locked) {
                     when(.didSetOtherValue(.some("cat"))) | then() | setEvent
                     when(.didSetOtherValue(.any))         | then() | setEvent
                 }
             }
-        )
-    }
-}
-
-final class LazyFSMEventPassingIntegrationTests: FSMEventPassingIntegrationTests {
-    override func makeSUT() -> FSM<State, Event>.Base {
-        makeLazy()
+        }, throws: { _ in true })
     }
 }
 

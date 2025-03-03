@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import SwiftFSM
 
 class EagerMatchResolvingNodeTests: MRNTestBase {
@@ -40,17 +40,15 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
     func assertError(
         _ result: MRNResult,
         expected: [ExpectedMRNError],
-        line: UInt = #line
-    ) {
+        location: SourceLocation = #_sourceLocation
+    ) throws {
         guard let clashError = result.errors[0] as? EMRN.ImplicitClashesError else {
-            XCTFail("unexpected error \(result.errors[0])", line: line)
+            Issue.record("unexpected error \(result.errors[0])", sourceLocation: location)
             return
         }
         
         let clashes = clashError.clashes
-        guard assertCount(clashes.first?.value, expected: expected.count, line: line) else {
-            return
-        }
+        try #require(clashes.first?.value.count == expected.count, sourceLocation: location)
         
         let errors = clashes.map(\.value).flattened
         
@@ -60,34 +58,34 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
                 $0.descriptor == exp.match &&
                 $0.event == exp.event &&
                 $0.nextState == exp.nextState
-            }, line: line)
+            }, location: location)
         }
     }
     
     func assertEqual(
         _ lhs: ExpectedMRNError?,
         _ rhs: EMRN.ErrorOutput?,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertEqual(lhs?.state, rhs?.state, line: line)
-        XCTAssertEqual(lhs?.match, rhs?.descriptor, line: line)
-        XCTAssertEqual(lhs?.event, rhs?.event, line: line)
-        XCTAssertEqual(lhs?.nextState, rhs?.nextState, line: line)
+        #expect(lhs?.state == rhs?.state, sourceLocation: location)
+        #expect(lhs?.match == rhs?.descriptor, sourceLocation: location)
+        #expect(lhs?.event == rhs?.event, sourceLocation: location)
+        #expect(lhs?.nextState == rhs?.nextState, sourceLocation: location)
     }
     
-    func testEmptyNode() {
+    @Test func emptyNode() throws {
         let result = matchResolvingNode(rest: []).resolve()
         
-        assertCount(result.output, expected: 0)
-        assertCount(result.errors, expected: 0)
+        try #require(result.output.count == 0)
+        try #require(result.errors.count == 0)
     }
     
-    func testTableWithNoMatches() async {
+    @Test func tableWithNoMatches() async throws {
         let d = defineNode(s1, MatchDescriptorChain(), e1, s2)
         let result = matchResolvingNode(rest: [d]).resolve()
         
-        assertCount(result.output, expected: 1)
-        await assertResult(
+        try #require(result.output.count == 1)
+        try await assertResult(
             result,
             expected: makeOutput(
                 c: nil,
@@ -100,22 +98,22 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         )
     }
     
-    func testMatchCondition() async {
+    @Test func matchCondition() async {
         let d = defineNode(s1, MatchDescriptorChain(condition: { false }), e1, s2)
         let result = matchResolvingNode(rest: [d]).resolve()
         let condition = result.output.first?.condition?()
         
-        XCTAssertEqual(false, condition)
+        #expect(condition == false)
     }
     
-    func testImplicitMatch() async {
+    @Test func implicitMatch() async throws {
         let d1 = defineNode(s1, MatchDescriptorChain(), e1, s2)
         let d2 = defineNode(s1, MatchDescriptorChain(any: Q.a), e1, s3)
         let result = matchResolvingNode(rest: [d1, d2]).resolve()
         
-        assertCount(result.output, expected: 2)
+        try #require(result.output.count == 2)
         
-        await assertResult(
+        try await assertResult(
             result,
             expected: makeOutput(
                 c: nil,
@@ -127,7 +125,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
             )
         )
         
-        await assertResult(
+        try await assertResult(
             result, expected: makeOutput(
                 c: nil,
                 g: s1,
@@ -139,24 +137,24 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         )
     }
     
-    func testImplicitMatchClash() {
+    @Test func implicitMatchClash() throws {
         let d1 = defineNode(s1, MatchDescriptorChain(any: P.a), e1, s2)
         let d2 = defineNode(s1, MatchDescriptorChain(any: Q.a), e1, s3)
         let result = matchResolvingNode(rest: [d1, d2]).resolve()
         
-        guard assertCount(result.errors, expected: 1) else { return }
+        try #require(result.errors.count == 1)
         guard let clashError = result.errors[0] as? EMRN.ImplicitClashesError else {
-            XCTFail("unexpected error \(result.errors[0])"); return
+            Issue.record("unexpected error \(result.errors[0])"); return
         }
         
-        guard assertCount(clashError.clashes.first?.value, expected: 2) else { return }
-        assertError(
+        try #require(clashError.clashes.first?.value.count == 2)
+        try assertError(
             result,
             expected: [makeErrorOutput(s1, MatchDescriptorChain(any: P.a), [P.a, Q.a], e1, s2),
                        makeErrorOutput(s1, MatchDescriptorChain(any: Q.a), [P.a, Q.a], e1, s3)])
     }
     
-    func testMoreSubtleImplicitMatchClashes() throws {
+    @Test func moreSubtleImplicitMatchClashes() throws {
         let d1 = defineNode(s1, MatchDescriptorChain(any: P.a, R.a), e1, s2)
         let d2 = defineNode(s1, MatchDescriptorChain(any: Q.a), e1, s3)
         let d3 = defineNode(s1, MatchDescriptorChain(any: Q.a, S.a), e1, s1)
@@ -164,19 +162,19 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         let r1 = matchResolvingNode(rest: [d1, d2]).resolve()
         let r2 = matchResolvingNode(rest: [d1, d3]).resolve()
         
-        XCTAssertFalse(r1.errors.isEmpty)
-        XCTAssertFalse(r2.errors.isEmpty)
+        #expect(!r1.errors.isEmpty)
+        #expect(!r2.errors.isEmpty)
     }
     
-    func testPassesConditionToOutput() async {
+    @Test func passesConditionToOutput() async throws {
         let d1 = defineNode(s1, MatchDescriptorChain(condition: { false }), e1, s2)
         let result = matchResolvingNode(rest: [d1]).resolve()
         
-        guard assertCount(result.errors, expected: 0) else { return }
-        guard assertCount(result.output, expected: 1) else { return }
+        try #require(result.errors.count == 0)
+        try #require(result.output.count == 1)
         
         let condition = result.output.first?.condition?()
-        XCTAssertEqual(false, condition)
+        #expect(condition == false)
     }
 }
 
