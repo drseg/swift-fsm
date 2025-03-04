@@ -88,17 +88,51 @@ class LazyMatchResolvingNodeTests: MRNTestBase {
         )
     }
     
-    @Test func implicitMatchClashes() async throws {
-        try await assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a))
-        try await assertNotMatchClash(MatchDescriptorChain(), MatchDescriptorChain(all: P.a, Q.a))
-        try await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: Q.a, S.a))
-        
-        try await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b))
-        try await assertNotMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: P.b, Q.b))
-        try await assertNotMatchClash(MatchDescriptorChain(all: P.a, Q.a), MatchDescriptorChain(all: P.b, Q.b))
-        
-        try assertMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(all: Q.a))
-        try assertMatchClash(MatchDescriptorChain(all: P.a), MatchDescriptorChain(any: Q.a))
-        try assertMatchClash(MatchDescriptorChain(all: P.a, R.a), MatchDescriptorChain(all: Q.a, S.a))
+    @Test(arguments: [
+        (
+            MatchDescriptorChain(),
+            MatchDescriptorChain(all: P.a, Q.a)
+        ),
+        (
+            MatchDescriptorChain(all: P.a),
+            MatchDescriptorChain(all: Q.a, S.a)
+        ),
+        (
+            MatchDescriptorChain(all: P.a),
+            MatchDescriptorChain(all: P.b)
+        ),
+        (
+            MatchDescriptorChain(all: P.a),
+            MatchDescriptorChain(all: P.b, Q.b)
+        ),
+        (
+            MatchDescriptorChain(all: P.a, Q.a),
+            MatchDescriptorChain(all: P.b, Q.b)
+        )
+    ])
+    func areNotImplicitMatchClashes(
+        _ arg: (MatchDescriptorChain, MatchDescriptorChain)
+    ) async throws {
+        try await assertNotMatchClash(arg.0, arg.1)
+    }
+    
+    @Test(arguments: [
+        (
+            MatchDescriptorChain(all: P.a),
+            MatchDescriptorChain(all: Q.a)
+        ),
+        (
+            MatchDescriptorChain(all: P.a),
+            MatchDescriptorChain(any: Q.a)
+        ),
+        (
+            MatchDescriptorChain(all: P.a, R.a),
+            MatchDescriptorChain(all: Q.a, S.a)
+        )
+    ])
+    func areImplicitMatchClashes(
+        _ arg: (MatchDescriptorChain, MatchDescriptorChain)
+    ) async throws {
+        try assertMatchClash(arg.0, arg.1)
     }
 }

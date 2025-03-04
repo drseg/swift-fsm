@@ -215,7 +215,7 @@ class StringableNodeTestTests: StringableNodeTest {
     }
     
     @Test func assertEqualFail() async throws {
-        await withKnownIssue("These should all fail") {
+        await withKnownIssue("These are meant to fail") {
             await assertEqual(t1, whenNode)
             await assertEqualFileAndLine(t1, whenNode)
             await assertEqualFileAndLine(t1, t2)

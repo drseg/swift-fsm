@@ -11,16 +11,22 @@ enum U: Predicate { case a, b    }
 enum V: Predicate { case a, b    }
 enum W: Predicate { case a, b    }
 
-class MatchDescriptorChainTests {
-    let p1 = P.a, p2 = P.b, p3 = P.c
-    let q1 = Q.a, q2 = Q.b
-    let r1 = R.a, r2 = R.b
-    let s1 = S.a, s2 = S.b
-    let t1 = T.a, t2 = T.b
-    let u1 = U.a, u2 = U.b
+enum MatchDescriptorChainTests {
+    class Base {
+        let p1 = P.a, p2 = P.b, p3 = P.c
+        let q1 = Q.a, q2 = Q.b
+        let r1 = R.a, r2 = R.b
+        let s1 = S.a, s2 = S.b
+        let t1 = T.a, t2 = T.b
+        let u1 = U.a, u2 = U.b
+    }
 }
 
-class BasicTests: MatchDescriptorChainTests {
+extension MatchDescriptorChainTests {
+    class BasicTests: Base { }
+}
+
+extension MatchDescriptorChainTests.BasicTests {
     @Test func fileAndLineInit() {
         let f = "f", l = 1
         
@@ -76,7 +82,11 @@ class BasicTests: MatchDescriptorChainTests {
     }
 }
 
-class AdditionTests: MatchDescriptorChainTests {
+extension MatchDescriptorChainTests {
+    class AdditionTests: Base { }
+}
+
+extension MatchDescriptorChainTests.AdditionTests {
     @Test func additionTakesFileAndLineFromLHS() {
         let m1 = MatchDescriptorChain(file: "1", line: 1)
         let m2 = MatchDescriptorChain(file: "2", line: 2)
@@ -163,7 +173,11 @@ class AdditionTests: MatchDescriptorChainTests {
     }
 }
 
-class FinalisationTests: MatchDescriptorChainTests {
+extension MatchDescriptorChainTests {
+    class FinalisationTests: Base { }
+}
+
+extension MatchDescriptorChainTests.FinalisationTests {
     func assertFinalise(
         _ m: MatchDescriptorChain,
         _ e: MatchDescriptorChain,
@@ -184,10 +198,10 @@ class FinalisationTests: MatchDescriptorChainTests {
     
     @Test func matchWithNextFinalisesToSum() {
         assertFinalise(MatchDescriptorChain(any: p1, p2,
-                             all: q1, r1).prepend(MatchDescriptorChain(any: s1, s2,
-                                                        all: t1, u1)),
+                                            all: q1, r1).prepend(MatchDescriptorChain(any: s1, s2,
+                                                                                      all: t1, u1)),
                        MatchDescriptorChain(any: [[p1, p2], [s1, s2]],
-                             all: q1, r1, t1, u1))
+                                            all: q1, r1, t1, u1))
     }
     
     @Test func preservesMatchChain() {
@@ -203,7 +217,11 @@ class FinalisationTests: MatchDescriptorChainTests {
     }
 }
 
-class ValidationTests: MatchDescriptorChainTests {
+extension MatchDescriptorChainTests {
+    class ValidationTests: Base { }
+}
+
+extension MatchDescriptorChainTests.ValidationTests {
     func assert(
         match m: MatchDescriptorChain,
         is e: MatchError,
@@ -256,28 +274,36 @@ class ValidationTests: MatchDescriptorChainTests {
         _ m2: MatchDescriptorChain,
         location: SourceLocation = #_sourceLocation
     ) {
-        let error = DuplicateMatchTypes(predicates: [p1, p2].erased(),
-                                        files: [m1.file, m2.file],
-                                        lines: [m1.line, m2.line])
+        let error = DuplicateMatchTypes(
+            predicates: [p1, p2].erased(),
+            files: [m1.file, m2.file],
+            lines: [m1.line, m2.line]
+        )
         
         assert(match: m1.prepend(m2), is: error, location: location)
     }
     
     @Test func allInvalid_AddingAllInvalid() {
-        assertDuplicateTypesWhenAdded(MatchDescriptorChain(all: p1, p2),
-                                      MatchDescriptorChain(all: p1, p2))
+        assertDuplicateTypesWhenAdded(
+            MatchDescriptorChain(all: p1, p2),
+            MatchDescriptorChain(all: p1, p2)
+        )
     }
     
     @Test func all_AddingAll_FormingDuplicateTypes() {
-        assertDuplicateTypesWhenAdded(MatchDescriptorChain(all: p1, q1),
-                                      MatchDescriptorChain(all: p1, q1))
+        assertDuplicateTypesWhenAdded(
+            MatchDescriptorChain(all: p1, q1),
+            MatchDescriptorChain(all: p1, q1)
+        )
     }
     
     @Test func any_All_WithSamePredicates() {
         let m = MatchDescriptorChain(any: p1, p2, all: p1, q1)
-        let error = DuplicateAnyAllValues(predicates: [p1].erased(),
-                                          files: [m.file],
-                                          lines: [m.line])
+        let error = DuplicateAnyAllValues(
+            predicates: [p1].erased(),
+            files: [m.file],
+            lines: [m.line]
+        )
         
         assert(match: m, is: error)
     }
@@ -288,22 +314,28 @@ class ValidationTests: MatchDescriptorChainTests {
         type: T.Type = DuplicateAnyValues.self,
         location: SourceLocation = #_sourceLocation
     ) {
-        let error =  type.init(predicates: [p1, p2].erased(),
-                               files: [m1.file, m2.file],
-                               lines: [m1.line, m2.line])
+        let error =  type.init(
+            predicates: [p1, p2].erased(),
+            files: [m1.file, m2.file],
+            lines: [m1.line, m2.line]
+        )
         
         assert(match: m1.prepend(m2), is: error, location: location)
     }
     
     @Test func any_AddingAll_FormingDuplicateValues() {
-        assertDuplicateValuesWhenAdded(MatchDescriptorChain(any: p1, p2),
-                                       MatchDescriptorChain(all: p1, q1),
-                                       type: DuplicateAnyAllValues.self)
+        assertDuplicateValuesWhenAdded(
+            MatchDescriptorChain(any: p1, p2),
+            MatchDescriptorChain(all: p1, q1),
+            type: DuplicateAnyAllValues.self
+        )
     }
     
     @Test func any_AddingAny_FormingDuplicateValues() {
-        assertDuplicateValuesWhenAdded(MatchDescriptorChain(any: p1, p2),
-                                       MatchDescriptorChain(any: p1, p2))
+        assertDuplicateValuesWhenAdded(
+            MatchDescriptorChain(any: p1, p2),
+            MatchDescriptorChain(any: p1, p2)
+        )
     }
     
     @Test func anyAndAny_FormingDuplicateTypes() {
@@ -315,16 +347,22 @@ class ValidationTests: MatchDescriptorChainTests {
     }
 }
 
-class MatchCombinationsTests: MatchDescriptorChainTests {
-    let predicatePool = [[Q.a, R.a, S.a],
-                         [Q.b, R.a, S.a],
-                         [Q.a, R.b, S.a],
-                         [Q.b, R.b, S.a],
-                         [Q.a, R.a, S.b],
-                         [Q.b, R.a, S.b],
-                         [Q.a, R.b, S.b],
-                         [Q.b, R.b, S.b]].erasedSets
+extension MatchDescriptorChainTests {
+    class MatchCombinationsTests: Base {
+        let predicatePool = [
+            [Q.a, R.a, S.a],
+            [Q.b, R.a, S.a],
+            [Q.a, R.b, S.a],
+            [Q.b, R.b, S.a],
+            [Q.a, R.a, S.b],
+            [Q.b, R.a, S.b],
+            [Q.a, R.b, S.b],
+            [Q.b, R.b, S.b]
+        ].erasedSets
+    }
+}
 
+extension MatchDescriptorChainTests.MatchCombinationsTests {
     func assertCombinations(
         match: MatchDescriptorChain,
         predicatePool: PredicateSets,
@@ -337,8 +375,11 @@ class MatchCombinationsTests: MatchDescriptorChainTests {
         let allPredicates = Set(allCombinations.map(\.predicates))
         
         #expect(allPredicates == expected.erasedSets, sourceLocation: location)
-        #expect(allRanks.allSatisfy { $0 == eachRank },
-                "expected \(eachRank), got \(allRanks)", sourceLocation: location)
+        #expect(
+            allRanks.allSatisfy { $0 == eachRank },
+            "expected \(eachRank), got \(allRanks)",
+            sourceLocation: location
+        )
     }
     
     @Test func empties() {
@@ -353,94 +394,128 @@ class MatchCombinationsTests: MatchDescriptorChainTests {
     }
     
     @Test func noPredicateMatchesEntirePool() {
-        assertCombinations(match: MatchDescriptorChain(),
-                           predicatePool: predicatePool,
-                           expected: [[Q.a, R.a, S.a],
-                                      [Q.b, R.a, S.a],
-                                      [Q.a, R.b, S.a],
-                                      [Q.b, R.b, S.a],
-                                      [Q.a, R.a, S.b],
-                                      [Q.b, R.a, S.b],
-                                      [Q.a, R.b, S.b],
-                                      [Q.b, R.b, S.b]])
+        assertCombinations(
+            match: MatchDescriptorChain(),
+            predicatePool: predicatePool,
+            expected: [
+                [Q.a, R.a, S.a],
+                [Q.b, R.a, S.a],
+                [Q.a, R.b, S.a],
+                [Q.b, R.b, S.a],
+                [Q.a, R.a, S.b],
+                [Q.b, R.a, S.b],
+                [Q.a, R.b, S.b],
+                [Q.b, R.b, S.b]
+            ]
+        )
     }
     
     @Test func all_SinglePredicate() {
-        assertCombinations(match: MatchDescriptorChain(all: Q.a),
-                           predicatePool: predicatePool,
-                           expected: [[Q.a, R.a, S.a],
-                                      [Q.a, R.b, S.a],
-                                      [Q.a, R.a, S.b],
-                                      [Q.a, R.b, S.b]],
-                           eachRank: 1)
+        assertCombinations(
+            match: MatchDescriptorChain(all: Q.a),
+            predicatePool: predicatePool,
+            expected: [
+                [Q.a, R.a, S.a],
+                [Q.a, R.b, S.a],
+                [Q.a, R.a, S.b],
+                [Q.a, R.b, S.b]
+            ],
+            eachRank: 1
+        )
     }
     
     @Test func all_MultiPredicate() {
-        assertCombinations(match: MatchDescriptorChain(all: Q.a, R.a),
-                           predicatePool: predicatePool,
-                           expected: [[Q.a, R.a, S.a],
-                                      [Q.a, R.a, S.b]],
-                           eachRank: 2)
+        assertCombinations(
+            match: MatchDescriptorChain(all: Q.a, R.a),
+            predicatePool: predicatePool,
+            expected: [
+                [Q.a, R.a, S.a],
+                [Q.a, R.a, S.b]
+            ],
+            eachRank: 2
+        )
         
-        assertCombinations(match: MatchDescriptorChain(all: Q.a, R.a, S.a),
-                           predicatePool: predicatePool,
-                           expected: [[Q.a, R.a, S.a]],
-                           eachRank: 3)
+        assertCombinations(
+            match: MatchDescriptorChain(all: Q.a, R.a, S.a),
+            predicatePool: predicatePool,
+            expected: [[Q.a, R.a, S.a]],
+            eachRank: 3
+        )
     }
     
     @Test func any_MultiPredicate() {
-        assertCombinations(match: MatchDescriptorChain(any: Q.a, Q.b),
-                           predicatePool: predicatePool,
-                           expected: [[Q.a, R.a, S.a],
-                                      [Q.b, R.a, S.a],
-                                      [Q.a, R.b, S.a],
-                                      [Q.b, R.b, S.a],
-                                      [Q.a, R.a, S.b],
-                                      [Q.b, R.a, S.b],
-                                      [Q.a, R.b, S.b],
-                                      [Q.b, R.b, S.b]],
-                           eachRank: 1)
+        assertCombinations(
+            match: MatchDescriptorChain(any: Q.a, Q.b),
+            predicatePool: predicatePool,
+            expected: [
+                [Q.a, R.a, S.a],
+                [Q.b, R.a, S.a],
+                [Q.a, R.b, S.a],
+                [Q.b, R.b, S.a],
+                [Q.a, R.a, S.b],
+                [Q.b, R.a, S.b],
+                [Q.a, R.b, S.b],
+                [Q.b, R.b, S.b]
+            ],
+            eachRank: 1
+        )
         
-        assertCombinations(match: MatchDescriptorChain(any: Q.a, R.a),
-                           predicatePool: predicatePool,
-                           expected: [[Q.a, R.a, S.a],
-                                      [Q.b, R.a, S.a],
-                                      [Q.a, R.b, S.a],
-                                      [Q.a, R.a, S.b],
-                                      [Q.b, R.a, S.b],
-                                      [Q.a, R.b, S.b]],
-                           eachRank: 1)
+        assertCombinations(
+            match: MatchDescriptorChain(any: Q.a, R.a),
+            predicatePool: predicatePool,
+            expected: [
+                [Q.a, R.a, S.a],
+                [Q.b, R.a, S.a],
+                [Q.a, R.b, S.a],
+                [Q.a, R.a, S.b],
+                [Q.b, R.a, S.b],
+                [Q.a, R.b, S.b]
+            ],
+            eachRank: 1
+        )
     }
     
     @Test func multiAny() {
-        assertCombinations(match: MatchDescriptorChain(any: [[Q.a, Q.b], [R.a, R.b]]),
-                           predicatePool: predicatePool,
-                           expected: [[Q.a, R.a, S.a],
-                                      [Q.b, R.a, S.a],
-                                      [Q.a, R.b, S.a],
-                                      [Q.b, R.b, S.a],
-                                      [Q.a, R.a, S.b],
-                                      [Q.b, R.a, S.b],
-                                      [Q.a, R.b, S.b],
-                                      [Q.b, R.b, S.b]],
-                           eachRank: 2)
+        assertCombinations(
+            match: MatchDescriptorChain(any: [[Q.a, Q.b], [R.a, R.b]]),
+            predicatePool: predicatePool,
+            expected: [
+                [Q.a, R.a, S.a],
+                [Q.b, R.a, S.a],
+                [Q.a, R.b, S.a],
+                [Q.b, R.b, S.a],
+                [Q.a, R.a, S.b],
+                [Q.b, R.a, S.b],
+                [Q.a, R.b, S.b],
+                [Q.b, R.b, S.b]
+            ],
+            eachRank: 2
+        )
     }
     
     @Test func anyAndAll() {
-        assertCombinations(match: MatchDescriptorChain(any: Q.a, Q.b, all: R.a),
-                           predicatePool: predicatePool,
-                           expected: [[Q.a, R.a, S.a],
-                                      [Q.b, R.a, S.a],
-                                      [Q.a, R.a, S.b],
-                                      [Q.b, R.a, S.b]],
-                           eachRank: 2)
+        assertCombinations(
+            match: MatchDescriptorChain(any: Q.a, Q.b, all: R.a),
+            predicatePool: predicatePool,
+            expected: [
+                [Q.a, R.a, S.a],
+                [Q.b, R.a, S.a],
+                [Q.a, R.a, S.b],
+                [Q.b, R.a, S.b]
+            ],
+            eachRank: 2
+        )
         
-        assertCombinations(match: MatchDescriptorChain(any: Q.a, R.a, all: S.a),
-                           predicatePool: predicatePool,
-                           expected: [[Q.a, R.a, S.a],
-                                      [Q.b, R.a, S.a],
-                                      [Q.a, R.b, S.a]],
-                           eachRank: 2)
+        assertCombinations(
+            match: MatchDescriptorChain(any: Q.a, R.a, all: S.a),
+            predicatePool: predicatePool,
+            expected: [
+                [Q.a, R.a, S.a],
+                [Q.b, R.a, S.a],
+                [Q.a, R.b, S.a]
+            ],
+            eachRank: 2
+        )
     }
 }
 

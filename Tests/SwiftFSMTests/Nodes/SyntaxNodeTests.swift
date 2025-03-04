@@ -90,9 +90,11 @@ class SyntaxNodeTests {
     }
     
     func randomisedTrace(_ base: String) -> AnyTraceable {
-        AnyTraceable(base,
-                     file: UUID().uuidString,
-                     line: Int.random(in: 0...Int.max))
+        AnyTraceable(
+            base,
+            file: UUID().uuidString,
+            line: Int.random(in: 0...Int.max)
+        )
     }
     
     func assertEmptyThen(
@@ -223,9 +225,11 @@ class SyntaxNodeTests {
         let result = finalised.0
         let errors = finalised.1
         
-        assertEqual(lhs: expected,
-                    rhs: result.map { MSES($0.descriptor, $0.state, $0.event, $0.nextState) },
-                    location: location)
+        assertEqual(
+            lhs: expected,
+            rhs: result.map { MSES($0.descriptor, $0.state, $0.event, $0.nextState) },
+            location: location
+        )
         
         await result.map(\.actions).flattened.executeAll()
         #expect(actionsOutput == actionsOutput, sourceLocation: location)
@@ -242,9 +246,11 @@ class SyntaxNodeTests {
         let result = finalised.0
         let errors = finalised.1
         
-        assertEqual(lhs: expected,
-                    rhs: result.map { MSES($0.match, $0.state, $0.event, $0.nextState) },
-                    location: location)
+        assertEqual(
+            lhs: expected,
+            rhs: result.map { MSES($0.match, $0.state, $0.event, $0.nextState) },
+            location: location
+        )
         
         for node in result {
             await node.onEntry.executeAll()

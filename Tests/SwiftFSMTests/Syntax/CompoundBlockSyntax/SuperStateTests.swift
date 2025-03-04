@@ -2,7 +2,7 @@ import Testing
 @testable import SwiftFSM
 
 class SuperStateTests: BlockTestsBase {
-    @Test func SuperStateAddsSuperStateNodes() async throws {
+    @Test func superStateAddsSuperStateNodes() async throws {
         let s1 = SuperState { mwtaBlock }
         let nodes = SuperState(adopts: s1, s1).nodes
 

@@ -2,13 +2,13 @@ import Testing
 @testable import SwiftFSM
 
 class ThenBlockTests: BlockTestsBase {
-    @Test func ThenBlockWithMTA() async {
+    @Test func thenBlockWithMTA() async {
         let node = (then(1) { mwaBlock }).thenBlockNode; let line = #line
         assertThenNode(node, state: 1, sutFile: #file, sutLine: line)
         await assertMWAResult(node.rest, sutLine: mwaLine)
     }
 
-    @Test func ThenBlockWithMA() async {
+    @Test func thenBlockWithMA() async {
         let node = (then(1) { maBlock }).thenBlockNode; let line = #line
         assertThenNode(node, state: 1, sutFile: #file, sutLine: line)
         await assertMAResult(node.rest, sutLine: maLine)

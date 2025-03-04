@@ -13,7 +13,7 @@ struct CombinationsTests {
         (input: [[1, 2], [3]], expected: [[1, 3], [2, 3]]),
         (input: [[1, 2], [3, 4]], expected: [[1, 3], [1, 4], [2, 3], [2, 4]])
     ])
-    func combinations(arg: (input: [[Int]], expected: [[Int]])) {
-        #expect(arg.input.combinations() == arg.expected)
+    func combinations(input: [[Int]], expected: [[Int]]) {
+        #expect(input.combinations() == expected)
     }
 }

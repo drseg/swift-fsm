@@ -34,9 +34,11 @@ class NodeTests {
         let n2 = StringNode(first: "When", rest: [n0, n1])
         let n3 = StringNode(first: "Given", rest: [n2])
         
-        assertEqual(actual: n3.resolve(),
-                    expected: (["GivenWhenThen1", "GivenWhenThen2"],
-                               ["E", "E", "E", "E"]))
+        assertEqual(
+            actual: n3.resolve(),
+            expected: (["GivenWhenThen1", "GivenWhenThen2"],
+                       ["E", "E", "E", "E"])
+        )
     }
     
     @Test func resolveCallsCombinedWithBeforeValidate() {

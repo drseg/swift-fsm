@@ -57,7 +57,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         await assertEventAction(.reset, "lock", fsm: fsm)
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func turnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
@@ -80,7 +80,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         await assertTurnstile(fsm: fsm)
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func conditionTurnstile(_ fsm: SUT) async throws {
         let bool = false
         
@@ -117,7 +117,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
         await assertEventAction(.reset,  "", fsm: fsm)
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func overrideTurnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
@@ -156,7 +156,7 @@ class FSMIntegrationTests_Turnstile: FSMIntegrationTests {
     
     func fail() { Issue.record("should not have been called") }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func chainedOverrides(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let s1 = SuperState { when(.coin) | then(.unlocked) | fail  }
@@ -212,7 +212,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         await assertEventAction(.reset, "lock", fsm: fsm)
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func predicateTurnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
@@ -239,7 +239,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         await assertTable(fsm: fsm)
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func deduplicatedPredicateTurnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
@@ -272,7 +272,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
         await assertTable(fsm: fsm)
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func actionsBlockTurnstile(_ fsm: SUT) async throws {
         try fsm.buildTable {
             let resetable = SuperState {
@@ -310,7 +310,7 @@ class FSMIntegrationTests_PredicateTurnstile: FSMIntegrationTests {
 }
 
 class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func multiplePredicateBlocks(_ fsm: SUT) async throws {
         try fsm.buildTable {
             define(.locked) {
@@ -345,7 +345,7 @@ class FSMIntegrationTests_NestedBlocks: FSMIntegrationTests {
         #expect(["unlock"] == actions)
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func multipleActionsBlocks(_ fsm: SUT) async throws {
         try fsm.buildTable {
             define(.locked) {
@@ -374,7 +374,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         #expect(expectedLine == e?.line, sourceLocation: location)
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func emptyBlockThrowsError(_ fsm: SUT) {
         #expect(performing: {
             try fsm.buildTable {
@@ -390,7 +390,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         })
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func emptyBlocksThrowErrors(_ fsm: SUT) {
         #expect(performing: {
             try fsm.buildTable {
@@ -417,7 +417,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         })
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func duplicatesAndClashesThrowErrors(_ fsm: SUT) {
         typealias DE = SemanticValidationNode.DuplicatesError
         typealias CE = SemanticValidationNode.ClashError
@@ -470,7 +470,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         })
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func implicitMatchClashesThrowErrors(_ fsm: SUT) {
         #expect(performing: {
             try fsm.buildTable {
@@ -514,7 +514,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         })
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func matchesThrowErrors(_ fsm: SUT) {
         #expect(performing: {
             try fsm.buildTable {
@@ -545,7 +545,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         })
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func nothingToOverrideThrowsErrors(_ fsm: SUT) {
         #expect(performing: {
             try fsm.buildTable {
@@ -561,7 +561,7 @@ class FSMIntegrationTests_Errors: FSMIntegrationTests {
         })
     }
     
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func outOfOrderOverridesThrowErrors(_ fsm: SUT) {
         #expect(performing: {
             let s = SuperState {
@@ -642,7 +642,7 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
         assertValue(fish)
     }
 
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func EventPassingUsingValueEnum(_ fsm: SUT) async {
         await assertEventPassing(
             cat: .didSetOtherValue(.some("cat")),
@@ -653,7 +653,7 @@ class FSMEventPassingIntegrationTests: FSMTestsBase<TurnstileState, ComplexEvent
         )
     }
 
-    @Test(arguments: suts)
+    @Test(arguments: eagerAndLazy)
     func DuplicatesDetectedAsExpectedUsingStruct(_ fsm: SUT) {
         #expect(performing: {
             try fsm.buildTable {

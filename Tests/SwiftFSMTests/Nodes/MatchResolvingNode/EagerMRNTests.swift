@@ -42,11 +42,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         expected: [ExpectedMRNError],
         location: SourceLocation = #_sourceLocation
     ) throws {
-        guard let clashError = result.errors[0] as? EMRN.ImplicitClashesError else {
-            Issue.record("unexpected error \(result.errors[0])", sourceLocation: location)
-            return
-        }
-        
+        let clashError = try #require(result.errors[0] as? EMRN.ImplicitClashesError)
         let clashes = clashError.clashes
         try #require(clashes.first?.value.count == expected.count, sourceLocation: location)
         
@@ -143,10 +139,7 @@ class EagerMatchResolvingNodeTests: MRNTestBase {
         let result = matchResolvingNode(rest: [d1, d2]).resolve()
         
         try #require(result.errors.count == 1)
-        guard let clashError = result.errors[0] as? EMRN.ImplicitClashesError else {
-            Issue.record("unexpected error \(result.errors[0])"); return
-        }
-        
+        let clashError = try #require(result.errors[0] as? EMRN.ImplicitClashesError)
         try #require(clashError.clashes.first?.value.count == 2)
         try assertError(
             result,

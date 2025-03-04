@@ -99,14 +99,16 @@ struct PredicateCombinationsTests {
         
         let predicates = [Q.a, Q.b, P.a, P.b, R.b, R.b].erased()
         
-        let expected = [[P.a, Q.a, R.a],
-                        [P.b, Q.a, R.a],
-                        [P.a, Q.a, R.b],
-                        [P.b, Q.a, R.b],
-                        [P.a, Q.b, R.a],
-                        [P.b, Q.b, R.a],
-                        [P.a, Q.b, R.b],
-                        [P.b, Q.b, R.b]].erasedSets
+        let expected = [
+            [P.a, Q.a, R.a],
+            [P.b, Q.a, R.a],
+            [P.a, Q.a, R.b],
+            [P.b, Q.a, R.b],
+            [P.a, Q.b, R.a],
+            [P.b, Q.b, R.a],
+            [P.a, Q.b, R.b],
+            [P.b, Q.b, R.b]
+        ].erasedSets
         
         #expect(expected == predicates.combinationsOfAllCases)
     }

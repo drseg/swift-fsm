@@ -37,7 +37,8 @@ final class MatchingNodeTests: SyntaxNodeTests {
         try await assertDefaultIONodeChains(
             node: m,
             expectedMatch: MatchDescriptorChain(any: [[P.a], [S.b]],
-                                                all: Q.a, R.a))
+                                                all: Q.a, R.a)
+        )
     }
     
     @Test func matchNodeCanSetRestAfterInit() async throws {
