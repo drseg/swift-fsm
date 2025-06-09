@@ -4,7 +4,7 @@ public typealias Action = @isolated(any) () async -> Void
 public typealias ActionWithEvent<Event: FSMHashable> = @isolated(any) (Event) async -> Void
 
 public struct AnyAction: @unchecked Sendable {
-    public enum NullEvent: FSMHashable { case null }
+    internal struct NullEvent: FSMHashable { }
 
     private let base: Any
 
@@ -16,7 +16,7 @@ public struct AnyAction: @unchecked Sendable {
         base = action
     }
 
-    func callAsFunction<Event: FSMHashable>(_ event: Event = NullEvent.null) async {
+    internal func callAsFunction<Event: FSMHashable>(_ event: Event = NullEvent()) async {
         if let base = self.base as? Action {
             await base()
         } else if let base = self.base as? ActionWithEvent<Event> {

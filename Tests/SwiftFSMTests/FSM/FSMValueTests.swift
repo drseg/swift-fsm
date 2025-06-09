@@ -27,32 +27,21 @@ final class FSMValueTests: @unchecked Sendable {
         
         #expect(v1.unsafeWrappedValue() == "1")
     }
-
-    class ThrowerTest: Throwing {
-        var isComplete = false
-        var caller = ""
-        
-        func `throw`(instance: String, function: String) throws -> Never {
-            caller = function
-            isComplete = true
-            repeat { RunLoop.current.run() } while true
+    
+    @Test func unsafeWrappedValueCanBeValid() async {
+        await #expect(processExitsWith: .success) {
+            let one = FSMValue.some("1").unsafeWrappedValue()
+            #expect(one == "1")
         }
-        
-        @MainActor
-        @Test func throwCallsThrowerWithFunctionName() async {
-            FSMValue<Int>.setThrower(self)
-            defer { FSMValue<Int>.resetThrower() }
-            
-            Task.detached {
-                let _ = FSMValue<String>.any.unsafeWrappedValue()
-            }
-            
-            while isComplete == false { }
-            #expect(#function == caller)
+    }
+    
+    @Test func unsafeWrappedValueCrashesIfInvalid() async {
+        await #expect(processExitsWith: .failure) {
+            let _ = FSMValue<String>.any.unsafeWrappedValue()
         }
     }
 
-    @Test func iIsSome() {
+    @Test func isSome() {
         #expect(!vAny.isSome)
         #expect(v1.isSome)
     }
