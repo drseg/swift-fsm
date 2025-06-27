@@ -51,13 +51,20 @@ extension FSM.Base: @unchecked Sendable { }
 class FSMTests: FSMTestsBase<Int, Double> {
     class override var initialState: Int { 1 }
     
+    @Test
+    func makeMRNInBaseIsAbstract() async {
+        await #expect(processExitsWith: .failure) {
+            let _ = FSM<Int, Int>.Base(initialState: 1).makeMatchResolvingNode(rest: [])
+        }
+    }
+    
     @Test(arguments: eagerAndLazy)
     func successfulInit(_ fsm: SUT) {
         #expect(1 == fsm.state as! Int)
     }
     
     @Test(arguments: eagerAndLazy)
-    func buildEmptyTable(_ fsm: SUT) {
+    func buildEmptyTableThrowsError(_ fsm: SUT) {
         assertThrowsError(EmptyTableError.self) {
             try fsm.buildTable { }
         }

@@ -2,6 +2,13 @@ import Testing
 @testable import SwiftFSM
 
 final class AnyTraceableTests: SyntaxNodeTests {
+    @Test func traceableCannotBeNil() async {
+        await #expect(processExitsWith: .failure) {
+            let optional: Int? = nil
+            let _ = AnyTraceable(optional, file: "", line: 1)
+        }
+    }
+    
     @Test func traceableEquality() {
         let t1 = randomisedTrace("cat")
         let t2 = randomisedTrace("cat")

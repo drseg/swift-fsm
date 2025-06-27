@@ -192,20 +192,27 @@ extension MatchDescriptorChainTests.FinalisationTests {
     }
 
     @Test func emptyMatchWithNextFinalisesToNext() {
-        assertFinalise(MatchDescriptorChain().prepend(MatchDescriptorChain(any: p1, p2)),
-                       MatchDescriptorChain(any: p1, p2))
+        assertFinalise(
+            MatchDescriptorChain().prepend(MatchDescriptorChain(any: p1, p2)),
+            MatchDescriptorChain(any: p1, p2)
+        )
     }
     
     @Test func matchWithNextFinalisesToSum() {
-        assertFinalise(MatchDescriptorChain(any: p1, p2,
-                                            all: q1, r1).prepend(MatchDescriptorChain(any: s1, s2,
-                                                                                      all: t1, u1)),
-                       MatchDescriptorChain(any: [[p1, p2], [s1, s2]],
-                                            all: q1, r1, t1, u1))
+        assertFinalise(
+            MatchDescriptorChain(any: p1, p2,
+                                 all: q1, r1).prepend(MatchDescriptorChain(any: s1, s2,
+                                                                           all: t1, u1)),
+            MatchDescriptorChain(any: [[p1, p2], [s1, s2]],
+                                 all: q1, r1, t1, u1)
+        )
     }
     
     @Test func preservesMatchChain() {
-        let result = try? MatchDescriptorChain().prepend(MatchDescriptorChain(any: p1, p2)).resolve().get()
+        let result = try? MatchDescriptorChain()
+            .prepend(MatchDescriptorChain(any: p1, p2))
+            .resolve()
+            .get()
         #expect(result == MatchDescriptorChain(any: p1, p2))
         #expect(result?.childDescriptor == MatchDescriptorChain())
     }

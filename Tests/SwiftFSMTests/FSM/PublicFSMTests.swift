@@ -241,12 +241,12 @@ final class PublicFSMTests: ExpandedSyntaxBuilder {
         
         typealias State = Int
         typealias Event = Int
-
+        
         public override func buildTable(
             file: StaticString = #file,
             line: Int = #line,
             isolation: isolated (any Actor)? = #isolation,
-            @TableBuilder _ block: @isolated(any) () -> [Syntax.Define<State, Event>]
+            @TableBuilder _ block: () -> [Syntax.Define<State, Event>]
         ) throws {
             log(args: [isolation!])
         }

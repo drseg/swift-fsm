@@ -7,19 +7,19 @@ public enum StateActionsPolicy {
 public class FSM<State: FSMHashable, Event: FSMHashable> {
     public enum PredicateHandling { case eager, lazy }
     
-    typealias Precondition = (
+    internal typealias Precondition = (
         @autoclosure () -> Bool,
         @autoclosure () -> String,
         StaticString,
         UInt
     ) -> ()
     
-    var assertsIsolation: Bool
-    var isolation: (any Actor) = NonIsolated()
-    var isolationWasSet = false
-    var _precondition: Precondition = Swift.precondition
+    internal var assertsIsolation: Bool
+    internal var isolation: (any Actor) = NonIsolated()
+    internal var isolationWasSet = false
+    internal var _precondition: Precondition = Swift.precondition
 
-    var fsm: Base
+    internal var fsm: Base
     
     public init(
         type: PredicateHandling = .eager,
@@ -39,7 +39,7 @@ public class FSM<State: FSMHashable, Event: FSMHashable> {
         file: StaticString = #file,
         line: Int = #line,
         isolation: isolated (any Actor)? = #isolation,
-        @TableBuilder _ block: @isolated(any) () -> [Syntax.Define<State, Event>]
+        @TableBuilder _ block: () -> [Syntax.Define<State, Event>]
     ) throws {
         verifyIsolation(isolation, file: file, line: UInt(line))
         try fsm.buildTable(file: "\(file)", line: line, isolation: isolation, block)
@@ -99,7 +99,7 @@ extension FSM {
         let previous = type(of: self.isolation)
         let message = "Concurrency violation: \(caller) called by \(current) (expected \(previous))"
         
-        _precondition(current == previous, message, file, UInt(line))
+        _precondition(current == previous, message, file, line)
     }
     
     private func setIsolation(_ isolation: (any Actor)) {
