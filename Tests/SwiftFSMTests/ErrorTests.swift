@@ -31,7 +31,7 @@ final class ErrorTests: SyntaxNodeTests {
         #expect((e as CustomStringConvertible).description == message)
     }
 
-    @Test func EmptyBlockError() {
+    @Test func emptyBlockError() {
         e = EmptyBuilderError(caller: "caller", file: "/testfile", line: 10)
         e.assertDescription(
             "Empty @resultBuilder block passed to 'caller' in testfile at line 10"
